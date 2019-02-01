@@ -4,9 +4,6 @@ import java.util.*;
 
 public class Alt2DWindow extends myDispWindow {
 	
-	//window specific objects
-	private myProbExpMgr expMgr;
-
 	/////////////
 	// ui objects 
 	////////////
@@ -63,7 +60,6 @@ public class Alt2DWindow extends myDispWindow {
 	
 	@Override
 	protected void initMe() {
-		expMgr = new myProbExpMgr(this);
 		//called once
 		initPrivFlags(numPrivFlags);
 		//this window is runnable

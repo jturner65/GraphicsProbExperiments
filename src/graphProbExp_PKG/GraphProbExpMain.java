@@ -92,7 +92,7 @@ public class GraphProbExpMain extends PApplet {
 		//th_exec = Executors.newCachedThreadPool();			 
 		initDispWins();
 		setFlags(showUIMenu, true);					//show input UI menu	
-		setFlags(show1stWinIDX, true);
+		setFlags(show2ndWinIDX, true);
 		initProgram();
 		setFlags(finalInitDone, true);
 	}//	initOnce
@@ -405,8 +405,8 @@ public class GraphProbExpMain extends PApplet {
 			dispWinFrames[i].setRtSideUIBoxClrs(new int[]{0,0,0,200},new int[]{255,255,255,255});
 		}	
 		//set initial state to be true - show info window
-		setFlags(showRtSideMenu, true);
-	}	
+		//setFlags(showRtSideMenu, true);
+	}//initDispWins	
 	
 	//get the ui rect values of the "master" ui region (another window) -> this is so ui objects of one window can be made, clicked, and shown displaced from those of the parent windwo
 	public float[] getUIRectVals(int idx){
@@ -1293,8 +1293,12 @@ public class GraphProbExpMain extends PApplet {
 		if (yLocSt < 0) {	transY = -1.0f * yLocSt;	} else if (yLocEnd > height) {transY = height - yLocEnd - 20;}
 		translate(transX,transY);		
 	}
+	
+	
 
-	public void showBox(myPointf P, float rad, int det, int[] fclr, int[] strkclr, int tclr, String txt) {
+	/////////////
+	// show functions using full clr arrays for colors	
+	public void showBox_ClrAra(myPointf P, float rad, int det, int[] fclr, int[] strkclr, int tclr, String txt) {
 		pushMatrix(); pushStyle(); 
 		translate(P.x,P.y,P.z);
 		fill(255,255,255,150);
@@ -1306,7 +1310,27 @@ public class GraphProbExpMain extends PApplet {
 		sphere(rad); 
 		showOffsetText(1.2f * rad,tclr, txt);
 		popStyle(); popMatrix();} // render sphere of radius r and center P)
-
+	//translate to point, draw point and text
+	public void showNoBox_ClrAra(myPointf P, float rad, int det, int[] fclr, int[] strkclr, int tclr, String txt) {
+		pushMatrix(); pushStyle(); 
+		translate(P.x,P.y,P.z); 
+		setFill(fclr,255); setStroke(strkclr,255);			
+		sphereDetail(det);
+		sphere(rad); 
+		showOffsetText(1.2f * rad,tclr, txt);
+		popStyle(); popMatrix();} // render sphere of radius r and center P)
+	
+	//show sphere of certain radius
+	public void show_ClrAra(myPointf P, float rad, int det, int[] fclr, int[] strkclr) {
+		pushMatrix(); pushStyle(); 
+		if((fclr!= null) && (strkclr!= null)){setFill(fclr,255); setStroke(strkclr,255);}
+		sphereDetail(det);
+		translate(P.x,P.y,P.z); 
+		sphere(rad); 
+		popStyle(); popMatrix();} // render sphere of radius r and center P)
+	
+	/////////////
+	// show functions using color idxs 
 	public void showBox(myPointf P, float rad, int det, int[] clrs, String[] txtAra, float[] rectDims) {
 		pushMatrix(); pushStyle(); 
 			translate(P.x,P.y,P.z);
@@ -1326,24 +1350,6 @@ public class GraphProbExpMain extends PApplet {
 			popStyle(); popMatrix();
 		popStyle(); popMatrix();} // render sphere of radius r and center P)
 	
-	//inRect means draw inside rectangle
-	public void showNoBox(myPointf P, float rad, int det, int[] fclr, int[] strkclr, int tclr, String txt) {
-		pushMatrix(); pushStyle(); 
-		translate(P.x,P.y,P.z); 
-		setFill(fclr,255); setStroke(strkclr,255);			
-		sphereDetail(det);
-		sphere(rad); 
-		showOffsetText(1.2f * rad,tclr, txt);
-		popStyle(); popMatrix();} // render sphere of radius r and center P)
-	//show sphere of certain radius
-	public void show(myPointf P, float rad, int det, int[] fclr, int[] strkclr) {
-		pushMatrix(); pushStyle(); 
-		if((fclr!= null) && (strkclr!= null)){setFill(fclr,255); setStroke(strkclr,255);}
-		sphereDetail(det);
-		translate(P.x,P.y,P.z); 
-		sphere(rad); 
-		popStyle(); popMatrix();} // render sphere of radius r and center P)
-	
 	public void show(myPointf P, float rad, int det, int[] clrs) {//only call with set fclr and sclr - idx0 == fill, idx 1 == strk
 		pushMatrix(); pushStyle(); 
 		setColorValFill(clrs[0],255); 
@@ -1351,16 +1357,6 @@ public class GraphProbExpMain extends PApplet {
 		sphereDetail(det);
 		translate(P.x,P.y,P.z); 
 		sphere(rad); 
-		popStyle(); popMatrix();} // render sphere of radius r and center P)
-	
-	public void show(myPointf P, float rad, int det, int fclr, int strkclr, int tclr, String[] txtAra) {//only call with set fclr and sclr
-		pushMatrix(); pushStyle(); 
-		setColorValFill(fclr,255); 
-		setColorValStroke(strkclr,255);
-		sphereDetail(det);
-		translate(P.x,P.y,P.z); 
-		sphere(rad); 
-		showOffsetTextAra(1.2f * rad, tclr, txtAra);
 		popStyle(); popMatrix();} // render sphere of radius r and center P)
 	
 	public void show(myPointf P, float rad, int det, int[] clrs, String[] txtAra) {//only call with set fclr and sclr - idx0 == fill, idx 1 == strk, idx2 == txtClr
@@ -1373,6 +1369,8 @@ public class GraphProbExpMain extends PApplet {
 		showOffsetTextAra(1.2f * rad, clrs[2], txtAra);
 		popStyle(); popMatrix();} // render sphere of radius r and center P)
 	
+	/////////////
+	//base show function
 	public void show(myPointf P, float rad, int det){			
 		pushMatrix(); pushStyle(); 
 		fill(0,0,0,255); 

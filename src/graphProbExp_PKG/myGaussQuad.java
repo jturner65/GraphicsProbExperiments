@@ -13,7 +13,9 @@ import java.util.function.Function;
  *
  */
 public abstract class myGaussQuad {
-	public static myProbExpMgr expMgr;
+	public static BaseProbExpMgr expMgr;
+	
+	public final String name;
 	
 	//# of wts/points used for quadrature
 	public int numPoints;
@@ -24,8 +26,8 @@ public abstract class myGaussQuad {
 	//idx 0 == abscissas, idx 1 == wts for gaussian quadrature
 	protected BigDecimal[][] gaussQuad;
 		
-	public myGaussQuad(myProbExpMgr _expMgr, int _numPoints, double _tol, int _BDScale) {
-		expMgr=_expMgr;
+	public myGaussQuad(BaseProbExpMgr _expMgr, String _name, int _numPoints, double _tol, int _BDScale) {
+		expMgr=_expMgr;name=_name;
 		setSolverVals(_numPoints, _tol, _BDScale);
 	}//ctor
 	
@@ -57,7 +59,7 @@ class myGaussLegenQuad extends myGaussQuad{
     //idx 0 == xvals, idx 1 == wts for gaussian quadrature with legendre polynomials for the integrator for this function
 	protected BigDecimal[][] gaussQuad;
 
-	public myGaussLegenQuad(myProbExpMgr _expMgr,int _numPoints, double _tol, int _BDScale) {	super(_expMgr,_numPoints, _tol,_BDScale);}
+	public myGaussLegenQuad(BaseProbExpMgr _expMgr,String _name, int _numPoints, double _tol, int _BDScale) {	super(_expMgr,_name,_numPoints, _tol,_BDScale);}
 
 	@Override
 	public BigDecimal evalIntegral(Function<Double, Double> func, double min, double max) {

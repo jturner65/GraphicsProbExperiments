@@ -4,9 +4,6 @@ import java.util.*;
 
 public class Main3DWindow extends myDispWindow {
 	
-	//window specific objects
-	private myProbExpMgr expMgr;
-
 	///////////
 	//ui vals
 	//value to multiply delta t by per frame to speed up simulation
@@ -50,6 +47,7 @@ public class Main3DWindow extends myDispWindow {
 		{"Func 1", "Func 2", "Func 3", "Func 4"},	//row 1
 		{"Dbg 1","Dbg 2","Dbg 3","Dbg 4","Dbg 5"}	
 	};
+	
 	private myProbExpMgr tester;
 
 	public Main3DWindow(GraphProbExpMain _p, String _n, int _flagIdx, int[] fc, int[] sc, float[] rd, float[] rdClosed, String _winTxt, boolean _canDrawTraj) {
@@ -81,7 +79,6 @@ public class Main3DWindow extends myDispWindow {
 	
 	@Override
 	protected void initMe() {//all ui objects set by here
-		expMgr = new myProbExpMgr(this);
 		//this window is runnable
 		setFlags(isRunnable, true);
 		//this window uses a customizable camera

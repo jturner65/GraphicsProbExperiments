@@ -1,21 +1,17 @@
 package graphProbExp_PKG;
 
-
-import static java.lang.Math.PI;
-import static java.lang.Math.cos;
-
 import java.math.*;
-import java.util.*;
 import java.util.function.Function;
 
 /**
- * class to provide the functionality of a random variable to be consumed by the random number generators.
+ * classes to provide the functionality of a random variable to be consumed by the random number generators.
+ * These classes will model the pdf and inv pdf of a particular random variable, as well as provide access to integration (to derive CDF)
  * 
  * @author john
  *
  */
 public abstract class myRandVarFunc {
-	public static myProbExpMgr expMgr;
+	public static BaseProbExpMgr expMgr;
 	//descriptive name of function
 	public final String name;
 	
@@ -27,9 +23,14 @@ public abstract class myRandVarFunc {
 	public static final int
 			debugIDX 					= 0,
 			useZigAlgIDX				= 1,		//whether or not this random variable will be used in a ziggurat solver		
-			meanStdSetIDX				= 2,
-			quadSlvrSetIDX				= 3;		//whether quadrature solver has been set or not
-	public static final int numFlags 	= 4;	
+			//momments set
+			meanSetIDX					= 2,		//specific mean is set
+			stdSetIDX					= 3,		//specific std is set
+			skewSetIDX					= 4,		//specific skew is set
+			kurtSetIDX					= 5,		//specific kurt is set
+			//quad solver set
+			quadSlvrSetIDX				= 6;		//whether quadrature solver has been set or not
+	public static final int numFlags 	= 7;	
 	
 	//mean and std of this distribution.  mean, std, var may be null/undefined for certain distributions (i.e. cauchy)
 	protected Double[] mmnts;
@@ -59,35 +60,44 @@ public abstract class myRandVarFunc {
 	//////////////////////////////////
 	///useful constants
     //scale factor for normal N(0,1)
-	protected static double invSqrt2 = 1.0/Math.sqrt(2.0);
+	protected static double invSqrt2 = 1.0/Math.sqrt(2.0),
+							ln2 = Math.log(2.0);
 	
-	public myRandVarFunc(myProbExpMgr _expMgr, String _name) {
+	public myRandVarFunc(BaseProbExpMgr _expMgr, myGaussQuad _quadSlvr, String _name) {
 		expMgr = _expMgr;name=_name;
-		quadSlvr = null;
-		mmnts = new Double[numMmnts];
 		initFlags();
+		setQuadSolver(_quadSlvr);
+		mmnts = new Double[numMmnts];
 	}//ctor
 	
 	//call this to set desired values for mean and std - possibly change them on constructed object? - called from ctor
-	public void setMeanStd(Double _mu, Double _std){
+	protected void setMeanStd(Double _mu, Double _std){
 		mmnts[meanIDX]=_mu;
+		setFlag(meanSetIDX, true);
 		mmnts[stdIDX]=_std; 
+		setFlag(stdSetIDX, true);
 		if(mmnts[stdIDX] != null) {mmnts[varIDX]=mmnts[stdIDX]*mmnts[stdIDX];} else {mmnts[varIDX]=null;}
-		setFlag(meanStdSetIDX, true);
 		funcs = new Function[numFuncs];
 		buildFuncs();
-
 	}//setMeanStd
 	
+	//sets quadrature solver to be used to solve any integration for this RV func
 	public void setQuadSolver(myGaussQuad _quadSlvr) {
 		quadSlvr = _quadSlvr;
-		setFlag(quadSlvrSetIDX, true);
+		setFlag(quadSlvrSetIDX, quadSlvr!=null);
 	}//setSolver	
+	
 	public myGaussQuad getQuadSolver() {return quadSlvr;}
-
+	public String getQuadSolverName() {
+		if (getFlag(quadSlvrSetIDX)) { return quadSlvr.name;}
+		return "None Set";
+	}
 	public Double getMean() {return mmnts[meanIDX];}
 	public Double getStd() {return mmnts[stdIDX];}
 	public Double getVar() {return mmnts[varIDX];}
+	public Double getSkew() {return mmnts[skewIDX];}
+	public Double getKurt() {return mmnts[kurtIDX];}
+	
 	//build individual functions that describe pdf, inverse pdf and ziggguart (scaled to 1 @ 0) pdf and inv pdf
 	protected abstract void buildFuncs();
 	
@@ -95,10 +105,13 @@ public abstract class myRandVarFunc {
 	//this must be called after an Quad solver has been set, since finding R and Vol for passed # of ziggurats requires such a solver
 	public void setZigVals(int _nRect) {
 		if (!getFlag(quadSlvrSetIDX)) {	expMgr.dispMessage("myRandVarFunc", "setZigVals", "No quadrature solver has been set, so cannot set ziggurat values for "+_nRect+" rectangles (incl tail)."); return;}
-		double checkRect = Math.log(_nRect)/Math.log(2.0);
-		int nRectCalc = (int)Math.pow(2.0, checkRect);
-		if (_nRect != (int)Math.pow(2.0, checkRect)) {	expMgr.dispMessage("myRandVarFunc", "setZigVals", "Number of ziggurat rectangles must be a power of 2, so forcing " + _nRect + " to be " + nRectCalc);}
-		numZigRects = nRectCalc;
+		double checkRect = Math.log(_nRect)/ln2;
+		int nRectCalc = (int)Math.pow(2.0, checkRect);//int drops all decimal values
+		if (_nRect != nRectCalc) {	
+			int numRectToUse = (int)Math.pow(2.0, (int)(checkRect) + 1);
+			expMgr.dispMessage("myRandVarFunc", "setZigVals", "Number of ziggurat rectangles requested " + _nRect + " : " + nRectCalc + " must be an integral power of 2, so forcing requested " + _nRect + " to be " + numRectToUse);
+			numZigRects = numRectToUse;
+		}		
 		zigVals = new zigConstVals(this,numZigRects);
 		setFlag(useZigAlgIDX, true);
 	}//setZigVals
@@ -132,9 +145,12 @@ public abstract class myRandVarFunc {
 		int flIDX = idx/32, mask = 1<<(idx%32);
 		stFlags[flIDX] = (val ?  stFlags[flIDX] | mask : stFlags[flIDX] & ~mask);
 		switch (idx) {//special actions for each flag
-			case debugIDX : 		{break;}	
-			case useZigAlgIDX : 	{break;}	
-			case meanStdSetIDX : 	{break;}
+			case debugIDX 		: 	{break;}	
+			case useZigAlgIDX 	: 	{break;}
+			case meanSetIDX	 	: 	{break;} 
+			case stdSetIDX	 	: 	{break;} 
+			case skewSetIDX	 	: 	{break;} 
+			case kurtSetIDX	 	: 	{break;} 						
 			case quadSlvrSetIDX	: 	{break;}
 		}
 	}//setFlag		
@@ -143,7 +159,7 @@ public abstract class myRandVarFunc {
 	
 	//describes data
 	public String getFuncDataStr(){
-		String res = "Type of distribution :  " + name +"\tMean:"+String.format("%3.18f",mmnts[meanIDX])+"\tVar:"+String.format("%3.18f",mmnts[varIDX])+"\tSTD : "+ String.format("%3.18f",mmnts[stdIDX]);
+		String res = "Type of distribution :  " + name +"\tMean:"+String.format("%3.8f",mmnts[meanIDX])+"\tSTD : "+ String.format("%3.8f",mmnts[stdIDX])+"\tVar:"+String.format("%3.8f",mmnts[varIDX]);
 		if(getFlag(useZigAlgIDX)) {	res += "\n\tUsing Ziggurat Algorithm : " + zigVals.toString();}		
 		return res;
 	}//getFuncDataStr
@@ -174,19 +190,17 @@ class myGaussianFunc extends myRandVarFunc{
 	public static final BigDecimal halfVal = new BigDecimal(.5);
 	
     protected double gaussSclFact, meanStd, invStdSclFact;
-    protected BigDecimal invGaussSclFact;
 
-	public myGaussianFunc(myProbExpMgr _expMgr, double _mean, double _std, String _name) {
-		super(_expMgr, _name);
+	public myGaussianFunc(BaseProbExpMgr _expMgr, myGaussQuad _quadSlvr, double _mean, double _std, String _name) {
+		super(_expMgr,_quadSlvr, _name);
 		gaussSclFact = (1.0/_std) *normalSclFact;
 		inGaussSclFactBD = new BigDecimal(1.0/gaussSclFact);
 		meanStd = _mean/_std;
 		invStdSclFact = (1.0/_std) * invSqrt2;
 		//System.out.println("Mean : " + _mean + " std "+ _std + "| invStdSclFact : " +invStdSclFact);
-		setMeanStd(_mean,_std);
-		
+		setMeanStd(_mean,_std);		
 	}//ctor
-	public myGaussianFunc(myProbExpMgr _expMgr, double _mean, double _std) {this(_expMgr,_mean,_std, "Gaussian");}
+	public myGaussianFunc(BaseProbExpMgr _expMgr, myGaussQuad _quadSlvr,  double _mean, double _std) {this(_expMgr, _quadSlvr, _mean,_std, "Gaussian");}
 	
 	@Override
 	protected void buildFuncs() {
@@ -236,8 +250,7 @@ class myGaussianFunc extends myRandVarFunc{
 	public double integral_fZig(Double x1, Double x2) {
 		double res = 0;
 		if (!getFlag(quadSlvrSetIDX)) {	expMgr.dispMessage("myGaussianFunc", "integral_fZig", "No quadrature solver has been set, so cannot integrate f");return res;}
-		//expMgr.dispMessage("myGaussianFunc", "integral_f", "Integrating for : x1 : "+x1 + " and  x2 : " + x2);
-		
+		//expMgr.dispMessage("myGaussianFunc", "integral_f", "Integrating for : x1 : "+x1 + " and  x2 : " + x2);		
 		//if x1 is -inf... gauss-legendre quad - use error function via gaussian quad - calculating cdf
 		if(x1==Double.NEGATIVE_INFINITY) {				//cdf of x2 == .5 + .5 * error function x2/sqrt(2) 
 			//expMgr.dispMessage("myGaussianFunc", "integral_f", "CDF : x1 : "+x1 + " and  x2 : " + x2 + " Using x2");
@@ -255,7 +268,7 @@ class myGaussianFunc extends myRandVarFunc{
 			res = quadSlvr.evalIntegral(funcs[fZigIDX], x1, x2).doubleValue();
 		}
 		//expMgr.dispMessage("myGaussianFunc", "integral_f", "Integrating for : x1 : "+x1 + " and  x2 : " + x2 + " Res : \n" + res);
-		return res;
+		return 1.0/normalSclFact * res;		//must have 1.0/normalSclFact to normalize integration results (i.e. scale CDF for function with p(0) == 1
 		//return (1.0/gaussSclFact) *  integral_f(x1, x2);
 		//return inGaussSclFactBD.multiply( integral_f(x1, x2));
 	}//integral_f
@@ -274,8 +287,8 @@ class myNormalFunc extends myGaussianFunc{
 	//////////////////////////////
 	//zig algorithm fields for scaled normal - all myRandVarFuncs need their own impelemtnations of this map, independent of base class
 	//////////////////////////////		
-	public myNormalFunc(myProbExpMgr _expMgr) {
-		super(_expMgr, 0.0, 1.0, "Normal");			
+	public myNormalFunc(BaseProbExpMgr _expMgr, myGaussQuad _quadSlvr) {
+		super(_expMgr,_quadSlvr, 0.0, 1.0, "Normal");			
 	}//ctor	
 	
 }//class myNormalFunc
@@ -370,15 +383,15 @@ class zigConstVals{
 			xVals[i]=func.f_invZig(eval);
 			fXVals[i]=func.fZig(xVals[i]);
 			retVal = vol - xVals[i+1] + xVals[i+1]*fXVals[i+1];//area vol - vol of top block
-			//expMgr.dispMessage("myGaussianFunc", "z_R", "Inverse @ i=="+i+" =  " + xVals[i]  + " f(x[i]) : " + fXVals[i] + " eval : " + eval + " Vol : " + (xVals[i]* fXVals[i]));
+			//func.expMgr.dispMessage("myGaussianFunc", "z_R", "Inverse @ i=="+i+" =  " + xVals[i]  + " f(x[i]) : " + fXVals[i] + " eval : " + eval + " Vol : " + (xVals[i]* fXVals[i]));
 		}
 		//double retVal = vol - xVals[1] - xVals[1]*fXVals[1];
-		//expMgr.dispMessage("myGaussianFunc", "z_R", "End : Passed rval : " + rVal + " f(rVal) : " + funcAtR + " Vol : " + vol + " xVals[1] :"+ xVals[1]+ " F(x[1]) :"+fXVals[1] + " Return val : " + retVal );
+		//func.expMgr.dispMessage("myGaussianFunc", "z_R", "End : Passed rval : " + rVal + " f(rVal) : " + funcAtR + " Vol : " + vol + " xVals[1] :"+ xVals[1]+ " F(x[1]) :"+fXVals[1] + " Return val : " + retVal );
 		return new double[] {retVal, vol};
 	}//z_R
 	   
 	//3.6541528853610088; is value found for n == 256 
-	private static final double RValAndVolzTol = 0.000000000001;
+	private static final double RValAndVolzTol = 0.00000000000001;
 	//x coordinate of final rectangle, such that v_each == r(f(r)) + integral(r->inf) f(x) dx
 	protected double[] calcRValAndVol() {
 		//find an r that will make z_r function == 0
@@ -396,8 +409,9 @@ class zigConstVals{
 			else {//modify guess appropriately							
 				rValGuess += zValAra[0] * learnRate;
 				curLearnRate = learnRate;
+				//func.expMgr.dispMessage("myRandVarFunc", "calcRVal", "Name : " + func.name+ "| For " + Nrect + " rectangles, @ iter : " + iter + " rVal : " + String.format("%3.18f", rValGuess)+ "  oldGuess : " + String.format("%3.18f", oldGuess)+ " Gives zVal : " + String.format("%3.18f", zValAra[0]) + " Vol : " + String.format("%3.18f", zValAra[1]));
 				while ((oldGuess < rValGuess) && (curLearnRate > minLearnRate)) {
-					//expMgr.dispMessage("myRandVarFunc", "calcRVal", "\tFlip : curLearnRate : " + curLearnRate + " new learn rate : " + curLearnRate/2.0);
+					//func.expMgr.dispMessage("myRandVarFunc", "calcRVal", "\tFlip : curLearnRate : " + curLearnRate + " new learn rate : " + curLearnRate/2.0);
 					curLearnRate /= 2.0;
 					rValGuess -= zValAra[0] * curLearnRate;	//change mod to 1/2 last mod					
 				}				
@@ -416,7 +430,7 @@ class zigConstVals{
 	
 	//return important values for this ziggurat const struct
 	public String toString() {
-		String res = "Owning Func : " +func.getShortDesc()+" # Rectangles : " + Nrect + " R_Last : " + String.format("%3.18f", R_last) + " | Vol Per Zig : " + String.format("%3.18f", V_each) + "\n";
+		String res = "Owning Func : " +func.getShortDesc()+" # Rectangles : " + Nrect + " R_Last : " + String.format("%3.16f", R_last) + " | Vol Per Zig : " + String.format("%3.16f", V_each) + "\n";
 		return res;	
 	}
 	
