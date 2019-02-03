@@ -45,8 +45,21 @@ public abstract class myRandGen implements Comparable<myRandGen> {
 	public abstract double getGaussian();
 	public abstract double getGaussianFast();
 	
+	//find inverse CDF value for passed val - val must be between 0->1; 
+	//this is mapping from 0->1 to probability based on the random variable function definition
+	public double inverseCDF(double _val) {
+		return func.CDF_inv(_val);
+	};
+	
 	//return string description of rand function
 	public String getFuncDataStr() {return func.getFuncDataStr();}
+	
+	//get short string suitable for key for map
+	public String getTransformName() {
+		String res = name+"_"+ desc.quadName+"_" + func.getMinDescString();
+		return res;
+	}
+	
 	
 	@Override
 	public int compareTo(myRandGen othr) {return desc.compareTo(othr.desc);}
@@ -84,12 +97,14 @@ class myZigRandGen extends myRandGen{
 		zigVals = func.zigVals;
 	}//ctor
 	    
+	@Override
 	public double getGaussian() {
 		double res = nextNormal53();	
 		return func.processResValByMmnts(res);
 	}//getGaussian
 	
 	//int value
+	@Override
 	public double getGaussianFast() {
 		double res = nextNormal32();		
 		return func.processResValByMmnts(res);
@@ -184,6 +199,7 @@ class RandGenDesc implements Comparable<RandGenDesc>{
 		res = (res == 0 ? algName.toLowerCase().compareTo(othr.algName.toLowerCase()) : res);
 		return (res == 0 ? Integer.compare(randGen.ObjID, othr.randGen.ObjID) : res);
 	}
+	
 	
 	@Override
 	public String toString() {

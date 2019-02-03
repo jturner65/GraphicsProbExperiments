@@ -8,6 +8,8 @@ import java.util.*;
  */
 public class myClassRoster implements Comparable<myClassRoster>{
 	public static GraphProbExpMain pa;
+	//experiment owning this class
+	public static ClassGradeExperiment gradeExp;
 	public final int ObjID;
 	private static int IDCnt = 0;
 	//class name
@@ -17,14 +19,19 @@ public class myClassRoster implements Comparable<myClassRoster>{
 
 	///////////////////////////
 	//rendering 
-	//location and dimenions of raw line on display representing this class
-	private final float distBetweenBars;
-
+	//distance between adjacent classes
+	private final float distBtwnClassBars;
+	//distance between the raw and transformed bar for this class
+	private final float distBtwnRawTransBars;
+	
 	//2 class bars - raw and transformed
 	private gradeBar rawGradeBar, transGradeBar;
 	//type of transformation for transformed grade bar
 	private String transformType;
-	
+	//types of transforms that have been calculated for this class
+	private HashSet<String> transPerformed;
+	//rand gen used to perform mapping
+	private myRandGen randGen;
 	
 	//this class's bar color
 	private final int[] clsLineClr;
@@ -32,36 +39,46 @@ public class myClassRoster implements Comparable<myClassRoster>{
 	//state flags - bits in array holding relevant info about this random variable function
 	private int[] stFlags;						
 	public static final int
-			debugIDX 					= 0,
-			classRawToTransEnabledIDX	= 1,			//if class's raw grades are mapped to transformed grades
-			classUsedInFinalGradeIDX	= 2;
-	public static final int numFlags 	= 3;
+			debugIDX 						= 0,
+			classRawToTransEnabledIDX		= 1,			//if class's raw grades can/should be mapped to transformed grades
+			classRawIsTransformedIDX		= 2,			//if raw grades have been transformed
+			classTransUsedInFinalGradeIDX	= 3,			//if class's transformed grades are used in final grade
+			drawLineBetweenGradesIDX		= 4;			//draw a line connecting students between grade types
+	public static final int numFlags 		= 5;
 	
-	// gradeBar(GraphProbExpMain _pa, myClassRoster _owningClass, float _d, myPointf _bs, String _typ)
-	
-	public myClassRoster(GraphProbExpMain _pa, String _name, float _dToNextBar, myPointf[] _barLocs) {
-		pa =_pa;
+	public myClassRoster(GraphProbExpMain _pa, ClassGradeExperiment _gradeExp, String _name, myPointf[] _barLocs) {
+		pa =_pa;gradeExp=_gradeExp;
 		ObjID = IDCnt++;  name=_name;
 		initFlags();
-		
-		distBetweenBars=_dToNextBar;
-		rawGradeBar = new gradeBar(pa, this, distBetweenBars,_barLocs[0], "raw");
+		distBtwnClassBars = gradeExp.distBtwnAdjBars;
+		distBtwnRawTransBars =  gradeExp.distBtwnRawTransBars;
+		rawGradeBar = new gradeBar(pa, this, distBtwnClassBars,_barLocs[0], "raw");
 		transformType = "unk";
-		transGradeBar = new gradeBar(pa, this, distBetweenBars,_barLocs[1], transformType);		
-		students = new HashMap<Integer,myStudent>();				
+		transGradeBar = new gradeBar(pa, this, distBtwnClassBars,_barLocs[1], transformType);		
+		students = new HashMap<Integer,myStudent>();			
+		transPerformed = new HashSet<String>();
 		clsLineClr = pa.getRndClr2(255);//should be brighter colors
 	}//ctor
-	
 	
 	public void setBarWidth(float _barWidth) {
 		rawGradeBar.setBarWidth(_barWidth);
 		transGradeBar.setBarWidth(_barWidth);
 	}//setBarWidth
+	//when new transform added, need to clear out existing transformed grades
+	public void setRandGenAndType(myRandGen _randGen, String _type) {		
+		randGen = _randGen;
+		for (myStudent s : students.values()) {//keep raw grades, clear out all transformations
+			s.clearTransformedGrades(this);
+		}
+		setTransformType(_type);
+	}//setRandGenAndType	
 	
-	public void setTransformType(String _typ) {
+	//set transform to false, set true when actually transformed
+	private void setTransformType(String _typ) {
 		transformType = _typ;
 		transGradeBar.setType(_typ);
-	}
+		setFlag(classRawIsTransformedIDX, transPerformed.contains(transformType));
+	}//setTransformType
 	
 	public String getTransformType() { return transformType;}
 	
@@ -71,12 +88,27 @@ public class myClassRoster implements Comparable<myClassRoster>{
 	//set the raw grade for a student
 	public void setStudentRawGrade(int ID, double grade) {students.get(ID).setRawGrade(this, grade);}
 	
-	//set the transformed grade for a student
-	public void setStudentTransformedGrade(String _type, int ID, double grade) {		
-		students.get(ID).setTransformedGrade(_type,this, grade);
-	}
+	//transform all students in this class using passed rand gen's function
+	public void transformStudentGrades() {
+		transPerformed.add(transformType);
+		for (myStudent s : students.values()) { transformStudent(s);}
+		setFlag(classRawIsTransformedIDX, true);
+	}//transformStudentGrades
+	
+	//TODO need to retransform student when student is moved - need to set randGen and _type
+	public void transformStudent(myStudent s) {
+		double _rawGrade = s.getRawGrade(this);
+		double _newGrade = randGen.inverseCDF(_rawGrade);			
+		s.setTransformedGrade(transformType, this, _newGrade);
+	}//transformStudent
 	
 	
+	//when bar is enabled/disabled, this is called
+	public void setGradeBarEnabled(boolean val, String type) {
+		if(type.equals("raw")) {			setFlag(classRawToTransEnabledIDX, val);		} 
+		else {								setFlag(classTransUsedInFinalGradeIDX, val);	}		
+	}//setGradeBarEnabled
+		
 	public boolean mseClickCheck(int msx, int msy, int btn) {
 		boolean res = rawGradeBar.checkMouseClick(msx, msy, btn);
 		if(!res) {		res = transGradeBar.checkMouseClick(msx, msy, btn);	}
@@ -86,13 +118,33 @@ public class myClassRoster implements Comparable<myClassRoster>{
 	public boolean mseDragCheck(int msx, int msy, int btn) {
 		boolean res = rawGradeBar.checkMouseMoveDrag(msx, msy, btn);
 		if(!res) {		res = transGradeBar.checkMouseMoveDrag(msx, msy, btn);	}
+		else {//grade moved, retransform, if current transform exists
+			if((getFlag(classRawIsTransformedIDX)) && (rawGradeBar._modStudent != null)) {		transformStudent(rawGradeBar._modStudent);}
+		}
 		return res;
 	}//mseClickCheck
 	
 	public void mseRelease() {
 		rawGradeBar.mouseRelease();
 		transGradeBar.mouseRelease();
-	}
+	}//mseRelease
+	
+	//draw lines connecting student grades to help visualize mapping if grade is enabled and transformation has been performed
+	public void drawRawToTransformedLine() {
+		if((getFlag(classRawToTransEnabledIDX)) && (getFlag(classRawIsTransformedIDX))) {
+			pa.pushMatrix();pa.pushStyle();
+			//first transform to this class's raw grade line
+			rawGradeBar.transToBarStart();
+			for (myStudent s : students.values()) {
+				double rawXLoc = s.getGradeXLoc("raw", this, rawGradeBar.barWidth);
+				double transXLoc = s.getGradeXLoc(transformType, this, rawGradeBar.barWidth);
+				pa.setStroke(s.clr);
+				pa.line(rawXLoc, 0, 0, transXLoc,distBtwnRawTransBars,0);
+				
+			}
+			pa.popStyle();pa.popMatrix();		
+		}		
+	}//drawRawToTransformedLine
 	
 	
 	//draw all student grades on line 
@@ -116,8 +168,11 @@ public class myClassRoster implements Comparable<myClassRoster>{
 		int flIDX = idx/32, mask = 1<<(idx%32);
 		stFlags[flIDX] = (val ?  stFlags[flIDX] | mask : stFlags[flIDX] & ~mask);
 		switch (idx) {//special actions for each flag
-			case debugIDX 			: 		{break;}	
-			case classRawToTransEnabledIDX 	: 		{break;}	
+			case debugIDX 						: {break;}	
+			case classRawToTransEnabledIDX 		: {break;}	
+			case classRawIsTransformedIDX		: {break;}
+			case classTransUsedInFinalGradeIDX 	: {break;}				
+			case drawLineBetweenGradesIDX		: {break;}		
 		}
 	}//setFlag		
 	public boolean getFlag(int idx){int bitLoc = 1<<(idx%32);return (stFlags[idx/32] & bitLoc) == bitLoc;}	
@@ -158,13 +213,11 @@ class gradeBar{
 	//relative x for where bar starts
 	private static final float _barSt = 30;
 	//specifically set color ctor
-	private float barWidth;
+	public float barWidth;
 	//this bar is enabled/disabled
 	private boolean enabled;
 	//student being moved by mouse click
-	private myStudent _modStudent;
-	//previous click scale related to _modStudent, so grade can be modified as mouse is moved
-	private float _lastClickScale;
+	protected myStudent _modStudent;
 	
 	//specific color constructor - used to set up overall grade bar
 	public gradeBar(GraphProbExpMain _pa, myClassRoster _owningClass, float _d, myPointf _bs, String _typ, int[] _barColor) {
@@ -182,13 +235,12 @@ class gradeBar{
 		int msXLoc = (int) (msx - barStartPoint.x), mxYLoc = (int) (msy - barStartPoint.y);
 		boolean inClassLineRegion = (msXLoc >= 0) && (mxYLoc >= -.5*distBetweenBars) && (msXLoc <= barWidth + _barSt) && (mxYLoc <= .5*distBetweenBars);
 		if ((btn < 0 ) || (!inClassLineRegion)) {mouseRelease();return inClassLineRegion;}
-		if((msXLoc <= _clkBox[2]) && (mxYLoc >= _clkBox[1]) && (mxYLoc <= (_clkBox[1]+_clkBox[3]))) {	enabled = !enabled;		return true;	} 	//clicked box - toggle state
+		if((msXLoc <= _clkBox[2]) && (mxYLoc >= _clkBox[1]) && (mxYLoc <= (_clkBox[1]+_clkBox[3]))) {	enabled = !enabled;	owningClass.setGradeBarEnabled(enabled, gradeType);	return true;	} 	//clicked box - toggle state
 		else if(msXLoc >= _barSt) {//clicked near student bar - grab a student and attempt to move
 			float clickScale = ((msXLoc-_barSt)/barWidth);
 			//see if student grade location is being clicked on
 			_modStudent = findClosestStudent(clickScale);
-			_lastClickScale = clickScale;
-			System.out.println("x:"+msXLoc + "| y:"+mxYLoc+ " | clickScale : " + clickScale + "| Closest Student :  " + _modStudent.name);
+			//System.out.println("x:"+msXLoc + "| y:"+mxYLoc+ " | clickScale : " + clickScale + "| Closest Student :  " + _modStudent.name);
 			return true;
 		}		
 		return false;
@@ -204,17 +256,13 @@ class gradeBar{
 		//if moving a student, update grade
 		if(_modStudent != null) {
 			_modStudent.setTransformedGrade(gradeType, owningClass,clickScale);
-			_lastClickScale = clickScale;			
 			return true;
 		}
 		return false;
 	}//checkMouseMoveDrag
 	
 	//release student being dragged
-	public void mouseRelease() {		
-		_modStudent = null;
-		_lastClickScale = -1;
-	}//
+	public void mouseRelease() {		_modStudent = null;}//
 	
 	//using passed scl val [0->1], find closest student to this location
 	public myStudent findClosestStudent(float scl) {
@@ -232,7 +280,10 @@ class gradeBar{
 		return closest;
 	}//findClosestStudent
 	
-	//
+	//translate to where the par part of this par starts
+	public void transToBarStart() {pa.translate(barStartPoint.x+_barSt,barStartPoint.y,barStartPoint.z);}
+	
+	//draw grade bar and student locations
 	public void drawGradeBar() {
 		pa.pushMatrix();pa.pushStyle();
 		pa.translate(barStartPoint);
@@ -289,7 +340,7 @@ class myStudent implements Comparable<myStudent>{
 	//used these for rendering student on line
 	private static float rad = 12.0f;
 	//color to render student
-	private final int[] clr;
+	public final int[] clr;
 	//black for stroke
 	private static final int[] blkStrk = new int[] {0,0,0,255};
 	//grey for disabled
@@ -312,6 +363,19 @@ class myStudent implements Comparable<myStudent>{
 		else if (_gr < 0 ) {	return 0;}
 		return _gr;
 	}//clipGrade
+	
+	//clear out current transformed grades, preserving raw grades
+	public void clearTransformedGrades(myClassRoster _cls) {
+		Double ttlGradeRaw = ttlGradePerType.get("raw");
+		ttlGradePerType.clear();
+		if(ttlGradeRaw != null) {ttlGradePerType.put("raw", ttlGradeRaw);}
+		for (String typ : grades.keySet()) {
+			if (typ.equals("raw")) {continue;}		//don't clear raw grades
+			HashMap<myClassRoster, Double> typeToClearForClasses = grades.get(typ);
+			typeToClearForClasses.put(_cls,null);
+		}
+	}//
+	
 	
 	//calculate the total grade for this student for each type of grade
 	public void calcTotalGrade() {
@@ -354,6 +418,18 @@ class myStudent implements Comparable<myStudent>{
 		return val;
 	}//getTransformedGrade
 
+	public float getGradeXLoc(String _type,  myClassRoster _class, float ttlWidth) {
+		HashMap<myClassRoster, Double> classValsForType = grades.get(_type);
+		if (classValsForType==null) {						// no values for this type for any classes set yet 		
+			return 0.0f;
+		}
+		Double val = classValsForType.get(_class);			//grade for class for specified type
+		if (val==null) {									//student has no transformed grade for this class	
+			return 0.0f;
+		}
+		return ttlWidth*val.floatValue();
+	}//getGradeXLoc
+	
 	//////////////////
 	// draw this student on line of width ttlWidth - expected to be at start of line when this is called
 	private void _drawMe(GraphProbExpMain pa, float gr, float ttlWidth) {

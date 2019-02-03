@@ -124,10 +124,15 @@ public abstract class myRandVarFunc {
 	//calculate the inverse of f
 	public final double f_invZig(double xInv){return funcs[fInvZigIDX].apply(xInv);}
 	
+	//calculate the cdf
+	public abstract double CDF(double x);
+	//calculate inverse cdf of passed value 0->1
+	public abstract double CDF_inv(double x);
+	
 	//calculate integral of f between x1 and x2.  Use to calculate cumulative distribution by making x1==-inf, and x2 definite; qfunc by setting x1 to a value and x2 == +inf
-	public abstract double integral_f(Double x1, Double x2);
+	protected abstract double integral_f(Double x1, Double x2);
 	//calculate integral of normalized f (for ziggurat calc) between x1 and x2.  Use to calculate cumulative distribution by making x1==-inf, and x2 definite; qfunc by setting x1 to a value and x2 == +inf
-	public abstract double integral_fZig(Double x1, Double x2);	
+	protected abstract double integral_fZig(Double x1, Double x2);	
 	
 	//temp testing function - returns R and Vol
 	public double[] dbgTestCalcRVal(int nRect) {
@@ -136,6 +141,7 @@ public abstract class myRandVarFunc {
 		return tmpZigVals.calcRValAndVol();		
 	}//testCalcRVal
 	
+		
 	//process a result from a 0-centered, 1-std distribution to match stated moments of this distribution
 	public abstract double processResValByMmnts(double val);
 
@@ -156,7 +162,6 @@ public abstract class myRandVarFunc {
 	}//setFlag		
 	public boolean getFlag(int idx){int bitLoc = 1<<(idx%32);return (stFlags[idx/32] & bitLoc) == bitLoc;}	
 	
-	
 	//describes data
 	public String getFuncDataStr(){
 		String res = "Type of distribution :  " + name +"\tMean:"+String.format("%3.8f",mmnts[meanIDX])+"\tSTD : "+ String.format("%3.8f",mmnts[stdIDX])+"\tVar:"+String.format("%3.8f",mmnts[varIDX]);
@@ -166,6 +171,10 @@ public abstract class myRandVarFunc {
 	
 	public String getShortDesc() {
 		return "Name : " + name +"|Mean:"+String.format("%3.8f",mmnts[meanIDX])+"\tSTD:"+ String.format("%3.8f",mmnts[stdIDX]);
+	}
+	//get minimal string description, useful for key for map
+	public String getMinDescString() {
+		return name +"_"+String.format("%.5f",mmnts[meanIDX])+"_"+ String.format("%.5f",mmnts[stdIDX])+"_"+ String.format("%.5f",mmnts[skewIDX])+"_"+ String.format("%.5f",mmnts[kurtIDX]);
 	}
 	
 }//class myRandVariable
@@ -204,10 +213,10 @@ class myGaussianFunc extends myRandVarFunc{
 	
 	@Override
 	protected void buildFuncs() {
-		errorFunc =  (x ->  ErfCoef * Math.exp(-(x*x)) );
+		errorFunc =  (x ->  ErfCoef * Math.exp(-(x*x)));
 		
 		//actual probablity functions
-		funcs[fIDX] 		= (x -> (gaussSclFact  * Math.exp(-0.5 * ((x-mmnts[meanIDX])*(x-mmnts[meanIDX]))/mmnts[varIDX]))   );
+		funcs[fIDX] 		= (x -> (gaussSclFact  * Math.exp(-0.5 * ((x-mmnts[meanIDX])*(x-mmnts[meanIDX]))/mmnts[varIDX])));
 		funcs[fInvIDX] 		= (xinv -> (mmnts[stdIDX]*Math.sqrt(-2.0 * Math.log(xinv/gaussSclFact))) + meanStd);
 		//zigurat functions -> want pure normal distribution
 		funcs[fZigIDX]		= (x -> Math.exp(-0.5 *(x*x)));
@@ -272,6 +281,61 @@ class myGaussianFunc extends myRandVarFunc{
 		//return (1.0/gaussSclFact) *  integral_f(x1, x2);
 		//return inGaussSclFactBD.multiply( integral_f(x1, x2));
 	}//integral_f
+	
+	
+	/**
+	 * calculate an approximation of the probit function for a standard normal distribution
+	 *	Lower tail quantile for standard normal distribution function. This function returns 
+	 *	an approximation of the inverse cumulative standard normal distribution function.  
+	 *		I.e., given P, it returns an approximation to the X satisfying P = Pr{Z <= X} 
+	 *		where Z is a random variable from the standard normal distribution.
+	 *	
+	 *	The algorithm uses a minimax approximation by rational functions and the result has 
+	 * 	a relative error whose absolute value is less than 1.15e-9.	
+	 *  Author:      Peter J. Acklam
+	 *  
+	 * @param p probability
+	 * @return value for which, using N(0,1), the p(x<= value) == p 
+	 */
+	protected static double calcProbitApprox(double p){	    
+	    // Coefficients in rational approximations
+	    double[] a = { -3.969683028665376e+01, 2.209460984245205e+02,-2.759285104469687e+02, 1.383577518672690e+02, -3.066479806614716e+01,  2.506628277459239e+00},
+	    		b = {-5.447609879822406e+01, 1.615858368580409e+02, -1.556989798598866e+02,  6.680131188771972e+01, -1.328068155288572e+01},
+	    		c = {-7.784894002430293e-03,-3.223964580411365e-01,-2.400758277161838e+00, -2.549732539343734e+00, 4.374664141464968e+00, 2.938163982698783e+00},
+	    		d = {7.784695709041462e-03, 3.224671290700398e-01, 2.445134137142996e+00, 3.754408661907416e+00};
+	    // Define break-points/tails
+	    double pLow = 0.02425,pHigh = 1-pLow, oneMp = 1-p, q,r, mult = 1.0;
+	    //approx for middle region : 
+	    if ((pLow <= p) && (p <= pHigh)) {
+	    	q = p - 0.5f;
+	    	r = q * q;
+	        return (((((a[0]*r + a[1])*r + a[2])*r + a[3])*r + a[4])*r + a[5])*q /(((((b[0]*r + b[1])*r + b[2])*r + b[3])*r + b[4])*r + 1);	    	
+	    }
+	    if (p < pLow) {
+	    	q = Math.sqrt(-2*Math.log(p));
+	    	mult = 1.0;
+	    } else {
+	    	q = Math.sqrt(-2 * Math.log(oneMp));
+	    	mult = -1.0;
+	    }
+        return mult * (((((c[0]*q + c[1])*q + c[2])*q + c[3])*q + c[4])*q + c[5]) / ((((d[0]*q + d[1])*q + d[2])*q + d[3])*q + 1);	    
+	}//calcProbitApprox
+	
+	
+	//get CDF of passed x value for this distribution
+	@Override
+	public double CDF(double x) {	return integral_f(Double.NEGATIVE_INFINITY, x);	}
+	//calculate inverse cdf of passed value 0->1; this is probit function, related to inverse erf
+	@Override
+	public double CDF_inv(double x) {	
+		double normRes = calcProbitApprox(x);
+		return (normRes * mmnts[stdIDX]) + mmnts[meanIDX];
+	}//CDF_inv
+	
+//	public double CDF_inv(double x) {	
+//		double normRes = calcProbitApprox((x - mmnts[meanIDX])/mmnts[stdIDX]);
+//		return normRes;
+//	}//CDF_inv
 	
 
 }//class myGaussianFunc
@@ -367,7 +431,7 @@ class zigConstVals{
 		//vol = rF(r) + integral(r->+inf) (f_zig(x))
 		double integralRes = func.integral_fZig(rVal, Double.POSITIVE_INFINITY);
 		double vol = rVal* funcAtR + integralRes;//Q func == 1 - CDF
-		if (vol < 0 ) {
+		if (vol < 0) {
 			func.expMgr.dispMessage("zigConstVals", "z_R", func.getShortDesc()+ "| Initial Ziggurat R val chosen to be too high, causing integration to yield a negative volume due to error");
 			return new double[] {-rVal*9, 0};
 		}
@@ -386,7 +450,7 @@ class zigConstVals{
 			//func.expMgr.dispMessage("myGaussianFunc", "z_R", "Inverse @ i=="+i+" =  " + xVals[i]  + " f(x[i]) : " + fXVals[i] + " eval : " + eval + " Vol : " + (xVals[i]* fXVals[i]));
 		}
 		//double retVal = vol - xVals[1] - xVals[1]*fXVals[1];
-		//func.expMgr.dispMessage("myGaussianFunc", "z_R", "End : Passed rval : " + rVal + " f(rVal) : " + funcAtR + " Vol : " + vol + " xVals[1] :"+ xVals[1]+ " F(x[1]) :"+fXVals[1] + " Return val : " + retVal );
+		//func.expMgr.dispMessage("myGaussianFunc", "z_R", "End : Passed rval : " + rVal + " f(rVal) : " + funcAtR + " Vol : " + vol + " xVals[1] :"+ xVals[1]+ " F(x[1]) :"+fXVals[1] + " Return val : " + retVal);
 		return new double[] {retVal, vol};
 	}//z_R
 	   

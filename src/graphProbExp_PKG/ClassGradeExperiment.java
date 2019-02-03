@@ -16,14 +16,16 @@ public class ClassGradeExperiment extends BaseProbExpMgr{
 	//structure holding all students
 	public HashMap<Integer,myStudent> students;
 	public int numStudents;
+	protected myRandGen gradeInvMapGen;
+	//current transformation used for students
+	protected String curTransformType;
 	
 	
 	//types of different transformed grades
 	public static final int
-		rawGradeIDX			= 0,
-		normTransGradeIDX	= 1;
-	public static final int numGradeTypes = 2;
-	
+		rawGradeIDX					= 0,
+		normTransGradeIDX			= 1;
+	public static final int numGradeTypes = 2;	
 	
 	//experiment-specific state flag idxs - bits in array holding relevant process info
 	public static final int
@@ -32,12 +34,13 @@ public class ClassGradeExperiment extends BaseProbExpMgr{
 	
 	//display-related values
 	
-	public float barWidth, distBetweenBars = 75;
+	private float barWidth;
+	public final float distBtwnAdjBars = 60.0f, distBtwnRawTransBars = 600.0f;
 	public myPointf classBarStart = new myPointf(10,100,0);
 	
 	
 	public ClassGradeExperiment(myDispWindow _win) {
-		super(_win);	
+		super(_win);
 		initExp();
 	}//ctor
 	
@@ -48,18 +51,20 @@ public class ClassGradeExperiment extends BaseProbExpMgr{
 		numClasses = 0;
 		students = new HashMap<Integer,myStudent>();
 		numStudents = 0;
+		gradeInvMapGen = buildAndInitRandGen(ziggRandGen, GL_QuadSlvrIDX, 256, new double[] {0,.1,0,0});	
+		curTransformType = gradeInvMapGen.getTransformName();
 	}//	initExp
 	
 	//called by base class call to buildSolvers, during base class ctor
 	@Override
-	protected void buildSolvers_indiv() {
-		//any solvers that are custom should be built here		
+	protected void buildSolvers_indiv() {	//any solvers that are custom should be built here		
 	}//buildSolvers_indiv
 	
 	//build an experiment with random students
-	public void buildStudentsAndClasses(int _numStudents, int _numClasses, float winWidth) {
+	public void buildStudentsAndClasses(int _numStudents, int _numClasses) {
 		dispMessage("ClassGradeExperiment","buildStudentsAndClasses","Start building " + _numStudents +" students and " + _numClasses+" classes");
 		numStudents = _numStudents;
+		students.clear();
 		myStudent stdnt;
 		for (int i=0;i<numStudents;++i) {
 			stdnt = new myStudent(win.pa, "Student : " +i);
@@ -67,16 +72,15 @@ public class ClassGradeExperiment extends BaseProbExpMgr{
 		}
 		numClasses = _numClasses;
 		myClassRoster cls;
-		barWidth = .9f*winWidth;
 		myPointf rawBarLocSt = new myPointf(classBarStart),
-				transBarLocSt = new myPointf(classBarStart.x, classBarStart.y + 600, classBarStart.z);
-		
+				transBarLocSt = new myPointf(classBarStart.x, classBarStart.y + distBtwnRawTransBars, classBarStart.z);
+		classes.clear();
 		for (int i=0;i<numClasses;++i) {
-			cls = new myClassRoster(win.pa, "Class : " + i, distBetweenBars, new myPointf[] { rawBarLocSt, transBarLocSt});
+			cls = new myClassRoster(win.pa, this, "Class : " + i, new myPointf[] { rawBarLocSt, transBarLocSt});
 			cls.setBarWidth(barWidth);
 			classes.add(cls);
-			rawBarLocSt.y +=distBetweenBars;
-			transBarLocSt.y += distBetweenBars;
+			rawBarLocSt.y +=distBtwnAdjBars;
+			transBarLocSt.y += distBtwnAdjBars;
 			for (myStudent s : students.values()) {
 				cls.addStudent(s);
 				double grade = ThreadLocalRandom.current().nextDouble();
@@ -88,6 +92,28 @@ public class ClassGradeExperiment extends BaseProbExpMgr{
 		dispMessage("ClassGradeExperiment","buildStudentsAndClasses","Finished building " + students.size() +" students and " + classes.size()+" classes");		
 	}//buildStudentsAndClasses
 	
+	//calculate the inverse mapping for the raw grades in every class that is active
+	public void calcInverseMapping(float mappingStd) {		
+		gradeInvMapGen = buildAndInitRandGen(ziggRandGen, GL_QuadSlvrIDX, 256, new double[] {0.5,mappingStd,0,0});	
+		curTransformType = gradeInvMapGen.getTransformName();
+		for (myClassRoster cls : classes) {
+			cls.setRandGenAndType(gradeInvMapGen,curTransformType);
+			cls.transformStudentGrades();
+		}
+	}//calcInverseMapping
+	
+	//this will calculate the values for the inverse cdf of the given gaussian, when fed 0->1
+	public void calcInverseCDFSpan(double std) {
+		myRandGen tmpRandGen = buildAndInitRandGen(ziggRandGen, GL_QuadSlvrIDX, 256, new double[] {0.5,std,0,0});	
+		int numVals = 100;
+		double[] xVals = new double[numVals], resVals = new double[numVals];
+		for (int i=0;i<numVals; ++i) {
+			xVals[i] = (i+1)/(1.0*(numVals)+1);
+			resVals[i] = tmpRandGen.inverseCDF(xVals[i]);
+			dispMessage("ClassGradeExperiment","calcInverseCDFSpan","Xval ["+i+"] = " + String.format("%3.10f", xVals[i])+" -> Y : "  + String.format("%3.10f", resVals[i]));			
+		}
+	}//calcInverseCDFSpan
+	
 	//set this to shrink the class bars to make room for the right side bar menu
 	public void setAllClassBarWidths(float _barWidth) {
 		barWidth = _barWidth;
@@ -96,19 +122,6 @@ public class ClassGradeExperiment extends BaseProbExpMgr{
 		}
 	}//setAllClassBarWidths
 	
-//	
-//	public boolean mseClickCheck(int msx, int msy, int btn) {
-//		boolean res = rawGradeBar.checkMouseClick(msx, msy, btn);
-//		if(!res) {		res = transGradeBar.checkMouseClick(msx, msy, btn);	}
-//		return res;
-//	}//mseClickCheck
-//	
-//	public boolean mseDragCheck(int msx, int msy, int btn) {
-//		boolean res = rawGradeBar.checkMouseMoveDrag(msx, msy, btn);
-//		if(!res) {		res = transGradeBar.checkMouseMoveDrag(msx, msy, btn);	}
-//		return res;
-//	}//mseClickCheck
-
 	
 	//calculate total grade for all students
 	public void calcTotalStudentGrade() {
@@ -165,7 +178,8 @@ public class ClassGradeExperiment extends BaseProbExpMgr{
 		pa.pushMatrix();pa.pushStyle();
 			for (myClassRoster cls : classes) {
 				cls.drawStudentGradesRaw();
-				//cls.drawStudentGradesTransformed(_type);
+				cls.drawStudentGradesTransformed(curTransformType);
+				cls.drawRawToTransformedLine();
 			}
 		
 		pa.popStyle();pa.popMatrix();
