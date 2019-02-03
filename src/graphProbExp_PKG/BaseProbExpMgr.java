@@ -5,7 +5,7 @@ import java.time.Instant;
 public abstract class BaseProbExpMgr {
 	//owning window for this experiment handler
 	protected myDispWindow win;
-	
+	public static GraphProbExpMain pa;
 	////////////////////////////////////////
 	// gauss quadrature solver structures	
 	//integral solvers for gaussian quadrature method used by this experiment
@@ -56,6 +56,7 @@ public abstract class BaseProbExpMgr {
 	
 	public BaseProbExpMgr(myDispWindow _win) {
 		win = _win;
+		pa=win.pa;
 		//base class-specific flags, isolated to within this code only
 		initBaseFlags();
 		//init experiment-specific flags
@@ -114,6 +115,15 @@ public abstract class BaseProbExpMgr {
 		
 	}//setSolverVals
 
+	//check mouse over/click in 2d experiment; if btn == -1 then mouse over
+	public abstract boolean checkMouseClickInExp2D(int msx, int msy, int btn);
+
+	//check mouse over/click in 2d experiment; if btn == -1 then mouse over
+	public abstract boolean checkMouseDragMoveInExp2D(int msx, int msy, int btn);
+
+	//notify all exps that mouse has been released
+	public abstract void setMouseReleaseInExp2D();
+
 	//sets which solver will be used for integration for this experiment
 	public void setCurSolver(int idx) {
 		if(curQuadSolverIDX == idx) {return;}
@@ -124,15 +134,16 @@ public abstract class BaseProbExpMgr {
 	
 	//conduct a simple test on the passed random number generator
 	protected void smplTestRandNumGen(myRandGen gen, int numVals) {
-		dispMessage("BaseProbExpMgr","testRandGen","Start Analysis of Gen : \n\t" + gen.getFuncDataStr());
+		dispMessage("BaseProbExpMgr","testRandGen","Start synthesizing " + numVals+ " values using Gen : \n\t" + gen.getFuncDataStr());
 		double[] genVals = new double[numVals];
 		for(int i=0;i<genVals.length;++i) {	
 			//dispMessage("BaseProbExpMgr","testRandGen","Generating val : " + i);
 			genVals[i] = gen.getGaussian();	
 		}
-		//now calculate mean value and 
-		myProbAnalysis analysis = new myProbAnalysis(win.pa, genVals);
-		dispMessage("BaseProbExpMgr","testRandGen","Analysis res of Zigg : " + analysis.getMoments());
+		//now calculate mean value and
+		dispMessage("BaseProbExpMgr","testRandGen","Finished synthesizing " + numVals+ " values using Gen : " + gen.name + " | Begin analysis of values.");
+		myProbAnalysis analysis = new myProbAnalysis(win.pa, genVals, gen);
+		dispMessage("BaseProbExpMgr","testRandGen","Analysis res of " + gen.name + " : " + analysis.getMoments());
 	}//testGen
 	
 	

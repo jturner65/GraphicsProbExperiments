@@ -8,6 +8,8 @@ public class myProbAnalysis{
 	private GraphProbExpMain pa;
 	//values to analyze
 	private double[] vals;
+	//generator ref
+	private myRandGen gen; // if null then means we're using threadlocalrandom
 	//mean and std of this distribution.  mean, std, var may be null/undefined for certain distributions (i.e. cauchy)
 	protected Double[] mmnts;
 	public static final int 
@@ -20,8 +22,8 @@ public class myProbAnalysis{
 	public static final int numMmnts = 6;
 	public static final String[] mmntLabels = new String[] {"Mean","STD","Variance","Skew","Kurtosis", "Excess Kurtosis"};
 	
-	public myProbAnalysis(GraphProbExpMain _pa, double[] _vals) {
-		pa=_pa;	setValsAndAnalyse(_vals);
+	public myProbAnalysis(GraphProbExpMain _pa, double[] _vals, myRandGen _gen) {
+		pa=_pa;	setValsAndAnalyse(_vals); gen=_gen;
 	}//ctor
 	
 	//using Kahan summation to minimize errors
@@ -71,9 +73,7 @@ public class myProbAnalysis{
 	
 	public String getMoments() {
 		String res = "# vals : " +vals.length;
-		for (int i=0;i<mmntLabels.length;++i) {
-			res += " | " + mmntLabels[i] + " = "+String.format("%.8f",mmnts[i]);
-		}
+		for (int i=0;i<mmntLabels.length;++i) {	res += " | " + mmntLabels[i] + " = "+String.format("%.8f",mmnts[i]);	}
 		return res;
 	}
 	

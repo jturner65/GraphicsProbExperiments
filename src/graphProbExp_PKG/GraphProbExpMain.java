@@ -255,6 +255,7 @@ public class GraphProbExpMain extends PApplet {
 	public double clickValModMult(){
 		return ((flags[altKeyPressed] ? .1 : 1.0) * (flags[cntlKeyPressed] ? 10.0 : 1.0));			
 	}
+	
 	public void mouseMoved(){for(int i =0; i<numDispWins; ++i){if (dispWinFrames[i].handleMouseMove(mouseX, mouseY)){return;}}}
 	public void mousePressed() {
 		setFlags(mouseClicked, true);
@@ -268,6 +269,7 @@ public class GraphProbExpMain extends PApplet {
 		if(mouseButton == LEFT){			mouseDragged(0);}
 		else if (mouseButton == RIGHT) {	mouseDragged(1);}
 	}//mouseDragged()
+	
 	//only for zooming
 	public void mouseWheel(MouseEvent event) {
 		if (dispWinFrames[curFocusWin].getFlags(myDispWindow.canChgView)) {// (canMoveView[curFocusWin]){	
@@ -424,8 +426,8 @@ public class GraphProbExpMain extends PApplet {
 	//////////////////////////////////////////
 	
 	public int glblStartSimFrameTime,			//begin of draw
-	glblLastSimFrameTime,					//begin of last draw
-	glblStartProgTime;					//start of program
+				glblLastSimFrameTime,					//begin of last draw
+				glblStartProgTime;					//start of program
 	
 	//size of printed text (default is 12)
 	public static final int txtSz = 11;
@@ -1255,6 +1257,10 @@ public class GraphProbExpMain extends PApplet {
 		setColorValFill(tclr, 255);setColorValStroke(tclr, 255);
 		text(txt, d, d,d); 
 	}	
+	public void showOffsetText(myPointf loc, int tclr, String txt){
+		setColorValFill(tclr, 255);setColorValStroke(tclr, 255);
+		text(txt, loc.x, loc.y, loc.z); 
+	}	
 	public void showOffsetText2D(float d, int tclr, String txt){
 		setColorValFill(tclr, 255);setColorValStroke(tclr, 255);
 		text(txt, d, d,0); 
@@ -1293,8 +1299,6 @@ public class GraphProbExpMain extends PApplet {
 		if (yLocSt < 0) {	transY = -1.0f * yLocSt;	} else if (yLocEnd > height) {transY = height - yLocEnd - 20;}
 		translate(transX,transY);		
 	}
-	
-	
 
 	/////////////
 	// show functions using full clr arrays for colors	
@@ -1319,6 +1323,26 @@ public class GraphProbExpMain extends PApplet {
 		sphere(rad); 
 		showOffsetText(1.2f * rad,tclr, txt);
 		popStyle(); popMatrix();} // render sphere of radius r and center P)
+	//textP is location of text relative to point
+	public void showNoBox_ClrAra(myPointf P, float rad, int det, int[] fclr, int[] strkclr, int tclr, myPointf txtP, String txt) {
+		pushMatrix(); pushStyle(); 
+		translate(P.x,P.y,P.z); 
+		setFill(fclr,255); setStroke(strkclr,255);			
+		sphereDetail(det);
+		sphere(rad); 
+		showOffsetText(txtP,tclr, txt);
+		popStyle(); popMatrix();} // render sphere of radius r and center P)
+	
+	//textP is location of text relative to point
+	public void showCrclNoBox_ClrAra(myPointf P, float rad, int[] fclr, int[] strkclr, int tclr, myPointf txtP, String txt) {
+		pushMatrix(); pushStyle(); 
+		translate(P.x,P.y,P.z); 
+		setFill(fclr,255); setStroke(strkclr,255);			
+		ellipse(0,0,rad,rad); 
+		ellipse(0,0,2,2);
+		showOffsetText(txtP,tclr, txt);
+		popStyle(); popMatrix();} // render sphere of radius r and center P)
+	
 	
 	//show sphere of certain radius
 	public void show_ClrAra(myPointf P, float rad, int det, int[] fclr, int[] strkclr) {

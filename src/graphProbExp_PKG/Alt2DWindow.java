@@ -2,6 +2,7 @@ package graphProbExp_PKG;
 
 import java.util.*;
 
+
 public class Alt2DWindow extends myDispWindow {
 	
 	/////////////
@@ -45,6 +46,10 @@ public class Alt2DWindow extends myDispWindow {
 	};
 
 	private myProbExpMgr tester;
+	
+	//class experiment
+	private ClassGradeExperiment gradeAvgExperiment;
+	
 	//used to switch button name for 1st button to reflect whether performing csv-based load of raw data or sql query
 	private int loadRawBtnIDX = 0;
 
@@ -70,6 +75,8 @@ public class Alt2DWindow extends myDispWindow {
 		setFlags(drawRightSideMenu, true);
 		tester = new myProbExpMgr(this);
 		
+		gradeAvgExperiment = new ClassGradeExperiment(this);
+		gradeAvgExperiment.buildStudentsAndClasses(50, 3, rectDim[2]);
 		//set offset to use for custom menu objects
 		custMenuOffset = uiClkCoords[3];	
 		//moved from mapMgr ctor, to remove dependence on papplet in that object
@@ -158,19 +165,33 @@ public class Alt2DWindow extends myDispWindow {
 	}
 	return "";	}
 
+
+	//check whether the mouse is over a legitimate map location
+	public boolean chkMouseClick2D(int mouseX, int mouseY, int btn){		
+		return gradeAvgExperiment.checkMouseClickInExp2D( mouseX-(int)this.rectDim[0], mouseY, btn);
+	}//chkMouseOvr
+
 	
+	//check whether the mouse is over a legitimate map location
+	public boolean chkMouseMoveDragState2D(int mouseX, int mouseY, int btn){		
+		return gradeAvgExperiment.checkMouseDragMoveInExp2D( mouseX-(int)this.rectDim[0], mouseY, btn);
+	}//chkMouseOvr
+	
+	//check whether the mouse is over a legitimate map location
+	public void setMouseReleaseState2D(){	gradeAvgExperiment.setMouseReleaseInExp2D();}//chkMouseOvr
 
 	
 	@Override
 	protected void drawMe(float animTimeMod) {
+		pa.pushMatrix();pa.pushStyle();
+		pa.translate(this.rectDim[0],0,0);
 		//all drawing stuff goes here
-		
-
+		gradeAvgExperiment.drawClassRes();
+		pa.popStyle();pa.popMatrix();
 	}
 
 	@Override
 	protected void drawOnScreenStuffPriv(float modAmtMillis) {
-		
 	}
 
 	@Override
@@ -247,7 +268,7 @@ public class Alt2DWindow extends myDispWindow {
 			pa.outStr2Scr("Clicked Btn row : Aux Func 1 | Btn : " + btn);
 			switch(btn){
 				case 0 : {						
-					tester.testRandGen(1000000);
+					tester.testRandGen(10000000);
 					resetButtonState();
 					break;}
 				case 1 : {	
@@ -326,18 +347,38 @@ public class Alt2DWindow extends myDispWindow {
 	public List<String> hndlFileSaveIndiv() {List<String> res = new ArrayList<String>();return res;}
 	@Override
 	protected void processTrajIndiv(myDrawnSmplTraj drawnNoteTraj){	}
+	
+	
 	@Override
-	protected boolean hndlMouseMoveIndiv(int mouseX, int mouseY, myPoint mseClckInWorld){return false;}
+	protected boolean hndlMouseMoveIndiv(int mouseX, int mouseY, myPoint mseClckInWorld){
+		boolean res = chkMouseMoveDragState2D(mouseX, mouseY, -1);
+		return res;
+	}
 	//alt key pressed handles trajectory
 	//cntl key pressed handles unfocus of spherey
 	@Override
-	protected boolean hndlMouseClickIndiv(int mouseX, int mouseY, myPoint mseClckInWorld, int mseBtn) {	boolean res = checkUIButtons(mouseX, mouseY);	return res;}//hndlMouseClickIndiv
+	protected boolean hndlMouseClickIndiv(int mouseX, int mouseY, myPoint mseClckInWorld, int mseBtn) {	
+		boolean res = checkUIButtons(mouseX, mouseY);	
+		if(!res) {
+			res = chkMouseClick2D(mouseX, mouseY, mseBtn);
+			if (res) { 
+				pa.outStr2Scr("Clicked in window");
+			}
+		}
+		return res;}//hndlMouseClickIndiv
 	@Override
-	protected boolean hndlMouseDragIndiv(int mouseX, int mouseY, int pmouseX, int pmouseY, myPoint mouseClickIn3D, myVector mseDragInWorld, int mseBtn) {boolean res = false;return res;}	
+	protected boolean hndlMouseDragIndiv(int mouseX, int mouseY, int pmouseX, int pmouseY, myPoint mouseClickIn3D, myVector mseDragInWorld, int mseBtn) {
+		boolean res = false;
+		if(!res) {
+			res = chkMouseMoveDragState2D(mouseX, mouseY, mseBtn);
+		}		
+		return res;}	
 	@Override
 	protected void snapMouseLocs(int oldMouseX, int oldMouseY, int[] newMouseLoc) {}	
 	@Override
-	protected void hndlMouseRelIndiv() {}
+	protected void hndlMouseRelIndiv() {
+		setMouseReleaseState2D();
+	}
 	@Override
 	protected void endShiftKeyI() {}
 	@Override

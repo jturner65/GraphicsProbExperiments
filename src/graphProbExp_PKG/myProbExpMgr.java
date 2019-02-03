@@ -41,17 +41,36 @@ public class myProbExpMgr extends BaseProbExpMgr{
 		gaussGen = buildAndInitRandGen(ziggRandGen, GL_QuadSlvrIDX, 256, new double[] {3,25.9,0,0});	
 	}//initExp
 	
+
+	//check mouse over/click in 2d experiment - btn == -1 is mouse over
+	@Override	
+	public boolean checkMouseClickInExp2D(int msx, int msy, int btn) {
+		return false;
+	};
 	
+	//check mouse over/click in 2d experiment - btn == -1 is mouse over
+	@Override	
+	public boolean checkMouseDragMoveInExp2D(int msx, int msy, int btn) {
+		return false;
+	};
+	
+	//check mouse over/click in 2d experiment; if btn == -1 then mouse over
+	@Override	
+	public void setMouseReleaseInExp2D() {	
+	}
+
 	public void testRandGen(int numVals) {
 		dispMessage("myProbExpMgr","testRandGen","Start test of random normal gen of " +numVals + " vals from rand gen with momments : " + nrmlGen.getFuncDataStr());
 		smplTestRandNumGen(nrmlGen, numVals);
 		smplTestRandNumGen(gaussGen, numVals);
-		
+		dispMessage("myProbExpMgr","testRandGen","Start test of ThreadLocalRandom random gaussian gen of " +numVals + " vals.");
 		double[] genVals = new double[numVals];
 		//now test standard distribution of same # of values
 		genVals = new double[numVals];
-		for(int i=0;i<genVals.length;++i) {	genVals[i] = gaussGen.func.getMean() + (gaussGen.func.getStd()*ThreadLocalRandom.current().nextGaussian());		}
-		myProbAnalysis analysis = new myProbAnalysis(win.pa, genVals);
+		double mean = gaussGen.func.getMean(), std = gaussGen.func.getStd();
+		for(int i=0;i<genVals.length;++i) {	genVals[i] = mean + (std*ThreadLocalRandom.current().nextGaussian());		}
+		dispMessage("myProbExpMgr","testRandGen","Finished synthesizing " + numVals +" gaussian vals ~ N(" + mean + ","+std +") using ThreadLocalRandom random gaussian");
+		myProbAnalysis analysis = new myProbAnalysis(win.pa, genVals, null);
 		dispMessage("myProbExpMgr","testRandGen","Analysis res of TLR.nextGauss : " + analysis.getMoments());
 	}//testRandGen
 	
@@ -79,8 +98,7 @@ public class myProbExpMgr extends BaseProbExpMgr{
 		int flIDX = idx/32, mask = 1<<(idx%32);
 		stFlags[flIDX] = (val ?  stFlags[flIDX] | mask : stFlags[flIDX] & ~mask);
 		switch (idx) {//special actions for each flag
-			case debugIDX : {break;}	
-			
+			case debugIDX : {break;}				
 		}
 	}//setFlag		
 	@Override
