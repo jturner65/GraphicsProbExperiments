@@ -1,0 +1,186 @@
+package graphProbExp_PKG;
+/**
+ * instances of this class will analyze and display probability results relating to a data set;  this will also provide an easy-access container to manage moments
+ * @author john
+ *
+ */
+public class myProbSummary{
+	//values to analyze
+	private double[] vals;
+	//moments of this distribution.  mean, std, var may be null/undefined for certain distributions (i.e. cauchy)
+	protected double[] mmnts;
+	//flags holding state information about this summary object
+	//state flags - bits in array holding relevant info about this random variable function
+	private int[] stFlags;						
+	public static final int 
+		meanIDX			= 0, 
+		stdIDX			= 1, 
+		skewIDX			= 2,
+		kurtIDX			= 3,
+		//insert any higher moments in here
+		//these are convenience calcs/transforms of base moment values
+		varIDX			= 4,
+		excKurtIDX		= 5,
+		//
+		setByDataIDX	= 6;				//whether the moments values in this object were set by data or were set specifically
+	//# of boolean flags
+	public static final int numFlags = 7;
+	//# of moments being tracked, excluding variance and excess kurtosis and other duped moments
+	public static final int numMmnts = 6;
+	//# of moments actually specified, not counting derived moments
+	public int numMmntsGiven;
+	
+	public static final String[] mmntLabels = new String[] {"Mean","STD","Skew","Kurtosis", "Variance","Excess Kurtosis"};
+	
+	//dataset is passed
+	public myProbSummary(double[] _data) {
+		initFlags();
+		setValsAndAnalyse(_data);		
+	}//ctor
+	
+	//momments are passed
+	public myProbSummary(double[] _mmnts, int _numMmnts) {
+		initFlags();
+		setMoments(_mmnts, _numMmnts, false);		
+	}//ctor
+		
+	
+	//using Kahan summation to minimize errors from large differences in value magnitude
+	public void setValsAndAnalyse(double[] _vals) {
+		setFlag(setByDataIDX, true);
+		mmnts = new double[numMmnts];  
+		for(int i=0;i<numMmnts;++i) {mmnts[i]=0.0;}
+		vals=_vals;
+		int numVals = vals.length;
+		if(numVals ==0 ) {return;}
+		///calculate mean while minimizing float error
+		double sumMu = vals[0];
+		double cMu = 0.0, y, t;
+		for(int i=1;i<vals.length;++i) {
+			y = vals[i] - cMu;
+			t = sumMu + y;
+			cMu = (t-sumMu) - y;
+			sumMu = t;
+		}//		
+		mmnts[meanIDX] = sumMu/numVals;
+		//calculate variance/std while minimizing float error
+		//double sumVar = (vals[0] - mmnts[meanIDX])*(vals[0] - mmnts[meanIDX]);
+		double tDiff, tDiffSq;
+		double valMMean = (vals[0] - mmnts[meanIDX]);
+		double [] sumAndCSq = new double[] {valMMean*valMMean, 0.0};
+		double [] sumAndCCu = new double[] {(sumAndCSq[0])*valMMean, 0.0};
+		double [] sumAndCQu = new double[] {(sumAndCSq[0])*(sumAndCSq[0]), 0.0};
+		for(int i=1;i<vals.length;++i) {
+			tDiff = vals[i] - mmnts[meanIDX];
+			tDiffSq = (tDiff*tDiff);
+			calcSumAndC(sumAndCSq,tDiffSq - sumAndCSq[1]);
+			calcSumAndC(sumAndCCu,(tDiffSq*tDiff) - sumAndCCu[1]);
+			calcSumAndC(sumAndCQu,(tDiffSq*tDiffSq) - sumAndCQu[1]);
+		}//		
+		mmnts[varIDX] = sumAndCSq[0] / numVals;
+		mmnts[stdIDX] = Math.sqrt(mmnts[varIDX]);
+		mmnts[skewIDX] = (sumAndCCu[0] / numVals)/(mmnts[stdIDX]*mmnts[varIDX]);
+		mmnts[kurtIDX] = (sumAndCQu[0] / numVals)/(mmnts[varIDX]*mmnts[varIDX]);
+		mmnts[excKurtIDX] = mmnts[kurtIDX]-3.0;
+		for(int i=0;i<numMmnts;++i) {
+			setFlag(i,true);
+		}
+		numMmntsGiven = 4;		
+	}//setVals
+	
+	private void calcSumAndC(double[] sumAndC, double y) {
+		double t = sumAndC[0] + y;
+		sumAndC[1] = (t-sumAndC[0]) - y;
+		sumAndC[0] = t;
+	}
+		
+	//take passed moments (only canonical - no separate variance and ex kurtosis values) and set the internal moments of this analysis object
+	public void setMoments(double[] _mmnts, int _numMmntsGiven, boolean isExKurt) {
+		vals = new double[0];
+		setFlag(setByDataIDX, false);
+		mmnts = new double[numMmnts];  
+		numMmntsGiven = _numMmntsGiven;
+		mmnts[meanIDX] = _mmnts[meanIDX];
+		setFlag(meanIDX, true);
+		if(numMmntsGiven > 1) {//has std
+			mmnts[stdIDX] = _mmnts[stdIDX];
+			setFlag(stdIDX, true);
+			mmnts[varIDX]=mmnts[stdIDX]*mmnts[stdIDX];
+			setFlag(varIDX, true);
+			if(numMmntsGiven > 2) {//has skew
+				mmnts[skewIDX] = _mmnts[skewIDX];
+				setFlag(skewIDX, true);
+				if(numMmntsGiven > 3) {//has kurtosis
+					if (isExKurt) {
+						mmnts[excKurtIDX] = _mmnts[kurtIDX];
+						mmnts[kurtIDX] = mmnts[excKurtIDX] + 3;
+						setFlag(kurtIDX, true);
+						setFlag(excKurtIDX, true);
+					} else {
+						mmnts[kurtIDX] = _mmnts[kurtIDX];
+						mmnts[excKurtIDX] = mmnts[kurtIDX]-3.0;
+						setFlag(kurtIDX, true);
+						setFlag(excKurtIDX, true);
+					}
+				}					
+			}		
+		}	
+	}//setMoments	
+	
+	public double mean() {return getFlag(meanIDX) ? mmnts[meanIDX] : 0;}
+	public double var() { return getFlag(varIDX) ? mmnts[varIDX] : 0;}
+	public double std() { return getFlag(stdIDX) ? mmnts[stdIDX] : 0;}
+	public double skew() { return getFlag(skewIDX) ? mmnts[skewIDX] : 0;}
+	public double kurt() { return getFlag(kurtIDX) ? mmnts[kurtIDX] : 0;}
+	public double exKurt() { return getFlag(excKurtIDX) ? mmnts[excKurtIDX] : 0;}
+	
+	//transform the given value via the 1st 2 moments of the distribution described by these statistics from a normal ~N(0,1) 
+	public double normToGaussTransform(double val) {return (val * mmnts[stdIDX]) +  mmnts[meanIDX];}
+	//transform the give value, assumed to be from the distribution described by this object, to a normal ~N(0,1) 
+	public double gaussToNormTransform(double val) {return (val - mmnts[meanIDX])/ mmnts[stdIDX];}
+		
+	private void initFlags(){stFlags = new int[1 + numFlags/32]; for(int i = 0; i<numFlags; ++i){setFlag(i,false);}}
+	public void setAllFlags(int[] idxs, boolean val) {for (int idx : idxs) {setFlag(idx, val);}}
+	public void setFlag(int idx, boolean val){
+		int flIDX = idx/32, mask = 1<<(idx%32);
+		stFlags[flIDX] = (val ?  stFlags[flIDX] | mask : stFlags[flIDX] & ~mask);
+		switch (idx) {//special actions for each flag
+			case meanIDX	 	: 	{break;} 
+			case stdIDX		 	: 	{break;} 
+			case skewIDX		: 	{break;} 
+			case kurtIDX		: 	{break;} 						
+			case varIDX		 	: 	{break;} 
+			case excKurtIDX		: 	{break;}
+			case setByDataIDX	: 	{break;}
+		}
+	}//setFlag		
+	public boolean getFlag(int idx){int bitLoc = 1<<(idx%32);return (stFlags[idx/32] & bitLoc) == bitLoc;}		
+
+	public String getMomentsVals() {
+		String res = "# vals : " +vals.length + " | Set By Data : " + getFlag(setByDataIDX) + " | "  + getMoments();
+		return res;
+	}
+	
+	public String getMoments() {
+		String res = "";
+		for (int i=0;i<mmntLabels.length-1;++i) {	res +=  mmntLabels[i] + " = "+String.format("%.8f",mmnts[i]) + " | ";	}
+		res+=mmntLabels[mmntLabels.length-1] + " = "+String.format("%.8f",mmnts[mmntLabels.length-1]);
+		return res;
+	}
+	
+	public String getMinNumMmntsDesc() {
+		String res = "";
+		for (int i=0;i<numMmntsGiven-1;++i) {	res +=  mmntLabels[i] + " = "+String.format("%.8f",mmnts[i]) + " | ";	}
+		res+=mmntLabels[numMmntsGiven-1] + " = "+String.format("%.8f",mmnts[numMmntsGiven-1]);
+		return res;
+	}
+	
+	//get base moments with no descriptor strings
+	public String getMinNumMmnts() {
+		String res = "";
+		for(int i=0;i<numMmntsGiven;++i) { 			res += "_"+String.format("%.5f",mmnts[i]);		}
+		return res;
+	}
+	
+
+}//class myProbAnalysis

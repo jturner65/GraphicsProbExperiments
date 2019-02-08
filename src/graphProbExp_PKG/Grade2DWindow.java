@@ -2,156 +2,146 @@ package graphProbExp_PKG;
 
 import java.util.*;
 
-public class Main3DWindow extends myDispWindow {
+
+public class Grade2DWindow extends myDispWindow {
 	
-	///////////
-	//ui vals
-	//value to multiply delta t by per frame to speed up simulation
-	private float frameTimeScale = 1.0f;
+	/////////////
+	// ui objects 
+	////////////
+	// # of students across all classes
+	private int numStudents = 30;
+	// # of classes to build final grade
+	private int numClasses = 3;
+	//std of mapping normal distribution
+	private float mappingStd = .213f;
 	//idxs - need one per object
-	//add ui objects for controlling the task stdevmult and other criteria?
-	//for tasks : opt size, optsize mean TTC, stdDev Mult
-	//for lanes : lane speed
 	public final static int
-		gIDX_FrameTimeScale 		= 0,
-		gIDX_ExpLength				= 1,			//length of time for experiment, in minutes
-		gIDX_NumExpTrials			= 2; 
+		gIDX_NumStudents		= 0,
+		gIDX_NumClasses			= 1,
+		gIDX_MappingSTD			= 2;
 	//initial values - need one per object
 	public float[] uiVals = new float[]{
-			frameTimeScale,
-			720,																				//720 minutes == 12 hours default value
-			1
-			//
+			numStudents,
+			numClasses,
+			mappingStd
 	};			//values of 8 ui-controlled quantities
-	public final int numGUIObjs = uiVals.length;											//# of gui objects for ui	
-	
+	public final int numGUIObjs = uiVals.length;	
 	/////////
-	//custom debug/function ui button names -empty will do nothing
-	
-	//private child-class flags - window specific
-	public static final int 
-			debugAnimIDX 		= 0,						//debug
-			resetSimIDX			= 1,						//whether or not to reset sim	
-			drawVisIDX 			= 2,						//draw visualization - if false SIM exec and sim should ignore all processing/papplet stuff
-			conductExpIDX		= 3;						//conduct experiment with current settings
+	//ui button names -empty will do nothing, otherwise add custom labels for debug and custom functionality names
 
-	public static final int numPrivFlags = 4;
-	
+
+	//////////////
+	// local/ui interactable boolean buttons
+	//////////////
+	//private child-class flags - window specific
+	//for every class-wide boolean make an index, and increment numPrivFlags.
+	//use getPrivFlags(idx) and setPrivFlags(idx,val) to consume
+	//put idx-specific code in case statement in setPrivFlags
+	public static final int 
+			debugAnimIDX 		= 0;					//show debug
+	public static final int numPrivFlags = 1;
+
 	/////////
 	//custom debug/function ui button names -empty will do nothing
 	public String[][] menuBtnNames = new String[][] {	//each must have literals for every button defined in side bar menu, or ignored
 		{},
-		{"Test Rand Gen", "Test R Calc","Func 3"},	//row 1
+		{"Test Rand Gen", "Test R Calc","Calc Mapping"},	//row 1
 		{"Func 1", "Func 2", "Func 3", "Func 4"},	//row 1
 		{"Dbg 1","Dbg 2","Dbg 3","Dbg 4","Dbg 5"}	
 	};
-	
-	private myProbExpMgr tester;
 
-	public Main3DWindow(GraphProbExpMain _p, String _n, int _flagIdx, int[] fc, int[] sc, float[] rd, float[] rdClosed, String _winTxt, boolean _canDrawTraj) {
+	private myProbExpMgr tester;
+	
+	//class experiment
+	private ClassGradeExperiment gradeAvgExperiment;
+	
+
+	public Grade2DWindow(GraphProbExpMain _p, String _n, int _flagIdx, int[] fc, int[] sc, float[] rd, float[] rdClosed,String _winTxt, boolean _canDrawTraj) {
 		super(_p, _n, _flagIdx, fc, sc, rd, rdClosed, _winTxt, _canDrawTraj);
 		float stY = rectDim[1]+rectDim[3]-4*yOff,stYFlags = stY + 2*yOff;
-		trajFillClrCnst = GraphProbExpMain.gui_DarkCyan;		
+		trajFillClrCnst = GraphProbExpMain.gui_DarkCyan;		//override this in the ctor of the instancing window class
 		trajStrkClrCnst = GraphProbExpMain.gui_Cyan;
 		super.initThisWin(_canDrawTraj, true, false);
-	}//DancingBallWin
-	
+	}
+			
 	@Override
-	//initialize all private-flag based UI buttons here - called by base class
-	public void initAllPrivBtns(){
-		truePrivFlagNames = new String[]{								//needs to be in order of privModFlgIdxs
-				"Visualization Debug","Resetting Simulation", "Drawing Vis","Experimenting"
-		};
-		falsePrivFlagNames = new String[]{			//needs to be in order of flags
-				"Enable Debug","Reset Simulation", "Render Visualization",  "Conduct Experiment"
-		};
-		
-		privModFlgIdxs = new int[]{
-				debugAnimIDX, resetSimIDX, drawVisIDX, conductExpIDX
-		};
-		numClickBools = privModFlgIdxs.length;	
-		initPrivBtnRects(0,numClickBools);
-	}//initAllPrivBtns
-	//set labels of boolean buttons 
-//	private void setLabel(int idx, String tLbl, String fLbl) {truePrivFlagNames[idx] = tLbl;falsePrivFlagNames[idx] = fLbl;}//	
-	
-	@Override
-	protected void initMe() {//all ui objects set by here
+	protected void initMe() {
+		//called once
+		initPrivFlags(numPrivFlags);
 		//this window is runnable
 		setFlags(isRunnable, true);
 		//this window uses a customizable camera
 		setFlags(useCustCam, true);
 		//this window uses right side info window
 		setFlags(drawRightSideMenu, true);
+		tester = new myProbExpMgr(this);
 		
-		//called once
-		initPrivFlags(numPrivFlags);
+		gradeAvgExperiment = new ClassGradeExperiment(this);
+		setVisScreenDimsPriv();			//set visibility width
+		gradeAvgExperiment.buildStudentsAndClasses(numStudents, numClasses);
+		//set offset to use for custom menu objects
+		custMenuOffset = uiClkCoords[3];	
 		//moved from mapMgr ctor, to remove dependence on papplet in that object
 		pa.setAllMenuBtnNames(menuBtnNames);	
-		tester = new myProbExpMgr(this);
-
-		custMenuOffset = uiClkCoords[3];	//495	
-	}//initMe	
-		
+	}//
+	//initialize all UI buttons here
 	@Override
-	//set flag values and execute special functionality for this sequencer
-	//skipKnown will allow settings to be reset if passed redundantly
-	public void setPrivFlags(int idx, boolean val){	
+	public void initAllPrivBtns() {
+		//give true labels, false labels and specify the indexes of the booleans that should be tied to UI buttons
+		truePrivFlagNames = new String[]{			//needs to be in order of privModFlgIdxs
+				"Debugging",
+		};
+		falsePrivFlagNames = new String[]{			//needs to be in order of flags
+				"Enable Debug",
+		};
+		privModFlgIdxs = new int[]{					//idxs of buttons that are able to be interacted with
+				debugAnimIDX,
+		};
+		numClickBools = privModFlgIdxs.length;	
+		initPrivBtnRects(0,numClickBools);
+	}
+	
+	//add reference here to all button IDX's 
+	@Override
+	public void setPrivFlags(int idx, boolean val) {
 		boolean curVal = getPrivFlags(idx);
-		if(val == curVal){return;}
+		if(val == curVal) {return;}
 		int flIDX = idx/32, mask = 1<<(idx%32);
 		privFlags[flIDX] = (val ?  privFlags[flIDX] | mask : privFlags[flIDX] & ~mask);
 		switch(idx){
 			case debugAnimIDX 			: {
-				//simExec.setExecFlags(mySimExecutive.debugExecIDX,val);
 				break;}
-			case resetSimIDX			: {
-				//if(val) {simExec.initSimExec(true); addPrivBtnToClear(resetSimIDX);}
-				break;}
-			case drawVisIDX				:{
-				//simExec.setExecFlags(mySimExecutive.drawVisIDX, val);
-				break;}
-			case conductExpIDX			: {
-				//if wanting to conduct exp need to stop current experimet, reset environment, and then launch experiment
-//				if(val) {
-//					simExec.initializeTrials((int) uiVals[gIDX_ExpLength], (int) uiVals[gIDX_NumExpTrials], true);
-//					pa.setFlags(pa.runSim, true);
-//					addPrivBtnToClear(conductExpIDX);
-//				} 
-				break;}
-		
-			default:					{}
-		}		
-	}//setPrivFlags	
-		
+		}
+	}
+	
 	//initialize structure to hold modifiable menu regions
 	@Override
 	protected void setupGUIObjsAras(){	
 		//pa.outStr2Scr("setupGUIObjsAras start");
 		guiMinMaxModVals = new double [][]{
-			{1.0f,10000.0f,1.0f},						//time scaling - 1 is real time, 1000 is 1000x speedup           		gIDX_FrameTimeScale 
-			{1.0f, 1440, 1.0f},								//experiment length
-			{1.0f, 100, 1.0f}								//# of experimental trials
-		};		//min max mod values for each modifiable UI comp	
+			{1,100,1},						//# students
+			{1,9,1},						//# classes
+			{.0001,1,.0001}					//mapping std
+		};		//min max modify values for each modifiable UI comp	
 
 		guiStVals = new double[]{
-			uiVals[gIDX_FrameTimeScale],
-			uiVals[gIDX_ExpLength],
-			uiVals[gIDX_NumExpTrials],
-			
+				uiVals[gIDX_NumStudents],	//# students
+				uiVals[gIDX_NumClasses],	//# classes
+				uiVals[gIDX_MappingSTD],	//mapping std
+				
 		};								//starting value
 		
 		guiObjNames = new String[]{
-				"Sim Speed Multiplier",
-				"Experiment Duration",
-				"# Experimental Trials"
+				"Number of Students",
+				"Number of Classes",
+				"Std of Normal Mapping"
 		};								//name/label of component	
 		
 		//idx 0 is treat as int, idx 1 is obj has list vals, idx 2 is object gets sent to windows
 		guiBoolVals = new boolean [][]{
-			{false, false, true},	
-			{true, false, true},
-			{true, false, true}			
+			{true, false, true},	//# students
+			{true, false, true},	//# classes
+			{false,false,true}
 		};						//per-object  list of boolean flags
 		
 		//since horizontal row of UI comps, uiClkCoords[2] will be set in buildGUIObjs		
@@ -159,91 +149,76 @@ public class Main3DWindow extends myDispWindow {
 		if(numGUIObjs > 0){
 			buildGUIObjs(guiObjNames,guiStVals,guiMinMaxModVals,guiBoolVals,new double[]{xOff,yOff});			//builds a horizontal list of UI comps
 		}
-		
 //		setupGUI_XtraObjs();
 	}//setupGUIObjsAras
 	
-//	//setup UI object for song slider
-//	private void setupGUI_XtraObjs() {
-//		double stClkY = uiClkCoords[3], sizeClkY = 3*yOff;
-//		guiObjs[songTransIDX] = new myGUIBar(pa, this, songTransIDX, "MP3 Transport for ", 
-//				new myVector(0, stClkY,0), new myVector(uiClkCoords[2], stClkY+sizeClkY,0),
-//				new double[] {0.0, 1.0,0.1}, 0.0, new boolean[]{false, false, true}, new double[]{xOff,yOff});	
-//		
-//		//setup space for ui interaction with song bar
-//		stClkY += sizeClkY;				
-//		uiClkCoords[3] = stClkY;
-//	}
-
-	
+	//all ui objects should have an entry here to show how they should interact
 	@Override
 	protected void setUIWinVals(int UIidx) {
 		float val = (float)guiObjs[UIidx].getVal();
+		float oldVal = uiVals[UIidx];
+		int ival = (int)val;
 		if(val != uiVals[UIidx]){//if value has changed...
 			uiVals[UIidx] = val;
 			switch(UIidx){		
-			case gIDX_FrameTimeScale 			:{
-				this.frameTimeScale = val;
-				//simExec.setTimeScale(val);
-				break;}
-			case gIDX_ExpLength : {//determines experiment length				
-				break;}
-			case gIDX_NumExpTrials : {//# of trials for experiments
-				
+			case gIDX_NumStudents 			:{
+				if(ival != numStudents){
+					numStudents = ival;
+					gradeAvgExperiment.buildStudentsAndClasses(numStudents, numClasses);
+				}	break;}
+			
+			case gIDX_NumClasses 			:{
+				if(ival != numClasses){
+					numClasses = ival;
+					gradeAvgExperiment.buildStudentsAndClasses(numStudents, numClasses);
+				}	break;}
+			
+			case gIDX_MappingSTD : {
+				if(val != mappingStd) {
+					mappingStd = val;
+					gradeAvgExperiment.calcInverseMapping(mappingStd);
+					//gradeAvgExperiment.calcInverseCDFSpan(mappingStd);
+				}	break;}
 			}
-
-			default : {break;}
-			}
-		}
-	}
-	//if any ui values have a string behind them for display
+		}//if val is different
+	}//setUIWinVals
+	
+	//handle list ui components - return display value for list-based UI object
 	@Override
-	protected String getUIListValStr(int UIidx, int validx) {			
+	protected String getUIListValStr(int UIidx, int validx) {
 		switch(UIidx){
-			//case gIDX_UAVTeamSize : {return uavTeamSizeVals[(validx % uavTeamSizeVals.length)];}
-			default : {break;}
-		}
-		return "";
+		default : {break;}
 	}
+	return "";	}
+
+
+	//check whether the mouse is over a legitimate map location
+	public boolean chkMouseClick2D(int mouseX, int mouseY, int btn){		
+		return gradeAvgExperiment.checkMouseClickInExp2D( mouseX-(int)this.rectDim[0], mouseY, btn);
+	}//chkMouseOvr
+
 	
-	@Override
-	public void initDrwnTrajIndiv(){}
+	//check whether the mouse is over a legitimate map location
+	public boolean chkMouseMoveDragState2D(int mouseX, int mouseY, int btn){		
+		return gradeAvgExperiment.checkMouseDragMoveInExp2D( mouseX-(int)this.rectDim[0], mouseY, btn);
+	}//chkMouseOvr
 	
-//	public void setLights(){
-//		pa.ambientLight(102, 102, 102);
-//		pa.lightSpecular(204, 204, 204);
-//		pa.directionalLight(180, 180, 180, 0, 1, -1);	
-//	}	
-	//overrides function in base class mseClkDisp
-	@Override
-	public void drawTraj3D(float animTimeMod,myPoint trans){}//drawTraj3D	
-	//set camera to either be global or from pov of one of the boids
-	@Override
-	protected void setCameraIndiv(float[] camVals){		
-		//, float rx, float ry, float dz are now member variables of every window
-		pa.camera(camVals[0],camVals[1],camVals[2],camVals[3],camVals[4],camVals[5],camVals[6],camVals[7],camVals[8]);      
-		// puts origin of all drawn objects at screen center and moves forward/away by dz
-		pa.translate(camVals[0],camVals[1],(float)dz); 
-	    setCamOrient();	
-	}//setCameraIndiv
+	//check whether the mouse is over a legitimate map location
+	public void setMouseReleaseState2D(){	gradeAvgExperiment.setMouseReleaseInExp2D();}//chkMouseOvr
 
 	
 	@Override
-	//modAmtMillis is time passed per frame in milliseconds - returns if done or not
-	protected boolean simMe(float modAmtMillis) {//run simulation
-		//pa.outStr2Scr("took : " + (pa.millis() - stVal) + " millis to simulate");
-		//call sim executive, return boolean of whether finished or not
-		boolean done = true;//simExec.simMe(modAmtMillis);
-		if(done) {setPrivFlags(conductExpIDX, false);}
-		return done;	
-	}//simMe
-	
-	
+	protected void drawMe(float animTimeMod) {
+		pa.pushMatrix();pa.pushStyle();
+		pa.translate(this.rectDim[0],0,0);
+		//all drawing stuff goes here
+		gradeAvgExperiment.drawClassRes();
+		pa.popStyle();pa.popMatrix();
+	}
+
 	@Override
 	protected void drawOnScreenStuffPriv(float modAmtMillis) {
-		
 	}
-
 
 	@Override
 	//draw 2d constructs over 3d area on screen - draws behind left menu section
@@ -254,46 +229,41 @@ public class Main3DWindow extends myDispWindow {
 		//simExec.des.drawResultBar(pa, UIrectBox,  yOff);
 		pa.popStyle();pa.popMatrix();					
 	}//drawOnScreenStuff
-	
 	@Override
-	//animTimeMod is in seconds.
-	protected void drawMe(float animTimeMod) {
-//		curMseLookVec = pa.c.getMse2DtoMse3DinWorld(pa.sceneCtrVals[pa.sceneIDX]);			//need to be here
-//		curMseLoc3D = pa.c.getMseLoc(pa.sceneCtrVals[pa.sceneIDX]);
-		
-		//draw simulation - simExec should have drawMe(animTimeMod) method
-		//simExec.drawMe(animTimeMod);
-	}//drawMe	
-
-	//draw custom 2d constructs below interactive component of menu
-	@Override
-	public void drawCustMenuObjs(){
+	public void drawCustMenuObjs() {
 		pa.pushMatrix();				pa.pushStyle();		
 		//all sub menu drawing within push mat call
-		pa.translate(0,custMenuOffset+yOff);		
+		pa.translate(5,custMenuOffset+yOff);
 		//draw any custom menu stuff here
+		
+		
 		pa.popStyle();					pa.popMatrix();		
 	}//drawCustMenuObjs
-
+	
 	//manage any functionality specific to this window that needs to be recalced when the visibile dims of the window change
 	@Override
 	protected void setVisScreenDimsPriv() {
 		
+	
+		gradeAvgExperiment.setVisibleScreenWidth();
 		
 	}//setVisScreenDimsPriv
 
+	
+	//any simulation stuff - executes before draw on every draw cycle
+	@Override
+	//modAmtMillis is time passed per frame in milliseconds - returns if done or not
+	protected boolean simMe(float modAmtSec) {
+		// TODO Auto-generated method stub
 
+		return true;
+	}
+	
 	@Override
 	protected void closeMe() {
 		//things to do when swapping this window out for another window - release objects that take up a lot of memory, for example.
-	}	
-	
-	
-	@Override
-	//stopping simulation
-	protected void stopMe() {
-		System.out.println("Simulation Finished");	
 	}
+	
 	
 	//modify menu buttons to display whether using CSV or SQL to access raw data
 	private void setCustMenuBtnNames() {
@@ -316,7 +286,7 @@ public class Main3DWindow extends myDispWindow {
 		//for(int i=0;i<uiAbbrevList.length;++i) {fileString += uiAbbrevList[i]+"_"+ (uiVals[i] > 1 ? ((int)uiVals[i]) : uiVals[i] < .0001 ? String.format("%6.3e", uiVals[i]) : String.format("%3.3f", uiVals[i]))+"_";}
 		return new String[]{dirString,fileString};	
 	}
-		
+	
 	//if launching threads for custom functions or debug, need to remove resetButtonState call in function below and call resetButtonState (with slow proc==true) when thread ends
 	@Override
 	protected void launchMenuBtnHndlr() {
@@ -325,15 +295,16 @@ public class Main3DWindow extends myDispWindow {
 		case mySideBarMenu.btnAuxFunc1Idx : {
 			pa.outStr2Scr("Clicked Btn row : Aux Func 1 | Btn : " + btn);
 			switch(btn){
-				case 0 : {	
+				case 0 : {						
 					tester.testRandGen(10000000);
 					resetButtonState();
 					break;}
 				case 1 : {	
-					tester.testRCalc(); 
+					tester.testRCalc();
 					resetButtonState();
 					break;}
 				case 2 : {	
+					gradeAvgExperiment.calcInverseMapping(mappingStd);
 					resetButtonState();
 					break;}
 				default : {
@@ -344,6 +315,7 @@ public class Main3DWindow extends myDispWindow {
 			pa.outStr2Scr("Clicked Btn row : Aux Func 2 | Btn : " + btn);
 			switch(btn){
 				case 0 : {	
+					gradeAvgExperiment.calcInverseCDFSpan(mappingStd);
 					resetButtonState();
 					break;}
 				case 1 : {	
@@ -382,13 +354,30 @@ public class Main3DWindow extends myDispWindow {
 			}				
 			break;}//row 3 of menu side bar buttons (debug)			
 		}		
-	}//launchMenuBtnHndlr
+	}//launchMenuBtnHndlr		
 	
+	private void toggleDbgBtn(int idx, boolean val) {
+		setPrivFlags(idx, !getPrivFlags(idx));
+	}
+
+	@Override
+	protected void setCameraIndiv(float[] camVals){		
+		//, float rx, float ry, float dz are now member variables of every window
+		pa.camera(camVals[0],camVals[1],camVals[2],camVals[3],camVals[4],camVals[5],camVals[6],camVals[7],camVals[8]);      
+		// puts origin of all drawn objects at screen center and moves forward/away by dz
+		pa.translate(camVals[0],camVals[1],(float)dz); 
+	    setCamOrient();	
+	}//setCameraIndiv
+
+	@Override
+	protected void stopMe() {pa.outStr2Scr("Stop");}	
 	
 	@Override
 	public void hndlFileLoad(String[] vals, int[] stIdx) {
 		//if wanting to load/save UI values, uncomment this call and similar in hndlFileSave 
 		//hndlFileLoad_GUI(vals, stIdx);
+		//loading in grade data from grade file - vals holds array of strings, expected to be comma sep values, for a single class, with student names and grades
+		
 		
 	}
 	@Override
@@ -396,40 +385,48 @@ public class Main3DWindow extends myDispWindow {
 		ArrayList<String> res = new ArrayList<String>();
 		//if wanting to load/save UI values, uncomment this call and similar in hndlFileLoad 
 		//res = hndlFileSave_GUI();
-
+		//saving student grades to a file for a single class - vals holds array of strings, expected to be comma sep values, for a single class, with student names and grades
+		
 		return res;
 	}
 
 	@Override
 	protected void processTrajIndiv(myDrawnSmplTraj drawnNoteTraj){	}
-	@Override
-	protected myPoint getMsePtAs3DPt(int mouseX, int mouseY){return pa.P(mouseX,mouseY,0);}
+	
+	
 	@Override
 	protected boolean hndlMouseMoveIndiv(int mouseX, int mouseY, myPoint mseClckInWorld){
-		return false;
+		boolean res = chkMouseMoveDragState2D(mouseX, mouseY, -1);
+		return res;
 	}
-	
 	//alt key pressed handles trajectory
-	
 	//cntl key pressed handles unfocus of spherey
 	@Override
 	protected boolean hndlMouseClickIndiv(int mouseX, int mouseY, myPoint mseClckInWorld, int mseBtn) {	
 		boolean res = checkUIButtons(mouseX, mouseY);	
+		if(!res) {
+			res = chkMouseClick2D(mouseX, mouseY, mseBtn);
+		}
 		return res;}//hndlMouseClickIndiv
 	@Override
 	protected boolean hndlMouseDragIndiv(int mouseX, int mouseY, int pmouseX, int pmouseY, myPoint mouseClickIn3D, myVector mseDragInWorld, int mseBtn) {
 		boolean res = false;
+		if(!res) {
+			res = chkMouseMoveDragState2D(mouseX, mouseY, mseBtn);
+		}		
 		return res;}	
 	@Override
-	protected void hndlMouseRelIndiv() {	}
+	protected void snapMouseLocs(int oldMouseX, int oldMouseY, int[] newMouseLoc) {}	
+	@Override
+	protected void hndlMouseRelIndiv() {
+		setMouseReleaseState2D();
+	}
 	@Override
 	protected void endShiftKeyI() {}
 	@Override
 	protected void endAltKeyI() {}
 	@Override
 	protected void endCntlKeyI() {}
-	@Override
-	protected void snapMouseLocs(int oldMouseX, int oldMouseY, int[] newMouseLoc) {}	
 	@Override
 	protected void addSScrToWinIndiv(int newWinKey){}
 	@Override
@@ -440,6 +437,15 @@ public class Main3DWindow extends myDispWindow {
 	protected void delTrajToScrIndiv(int subScrKey, String newTrajKey) {}
 	//resize drawn all trajectories
 	@Override
-	protected void resizeMe(float scale) { }
-}//DESSimWindow
+	protected void resizeMe(float scale) {	}
 
+	@Override
+	protected void initDrwnTrajIndiv() {}
+
+	@Override
+	protected myPoint getMsePtAs3DPt(int mouseX, int mouseY) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+}

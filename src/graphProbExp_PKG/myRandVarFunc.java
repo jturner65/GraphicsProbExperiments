@@ -18,29 +18,35 @@ public abstract class myRandVarFunc {
 	//quadrature solver for this random variable/function
 	protected myGaussQuad quadSlvr;
 	
+	//object to hold descriptive values and statistics for this distribution, and any source data/samples, if they exist
+	protected myProbSummary summary;
+	
 	//state flags - bits in array holding relevant info about this random variable function
 	private int[] stFlags;						
 	public static final int
-			debugIDX 					= 0,
-			useZigAlgIDX				= 1,		//whether or not this random variable will be used in a ziggurat solver		
-			//momments set
-			meanSetIDX					= 2,		//specific mean is set
-			stdSetIDX					= 3,		//specific std is set
-			skewSetIDX					= 4,		//specific skew is set
-			kurtSetIDX					= 5,		//specific kurt is set
+//			//momments set
+//			meanSetIDX					= 0,		//specific mean is set 
+//			stdSetIDX					= 1,		//specific std is set
+//			skewSetIDX					= 2,		//specific skew is set
+//			kurtSetIDX					= 3,		//specific kurt is set
+			//whether to use zig alg for solving	
+			useZigAlgIDX				= 4,		//whether or not this random variable will be used in a ziggurat solver		
 			//quad solver set
-			quadSlvrSetIDX				= 6;		//whether quadrature solver has been set or not
-	public static final int numFlags 	= 7;	
+			quadSlvrSetIDX				= 5;		//whether quadrature solver has been set or not
+	public static final int numFlags 	= 6;	
 	
-	//mean and std of this distribution.  mean, std, var may be null/undefined for certain distributions (i.e. cauchy)
-	protected Double[] mmnts;
-	public static final int 
-		meanIDX			= 0, 
-		stdIDX			= 1, 
-		varIDX			= 2,
-		skewIDX			= 3,
-		kurtIDX			= 4;
-	public static final int numMmnts = 5;
+//	//mean and std of this distribution.  mean, std, var may be null/undefined for certain distributions (i.e. cauchy)
+//	protected double[] mmnts;
+//	public static final int 
+//		meanIDX			= 0, 
+//		stdIDX			= 1, 
+//		varIDX			= 2,
+//		skewIDX			= 3,
+//		kurtIDX			= 4;
+//	public static final int numTTlMmnts = 5;
+//	//# of moments actually set - gauss/normal only use 2
+//	//public int numMomentsSet;
+//	public static final String[] mmntLabels = new String[] {"Mean","STD","Variance","Skew","Kurtosis"};
 
 	//functional representation of pdfs and inv pdfs, and normalized @ 0 for ziggurat calc
 	protected Function<Double, Double>[] funcs;
@@ -48,6 +54,7 @@ public abstract class myRandVarFunc {
 	protected static final int 
 		fIDX 		= 0,
 		fInvIDX 	= 1,
+		//functions specifically for ziggurat calc - expected to be 0-centered
 		fZigIDX		= 2,
 		fInvZigIDX	= 3;
 	protected static final int numFuncs = 4;
@@ -67,39 +74,81 @@ public abstract class myRandVarFunc {
 		expMgr = _expMgr;name=_name;
 		initFlags();
 		setQuadSolver(_quadSlvr);
-		mmnts = new Double[numMmnts];
 	}//ctor
 	
-	//call this to set desired values for mean and std - possibly change them on constructed object? - called from ctor
-	protected void setMeanStd(Double _mu, Double _std){
-		mmnts[meanIDX]=_mu;
-		setFlag(meanSetIDX, true);
-		mmnts[stdIDX]=_std; 
-		setFlag(stdSetIDX, true);
-		if(mmnts[stdIDX] != null) {mmnts[varIDX]=mmnts[stdIDX]*mmnts[stdIDX];} else {mmnts[varIDX]=null;}
-		funcs = new Function[numFuncs];
+	//set new summary statistics for this function
+	public void setSummary(myProbSummary _summary) {
+		summary=_summary;
+		funcs= new Function[numFuncs];
 		buildFuncs();
-	}//setMeanStd
+	}
 	
-	//sets quadrature solver to be used to solve any integration for this RV func
+//	//call from instancing class ctor - this to set desired values for moments 
+//	//_mmnts will be first _numMmntsSet moments (mean, std, skew, kurt...)
+//	protected void setMoments(double[] _mmnts, int _numMmntsSet){
+//		numMomentsSet =_numMmntsSet;
+//		mmnts = new double[numTTlMmnts];
+//		mmnts[meanIDX] = _mmnts[meanIDX];
+//		setFlag(meanSetIDX, true);
+//		if(numMomentsSet > 1) {
+//			mmnts[stdIDX] = _mmnts[stdIDX];
+//			setFlag(stdSetIDX, true);
+//			mmnts[varIDX]=mmnts[stdIDX]*mmnts[stdIDX];
+//			if(numMomentsSet > 2) {
+//				mmnts[skewIDX] = _mmnts[skewIDX];
+//				setFlag(skewSetIDX, true);
+//				if(numMomentsSet > 3) {
+//					mmnts[kurtIDX] = _mmnts[kurtIDX];
+//					setFlag(kurtSetIDX, true);
+//				}					
+//			}		
+//		}
+//		funcs = new Function[numFuncs];
+//		buildFuncs();
+//	}//setMeanStd
+	
+	//set/get quadrature solver to be used to solve any integration for this RV func
 	public void setQuadSolver(myGaussQuad _quadSlvr) {
 		quadSlvr = _quadSlvr;
 		setFlag(quadSlvrSetIDX, quadSlvr!=null);
 	}//setSolver	
-	
 	public myGaussQuad getQuadSolver() {return quadSlvr;}
 	public String getQuadSolverName() {
 		if (getFlag(quadSlvrSetIDX)) { return quadSlvr.name;}
 		return "None Set";
 	}
-	public Double getMean() {return mmnts[meanIDX];}
-	public Double getStd() {return mmnts[stdIDX];}
-	public Double getVar() {return mmnts[varIDX];}
-	public Double getSkew() {return mmnts[skewIDX];}
-	public Double getKurt() {return mmnts[kurtIDX];}
+	//momments
 	
-	//build individual functions that describe pdf, inverse pdf and ziggguart (scaled to 1 @ 0) pdf and inv pdf
+	
+	public double getMean() {return summary.mean();}
+	public double getStd() {return summary.std();}
+	public double getVar() {return summary.var();}
+	public double getSkew() {return summary.skew();}
+	public double getKurt() {return summary.kurt();}
+	
+	//build individual functions that describe pdf, inverse pdf and zigggurat (scaled to y==1 @ x==0) pdf and inv pdf, if necesssary
 	protected abstract void buildFuncs();
+	//calculate pdf function f
+	public final double f(double x) {return funcs[fIDX].apply(x);}
+	//calculate the inverse of f
+	public final double f_inv(double xInv){return funcs[fInvIDX].apply(xInv);}	
+	//calculate f normalized for ziggurate method, so that f(0) == 1;
+	public final double fZig(double x){return funcs[fZigIDX].apply(x);}
+	//calculate the inverse of f
+	public final double f_invZig(double xInv){return funcs[fInvZigIDX].apply(xInv);}
+	
+	//calculate the cdf
+	public abstract double CDF(double x);
+	//calculate inverse cdf of passed value 0->1
+	public abstract double CDF_inv(double x);	
+	
+	//calculate integral of f between x1 and x2.  Use to calculate cumulative distribution by making x1==-inf, and x2 definite; qfunc by setting x1 to a value and x2 == +inf
+	protected abstract double integral_f(Double x1, Double x2);	
+	//calculate integral of normalized f (for ziggurat calc) between x1 and x2.  Use to calculate cumulative distribution by making x1==-inf, and x2 definite; qfunc by setting x1 to a value and x2 == +inf
+	protected abstract double integral_fZig(Double x1, Double x2);	
+		
+	//process a result from a 0-centered, 1-std distribution to match stated moments of this distribution
+	public abstract double processResValByMmnts(double val);	
 	
 	//if this rand var is going to be accessed via the ziggurat algorithm, this needs to be called w/# of rectangles to use
 	//this must be called after an Quad solver has been set, since finding R and Vol for passed # of ziggurats requires such a solver
@@ -116,34 +165,12 @@ public abstract class myRandVarFunc {
 		setFlag(useZigAlgIDX, true);
 	}//setZigVals
 	
-	public final double f(double x) {return funcs[fIDX].apply(x);}
-	//calculate the inverse of f
-	public final double f_inv(double xInv){return funcs[fInvIDX].apply(xInv);}	
-	//calculate f normalized for ziggurate method, so that f(0) == 1;
-	public final double fZig(double x){return funcs[fZigIDX].apply(x);}
-	//calculate the inverse of f
-	public final double f_invZig(double xInv){return funcs[fInvZigIDX].apply(xInv);}
-	
-	//calculate the cdf
-	public abstract double CDF(double x);
-	//calculate inverse cdf of passed value 0->1
-	public abstract double CDF_inv(double x);
-	
-	//calculate integral of f between x1 and x2.  Use to calculate cumulative distribution by making x1==-inf, and x2 definite; qfunc by setting x1 to a value and x2 == +inf
-	protected abstract double integral_f(Double x1, Double x2);
-	//calculate integral of normalized f (for ziggurat calc) between x1 and x2.  Use to calculate cumulative distribution by making x1==-inf, and x2 definite; qfunc by setting x1 to a value and x2 == +inf
-	protected abstract double integral_fZig(Double x1, Double x2);	
-	
 	//temp testing function - returns R and Vol
 	public double[] dbgTestCalcRVal(int nRect) {
 		numZigRects = nRect;
 		zigConstVals tmpZigVals = new zigConstVals(this,numZigRects);
 		return tmpZigVals.calcRValAndVol();		
 	}//testCalcRVal
-	
-		
-	//process a result from a 0-centered, 1-std distribution to match stated moments of this distribution
-	public abstract double processResValByMmnts(double val);
 
 	private void initFlags(){stFlags = new int[1 + numFlags/32]; for(int i = 0; i<numFlags; ++i){setFlag(i,false);}}
 	public void setAllFlags(int[] idxs, boolean val) {for (int idx : idxs) {setFlag(idx, val);}}
@@ -151,12 +178,11 @@ public abstract class myRandVarFunc {
 		int flIDX = idx/32, mask = 1<<(idx%32);
 		stFlags[flIDX] = (val ?  stFlags[flIDX] | mask : stFlags[flIDX] & ~mask);
 		switch (idx) {//special actions for each flag
-			case debugIDX 		: 	{break;}	
+//			case meanSetIDX	 	: 	{break;} 
+//			case stdSetIDX	 	: 	{break;} 
+//			case skewSetIDX	 	: 	{break;} 
+//			case kurtSetIDX	 	: 	{break;} 						
 			case useZigAlgIDX 	: 	{break;}
-			case meanSetIDX	 	: 	{break;} 
-			case stdSetIDX	 	: 	{break;} 
-			case skewSetIDX	 	: 	{break;} 
-			case kurtSetIDX	 	: 	{break;} 						
 			case quadSlvrSetIDX	: 	{break;}
 		}
 	}//setFlag		
@@ -164,17 +190,19 @@ public abstract class myRandVarFunc {
 	
 	//describes data
 	public String getFuncDataStr(){
-		String res = "Type of distribution :  " + name +"\tMean:"+String.format("%3.8f",mmnts[meanIDX])+"\tSTD : "+ String.format("%3.8f",mmnts[stdIDX])+"\tVar:"+String.format("%3.8f",mmnts[varIDX]);
+		String res = "Type of distribution :  " + name +"|"+summary.getMoments();
 		if(getFlag(useZigAlgIDX)) {	res += "\n\tUsing Ziggurat Algorithm : " + zigVals.toString();}		
 		return res;
 	}//getFuncDataStr
 	
 	public String getShortDesc() {
-		return "Name : " + name +"|Mean:"+String.format("%3.8f",mmnts[meanIDX])+"\tSTD:"+ String.format("%3.8f",mmnts[stdIDX]);
+		String res = "Name : " +name + "|"+summary.getMinNumMmntsDesc();
+		return res;
 	}
 	//get minimal string description, useful for key for map
 	public String getMinDescString() {
-		return name +"_"+String.format("%.5f",mmnts[meanIDX])+"_"+ String.format("%.5f",mmnts[stdIDX])+"_"+ String.format("%.5f",mmnts[skewIDX])+"_"+ String.format("%.5f",mmnts[kurtIDX]);
+		String res = name+summary.getMinNumMmnts();
+		return res;
 	}
 	
 }//class myRandVariable
@@ -200,24 +228,26 @@ class myGaussianFunc extends myRandVarFunc{
 	
     protected double gaussSclFact, meanStd, invStdSclFact;
 
-	public myGaussianFunc(BaseProbExpMgr _expMgr, myGaussQuad _quadSlvr, double _mean, double _std, String _name) {
+	public myGaussianFunc(BaseProbExpMgr _expMgr, myGaussQuad _quadSlvr, myProbSummary _summaryObj, String _name) {
 		super(_expMgr,_quadSlvr, _name);
-		gaussSclFact = (1.0/_std) *normalSclFact;
+		double mu = _summaryObj.mean(), std = _summaryObj.std();
+		
+		gaussSclFact = (1.0/std) *normalSclFact;
 		inGaussSclFactBD = new BigDecimal(1.0/gaussSclFact);
-		meanStd = _mean/_std;
-		invStdSclFact = (1.0/_std) * invSqrt2;
+		meanStd = mu/std;
+		invStdSclFact = (1.0/std) * invSqrt2;
 		//System.out.println("Mean : " + _mean + " std "+ _std + "| invStdSclFact : " +invStdSclFact);
-		setMeanStd(_mean,_std);		
+		setSummary(_summaryObj);
 	}//ctor
-	public myGaussianFunc(BaseProbExpMgr _expMgr, myGaussQuad _quadSlvr,  double _mean, double _std) {this(_expMgr, _quadSlvr, _mean,_std, "Gaussian");}
+	public myGaussianFunc(BaseProbExpMgr _expMgr, myGaussQuad _quadSlvr, myProbSummary _summaryObj) {this(_expMgr, _quadSlvr,  _summaryObj, "Gaussian");}
 	
 	@Override
 	protected void buildFuncs() {
 		errorFunc =  (x ->  ErfCoef * Math.exp(-(x*x)));
-		
+		double mu = summary.mean(), std = summary.std(), var = summary.var();
 		//actual probablity functions
-		funcs[fIDX] 		= (x -> (gaussSclFact  * Math.exp(-0.5 * ((x-mmnts[meanIDX])*(x-mmnts[meanIDX]))/mmnts[varIDX])));
-		funcs[fInvIDX] 		= (xinv -> (mmnts[stdIDX]*Math.sqrt(-2.0 * Math.log(xinv/gaussSclFact))) + meanStd);
+		funcs[fIDX] 		= (x -> (gaussSclFact  * Math.exp(-0.5 * ((x-mu)*(x-mu))/var)));
+		funcs[fInvIDX] 		= (xinv -> (std*Math.sqrt(-2.0 * Math.log(xinv/gaussSclFact))) + meanStd);
 		//zigurat functions -> want pure normal distribution
 		funcs[fZigIDX]		= (x -> Math.exp(-0.5 *(x*x)));
 		funcs[fInvZigIDX]	= (xinv -> (Math.sqrt(-2.0 * Math.log(xinv)))); 
@@ -225,7 +255,7 @@ class myGaussianFunc extends myRandVarFunc{
 	
 	//shift by mean, multiply by std
 	@Override
-	public double processResValByMmnts(double val) {	return mmnts[stdIDX]*val + mmnts[meanIDX];}//public abstract double processResValByMmnts(double val);
+	public double processResValByMmnts(double val) {	return summary.normToGaussTransform(val);}//public abstract double processResValByMmnts(double val);
 
 	//calculate integral of f from x1 to x2.  Use to calculate cumulative distribution by making x1== -inf, and x2 definite val
 	@Override
@@ -237,13 +267,13 @@ class myGaussianFunc extends myRandVarFunc{
 		//if x1 is -inf... gauss-legendre quad - use error function via gaussian quad - calculating cdf
 		if(x1==Double.NEGATIVE_INFINITY) {				//cdf of x2 == .5 + .5 * error function x2/sqrt(2) 
 			//expMgr.dispMessage("myGaussianFunc", "integral_f", "CDF : x1 : "+x1 + " and  x2 : " + x2 + " Using x2");
-			BigDecimal erroFuncVal = quadSlvr.evalIntegral(errorFunc, 0.0, (x2 - mmnts[meanIDX])*invStdSclFact);
+			BigDecimal erroFuncVal = quadSlvr.evalIntegral(errorFunc, 0.0, (x2 - summary.mean())*invStdSclFact);
 			//cdf == .5*(1+erf(x/sqrt(2))) 
 			//res = halfVal.add(halfVal.multiply(erroFuncVal));		
 			res = .5 + .5 * erroFuncVal.doubleValue();			
 		} else if (x2==Double.POSITIVE_INFINITY) {		//pos inf -> this is 1- CDF == Q function
 			//expMgr.dispMessage("myGaussianFunc", "integral_f", "Q func : x1 : "+x1 + " and  x2 : " + x2 + " Using x1");
-			BigDecimal erroFuncVal = quadSlvr.evalIntegral(errorFunc, 0.0, (x1 - mmnts[meanIDX])*invStdSclFact);
+			BigDecimal erroFuncVal = quadSlvr.evalIntegral(errorFunc, 0.0, (x1 - summary.mean())*invStdSclFact);
 			//Q function is == 1 - (.5*(1+erf(x/sqrt(2))))
 			//res = BigDecimal.ONE.subtract(halfVal.add(halfVal.multiply(erroFuncVal)));		
 			res = 1.0 - (.5 + .5 * erroFuncVal.doubleValue());				
@@ -297,7 +327,9 @@ class myGaussianFunc extends myRandVarFunc{
 	 * @param p probability
 	 * @return value for which, using N(0,1), the p(x<= value) == p 
 	 */
-	protected static double calcProbitApprox(double p){	    
+	protected static double calcProbitApprox(double p){	
+		//p can't be 0 - if 0 then return min value possible
+		if (p==0) {return Double.NEGATIVE_INFINITY;} else if (p==1) {return Double.POSITIVE_INFINITY;}
 	    // Coefficients in rational approximations
 	    double[] a = { -3.969683028665376e+01, 2.209460984245205e+02,-2.759285104469687e+02, 1.383577518672690e+02, -3.066479806614716e+01,  2.506628277459239e+00},
 	    		b = {-5.447609879822406e+01, 1.615858368580409e+02, -1.556989798598866e+02,  6.680131188771972e+01, -1.328068155288572e+01},
@@ -329,33 +361,130 @@ class myGaussianFunc extends myRandVarFunc{
 	@Override
 	public double CDF_inv(double x) {	
 		double normRes = calcProbitApprox(x);
-		return (normRes * mmnts[stdIDX]) + mmnts[meanIDX];
+		return summary.normToGaussTransform(normRes);
 	}//CDF_inv
-	
-//	public double CDF_inv(double x) {	
-//		double normRes = calcProbitApprox((x - mmnts[meanIDX])/mmnts[stdIDX]);
-//		return normRes;
-//	}//CDF_inv
 	
 
 }//class myGaussianFunc
-
 
 /**
  * instancing class for the function describing a normal random variable - explicitly mean == 0, var==std==1
  * @author john
  *
  */
-class myNormalFunc extends myGaussianFunc{
-	
+class myNormalFunc extends myGaussianFunc{	
 	//////////////////////////////
 	//zig algorithm fields for scaled normal - all myRandVarFuncs need their own impelemtnations of this map, independent of base class
 	//////////////////////////////		
 	public myNormalFunc(BaseProbExpMgr _expMgr, myGaussQuad _quadSlvr) {
-		super(_expMgr,_quadSlvr, 0.0, 1.0, "Normal");			
+		super(_expMgr,_quadSlvr, new myProbSummary(new double[] {0.0, 1.0},2), "Normal");			
 	}//ctor	
 	
 }//class myNormalFunc
+
+
+/**
+ * instancing class for a univariate fleishman polynomial-based distribution function
+ * 
+ * When given moments of data, can build polynomial
+ * @author john
+ *
+ */
+
+class myFleishFunc_Uni extends myRandVarFunc{
+	//polynomial coefficients
+	private double[] coeffs;
+	//whether this is ready to use or not - all values have been set and calculated
+	private boolean ready;
+	//summary object/
+	public myFleishFunc_Uni(BaseProbExpMgr _expMgr, myGaussQuad _quadSlvr, myProbSummary _summaryObj) {
+		super(_expMgr, _quadSlvr, "Fleishman");
+		ready = false;
+	}//ctor
+	
+	//pass an object holding the data and the calculated moments to build this polynomial from
+	public void finalInit(myProbSummary data) {//get moments from this and data
+		
+	}
+	
+	//kurtosis is expected to be full kurtosis, not excess
+//	private void setMmntsAndCalc(double[] mmnts, boolean isExKurt, boolean hasMinMax, showSimRes=True, N=1000000) {
+//      self.mmnts = mmnts[:]
+//      self.mean = mmnts[0]
+//      self.std = mmnts[1]
+//      self.skew = mmnts[2]
+//      self.kurt = mmnts[3]
+//      #must be excess kurtosis so subtract 3 if isn't
+//      exkurt = self.kurt-3.0
+//      if (isExKurt) : 
+//          exkurt=self.kurt
+//          self.mmnts[3] +=3.0
+//          self.kurt += 3.0 
+//      if hasMinMax :
+//          self.min=self.mmnts[4] 
+//          self.max=self.mmnts[5] 
+//      #coeffs need to be 4 elements pre-pend -coeff[1] to coeffs array
+//      self._endInitCalc(self.skew,exkurt, showSimRes, N)        
+//	}
+//  def setDataAndCalc(self, _data, showSimRes=True, N=1000000):
+//      #data must be standardized
+//      self.mean = np.mean(_data)
+//      self.std = np.std(_data)
+//      std_data = (_data - self.mean)/self.std
+//      self.skew = moment(std_data,3)
+//      self.kurt = moment(std_data,4)
+//      exkurt = self.kurt - 3.0#need to remove 3 for standard distribution ->excess kurtosis
+//      self.min=min(_data)
+//      self.max=max(_data)
+//      self.mmnts=[self.mean,self.std,self.skew,self.kurt, self.min, self.max]
+//      self._endInitCalc(self.skew,exkurt, showSimRes, N)
+//     
+//	public void _endInitCalc(skew, exkurt, showSimRes, N):
+//      self.coeff = self.fit_fleishman_from_sk(skew,exkurt)
+//      if showSimRes :
+//          sim = self.genData(N)
+//          self.dispRes(sim)	
+	
+	@Override
+	protected void buildFuncs() {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public double CDF(double x) {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	@Override
+	public double CDF_inv(double x) {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	@Override
+	protected double integral_f(Double x1, Double x2) {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	@Override
+	protected double integral_fZig(Double x1, Double x2) {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	@Override
+	public double processResValByMmnts(double val) {
+		// TODO Auto-generated method stub
+		return 0;
+	}	
+	
+	
+	
+}//class myFleishFunc
+
 
 
 
@@ -487,14 +616,14 @@ class zigConstVals{
 			res[0] = rValGuess;
 			res[1] = zValAra[1];
 		}
-		func.expMgr.dispMessage("myRandVarFunc", "calcRVal",  func.getShortDesc()+ " | Finished with " + Nrect + " rectangles, @ iter : " + iter + " rVal : " + String.format("%3.18f", rValGuess)+ " Gives Vol : " + String.format("%3.18f", zValAra[1]));
+		func.expMgr.dispMessage("zigConstVals", "calcRValAndVol",  func.getShortDesc()+ " | Done w/ " + Nrect + " rects, @ iter : " + iter + " rVal : " + String.format("%3.18f", rValGuess)+ " Gives Vol : " + String.format("%3.18f", zValAra[1]));
 		return res;
 	}//calcRVal
 	
 	
 	//return important values for this ziggurat const struct
 	public String toString() {
-		String res = "Owning Func : " +func.getShortDesc()+" # Rectangles : " + Nrect + " R_Last : " + String.format("%3.16f", R_last) + " | Vol Per Zig : " + String.format("%3.16f", V_each) + "\n";
+		String res = "Owning Func : " +func.getShortDesc()+" # Rects : " + Nrect + " R_Last : " + String.format("%3.16f", R_last) + " | Vol Per Zig : " + String.format("%3.16f", V_each) + "\n";
 		return res;	
 	}
 	

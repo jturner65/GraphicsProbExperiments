@@ -5,6 +5,7 @@ import java.time.Instant;
 public abstract class BaseProbExpMgr {
 	//owning window for this experiment handler
 	protected myDispWindow win;
+	//papplet for visualization
 	public static GraphProbExpMain pa;
 	////////////////////////////////////////
 	// gauss quadrature solver structures	
@@ -32,13 +33,14 @@ public abstract class BaseProbExpMgr {
 	
 	//types of random number generators implemented/supported so far
 	public static final int 
-		ziggRandGen 		= 0;	
+		ziggRandGen 		= 0,
+		fleishRandGen_Uni	= 1;	//uses fleishman algorithm for univariate - needs first 4 moments
 	
-    public static final String[] randGenAlgNames = new String[] {"Ziggurat Algorithm"};
+    public static final String[] randGenAlgNames = new String[] {"Ziggurat Algorithm", "Fleishman Univariate Polynomial Algorithm"};
 	
 	
 	////////////////////////////////////////
-	// internal functions
+	// internal functionality
 	
 	//time of current process start, from initial construction of mapmgr - TODO use this to monitor specific process time elapsed.  set to 0 at beginning of a particular process, then measure time elapsed in process
 	protected long curProcStartTime;
@@ -54,9 +56,17 @@ public abstract class BaseProbExpMgr {
 			_BaseDebugIDX 				= 0;		
 	private static final int _BaseNumStFlags = 1;	
 	
+	////////////////////////////////////////
+	// visualization functionality
+	
+	//width of display space - used to shrink things if necessary when right sidebar menu is added
+	protected float visScreenWidth;
+	
+	
 	public BaseProbExpMgr(myDispWindow _win) {
 		win = _win;
 		pa=win.pa;
+		setVisibleScreenWidth();
 		//base class-specific flags, isolated to within this code only
 		initBaseFlags();
 		//init experiment-specific flags
@@ -87,14 +97,50 @@ public abstract class BaseProbExpMgr {
 	
 	//must build rand gen through this method
 	//momments will hold mean, std, and skew, and kurt, if set
-	public myRandGen buildAndInitRandGen(int _type, int _quadSlvrIdx, int _numZigRects, double[] _mmnts) {
-		myRandGen randGen;
+	public myRandGen buildAndInitRandGenFromMoments(int _type, int _quadSlvrIdx, int _numZigRects, double[] _mmnts) {
+		myRandGen randGen = null;
+		myProbSummary analysis = new myProbSummary(_mmnts, _mmnts.length);
+
 		switch (_type) {
 			case ziggRandGen : {//ziggurat alg solver - will use zigg algorithm to generate a gaussian of passed momments using a uniform source of RVs
 				//need to build a random variable generator function
-				myRandVarFunc func = new myGaussianFunc(this, quadSlvrs[GL_QuadSlvrIDX], _mmnts[0], _mmnts[1]);
+				myRandVarFunc func = new myGaussianFunc(this, quadSlvrs[GL_QuadSlvrIDX], analysis);
 				//_numZigRects must be pwr of 2 - is forced to be if is not.  Should be 256
-				randGen = new myZigRandGen(func, _numZigRects, randGenAlgNames[GL_QuadSlvrIDX]);	
+				randGen = new myZigRandGen(func, _numZigRects, randGenAlgNames[_type]);	
+				
+				return randGen;}
+			
+			case fleishRandGen_Uni : {
+				//specify fleishman rand function with either moments or data - if only moments given, then need to provide hull as well
+				myRandVarFunc func = new myFleishFunc_Uni(this, quadSlvrs[GL_QuadSlvrIDX], analysis);
+				randGen = new myFleishUniRandGen(func,  randGenAlgNames[_type]);	
+				
+				return randGen;}
+			default	:	{		
+				dispMessage("BaseProbExpMgr","buildAndInitRandGen","Unknown random generator type : " + _type + ".  Aborting.");
+				return null;
+			}
+		}//switch
+		
+	}//buildAndInitRandGen
+	
+	public myRandGen buildAndInitRandGenFromData(int _type, int _quadSlvrIdx, int _numZigRects, double[] _data) {
+		myRandGen randGen = null;
+		myProbSummary analysis = new myProbSummary(_data);
+		switch (_type) {
+			case ziggRandGen : {//ziggurat alg solver - will use zigg algorithm to generate a gaussian of passed momments using a uniform source of RVs
+				
+				//need to build a random variable generator function
+				myRandVarFunc func = new myGaussianFunc(this, quadSlvrs[GL_QuadSlvrIDX], analysis);
+				//_numZigRects must be pwr of 2 - is forced to be if is not.  Should be 256
+				randGen = new myZigRandGen(func, _numZigRects, randGenAlgNames[_type]);	
+				
+				return randGen;}
+			
+			case fleishRandGen_Uni : {
+				//specify fleishman rand function with either moments or data - if only moments given, then need to provide hull as well
+				myRandVarFunc func = new myFleishFunc_Uni(this, quadSlvrs[GL_QuadSlvrIDX], analysis);
+				randGen = new myFleishUniRandGen(func,  randGenAlgNames[_type]);	
 				
 				return randGen;}
 			default	:	{		
@@ -114,6 +160,15 @@ public abstract class BaseProbExpMgr {
 		//set this solver for all random generators
 		
 	}//setSolverVals
+	
+	//called whenever screen width changes due to showing/hiding the right side menu
+	public void setVisibleScreenWidth() {
+		visScreenWidth = win.curVisScrDims[0];
+		setVisWidth_Priv();
+	}//setVisibleScreenWidth
+	
+	//set the experiment-specific quantities dependent on visible width of the display area - use this to shrink visualizations if necessary
+	protected abstract void setVisWidth_Priv();
 
 	//check mouse over/click in 2d experiment; if btn == -1 then mouse over
 	public abstract boolean checkMouseClickInExp2D(int msx, int msy, int btn);
@@ -132,18 +187,18 @@ public abstract class BaseProbExpMgr {
 		//set this solver for all random generators
 	}
 	
-	//conduct a simple test on the passed random number generator
+	//conduct a simple test on the passed random number generator - it will get a sample based on the pdf function given to generator
 	protected void smplTestRandNumGen(myRandGen gen, int numVals) {
 		dispMessage("BaseProbExpMgr","testRandGen","Start synthesizing " + numVals+ " values using Gen : \n\t" + gen.getFuncDataStr());
 		double[] genVals = new double[numVals];
 		for(int i=0;i<genVals.length;++i) {	
 			//dispMessage("BaseProbExpMgr","testRandGen","Generating val : " + i);
-			genVals[i] = gen.getGaussian();	
+			genVals[i] = gen.getSample();	
 		}
 		//now calculate mean value and
 		dispMessage("BaseProbExpMgr","testRandGen","Finished synthesizing " + numVals+ " values using Gen : " + gen.name + " | Begin analysis of values.");
-		myProbAnalysis analysis = new myProbAnalysis(win.pa, genVals, gen);
-		dispMessage("BaseProbExpMgr","testRandGen","Analysis res of " + gen.name + " : " + analysis.getMoments());
+		myProbSummary analysis = new myProbSummary(genVals);
+		dispMessage("BaseProbExpMgr","testRandGen","Analysis res of " + gen.name + " : " + analysis.getMomentsVals());
 	}//testGen
 	
 	

@@ -37,10 +37,15 @@ public class myProbExpMgr extends BaseProbExpMgr{
 	//called at end of ctor and whenever experiment needs to be re-instanced
 	@Override
 	public final void initExp() {		
-		nrmlGen = buildAndInitRandGen(ziggRandGen, GL_QuadSlvrIDX, 256, new double[] {0,1,0,0});	
-		gaussGen = buildAndInitRandGen(ziggRandGen, GL_QuadSlvrIDX, 256, new double[] {3,25.9,0,0});	
+		nrmlGen = buildAndInitRandGenFromMoments(ziggRandGen, GL_QuadSlvrIDX, 256, new double[] {0,1,0,0});	
+		gaussGen = buildAndInitRandGenFromMoments(ziggRandGen, GL_QuadSlvrIDX, 256, new double[] {3,25.9,0,0});	
 	}//initExp
 	
+	//this is called whenever screen width is changed - used to modify visualizations if necessary
+	@Override
+	protected void setVisWidth_Priv() {
+		
+	}//setVisWidth_Priv
 
 	//check mouse over/click in 2d experiment - btn == -1 is mouse over
 	@Override	
@@ -70,8 +75,8 @@ public class myProbExpMgr extends BaseProbExpMgr{
 		double mean = gaussGen.func.getMean(), std = gaussGen.func.getStd();
 		for(int i=0;i<genVals.length;++i) {	genVals[i] = mean + (std*ThreadLocalRandom.current().nextGaussian());		}
 		dispMessage("myProbExpMgr","testRandGen","Finished synthesizing " + numVals +" gaussian vals ~ N(" + mean + ","+std +") using ThreadLocalRandom random gaussian");
-		myProbAnalysis analysis = new myProbAnalysis(win.pa, genVals, null);
-		dispMessage("myProbExpMgr","testRandGen","Analysis res of TLR.nextGauss : " + analysis.getMoments());
+		myProbSummary analysis = new myProbSummary(genVals);
+		dispMessage("myProbExpMgr","testRandGen","Analysis res of TLR.nextGauss : " + analysis.getMomentsVals());
 	}//testRandGen
 	
 	
@@ -79,7 +84,8 @@ public class myProbExpMgr extends BaseProbExpMgr{
 	public void testRCalc() {
 		dispMessage("myProbExpMgr","testRCalc","Start test of r var calc");
 		myRandVarFunc randVar = new myNormalFunc(this, quadSlvrs[GL_QuadSlvrIDX]);
-		myRandVarFunc randGaussVar = new myGaussianFunc(this, quadSlvrs[GL_QuadSlvrIDX], 2.0, 3.0);
+		myProbSummary analysis = new myProbSummary( new double[] {2.0, 3.0}, 2);
+		myRandVarFunc randGaussVar = new myGaussianFunc(this, quadSlvrs[GL_QuadSlvrIDX], analysis);
 		randVar.dbgTestCalcRVal(256);
 		
 		dispMessage("myProbExpMgr","testRCalc","End test of r var calc");

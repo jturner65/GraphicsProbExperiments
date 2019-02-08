@@ -41,9 +41,9 @@ public abstract class myRandGen implements Comparable<myRandGen> {
     protected int getNextInt() {return ThreadLocalRandom.current().nextInt();  }
     protected double getNextDouble() {return ThreadLocalRandom.current().nextDouble();}
 	
-    //return gaussian  - momments defined by myRandVarFunc
-	public abstract double getGaussian();
-	public abstract double getGaussianFast();
+    //return a sample based on func  - momments defined by myRandVarFunc
+	public abstract double getSample();
+	public abstract double getSampleFast();
 	
 	//find inverse CDF value for passed val - val must be between 0->1; 
 	//this is mapping from 0->1 to probability based on the random variable function definition
@@ -79,9 +79,45 @@ public abstract class myRandGen implements Comparable<myRandGen> {
 	public boolean getFlag(int idx){int bitLoc = 1<<(idx%32);return (stFlags[idx/32] & bitLoc) == bitLoc;}	
 	
 }//class myRandGen
+/**
+ * this class holds a description of a random number generator, including the momments and algorithms it uses
+ * @author john
+ */
+class RandGenDesc implements Comparable<RandGenDesc>{
+	//owning rand gen
+	public final myRandGen randGen;
+	//names of quadrature algorithm and random number distribution name and algorithm name 
+	public final String quadName, distName, algName;
+		
+	
+	public RandGenDesc(String _quadName, String _distName, myRandGen _randGen) {
+		quadName = _quadName; 
+		randGen = _randGen;		
+		distName = _distName;
+		algName = randGen.name;
+	}//ctor
+
+	@Override
+	public int compareTo(RandGenDesc othr) {
+		int res = distName.toLowerCase().compareTo(othr.distName.toLowerCase());
+		res = (res == 0 ? quadName.toLowerCase().compareTo(othr.quadName.toLowerCase()) : res);
+		res = (res == 0 ? algName.toLowerCase().compareTo(othr.algName.toLowerCase()) : res);
+		return (res == 0 ? Integer.compare(randGen.ObjID, othr.randGen.ObjID) : res);
+	}
+	
+	
+	@Override
+	public String toString() {
+		String res = "Rand Gen Alg Name : " + algName + " | Distribution : " + distName + " | Quadrature Alg Used : " + quadName;
+		return res;
+	}
+}//class RandGenDesc
+
+////////////////////////////////////////////////////////////////////////////////////////
+// child classes
 
 /**
- * implementation of ziggurat algorithm to build a gaussian distribution from a uniform sampling
+ * implementation of ziggurat algorithm to build a distribution from a uniform sampling
  * @author john
  *
  */
@@ -98,14 +134,14 @@ class myZigRandGen extends myRandGen{
 	}//ctor
 	    
 	@Override
-	public double getGaussian() {
+	public double getSample() {
 		double res = nextNormal53();	
 		return func.processResValByMmnts(res);
 	}//getGaussian
 	
 	//int value
 	@Override
-	public double getGaussianFast() {
+	public double getSampleFast() {
 		double res = nextNormal32();		
 		return func.processResValByMmnts(res);
 	}//getGaussian
@@ -175,35 +211,37 @@ class myZigRandGen extends myRandGen{
 }//class myZigRandGen
 
 /**
- * this class holds a description of a random number generator, including the momments and algorithms it uses
- * @author john
+ * class that will model a distribution using first 4 moments via a polynomial transformation
+ * @author john *
  */
-class RandGenDesc implements Comparable<RandGenDesc>{
-	//owning rand gen
-	public final myRandGen randGen;
-	//names of quadrature algorithm and random number distribution name and algorithm name 
-	public final String quadName, distName, algName;
-		
-	
-	public RandGenDesc(String _quadName, String _distName, myRandGen _randGen) {
-		quadName = _quadName; 
-		randGen = _randGen;		
-		distName = _distName;
-		algName = randGen.name;
+
+class myFleishUniRandGen extends myRandGen{
+	//original data and analysis of it - fl polynomial needs to be built from a sample distribution or from a set of moments
+	myProbSummary summary;
+	//min and max of synthesized
+	public myFleishUniRandGen(myRandVarFunc _func, String _name) {
+		super(_func, _name);
+		summary = func.summary;
 	}//ctor
+	
+	public void setFleishFuncData(myProbSummary _summary) {
+		summary = _summary;
+		((myFleishFunc_Uni)func).finalInit(summary);
+	}
 
 	@Override
-	public int compareTo(RandGenDesc othr) {
-		int res = distName.toLowerCase().compareTo(othr.distName.toLowerCase());
-		res = (res == 0 ? quadName.toLowerCase().compareTo(othr.quadName.toLowerCase()) : res);
-		res = (res == 0 ? algName.toLowerCase().compareTo(othr.algName.toLowerCase()) : res);
-		return (res == 0 ? Integer.compare(randGen.ObjID, othr.randGen.ObjID) : res);
+	public double getSample() {
+		// TODO Auto-generated method stub
+		return 0;
 	}
-	
-	
+
 	@Override
-	public String toString() {
-		String res = "Rand Gen Alg Name : " + algName + " | Distribution : " + distName + " | Quadrature Alg Used : " + quadName;
-		return res;
+	public double getSampleFast() {
+		// TODO Auto-generated method stub
+		return 0;
 	}
-}//class RandGenDesc
+	
+	
+	
+	
+}//class myFleishRandGen

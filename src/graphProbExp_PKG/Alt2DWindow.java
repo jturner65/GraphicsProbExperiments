@@ -8,28 +8,17 @@ public class Alt2DWindow extends myDispWindow {
 	/////////////
 	// ui objects 
 	////////////
-	// # of students across all classes
-	private int numStudents = 30;
-	// # of classes to build final grade
-	private int numClasses = 3;
-	//std of mapping normal distribution
-	private float mappingStd = .214f;
+
 	//idxs - need one per object
 	public final static int
-		gIDX_NumStudents		= 0,
-		gIDX_NumClasses			= 1,
-		gIDX_MappingSTD			= 2;
+		gIDX_TempIDX		= 0;
 	//initial values - need one per object
 	public float[] uiVals = new float[]{
-			numStudents,
-			numClasses,
-			mappingStd
+			0,
 	};			//values of 8 ui-controlled quantities
 	public final int numGUIObjs = uiVals.length;	
 	/////////
 	//ui button names -empty will do nothing, otherwise add custom labels for debug and custom functionality names
-	public String[] menuDbgBtnNames = new String[] {};
-	public String[] menuFuncBtnNames = new String[] {};
 
 	//////////////
 	// local/ui interactable boolean buttons
@@ -46,17 +35,13 @@ public class Alt2DWindow extends myDispWindow {
 	//custom debug/function ui button names -empty will do nothing
 	public String[][] menuBtnNames = new String[][] {	//each must have literals for every button defined in side bar menu, or ignored
 		{},
-		{"Test Rand Gen", "Test R Calc","Calc Mapping"},	//row 1
+		{"Test Rand Gen", "Test R Calc","Func 3"},	//row 1
 		{"Func 1", "Func 2", "Func 3", "Func 4"},	//row 1
 		{"Dbg 1","Dbg 2","Dbg 3","Dbg 4","Dbg 5"}	
 	};
 
 	private myProbExpMgr tester;
 	
-	//class experiment
-	private ClassGradeExperiment gradeAvgExperiment;
-	
-
 	public Alt2DWindow(GraphProbExpMain _p, String _n, int _flagIdx, int[] fc, int[] sc, float[] rd, float[] rdClosed,String _winTxt, boolean _canDrawTraj) {
 		super(_p, _n, _flagIdx, fc, sc, rd, rdClosed, _winTxt, _canDrawTraj);
 		float stY = rectDim[1]+rectDim[3]-4*yOff,stYFlags = stY + 2*yOff;
@@ -77,9 +62,6 @@ public class Alt2DWindow extends myDispWindow {
 		setFlags(drawRightSideMenu, true);
 		tester = new myProbExpMgr(this);
 		
-		gradeAvgExperiment = new ClassGradeExperiment(this);
-		setVisScreenDimsPriv();			//set visibility width
-		gradeAvgExperiment.buildStudentsAndClasses(numStudents, numClasses);
 		//set offset to use for custom menu objects
 		custMenuOffset = uiClkCoords[3];	
 		//moved from mapMgr ctor, to remove dependence on papplet in that object
@@ -120,22 +102,16 @@ public class Alt2DWindow extends myDispWindow {
 	protected void setupGUIObjsAras(){	
 		//pa.outStr2Scr("setupGUIObjsAras start");
 		guiMinMaxModVals = new double [][]{
-			{1,100,1},						//# students
-			{1,9,1},						//# classes
-			{.0001,1,.0001}					//mapping std
+			{1,100,1},						//temp
 		};		//min max modify values for each modifiable UI comp	
 
 		guiStVals = new double[]{
-				uiVals[gIDX_NumStudents],	//# students
-				uiVals[gIDX_NumClasses],	//# classes
-				uiVals[gIDX_MappingSTD],	//mapping std
+				uiVals[gIDX_TempIDX],	//temp
 				
 		};								//starting value
 		
 		guiObjNames = new String[]{
-				"Number of Students",
-				"Number of Classes",
-				"Std of Normal Mapping"
+				"Placeholder",		//temp
 		};								//name/label of component	
 		
 		//idx 0 is treat as int, idx 1 is obj has list vals, idx 2 is object gets sent to windows
@@ -162,24 +138,7 @@ public class Alt2DWindow extends myDispWindow {
 		if(val != uiVals[UIidx]){//if value has changed...
 			uiVals[UIidx] = val;
 			switch(UIidx){		
-			case gIDX_NumStudents 			:{
-				if(ival != numStudents){
-					numStudents = ival;
-					gradeAvgExperiment.buildStudentsAndClasses(numStudents, numClasses);
-				}	break;}
-			
-			case gIDX_NumClasses 			:{
-				if(ival != numClasses){
-					numClasses = ival;
-					gradeAvgExperiment.buildStudentsAndClasses(numStudents, numClasses);
-				}	break;}
-			
-			case gIDX_MappingSTD : {
-				if(val != mappingStd) {
-					mappingStd = val;
-					gradeAvgExperiment.calcInverseMapping(mappingStd);
-					//gradeAvgExperiment.calcInverseCDFSpan(mappingStd);
-				}	break;}
+			case gIDX_TempIDX 			:{break;}
 			}
 		}//if val is different
 	}//setUIWinVals
@@ -195,25 +154,25 @@ public class Alt2DWindow extends myDispWindow {
 
 	//check whether the mouse is over a legitimate map location
 	public boolean chkMouseClick2D(int mouseX, int mouseY, int btn){		
-		return gradeAvgExperiment.checkMouseClickInExp2D( mouseX-(int)this.rectDim[0], mouseY, btn);
+		return false;
 	}//chkMouseOvr
 
 	
 	//check whether the mouse is over a legitimate map location
 	public boolean chkMouseMoveDragState2D(int mouseX, int mouseY, int btn){		
-		return gradeAvgExperiment.checkMouseDragMoveInExp2D( mouseX-(int)this.rectDim[0], mouseY, btn);
+		return false;
 	}//chkMouseOvr
 	
 	//check whether the mouse is over a legitimate map location
-	public void setMouseReleaseState2D(){	gradeAvgExperiment.setMouseReleaseInExp2D();}//chkMouseOvr
+	public void setMouseReleaseState2D(){	
+	}//chkMouseOvr
 
 	
 	@Override
 	protected void drawMe(float animTimeMod) {
 		pa.pushMatrix();pa.pushStyle();
 		pa.translate(this.rectDim[0],0,0);
-		//all drawing stuff goes here
-		gradeAvgExperiment.drawClassRes();
+
 		pa.popStyle();pa.popMatrix();
 	}
 
@@ -244,9 +203,7 @@ public class Alt2DWindow extends myDispWindow {
 	//manage any functionality specific to this window that needs to be recalced when the visibile dims of the window change
 	@Override
 	protected void setVisScreenDimsPriv() {
-		
-		float barWidth = curVisScrDims[0] * .95f;
-		gradeAvgExperiment.setAllClassBarWidths(barWidth);
+
 		
 	}//setVisScreenDimsPriv
 
@@ -305,7 +262,6 @@ public class Alt2DWindow extends myDispWindow {
 					resetButtonState();
 					break;}
 				case 2 : {	
-					gradeAvgExperiment.calcInverseMapping(mappingStd);
 					resetButtonState();
 					break;}
 				default : {
@@ -316,7 +272,6 @@ public class Alt2DWindow extends myDispWindow {
 			pa.outStr2Scr("Clicked Btn row : Aux Func 2 | Btn : " + btn);
 			switch(btn){
 				case 0 : {	
-					gradeAvgExperiment.calcInverseCDFSpan(mappingStd);
 					resetButtonState();
 					break;}
 				case 1 : {	
@@ -372,10 +327,22 @@ public class Alt2DWindow extends myDispWindow {
 
 	@Override
 	protected void stopMe() {pa.outStr2Scr("Stop");}	
+	
 	@Override
-	public void hndlFileLoadIndiv(String[] vals, int[] stIdx) {}
+	public void hndlFileLoad(String[] vals, int[] stIdx) {
+		//if wanting to load/save UI values, uncomment this call and similar in hndlFileSave 
+		//hndlFileLoad_GUI(vals, stIdx);
+		
+	}
 	@Override
-	public List<String> hndlFileSaveIndiv() {List<String> res = new ArrayList<String>();return res;}
+	public ArrayList<String> hndlFileSave() {
+		ArrayList<String> res = new ArrayList<String>();
+		//if wanting to load/save UI values, uncomment this call and similar in hndlFileLoad 
+		//res = hndlFileSave_GUI();
+
+		return res;
+	}
+
 	@Override
 	protected void processTrajIndiv(myDrawnSmplTraj drawnNoteTraj){	}
 	

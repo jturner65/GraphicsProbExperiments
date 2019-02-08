@@ -527,9 +527,31 @@ public abstract class myDispWindow {
 		}	
 		setUIWinVals(uiIdx);//update window's values with UI construct's values
 	}//setValFromFileStr
+	
+	public void loadFromFile(File file){
+		if (file == null) {
+		    pa.outStr2Scr("Load was cancelled.");
+		    return;
+		} 
+		String[] res = pa.loadStrings(file.getAbsolutePath());
+		int[] stIdx = {0};//start index for a particular window - make an array so it can be passed by ref and changed by windows
+		hndlFileLoad(res,stIdx);
+	}//loadFromFile
+	
+	public void saveToFile(File file){
+		if (file == null) {
+		    pa.outStr2Scr("Save was cancelled.");
+		    return;
+		} 
+		ArrayList<String> res = new ArrayList<String>();
 
-	//take loaded params and process - stIdx will be idx of this window's name - move forward 1 to start on objects
-	protected void hndlFileLoad(String[] vals, int[] stIdx){
+		res.addAll(hndlFileSave());	
+
+		pa.saveStrings(file.getAbsolutePath(), res.toArray(new String[0]));  
+	}//saveToFile	
+	
+	//manage loading pre-saved UI component values, if useful for this window's load/save (if so call from child window's implementation
+	protected void hndlFileLoad_GUI(String[] vals, int[] stIdx) {
 		++stIdx[0];
 		//set values for ui sliders
 		while(!vals[stIdx[0]].contains(name + "_custUIComps")){
@@ -537,23 +559,45 @@ public abstract class myDispWindow {
 			++stIdx[0];
 		}
 		++stIdx[0];		
-		//handle window-specific UI components, if any
-		this.hndlFileLoadIndiv(vals, stIdx);
-	}//hndlFileLoad
-	
-	//accumulate array of params to save
-	protected ArrayList<String> hndlFileSave(){
+		
+	}//hndlFileLoad_GUI
+	//manage saving this window's UI component values.  if needed call from child window's implementation
+	protected ArrayList<String> hndlFileSave_GUI(){
 		ArrayList<String> res = new ArrayList<String>();
 		res.add(name);
 		for(int i=0;i<guiObjs.length;++i){	res.add(getStrFromUIObj(i));}		
 		//bound for custom components
 		res.add(name + "_custUIComps");
-		//call indiv handler
-		res.addAll(hndlFileSaveIndiv());
-		//add blank space
-		res.add("");
 		return res;
 	}//
+	
+
+//	//take loaded params and process - stIdx will be idx of this window's name - move forward 1 to start on objects
+//	protected void hndlFileLoad(String[] vals, int[] stIdx){
+//		++stIdx[0];
+//		//set values for ui sliders
+//		while(!vals[stIdx[0]].contains(name + "_custUIComps")){
+//			if(vals[stIdx[0]].trim() != ""){	setValFromFileStr(vals[stIdx[0]]);	}
+//			++stIdx[0];
+//		}
+//		++stIdx[0];		
+//		//handle window-specific UI components, if any
+//		this.hndlFileLoadIndiv(vals, stIdx);
+//	}//hndlFileLoad
+//	
+//	//accumulate array of params to save
+//	protected ArrayList<String> hndlFileSave(){
+//		ArrayList<String> res = new ArrayList<String>();
+//		res.add(name);
+//		for(int i=0;i<guiObjs.length;++i){	res.add(getStrFromUIObj(i));}		
+//		//bound for custom components
+//		res.add(name + "_custUIComps");
+//		//call indiv handler
+//		res.addAll(hndlFileSaveIndiv());
+//		//add blank space
+//		res.add("");
+//		return res;
+//	}//
 	
 	public float calcOffsetScale(double val, float sc, float off){float res =(float)val - off; res *=sc; return res+=off;}
 	public double calcDBLOffsetScale(double val, float sc, double off){double res = val - off; res *=sc; return res+=off;}
@@ -1263,9 +1307,9 @@ public abstract class myDispWindow {
 	
 	//file io used from selectOutput/selectInput - 
 	//take loaded params and process
-	protected abstract void hndlFileLoadIndiv(String[] vals, int[] stIdx);
+	protected abstract void hndlFileLoad(String[] vals, int[] stIdx);
 	//accumulate array of params to save
-	protected abstract List<String> hndlFileSaveIndiv();	
+	protected abstract ArrayList<String> hndlFileSave();	
 	
 	protected abstract void initMe();
 	protected abstract void resizeMe(float scale);	
@@ -1348,8 +1392,7 @@ class mySideBarMenu extends myDispWindow{
 	public float minBtnClkY;			//where buttons should start on side menu
 
 	public static final String[] guiBtnRowNames = new String[]{ 
-			//"Window",
-			"Raw Data/Ftr Processing","Post Proc Load And Map Config/Exec","DEBUG","File"};
+			"Window","Raw Data/Ftr Processing","Post Proc Load And Map Config/Exec","DEBUG","File"};
 
 	public static final int 
 			btnShowWinIdx = 0, 				//which window to show
@@ -1359,7 +1402,7 @@ class mySideBarMenu extends myDispWindow{
 			btnFileCmdIdx = 4;				//load/save files
 	//names for each row of buttons - idx 1 is name of row
 	public final String[][] guiBtnNames = new String[][]{
-		new String[]{pa.winTitles[1], pa.winTitles[2]},							//display specific windows - multi-select/ always on if sel
+		new String[]{pa.winTitles[1], pa.winTitles[2], pa.winTitles[3]},							//display specific windows - multi-select/ always on if sel
 		new String[]{"Func 1","Func 2","Func 3"},						//per-window user functions - momentary
 		new String[]{"Func 1","Func 2","Func 3","Func 4"},						//per-window user functions - momentary
 		new String[]{"Dbg 1","Dbg 2","Dbg 3","Dbg 4","Dbg 5"},						//DEBUG - momentary
@@ -1367,7 +1410,7 @@ class mySideBarMenu extends myDispWindow{
 	};
 	//default names, to return to if not specified by user
 	public final String[][] defaultUIBtnNames = new String[][]{
-		new String[]{pa.winTitles[1], pa.winTitles[2]},							//display specific windows - multi-select/ always on if sel
+		new String[]{pa.winTitles[1], pa.winTitles[2], pa.winTitles[3]},							//display specific windows - multi-select/ always on if sel
 		new String[]{"Func 1","Func 2","Func 3"},					//per-window user functions - momentary
 		new String[]{"Func 1","Func 2","Func 3","Func 4"},			//per-window user functions - momentary
 		new String[]{"Dbg 1","Dbg 2","Dbg 3","Dbg 4","Dbg 5"},						//DEBUG - momentary
@@ -1375,7 +1418,7 @@ class mySideBarMenu extends myDispWindow{
 	};
 	//whether buttons are momentary or not (on only while being clicked)
 	public boolean[][] guiBtnInst = new boolean[][]{
-		new boolean[]{false,false},         						//display specific windows - multi-select/ always on if sel
+		new boolean[]{false,false,false},         						//display specific windows - multi-select/ always on if sel
 		new boolean[]{false,false,false,false,false},                   //functionality - momentary
 		new boolean[]{false,false,false,false,false},                   //functionality - momentary
 		new boolean[]{false,false,false,false,false},                   		//debug - momentary
@@ -1383,7 +1426,7 @@ class mySideBarMenu extends myDispWindow{
 	};		
 	//whether buttons are waiting for processing to complete (for non-momentary buttons)
 	public boolean[][] guiBtnWaitForProc = new boolean[][]{
-		new boolean[]{false,false},         						//display specific windows - multi-select/ always on if sel
+		new boolean[]{false,false,false},         						//display specific windows - multi-select/ always on if sel
 		new boolean[]{false,false,false,false,false},                   //functionality - momentary
 		new boolean[]{false,false,false,false,false},                   //functionality - momentary
 		new boolean[]{false,false,false,false,false},                   		//debug - momentary
@@ -1392,7 +1435,7 @@ class mySideBarMenu extends myDispWindow{
 	
 	//whether buttons are disabled(-1), enabled but not clicked/on (0), or enabled and on/clicked(1)
 	public int[][] guiBtnSt = new int[][]{
-		new int[]{1,0},                    					//display specific windows - multi-select/ always on if sel
+		new int[]{0,0,1},                    					//display specific windows - multi-select/ always on if sel
 		new int[]{0,0,0,0,0},                   					//debug - momentary
 		new int[]{0,0,0,0,0},                   					//debug - momentary
 		new int[]{0,0,0,0,0},                   					//debug - momentary
@@ -1669,18 +1712,20 @@ class mySideBarMenu extends myDispWindow{
 		case mySideBarMenu.btnAuxFunc1Idx : {break;}//row 1 of menu side bar buttons
 		case mySideBarMenu.btnAuxFunc2Idx : {break;}//row 2 of menu side bar buttons
 		case mySideBarMenu.btnDBGSelCmpIdx : {break;}//row 3 of menu side bar buttons (debug)			
+		case mySideBarMenu.btnFileCmdIdx : {break;}//row 3 of menu side bar buttons (debug)			
 		}		
 	}
 	//no custom camera handling for menu , float rx, float ry, float dz are all now member variables of every window
 	@Override
 	protected void setCameraIndiv(float[] camVals){}
 	@Override
-	public void hndlFileLoadIndiv(String[] vals, int[] stIdx) {
+	public void hndlFileLoad(String[] vals, int[] stIdx) {
+		hndlFileLoad_GUI(vals, stIdx);
 		
 	}
 	@Override
-	public List<String> hndlFileSaveIndiv() {
-		List<String> res = new ArrayList<String>();
+	public ArrayList<String> hndlFileSave() {
+		ArrayList<String> res = hndlFileSave_GUI();
 
 		return res;
 	}

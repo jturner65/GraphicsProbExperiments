@@ -16,10 +16,14 @@ public class ClassGradeExperiment extends BaseProbExpMgr{
 	//structure holding all students
 	public HashMap<Integer,myStudent> students;
 	public int numStudents;
+	//random generator providing model of source distribution to be used to map from distribution to uniform
+	protected myRandGen gradeSourceDistGen;
+	
+	
+	//random # generator to be used to generate -inverse- mapping from uniform to target distribution for final grade
 	protected myRandGen gradeInvMapGen;
 	//current transformation used for students
 	protected String curTransformType;
-	
 	
 	//types of different transformed grades
 	public static final int
@@ -35,7 +39,10 @@ public class ClassGradeExperiment extends BaseProbExpMgr{
 	//display-related values
 	
 	private float barWidth;
-	public final float distBtwnAdjBars = 60.0f, distBtwnRawTransBars = 600.0f;
+	//% of visible width the class bars should be
+	private static final float barWidthMult = .95f;
+	
+	public static final float distBtwnAdjBars = 60.0f, distBtwnRawTransBars = 600.0f;
 	public myPointf classBarStart = new myPointf(10,100,0);
 	
 	
@@ -51,7 +58,9 @@ public class ClassGradeExperiment extends BaseProbExpMgr{
 		numClasses = 0;
 		students = new HashMap<Integer,myStudent>();
 		numStudents = 0;
-		gradeInvMapGen = buildAndInitRandGen(ziggRandGen, GL_QuadSlvrIDX, 256, new double[] {0,.1,0,0});	
+		gradeInvMapGen = buildAndInitRandGenFromMoments(ziggRandGen, GL_QuadSlvrIDX, 256, new double[] {0,.1,0,0});
+		//build fleishman with data set
+		//gradeSourceDistGen = buildAndInitRandGen(fleishRandGen_Uni, GL_QuadSlvrIDX, 256, new double[] {0,.1,0,0});	
 		curTransformType = gradeInvMapGen.getTransformName();
 	}//	initExp
 	
@@ -92,9 +101,25 @@ public class ClassGradeExperiment extends BaseProbExpMgr{
 		dispMessage("ClassGradeExperiment","buildStudentsAndClasses","Finished building " + students.size() +" students and " + classes.size()+" classes");		
 	}//buildStudentsAndClasses
 	
+	//calculate the mapping of the raw grades, that follow some distribution, to uniform.
+	public void calcMappingDistToUniform(double mappingStd) {		
+		//TODO need to determine distribution that follows the grades
+		
+		curTransformType = gradeInvMapGen.getTransformName();
+		for (myClassRoster cls : classes) {
+			cls.setRandGenAndType(gradeSourceDistGen,curTransformType);
+			cls.transformStudentGrades();
+		}
+	}//calcInverseMapping
+	
+	//this will calculate the mapping from uniform for each class to a total mapping that follows some distribution
+	public void calcMappingClassToTotal() {
+		
+	}
+	
 	//calculate the inverse mapping for the raw grades in every class that is active
 	public void calcInverseMapping(float mappingStd) {		
-		gradeInvMapGen = buildAndInitRandGen(ziggRandGen, GL_QuadSlvrIDX, 256, new double[] {0.5,mappingStd,0,0});	
+		gradeInvMapGen = buildAndInitRandGenFromMoments(ziggRandGen, GL_QuadSlvrIDX, 256, new double[] {0.5,mappingStd,0,0});	
 		curTransformType = gradeInvMapGen.getTransformName();
 		for (myClassRoster cls : classes) {
 			cls.setRandGenAndType(gradeInvMapGen,curTransformType);
@@ -104,7 +129,7 @@ public class ClassGradeExperiment extends BaseProbExpMgr{
 	
 	//this will calculate the values for the inverse cdf of the given gaussian, when fed 0->1
 	public void calcInverseCDFSpan(double std) {
-		myRandGen tmpRandGen = buildAndInitRandGen(ziggRandGen, GL_QuadSlvrIDX, 256, new double[] {0.5,std,0,0});	
+		myRandGen tmpRandGen = buildAndInitRandGenFromMoments(ziggRandGen, GL_QuadSlvrIDX, 256, new double[] {0.5,std,0,0});	
 		int numVals = 100;
 		double[] xVals = new double[numVals], resVals = new double[numVals];
 		for (int i=0;i<numVals; ++i) {
@@ -114,13 +139,17 @@ public class ClassGradeExperiment extends BaseProbExpMgr{
 		}
 	}//calcInverseCDFSpan
 	
-	//set this to shrink the class bars to make room for the right side bar menu
-	public void setAllClassBarWidths(float _barWidth) {
-		barWidth = _barWidth;
+	//this is called whenever screen width is changed - used to modify visualizations if necessary
+	@Override
+	protected void setVisWidth_Priv() {
+		barWidth = visScreenWidth * barWidthMult;
+		if(classes == null) {return;}
 		for (myClassRoster cls : classes) {
 			cls.setBarWidth(barWidth);
 		}
-	}//setAllClassBarWidths
+		
+	}//setVisWidth_Priv
+
 	
 	
 	//calculate total grade for all students

@@ -4,6 +4,7 @@ import java.util.*;
 
 /**
  * this class will hold a roster - a collection of students for a specific class, and will manage working with grades
+ * it will consist of a collection of "grade bars" that will be used to display the grades of the class on a line,
  * @author john
  */
 public class myClassRoster implements Comparable<myClassRoster>{
@@ -24,7 +25,7 @@ public class myClassRoster implements Comparable<myClassRoster>{
 	//distance between the raw and transformed bar for this class
 	private final float distBtwnRawTransBars;
 	
-	//2 class bars - raw and transformed
+	//3 class bars - original distribution (raw), uniform, and final distribution (transformed)
 	private gradeBar rawGradeBar, transGradeBar;
 	//type of transformation for transformed grade bar
 	private String transformType;
@@ -98,7 +99,7 @@ public class myClassRoster implements Comparable<myClassRoster>{
 	//TODO need to retransform student when student is moved - need to set randGen and _type
 	public void transformStudent(myStudent s) {
 		double _rawGrade = s.getRawGrade(this);
-		double _newGrade = randGen.inverseCDF(_rawGrade);			
+		double _newGrade = randGen.inverseCDF(_rawGrade);
 		s.setTransformedGrade(transformType, this, _newGrade);
 	}//transformStudent
 	
@@ -333,7 +334,7 @@ class myStudent implements Comparable<myStudent>{
 	private static int IDCnt = 0;
 	
 	public final String name;
-	//listing of raw grade and various transformational mappings of student's grade - should always be between 0 and 1
+	//listing of raw grade following some distribution, and uniform grade, from result of mapping
 	private HashMap<String,HashMap<myClassRoster, Double>> grades;
 	//total grade for each type - average
 	private HashMap<String, Double> ttlGradePerType;
@@ -359,8 +360,8 @@ class myStudent implements Comparable<myStudent>{
 	//clip to be within 0->1 - should always be within this range
 	private double clipGrade(String _type, double _gr) {
 		//_type present for dbg messages only - add any debugging display code here if desired
-		if(_gr > 1) {			return 1;} 
-		else if (_gr < 0 ) {	return 0;}
+		if(_gr >= 1) {			return 1;} 
+		else if (_gr <= 0 ) {	return 0;}
 		return _gr;
 	}//clipGrade
 	
