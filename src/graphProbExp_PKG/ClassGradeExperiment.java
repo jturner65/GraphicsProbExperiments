@@ -58,7 +58,8 @@ public class ClassGradeExperiment extends BaseProbExpMgr{
 		numClasses = 0;
 		students = new HashMap<Integer,myStudent>();
 		numStudents = 0;
-		gradeInvMapGen = buildAndInitRandGenFromMoments(ziggRandGen, GL_QuadSlvrIDX, 256, new double[] {0,.1,0,0});
+		
+		gradeInvMapGen = buildAndInitRandGen(ziggRandGen, GL_QuadSlvrIDX, 256,new myProbSummary(new double[] {0.0,0.1,0,0},2));
 		//build fleishman with data set
 		//gradeSourceDistGen = buildAndInitRandGen(fleishRandGen_Uni, GL_QuadSlvrIDX, 256, new double[] {0,.1,0,0});	
 		curTransformType = gradeInvMapGen.getTransformName();
@@ -118,8 +119,8 @@ public class ClassGradeExperiment extends BaseProbExpMgr{
 	}
 	
 	//calculate the inverse mapping for the raw grades in every class that is active
-	public void calcInverseMapping(float mappingStd) {		
-		gradeInvMapGen = buildAndInitRandGenFromMoments(ziggRandGen, GL_QuadSlvrIDX, 256, new double[] {0.5,mappingStd,0,0});	
+	public void calcInverseMapping(float mappingStd) {	
+		gradeInvMapGen = buildAndInitRandGen(ziggRandGen, GL_QuadSlvrIDX, 256, new myProbSummary(new double[] {0.5,mappingStd,0,0},2));	
 		curTransformType = gradeInvMapGen.getTransformName();
 		for (myClassRoster cls : classes) {
 			cls.setRandGenAndType(gradeInvMapGen,curTransformType);
@@ -129,7 +130,7 @@ public class ClassGradeExperiment extends BaseProbExpMgr{
 	
 	//this will calculate the values for the inverse cdf of the given gaussian, when fed 0->1
 	public void calcInverseCDFSpan(double std) {
-		myRandGen tmpRandGen = buildAndInitRandGenFromMoments(ziggRandGen, GL_QuadSlvrIDX, 256, new double[] {0.5,std,0,0});	
+		myRandGen tmpRandGen = buildAndInitRandGen(ziggRandGen, GL_QuadSlvrIDX, 256, new myProbSummary(new double[] {0.5,std,0,0},2));	
 		int numVals = 100;
 		double[] xVals = new double[numVals], resVals = new double[numVals];
 		for (int i=0;i<numVals; ++i) {

@@ -24,29 +24,11 @@ public abstract class myRandVarFunc {
 	//state flags - bits in array holding relevant info about this random variable function
 	private int[] stFlags;						
 	public static final int
-//			//momments set
-//			meanSetIDX					= 0,		//specific mean is set 
-//			stdSetIDX					= 1,		//specific std is set
-//			skewSetIDX					= 2,		//specific skew is set
-//			kurtSetIDX					= 3,		//specific kurt is set
 			//whether to use zig alg for solving	
-			useZigAlgIDX				= 4,		//whether or not this random variable will be used in a ziggurat solver		
+			useZigAlgIDX				= 0,		//whether or not this random variable will be used in a ziggurat solver		
 			//quad solver set
-			quadSlvrSetIDX				= 5;		//whether quadrature solver has been set or not
-	public static final int numFlags 	= 6;	
-	
-//	//mean and std of this distribution.  mean, std, var may be null/undefined for certain distributions (i.e. cauchy)
-//	protected double[] mmnts;
-//	public static final int 
-//		meanIDX			= 0, 
-//		stdIDX			= 1, 
-//		varIDX			= 2,
-//		skewIDX			= 3,
-//		kurtIDX			= 4;
-//	public static final int numTTlMmnts = 5;
-//	//# of moments actually set - gauss/normal only use 2
-//	//public int numMomentsSet;
-//	public static final String[] mmntLabels = new String[] {"Mean","STD","Variance","Skew","Kurtosis"};
+			quadSlvrSetIDX				= 1;		//whether quadrature solver has been set or not
+	public static final int numFlags 	= 2;	
 
 	//functional representation of pdfs and inv pdfs, and normalized @ 0 for ziggurat calc
 	protected Function<Double, Double>[] funcs;
@@ -76,37 +58,13 @@ public abstract class myRandVarFunc {
 		setQuadSolver(_quadSlvr);
 	}//ctor
 	
-	//set new summary statistics for this function
+	//set new summary statistics for this function and rebuild functions 
 	public void setSummary(myProbSummary _summary) {
 		summary=_summary;
 		funcs= new Function[numFuncs];
 		buildFuncs();
 	}
-	
-//	//call from instancing class ctor - this to set desired values for moments 
-//	//_mmnts will be first _numMmntsSet moments (mean, std, skew, kurt...)
-//	protected void setMoments(double[] _mmnts, int _numMmntsSet){
-//		numMomentsSet =_numMmntsSet;
-//		mmnts = new double[numTTlMmnts];
-//		mmnts[meanIDX] = _mmnts[meanIDX];
-//		setFlag(meanSetIDX, true);
-//		if(numMomentsSet > 1) {
-//			mmnts[stdIDX] = _mmnts[stdIDX];
-//			setFlag(stdSetIDX, true);
-//			mmnts[varIDX]=mmnts[stdIDX]*mmnts[stdIDX];
-//			if(numMomentsSet > 2) {
-//				mmnts[skewIDX] = _mmnts[skewIDX];
-//				setFlag(skewSetIDX, true);
-//				if(numMomentsSet > 3) {
-//					mmnts[kurtIDX] = _mmnts[kurtIDX];
-//					setFlag(kurtSetIDX, true);
-//				}					
-//			}		
-//		}
-//		funcs = new Function[numFuncs];
-//		buildFuncs();
-//	}//setMeanStd
-	
+		
 	//set/get quadrature solver to be used to solve any integration for this RV func
 	public void setQuadSolver(myGaussQuad _quadSlvr) {
 		quadSlvr = _quadSlvr;
@@ -117,8 +75,8 @@ public abstract class myRandVarFunc {
 		if (getFlag(quadSlvrSetIDX)) { return quadSlvr.name;}
 		return "None Set";
 	}
-	//momments
 	
+	//momments
 	
 	public double getMean() {return summary.mean();}
 	public double getStd() {return summary.std();}
@@ -177,11 +135,7 @@ public abstract class myRandVarFunc {
 	public void setFlag(int idx, boolean val){
 		int flIDX = idx/32, mask = 1<<(idx%32);
 		stFlags[flIDX] = (val ?  stFlags[flIDX] | mask : stFlags[flIDX] & ~mask);
-		switch (idx) {//special actions for each flag
-//			case meanSetIDX	 	: 	{break;} 
-//			case stdSetIDX	 	: 	{break;} 
-//			case skewSetIDX	 	: 	{break;} 
-//			case kurtSetIDX	 	: 	{break;} 						
+		switch (idx) {//special actions for each flag		
 			case useZigAlgIDX 	: 	{break;}
 			case quadSlvrSetIDX	: 	{break;}
 		}
@@ -227,7 +181,7 @@ class myGaussianFunc extends myRandVarFunc{
 	public static final BigDecimal halfVal = new BigDecimal(.5);
 	
     protected double gaussSclFact, meanStd, invStdSclFact;
-
+    //summary object needs to exist before ctor is called
 	public myGaussianFunc(BaseProbExpMgr _expMgr, myGaussQuad _quadSlvr, myProbSummary _summaryObj, String _name) {
 		super(_expMgr,_quadSlvr, _name);
 		double mu = _summaryObj.mean(), std = _summaryObj.std();
@@ -397,15 +351,12 @@ class myFleishFunc_Uni extends myRandVarFunc{
 	//whether this is ready to use or not - all values have been set and calculated
 	private boolean ready;
 	//summary object/
-	public myFleishFunc_Uni(BaseProbExpMgr _expMgr, myGaussQuad _quadSlvr, myProbSummary _summaryObj) {
-		super(_expMgr, _quadSlvr, "Fleishman");
+	public myFleishFunc_Uni(BaseProbExpMgr _expMgr, myGaussQuad _quadSlvr, myProbSummary _summaryObj, String _name) {
+		super(_expMgr, _quadSlvr, _name);
 		ready = false;
 	}//ctor
 	
-	//pass an object holding the data and the calculated moments to build this polynomial from
-	public void finalInit(myProbSummary data) {//get moments from this and data
-		
-	}
+	
 	
 	//kurtosis is expected to be full kurtosis, not excess
 //	private void setMmntsAndCalc(double[] mmnts, boolean isExKurt, boolean hasMinMax, showSimRes=True, N=1000000) {

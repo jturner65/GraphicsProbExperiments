@@ -10,10 +10,6 @@ import java.util.concurrent.ThreadLocalRandom;
 public class myProbExpMgr extends BaseProbExpMgr{	
 	//random # generator
 	protected myRandGen nrmlGen, gaussGen;
-
-	//an instance of a fleischman solver
-	protected myFleishSolver flSlvr;
-	
 	
 	//experiment-specific state flag bits - bits in array holding relevant process info
 	public static final int
@@ -30,15 +26,15 @@ public class myProbExpMgr extends BaseProbExpMgr{
 	//build solvers specific to this experiment - called after base class solver init
 	@Override
 	protected void buildSolvers_indiv() {
-		flSlvr = new myFleishSolver();
+
 	}//buildSolvers
 	
 
 	//called at end of ctor and whenever experiment needs to be re-instanced
 	@Override
 	public final void initExp() {		
-		nrmlGen = buildAndInitRandGenFromMoments(ziggRandGen, GL_QuadSlvrIDX, 256, new double[] {0,1,0,0});	
-		gaussGen = buildAndInitRandGenFromMoments(ziggRandGen, GL_QuadSlvrIDX, 256, new double[] {3,25.9,0,0});	
+		nrmlGen = buildAndInitRandGen(ziggRandGen, GL_QuadSlvrIDX, 256, new myProbSummary(new double[] {0,1,0,0},2));	
+		gaussGen = buildAndInitRandGen(ziggRandGen, GL_QuadSlvrIDX, 256, new myProbSummary(new double[] {3,25.9,0,0},2));	
 	}//initExp
 	
 	//this is called whenever screen width is changed - used to modify visualizations if necessary

@@ -8,6 +8,8 @@ import java.util.concurrent.ThreadLocalRandom;
 public abstract class myRandGen implements Comparable<myRandGen> {
 	public final int ObjID;
 	private static int IDCnt = 0;
+	//original data and analysis of it - fl polynomial needs to be built from a sample distribution or from a set of moments
+	protected myProbSummary summary;
 
     //random generator to use to generate uniform data - threadsafe
 	public final String name;
@@ -31,10 +33,15 @@ public abstract class myRandGen implements Comparable<myRandGen> {
 		initFlags();
 		func = _func;
 		setFlag(funcSetIDX, true);
-
 		desc = new RandGenDesc(func.getQuadSolverName(), func.name, this);
-	
+		//func built with summary data - allow for quick access
+		summary = func.summary;	
     }//ctor
+	
+	public void reSetSummary(myProbSummary _summary) {
+		summary = _summary;
+		func.setSummary(_summary);
+	}//reSetSummary
 	
     //thread-safe queries for uniform values
     protected long getNextLong() {return ThreadLocalRandom.current().nextLong();}  
@@ -216,18 +223,11 @@ class myZigRandGen extends myRandGen{
  */
 
 class myFleishUniRandGen extends myRandGen{
-	//original data and analysis of it - fl polynomial needs to be built from a sample distribution or from a set of moments
-	myProbSummary summary;
 	//min and max of synthesized
 	public myFleishUniRandGen(myRandVarFunc _func, String _name) {
 		super(_func, _name);
-		summary = func.summary;
+		
 	}//ctor
-	
-	public void setFleishFuncData(myProbSummary _summary) {
-		summary = _summary;
-		((myFleishFunc_Uni)func).finalInit(summary);
-	}
 
 	@Override
 	public double getSample() {

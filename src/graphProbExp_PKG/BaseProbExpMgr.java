@@ -96,26 +96,19 @@ public abstract class BaseProbExpMgr {
 	protected abstract void buildSolvers_indiv();
 	
 	//must build rand gen through this method
-	//momments will hold mean, std, and skew, and kurt, if set
-	public myRandGen buildAndInitRandGenFromMoments(int _type, int _quadSlvrIdx, int _numZigRects, double[] _mmnts) {
-		myRandGen randGen = null;
-		myProbSummary analysis = new myProbSummary(_mmnts, _mmnts.length);
+	public myRandGen buildAndInitRandGen(int _type, int _quadSlvrIdx, int _numZigRects, myProbSummary _summaryObj) {
 
 		switch (_type) {
 			case ziggRandGen : {//ziggurat alg solver - will use zigg algorithm to generate a gaussian of passed momments using a uniform source of RVs
 				//need to build a random variable generator function
-				myRandVarFunc func = new myGaussianFunc(this, quadSlvrs[GL_QuadSlvrIDX], analysis);
+				myRandVarFunc func = new myGaussianFunc(this, quadSlvrs[GL_QuadSlvrIDX], _summaryObj);
 				//_numZigRects must be pwr of 2 - is forced to be if is not.  Should be 256
-				randGen = new myZigRandGen(func, _numZigRects, randGenAlgNames[_type]);	
-				
-				return randGen;}
+				return new myZigRandGen(func, _numZigRects, randGenAlgNames[_type]);}
 			
 			case fleishRandGen_Uni : {
 				//specify fleishman rand function with either moments or data - if only moments given, then need to provide hull as well
-				myRandVarFunc func = new myFleishFunc_Uni(this, quadSlvrs[GL_QuadSlvrIDX], analysis);
-				randGen = new myFleishUniRandGen(func,  randGenAlgNames[_type]);	
-				
-				return randGen;}
+				myRandVarFunc func = new myFleishFunc_Uni(this, quadSlvrs[GL_QuadSlvrIDX], _summaryObj, randGenAlgNames[_type]);
+				return new myFleishUniRandGen(func,  randGenAlgNames[_type]);	}
 			default	:	{		
 				dispMessage("BaseProbExpMgr","buildAndInitRandGen","Unknown random generator type : " + _type + ".  Aborting.");
 				return null;
@@ -123,33 +116,7 @@ public abstract class BaseProbExpMgr {
 		}//switch
 		
 	}//buildAndInitRandGen
-	
-	public myRandGen buildAndInitRandGenFromData(int _type, int _quadSlvrIdx, int _numZigRects, double[] _data) {
-		myRandGen randGen = null;
-		myProbSummary analysis = new myProbSummary(_data);
-		switch (_type) {
-			case ziggRandGen : {//ziggurat alg solver - will use zigg algorithm to generate a gaussian of passed momments using a uniform source of RVs
-				
-				//need to build a random variable generator function
-				myRandVarFunc func = new myGaussianFunc(this, quadSlvrs[GL_QuadSlvrIDX], analysis);
-				//_numZigRects must be pwr of 2 - is forced to be if is not.  Should be 256
-				randGen = new myZigRandGen(func, _numZigRects, randGenAlgNames[_type]);	
-				
-				return randGen;}
-			
-			case fleishRandGen_Uni : {
-				//specify fleishman rand function with either moments or data - if only moments given, then need to provide hull as well
-				myRandVarFunc func = new myFleishFunc_Uni(this, quadSlvrs[GL_QuadSlvrIDX], analysis);
-				randGen = new myFleishUniRandGen(func,  randGenAlgNames[_type]);	
-				
-				return randGen;}
-			default	:	{		
-				dispMessage("BaseProbExpMgr","buildAndInitRandGen","Unknown random generator type : " + _type + ".  Aborting.");
-				return null;
-			}
-		}//switch
-		
-	}//buildAndInitRandGen
+
 	
 	//set values specific to solver
 	public void setSolverVals(int _numPoints, double _tol, int _BDScale) {
