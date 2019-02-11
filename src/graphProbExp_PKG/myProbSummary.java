@@ -1,32 +1,39 @@
 package graphProbExp_PKG;
 /**
- * instances of this class will analyze and display probability results relating to a data set;  this will also provide an easy-access container to manage moments
+ * instances of this class will analyze and display statistical results relating to a data set;  this will also provide an easy-access container to manage moments
  * @author john
  *
  */
 public class myProbSummary{
 	//values to analyze
 	private double[] vals;
-	//moments of this distribution.  mean, std, var may be null/undefined for certain distributions (i.e. cauchy)
+	//(population) moments of this distribution.  mean, std, var may be null/undefined for certain distributions (i.e. cauchy)
 	protected double[] mmnts;
+	//min and max values of data
+	protected double[] minMax;
+	//multipliers to derive sample moments from population moments
+	protected double[] popToSmplMmntMults;
 	//flags holding state information about this summary object
 	//state flags - bits in array holding relevant info about this random variable function
 	private int[] stFlags;						
 	public static final int 
-		meanIDX			= 0, 
-		stdIDX			= 1, 
-		skewIDX			= 2,
-		kurtIDX			= 3,
+		meanIDX				= 0, 
+		stdIDX				= 1, 
+		skewIDX				= 2,
+		kurtIDX				= 3,
 		//insert any higher moments in here
 		//these are convenience calcs/transforms of base moment values
-		varIDX			= 4,
-		excKurtIDX		= 5,
+		varIDX				= 4,
+		excKurtIDX			= 5,
 		//
-		setByDataIDX	= 6;				//whether the moments values in this object were set by data or were set specifically
+		setByDataIDX		= 6,				//whether the moments values in this object were set by data or were set specifically
+		smplValsCalcedIDX 	= 7;				//sample moments calculated for a specific sample size
 	//# of boolean flags
 	public static final int numFlags = 7;
 	//# of moments being tracked, excluding variance and excess kurtosis and other duped moments
 	public static final int numMmnts = 6;
+	//# of samples, if sample size set
+	private int sampleSize;
 	//# of moments actually specified, not counting derived moments
 	public int numMmntsGiven;
 	
@@ -39,24 +46,29 @@ public class myProbSummary{
 	}//ctor
 	
 	//momments are passed
-	public myProbSummary(double[] _mmnts, int _numMmnts) {
+	public myProbSummary(double[] _mmnts, int _numMmnts, boolean isExKurt) {
 		initFlags();
-		setMoments(_mmnts, _numMmnts, false);		
+		setMoments(_mmnts, _numMmnts, isExKurt);		
 	}//ctor
-		
+	//if not specified then assume kurtosis passed is not excess but rather actual 
+	public myProbSummary(double[] _mmnts, int _numMmnts) {this(_mmnts,_numMmnts, false);}
 	
 	//using Kahan summation to minimize errors from large differences in value magnitude
 	public void setValsAndAnalyse(double[] _vals) {
 		setFlag(setByDataIDX, true);
 		mmnts = new double[numMmnts];  
+		popToSmplMmntMults = new double[numMmnts];
 		for(int i=0;i<numMmnts;++i) {mmnts[i]=0.0;}
 		vals=_vals;
 		int numVals = vals.length;
 		if(numVals ==0 ) {return;}
 		///calculate mean while minimizing float error
-		double sumMu = vals[0];
+		double sumMu = vals[0], min = vals[0], max = vals[0];
 		double cMu = 0.0, y, t;
 		for(int i=1;i<vals.length;++i) {
+			min=(vals[i]<min?vals[i]:min);
+			max=(vals[i]>max?vals[i]:max);
+			
 			y = vals[i] - cMu;
 			t = sumMu + y;
 			cMu = (t-sumMu) - y;
@@ -70,6 +82,7 @@ public class myProbSummary{
 		double [] sumAndCSq = new double[] {valMMean*valMMean, 0.0};
 		double [] sumAndCCu = new double[] {(sumAndCSq[0])*valMMean, 0.0};
 		double [] sumAndCQu = new double[] {(sumAndCSq[0])*(sumAndCSq[0]), 0.0};
+		//kahan summation to address magnitude issues in adding 2 values of largely different magnitudes
 		for(int i=1;i<vals.length;++i) {
 			tDiff = vals[i] - mmnts[meanIDX];
 			tDiffSq = (tDiff*tDiff);
@@ -82,10 +95,13 @@ public class myProbSummary{
 		mmnts[skewIDX] = (sumAndCCu[0] / numVals)/(mmnts[stdIDX]*mmnts[varIDX]);
 		mmnts[kurtIDX] = (sumAndCQu[0] / numVals)/(mmnts[varIDX]*mmnts[varIDX]);
 		mmnts[excKurtIDX] = mmnts[kurtIDX]-3.0;
+		
 		for(int i=0;i<numMmnts;++i) {
 			setFlag(i,true);
 		}
-		numMmntsGiven = 4;		
+		numMmntsGiven = 4;	
+		//System.out.println("Data vals :  " + numVals + " var : " + mmnts[varIDX] + " std : " + mmnts[stdIDX] + " min : " + min + " | Max : " + max);
+		calcSmpleMomentsForSampleSize(numVals,new double[] {min,max});
 	}//setVals
 	
 	private void calcSumAndC(double[] sumAndC, double y) {
@@ -95,10 +111,15 @@ public class myProbSummary{
 	}
 		
 	//take passed moments (only canonical - no separate variance and ex kurtosis values) and set the internal moments of this analysis object
+	//moments given are assumed to be of population, so sample multiplier is dependent on size of sample
 	public void setMoments(double[] _mmnts, int _numMmntsGiven, boolean isExKurt) {
 		vals = new double[0];
 		setFlag(setByDataIDX, false);
 		mmnts = new double[numMmnts];  
+		minMax = new double[2];
+		minMax[0]=Double.NEGATIVE_INFINITY;
+		minMax[1]=Double.POSITIVE_INFINITY;		
+		popToSmplMmntMults = new double[numMmnts];
 		numMmntsGiven = _numMmntsGiven;
 		mmnts[meanIDX] = _mmnts[meanIDX];
 		setFlag(meanIDX, true);
@@ -125,7 +146,26 @@ public class myProbSummary{
 				}					
 			}		
 		}	
+		setFlag(smplValsCalcedIDX, false);
 	}//setMoments	
+	
+	//assuming calculated moments are population moments, modify popToSmpleMmntMults values so they can be used to calculate sample moments
+	public void calcSmpleMomentsForSampleSize(int _smpleSize, double[] _minMax) {
+		sampleSize = _smpleSize;
+		popToSmplMmntMults = new double[numMmnts];
+		minMax = new double[2];
+		minMax[0]=_minMax[0];
+		minMax[1]=_minMax[1];
+		
+		popToSmplMmntMults[meanIDX] = 1.0;
+		popToSmplMmntMults[varIDX] = sampleSize/(sampleSize-1);
+		popToSmplMmntMults[stdIDX] =  Math.sqrt(popToSmplMmntMults[varIDX]);
+		double smplSz2x = (sampleSize*sampleSize), sz1msz2 = (sampleSize-1)*(sampleSize-2);
+		popToSmplMmntMults[skewIDX] = (smplSz2x/sz1msz2) / (popToSmplMmntMults[varIDX] * popToSmplMmntMults[stdIDX]); 
+		popToSmplMmntMults[kurtIDX] = ((smplSz2x*(sampleSize+1))/(sz1msz2*(sampleSize-3))) / (popToSmplMmntMults[varIDX] * popToSmplMmntMults[varIDX]);
+		popToSmplMmntMults[kurtIDX] = popToSmplMmntMults[kurtIDX];
+		setFlag(smplValsCalcedIDX, true);
+	}//calcSmpleMomentsForSampleSize
 	
 	public double mean() {return getFlag(meanIDX) ? mmnts[meanIDX] : 0;}
 	public double var() { return getFlag(varIDX) ? mmnts[varIDX] : 0;}
@@ -133,6 +173,14 @@ public class myProbSummary{
 	public double skew() { return getFlag(skewIDX) ? mmnts[skewIDX] : 0;}
 	public double kurt() { return getFlag(kurtIDX) ? mmnts[kurtIDX] : 0;}
 	public double exKurt() { return getFlag(excKurtIDX) ? mmnts[excKurtIDX] : 0;}
+	
+	//get moments of sampled data, if specified that given moments are of underlying population
+	public double smpl_mean() {return (getFlag(meanIDX) & getFlag(smplValsCalcedIDX)) ? mmnts[meanIDX] * popToSmplMmntMults[meanIDX]: 0;}
+	public double smpl_var() { return (getFlag(varIDX) & getFlag(smplValsCalcedIDX))  ? mmnts[varIDX] * popToSmplMmntMults[varIDX]  : 0;}
+	public double smpl_std() { return (getFlag(stdIDX) & getFlag(smplValsCalcedIDX))  ? mmnts[stdIDX] * popToSmplMmntMults[stdIDX] : 0;}
+	public double smpl_skew() { return (getFlag(skewIDX) & getFlag(smplValsCalcedIDX))  ? mmnts[skewIDX] * popToSmplMmntMults[skewIDX] : 0;}
+	public double smpl_kurt() { return (getFlag(kurtIDX) & getFlag(smplValsCalcedIDX))  ? mmnts[kurtIDX] * popToSmplMmntMults[kurtIDX] : 0;}
+	public double smpl_exKurt() { return (getFlag(excKurtIDX) & getFlag(smplValsCalcedIDX))  ? mmnts[excKurtIDX] * popToSmplMmntMults[excKurtIDX] : 0;}
 	
 	//transform the given value via the 1st 2 moments of the distribution described by these statistics from a normal ~N(0,1) 
 	public double normToGaussTransform(double val) {return (val * mmnts[stdIDX]) +  mmnts[meanIDX];}
@@ -145,13 +193,14 @@ public class myProbSummary{
 		int flIDX = idx/32, mask = 1<<(idx%32);
 		stFlags[flIDX] = (val ?  stFlags[flIDX] | mask : stFlags[flIDX] & ~mask);
 		switch (idx) {//special actions for each flag
-			case meanIDX	 	: 	{break;} 
-			case stdIDX		 	: 	{break;} 
-			case skewIDX		: 	{break;} 
-			case kurtIDX		: 	{break;} 						
-			case varIDX		 	: 	{break;} 
-			case excKurtIDX		: 	{break;}
-			case setByDataIDX	: 	{break;}
+			case meanIDX	 		: {break;} 
+			case stdIDX		 		: {break;} 
+			case skewIDX			: {break;} 
+			case kurtIDX			: {break;} 						
+			case varIDX		 		: {break;} 
+			case excKurtIDX			: {break;}
+			case setByDataIDX		: {break;}
+			case smplValsCalcedIDX	: {break;}			//whether multipliers to modify calculated pop moments to be appropriate sample moments have been calculated
 		}
 	}//setFlag		
 	public boolean getFlag(int idx){int bitLoc = 1<<(idx%32);return (stFlags[idx/32] & bitLoc) == bitLoc;}		
@@ -180,7 +229,6 @@ public class myProbSummary{
 		String res = "";
 		for(int i=0;i<numMmntsGiven;++i) { 			res += "_"+String.format("%.5f",mmnts[i]);		}
 		return res;
-	}
-	
+	}	
 
 }//class myProbAnalysis

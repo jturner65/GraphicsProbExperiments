@@ -223,25 +223,28 @@ class myZigRandGen extends myRandGen{
  */
 
 class myFleishUniRandGen extends myRandGen{
+	
+	//generator to manage synthesizing normals
+	private myZigRandGen zigNormGen;
+	
 	//min and max of synthesized
 	public myFleishUniRandGen(myRandVarFunc _func, String _name) {
 		super(_func, _name);
-		
+		//need to build a source of normal random vars
+		zigNormGen = new myZigRandGen(new myNormalFunc(func.expMgr, func.quadSlvr), 256, "Ziggurat Algorithm");		
 	}//ctor
 
 	@Override
 	public double getSample() {
-		// TODO Auto-generated method stub
-		return 0;
+		double res = func.f(zigNormGen.getSample());		//needs to be fed from a normal distribution
+		return res;
 	}
 
 	@Override
 	public double getSampleFast() {
-		// TODO Auto-generated method stub
-		return 0;
+		double res = func.f(zigNormGen.getSampleFast());
+		return res;
 	}
-	
-	
 	
 	
 }//class myFleishRandGen

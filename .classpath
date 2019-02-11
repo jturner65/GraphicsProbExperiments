@@ -18,6 +18,7 @@
 	<classpathentry kind="lib" path="jogl-all-natives-windows-i586.jar"/>
 	<classpathentry kind="lib" path="jogl-all.jar"/>
 	<classpathentry kind="lib" path="jl1.0.1.jar"/>
+	<classpathentry kind="lib" path="jblas-1.2.4.jar"/>
 	<classpathentry kind="src" path="data"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

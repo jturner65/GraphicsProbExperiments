@@ -3,6 +3,8 @@ package graphProbExp_PKG;
 import java.math.*;
 import java.util.function.Function;
 
+import org.jblas.*;
+
 /**
  * classes to provide the functionality of a random variable to be consumed by the random number generators.
  * These classes will model the pdf and inv pdf of a particular random variable, as well as provide access to integration (to derive CDF)
@@ -34,12 +36,15 @@ public abstract class myRandVarFunc {
 	protected Function<Double, Double>[] funcs;
 	//function idxs
 	protected static final int 
-		fIDX 		= 0,
-		fInvIDX 	= 1,
+		fIDX	 		= 0,
+		fInvIDX 		= 1,
 		//functions specifically for ziggurat calc - expected to be 0-centered
-		fZigIDX		= 2,
-		fInvZigIDX	= 3;
-	protected static final int numFuncs = 4;
+		fZigIDX			= 2,
+		fInvZigIDX		= 3,
+		//integral functions, for closed form integrals
+		fIntegIDX 		= 4,
+		fZigIntegIDX 	= 5;
+	protected static final int numFuncs = 6;
 	
 	//object used to perform ziggurat calcs for a particular function - contains pre-calced arrays
 	//each instancing class will have a static map of these, and only build a new one if called for
@@ -205,6 +210,9 @@ class myGaussianFunc extends myRandVarFunc{
 		//zigurat functions -> want pure normal distribution
 		funcs[fZigIDX]		= (x -> Math.exp(-0.5 *(x*x)));
 		funcs[fInvZigIDX]	= (xinv -> (Math.sqrt(-2.0 * Math.log(xinv)))); 
+		// no closed form integrals exist, so have to use quadrature
+		funcs[fIntegIDX]		= (x -> x);
+		funcs[fZigIntegIDX]		= (x -> x);
 	}//buildFuncs
 	
 	//shift by mean, multiply by std
@@ -344,63 +352,119 @@ class myNormalFunc extends myGaussianFunc{
  * @author john
  *
  */
-
 class myFleishFunc_Uni extends myRandVarFunc{
 	//polynomial coefficients
 	private double[] coeffs;
 	//whether this is ready to use or not - all values have been set and calculated
 	private boolean ready;
+	//maximum iterations
+	private final int maxIter = 35;
+	//convergence limit
+	private final double convLim=1e-5;
 	//summary object/
 	public myFleishFunc_Uni(BaseProbExpMgr _expMgr, myGaussQuad _quadSlvr, myProbSummary _summaryObj, String _name) {
 		super(_expMgr, _quadSlvr, _name);
 		ready = false;
+		coeffs = calcCoeffs(_summaryObj);
+		//set summary builds functions - need to specify required elements before it is called
+		setSummary(_summaryObj);
 	}//ctor
 	
+	//calculate the coefficients for the fleishman polynomial considering the given skew and excess kurtosis specified in summary object
+	//will generate data with mean ==0 and std == 1; if ex kurtosis lies outside of feasible region will return all 0's for coefficients
+	private double[] calcCoeffs(myProbSummary _summary) {		
+		double[] coeffs = new double[_summary.numMmntsGiven];
+		double exKurt = _summary.exKurt(), skew = _summary.skew(), skewSQ = skew*skew, exKurtSq = exKurt * exKurt;
+        //first verify exkurt lies within feasible bound vs skew
+        //this is fleish's bound from his paper - said to be wrong in subsequent 2010 paper
+        //bound = -1.13168 + 1.58837 * skew**2
+        double bound = -1.2264489 + 1.6410373*skew*skew;
+        if (exKurt < bound) { 
+        	expMgr.dispMessage("myFleishFunc_Uni", "calcCoeffs", "!!!! Coefficient error : ex kurt : " + exKurt+ " is not feasible with skew :" + skew);
+            return coeffs;
+        }
+        //add -coeff[1] as coeff[0]
+        double c1 = 0.95357 - (0.05679*skew) + (0.03520*skewSQ) + (0.00133*exKurtSq);
+        double c2 = (0.10007*skew) + (0.00844*skewSQ*skew);
+        double c3 = 0.30978 - (0.31655 * c1);
+
+
+        double[] tmpC = newton(c1, c2, c3, skew, exKurt);
+		coeffs = new double[] {-tmpC[1], tmpC[0],tmpC[1],tmpC[2]};
+		expMgr.dispMessage("myFleishFunc_Uni", "calcCoeffs", "Coeffs calculated :  ["+ String.format("%3.8f",coeffs[0])+","+ String.format("%3.8f",coeffs[1])+","+ String.format("%3.8f",coeffs[2])+","+ String.format("%3.8f",coeffs[3])+"]");		
+		return coeffs;
+	}//calcCoeffs
 	
+	//Given the fleishman coefficients, and a target skew and kurtois
+    //this function will have a root if the coefficients give the desired skew and kurtosis
+    //F = -c + bZ + cZ^2 + dZ^3, where Z ~ N(0,1)
+	private DoubleMatrix flfunc(double b, double c, double d, double skew, double exKurt) {
+        double b2 = b*b, c2 = c*c, d2 = d*d, bd = b*d;
+        double _v = b2 + 6*bd + 2*c2 + 15*d2;
+        double _s = 2 * c * (b2 + 24*bd + 105*d2 + 2);
+        double _k = 24 * (bd + c2 * (1 + b2 + 28*bd) + 
+                    d2 * (12 + 48*bd + 141*c2 + 225*d2));
+        return new DoubleMatrix(new double[] {_v - 1, _s - skew, _k - exKurt});		
+	}//flfunc
+
+	//The deriviative of the flfunc above
+    //returns jacobian
+	private DoubleMatrix flDeriv(double b, double c, double d) {
+		double b2 = b*b, c2 = c*c, d2 = d*d, d3 = d2*d, bd = b*d;
+		double df1db = 2*b + 6*d, df1dc = 4*c, df1dd = 6*b + 30*d;
+		double df2db = 4*c * (b + 12*d), df2dc = 2 * (b2 + 24*bd + 105*d2 + 2);
+		double df2dd = 4 * c * (12*b + 105*d);
+		double df3db = 24 * (d + c2 * (2*b + 28*d) + 48 * d3);
+		double df3dc = 48 * c * (1 + b2 + 28*bd + 141*d2);
+		double df3dd = 24 * (b + 28*b * c2 + 2 * d * (12 + 48*bd + 141*c2 + 225*d2) + d2 * (48*b + 450*d));
+        return new DoubleMatrix(new double[][] {
+        	{df1db, df1dc, df1dd},
+        	{df2db, df2dc, df2dd},
+            {df3db, df3dc, df3dd}});
+	}//flDeriv
 	
-	//kurtosis is expected to be full kurtosis, not excess
-//	private void setMmntsAndCalc(double[] mmnts, boolean isExKurt, boolean hasMinMax, showSimRes=True, N=1000000) {
-//      self.mmnts = mmnts[:]
-//      self.mean = mmnts[0]
-//      self.std = mmnts[1]
-//      self.skew = mmnts[2]
-//      self.kurt = mmnts[3]
-//      #must be excess kurtosis so subtract 3 if isn't
-//      exkurt = self.kurt-3.0
-//      if (isExKurt) : 
-//          exkurt=self.kurt
-//          self.mmnts[3] +=3.0
-//          self.kurt += 3.0 
-//      if hasMinMax :
-//          self.min=self.mmnts[4] 
-//          self.max=self.mmnts[5] 
-//      #coeffs need to be 4 elements pre-pend -coeff[1] to coeffs array
-//      self._endInitCalc(self.skew,exkurt, showSimRes, N)        
-//	}
-//  def setDataAndCalc(self, _data, showSimRes=True, N=1000000):
-//      #data must be standardized
-//      self.mean = np.mean(_data)
-//      self.std = np.std(_data)
-//      std_data = (_data - self.mean)/self.std
-//      self.skew = moment(std_data,3)
-//      self.kurt = moment(std_data,4)
-//      exkurt = self.kurt - 3.0#need to remove 3 for standard distribution ->excess kurtosis
-//      self.min=min(_data)
-//      self.max=max(_data)
-//      self.mmnts=[self.mean,self.std,self.skew,self.kurt, self.min, self.max]
-//      self._endInitCalc(self.skew,exkurt, showSimRes, N)
-//     
-//	public void _endInitCalc(skew, exkurt, showSimRes, N):
-//      self.coeff = self.fit_fleishman_from_sk(skew,exkurt)
-//      if showSimRes :
-//          sim = self.genData(N)
-//          self.dispRes(sim)	
+	private boolean isNewtonDone(DoubleMatrix f) {
+		for(double x : f.data) {
+			if(Math.abs(x) < convLim) {return true;}
+		}		
+		return false;
+	}
+	//simple newton method solver
+	private double[] newton(double a,double b,double c,double skew,double exKurtosis) {
+        //Implements newtons method to find a root of flfunc
+		DoubleMatrix f = flfunc(a, b, c, skew, exKurtosis), delta;
+        DoubleMatrix Jacob;
+        for (int i=0; i<maxIter; ++i) {
+            if (isNewtonDone(f)){          break;   }
+            //get jacobian
+            Jacob = flDeriv(a, b, c);
+            //find delta amt
+            delta = (Solve.solve(Jacob, f));
+            a -= delta.data[0];
+            b -= delta.data[1];
+            c -= delta.data[2];
+            f = flfunc(a, b, c, skew, exKurtosis);
+        }
+        return new double[] {a,b,c};
+	}//newton
 	
+	//this takes a normal input, not a uniform input
 	@Override
 	protected void buildFuncs() {
-		// TODO Auto-generated method stub
-		
-	}
+		double mu = summary.mean(), std = summary.std();//, var = summary.var();
+		//actual functions
+		funcs[fIDX] 		= (x ->  ((coeffs[0] + x*(coeffs[1] +x*(coeffs[2]+ x*coeffs[3])))*std +  mu));
+		//TODO find inverse of polynomial?  inverse of this function may not exist
+		funcs[fInvIDX] 		= (xinv -> xinv);
+		//zigurat functions -> want pure normal distribution
+		funcs[fZigIDX]		= (x -> (coeffs[0] + x*(coeffs[1] +x*(coeffs[2]+ x*coeffs[3]))));
+		funcs[fInvZigIDX]	= (xinv -> xinv);
+		//easily integrated since we have coefficients of polynomial - should always be used in definite integral over a span, so coefficient will cancel
+		//TODO need to verify this - should integral be of full equation or just underlying polynomial
+		funcs[fIntegIDX]		= (x -> (((x*coeffs[0] + .5*x*x*coeffs[1] + (1.0/3.0)*x*x*x*coeffs[2]+ .25*x*x*x*x*coeffs[3])*std) +  mu));
+		funcs[fZigIntegIDX]		= (x -> (x*coeffs[0] + .5*x*x*coeffs[1] + (1.0/3.0)*x*x*x*coeffs[2]+ .25*x*x*x*x*coeffs[3]));
+
+	}//buildFuncs
 
 	@Override
 	public double CDF(double x) {
@@ -413,25 +477,28 @@ class myFleishFunc_Uni extends myRandVarFunc{
 		// TODO Auto-generated method stub
 		return 0;
 	}
-
+	
+	//evaluate integral
 	@Override
 	protected double integral_f(Double x1, Double x2) {
-		// TODO Auto-generated method stub
-		return 0;
+		//definite integral of polynomial		
+		double res; 
+		//res = quadSlvr.evalIntegral(funcs[fIDX], x1, x2).doubleValue();
+		res = funcs[fIntegIDX].apply(x2) - funcs[fIntegIDX].apply(x1);
+		
+		return res;
 	}
 
 	@Override
 	protected double integral_fZig(Double x1, Double x2) {
-		// TODO Auto-generated method stub
-		return 0;
+		double res;
+		//res = quadSlvr.evalIntegral(funcs[fZigIDX], x1, x2).doubleValue();
+		res = funcs[fZigIntegIDX].apply(x2) - funcs[fZigIntegIDX].apply(x1);
+		return res;
 	}
 
 	@Override
-	public double processResValByMmnts(double val) {
-		// TODO Auto-generated method stub
-		return 0;
-	}	
-	
+	public double processResValByMmnts(double val) {	return summary.normToGaussTransform(val);}//public abstract double processResValByMmnts(double val);	
 	
 	
 }//class myFleishFunc

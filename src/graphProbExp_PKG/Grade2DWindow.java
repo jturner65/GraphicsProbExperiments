@@ -46,7 +46,7 @@ public class Grade2DWindow extends myDispWindow {
 	public String[][] menuBtnNames = new String[][] {	//each must have literals for every button defined in side bar menu, or ignored
 		{},
 		{"Test Rand Gen", "Test R Calc","Calc Mapping"},	//row 1
-		{"Func 1", "Func 2", "Func 3", "Func 4"},	//row 1
+		{"Func 1", "Test Fleish", "Tst Fl Range", "Func 4"},	//row 1
 		{"Dbg 1","Dbg 2","Dbg 3","Dbg 4","Dbg 5"}	
 	};
 
@@ -319,9 +319,11 @@ public class Grade2DWindow extends myDispWindow {
 					resetButtonState();
 					break;}
 				case 1 : {	
+					gradeAvgExperiment.testFleishTransform();
 					resetButtonState();
 					break;}
 				case 2 : {	
+					gradeAvgExperiment.testFleishRangeOfVals();
 					resetButtonState();
 					break;}
 				case 3 : {	

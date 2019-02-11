@@ -44,8 +44,7 @@ public class ClassGradeExperiment extends BaseProbExpMgr{
 	
 	public static final float distBtwnAdjBars = 60.0f, distBtwnRawTransBars = 600.0f;
 	public myPointf classBarStart = new myPointf(10,100,0);
-	
-	
+		
 	public ClassGradeExperiment(myDispWindow _win) {
 		super(_win);
 		initExp();
@@ -57,11 +56,10 @@ public class ClassGradeExperiment extends BaseProbExpMgr{
 		classes = new HashSet<myClassRoster>();
 		numClasses = 0;
 		students = new HashMap<Integer,myStudent>();
-		numStudents = 0;
-		
+		numStudents = 0;		
 		gradeInvMapGen = buildAndInitRandGen(ziggRandGen, GL_QuadSlvrIDX, 256,new myProbSummary(new double[] {0.0,0.1,0,0},2));
-		//build fleishman with data set
-		//gradeSourceDistGen = buildAndInitRandGen(fleishRandGen_Uni, GL_QuadSlvrIDX, 256, new double[] {0,.1,0,0});	
+		//build fleishman with data set ultimately
+		gradeSourceDistGen = buildAndInitRandGen(fleishRandGen_Uni, GL_QuadSlvrIDX, 256,new myProbSummary(new double[] {0,1,1,4},4));	
 		curTransformType = gradeInvMapGen.getTransformName();
 	}//	initExp
 	
@@ -113,8 +111,43 @@ public class ClassGradeExperiment extends BaseProbExpMgr{
 		}
 	}//calcInverseMapping
 	
+	public void testFleishTransform() {
+		//test fleishman polynomial-based transformation
+		_testFlTransform(gradeSourceDistGen, 10000);
+	}//
+	
+	private void _testFlTransform(myRandGen flRandGen, int numVals) {
+		//test fleishman polynomial-based transformation
+		dispMessage("ClassGradeExperiment","_testFlTransform","Specified summary for fleishman polynomial : " + flRandGen.summary.getMomentsVals());
+		double[] testData = new double[numVals];
+		for(int i=0;i<testData.length;++i) {
+			testData[i] = flRandGen.getSample();
+		}
+		myProbSummary testSummary = new myProbSummary(testData);
+		dispMessage("ClassGradeExperiment","testFleishTransform","Analysis res of testSummary for fleishman polynomial : " + testSummary.getMomentsVals());
+		
+	}
+	
+	//vary fleishman transformation values to see when it works and when it doesn't
+	public void testFleishRangeOfVals() {
+		for (double skew=0.0; skew<1.0;skew+=.1) {
+	        double bound = -1.2264489 + 1.6410373*skew*skew;
+			for (double exKurt=0.0; exKurt<1.0;exKurt+=.1) {
+		        if (exKurt < bound) { 
+		        	dispMessage("ClassGradeExperiment", "testFleishRangeOfVals", "!!!! Coefficient error : ex kurt : " + exKurt+ " is not feasible with skew :" + skew + " | Bounds is :"+bound);
+		        } else {		        	
+		        	dispMessage("ClassGradeExperiment", "testFleishRangeOfVals", "ex kurt : " + exKurt+ " is feasible with skew :" + skew + " | Bounds is :"+bound);
+		        }
+//				myRandGen flRandGen = buildAndInitRandGen(fleishRandGen_Uni, GL_QuadSlvrIDX, 256,new myProbSummary(new double[] {0,1,skew,exKurt},4, true));
+//				_testFlTransform(flRandGen, 10000);
+			}
+		}
+	}
+	
+	
 	//this will calculate the mapping from uniform for each class to a total mapping that follows some distribution
 	public void calcMappingClassToTotal() {
+		
 		
 	}
 	
