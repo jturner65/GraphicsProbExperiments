@@ -467,10 +467,11 @@ class myFleishFunc_Uni extends myRandVarFunc{
 	}//buildFuncs
 
 	@Override
-	public double CDF(double x) {
-		// TODO Auto-generated method stub
-		return 0;
-	}
+	public double CDF(double x) {	
+		//this function is fed by normal distribution -> this means that bound of neg inf into source distribution == this being fed by 0 as lower bound
+		//upper bound is inv_cdf of normal dist of original x
+		return integral_f(0.0, x);	
+	}	//need to find most negative value of function corresponding to 0 probability => coeffs[0] 
 
 	@Override
 	public double CDF_inv(double x) {

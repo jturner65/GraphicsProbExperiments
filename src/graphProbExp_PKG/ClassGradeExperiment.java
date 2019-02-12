@@ -17,8 +17,7 @@ public class ClassGradeExperiment extends BaseProbExpMgr{
 	public HashMap<Integer,myStudent> students;
 	public int numStudents;
 	//random generator providing model of source distribution to be used to map from distribution to uniform
-	protected myRandGen gradeSourceDistGen;
-	
+	protected myRandGen gradeSourceDistGen;	
 	
 	//random # generator to be used to generate -inverse- mapping from uniform to target distribution for final grade
 	protected myRandGen gradeInvMapGen;
@@ -37,13 +36,12 @@ public class ClassGradeExperiment extends BaseProbExpMgr{
 	public static final int numFlags = 1;	
 	
 	//display-related values
-	
-	private float barWidth;
-	//% of visible width the class bars should be
-	private static final float barWidthMult = .95f;
-	
-	public static final float distBtwnAdjBars = 60.0f, distBtwnRawTransBars = 600.0f;
-	public myPointf classBarStart = new myPointf(10,100,0);
+	public static final float 
+		distBtwnAdjBars = 60.0f, 
+		distBtwnRawTransBars = 600.0f;
+	//where first class bar starts
+	//public static myPointf classBarStart = new myPointf(10,100,0);
+	public static float[] classBarStart = new float[] {10,100};
 		
 	public ClassGradeExperiment(myDispWindow _win) {
 		super(_win);
@@ -68,7 +66,8 @@ public class ClassGradeExperiment extends BaseProbExpMgr{
 	protected void buildSolvers_indiv() {	//any solvers that are custom should be built here		
 	}//buildSolvers_indiv
 	
-	//build an experiment with random students
+	//build an experiment with random students 
+	//need to build distribution of raw grades for each class before this is called
 	public void buildStudentsAndClasses(int _numStudents, int _numClasses) {
 		dispMessage("ClassGradeExperiment","buildStudentsAndClasses","Start building " + _numStudents +" students and " + _numClasses+" classes");
 		numStudents = _numStudents;
@@ -78,17 +77,19 @@ public class ClassGradeExperiment extends BaseProbExpMgr{
 			stdnt = new myStudent(win.pa, "Student : " +i);
 			students.put(stdnt.ObjID, stdnt);			
 		}
+		
 		numClasses = _numClasses;
 		myClassRoster cls;
-		myPointf rawBarLocSt = new myPointf(classBarStart),
-				transBarLocSt = new myPointf(classBarStart.x, classBarStart.y + distBtwnRawTransBars, classBarStart.z);
+		//start location x,y for raw and transformed bars
+		float[] rawBarLocSt = new float[] {classBarStart[0],classBarStart[1]},
+				transBarLocSt = new float[] {classBarStart[0],classBarStart[1] + distBtwnRawTransBars};
 		classes.clear();
 		for (int i=0;i<numClasses;++i) {
-			cls = new myClassRoster(win.pa, this, "Class : " + i, new myPointf[] { rawBarLocSt, transBarLocSt});
-			cls.setBarWidth(barWidth);
+			cls = new myClassRoster(win.pa, this, "Class : " + i, new float[][] { rawBarLocSt, transBarLocSt});
 			classes.add(cls);
-			rawBarLocSt.y +=distBtwnAdjBars;
-			transBarLocSt.y += distBtwnAdjBars;
+			//move to next class's bar
+			rawBarLocSt[1] +=distBtwnAdjBars;
+			transBarLocSt[1] += distBtwnAdjBars;
 			for (myStudent s : students.values()) {
 				cls.addStudent(s);
 				double grade = ThreadLocalRandom.current().nextDouble();
@@ -114,6 +115,8 @@ public class ClassGradeExperiment extends BaseProbExpMgr{
 	public void testFleishTransform() {
 		//test fleishman polynomial-based transformation
 		_testFlTransform(gradeSourceDistGen, 10000);
+		double area = ((myFleishUniRandGen) gradeSourceDistGen).testInteg();
+		dispMessage("ClassGradeExperiment","testFleishTransform","area under fleish poly from 0->1 : " + area);
 	}//
 	
 	private void _testFlTransform(myRandGen flRandGen, int numVals) {
@@ -124,7 +127,7 @@ public class ClassGradeExperiment extends BaseProbExpMgr{
 			testData[i] = flRandGen.getSample();
 		}
 		myProbSummary testSummary = new myProbSummary(testData);
-		dispMessage("ClassGradeExperiment","testFleishTransform","Analysis res of testSummary for fleishman polynomial : " + testSummary.getMomentsVals());
+		dispMessage("ClassGradeExperiment","_testFlTransform","Analysis res of testSummary for fleishman polynomial : " + testSummary.getMomentsVals());
 		
 	}
 	
@@ -142,8 +145,7 @@ public class ClassGradeExperiment extends BaseProbExpMgr{
 //				_testFlTransform(flRandGen, 10000);
 			}
 		}
-	}
-	
+	}//testFleishRangeOfVals	
 	
 	//this will calculate the mapping from uniform for each class to a total mapping that follows some distribution
 	public void calcMappingClassToTotal() {
@@ -176,16 +178,10 @@ public class ClassGradeExperiment extends BaseProbExpMgr{
 	//this is called whenever screen width is changed - used to modify visualizations if necessary
 	@Override
 	protected void setVisWidth_Priv() {
-		barWidth = visScreenWidth * barWidthMult;
 		if(classes == null) {return;}
-		for (myClassRoster cls : classes) {
-			cls.setBarWidth(barWidth);
-		}
-		
+		for (myClassRoster cls : classes) {			cls.setDispWidth(visScreenWidth);		}		
 	}//setVisWidth_Priv
 
-	
-	
 	//calculate total grade for all students
 	public void calcTotalStudentGrade() {
 		for (myStudent s : students.values()) {		s.calcTotalGrade();	}
@@ -194,39 +190,23 @@ public class ClassGradeExperiment extends BaseProbExpMgr{
 
 	//check mouse over/click in 2d experiment - btn == -1 is mouse over
 	@Override	
-	public boolean checkMouseClickInExp2D(int msx, int msy, int btn) {
-		
+	public boolean checkMouseClickInExp2D(int msx, int msy, int btn) {		
 		for (myClassRoster cls : classes) {			
 			//for each class roster check if in bounds of class
-			if ((cls.mseClickCheck(msx,msy, btn)) && (btn > -1)){
-				
-				return true;
-			}
-//			if ((cls.mseNearTransGradeLine(msx,msy, btn)) && (btn > -1)){
-//				
-//				return true;
-//			}
+			if ((cls.mseClickCheck(msx,msy, btn)) && (btn > -1)){		return true;		}
 		}
 		return false;
-	};
+	}
 	
 	//check mouse over/click in 2d experiment - btn == -1 is mouse over
 	@Override	
-	public boolean checkMouseDragMoveInExp2D(int msx, int msy, int btn) {
-		
+	public boolean checkMouseDragMoveInExp2D(int msx, int msy, int btn) {		
 		for (myClassRoster cls : classes) {			
 			//for each class roster check if in bounds of class
-			if ((cls.mseDragCheck(msx,msy, btn)) && (btn > -1)){
-				
-				return true;
-			}
-//			if ((cls.mseNearTransGradeLine(msx,msy, btn)) && (btn > -1)){
-//				
-//				return true;
-//			}
+			if ((cls.mseDragCheck(msx,msy, btn)) && (btn > -1)){		return true;		}
 		}
 		return false;
-	};
+	}
 	
 	//check mouse over/click in 2d experiment; if btn == -1 then mouse over
 	@Override	
@@ -247,9 +227,7 @@ public class ClassGradeExperiment extends BaseProbExpMgr{
 		
 		pa.popStyle();pa.popMatrix();
 	}//drawClassRes
-	
-	
-	
+		
 	/////////////////////////////	
 	//init and manage state flags
 	@Override

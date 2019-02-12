@@ -20,6 +20,9 @@ public abstract class myRandGen implements Comparable<myRandGen> {
 	//function this rand gen uses
 	protected myRandVarFunc func;
 	
+	//visualization tool for this random generator
+	protected myDistVis distVisObj; 
+	
 	//state flags - bits in array holding relevant info about this random variable function
 	private int[] stFlags;						
 	public static final int
@@ -36,7 +39,10 @@ public abstract class myRandGen implements Comparable<myRandGen> {
 		desc = new RandGenDesc(func.getQuadSolverName(), func.name, this);
 		//func built with summary data - allow for quick access
 		summary = func.summary;	
+		distVisObj = null;
     }//ctor
+	
+	public void setDistVisObj(myDistVis _distVisObj) {	distVisObj = _distVisObj;	}
 	
 	public void reSetSummary(myProbSummary _summary) {
 		summary = _summary;
@@ -51,13 +57,7 @@ public abstract class myRandGen implements Comparable<myRandGen> {
     //return a sample based on func  - momments defined by myRandVarFunc
 	public abstract double getSample();
 	public abstract double getSampleFast();
-	
-	//find inverse CDF value for passed val - val must be between 0->1; 
-	//this is mapping from 0->1 to probability based on the random variable function definition
-	public double inverseCDF(double _val) {
-		return func.CDF_inv(_val);
-	};
-	
+		
 	//return string description of rand function
 	public String getFuncDataStr() {return func.getFuncDataStr();}
 	
@@ -66,11 +66,24 @@ public abstract class myRandGen implements Comparable<myRandGen> {
 		String res = name+"_"+ desc.quadName+"_" + func.getMinDescString();
 		return res;
 	}
-	
+	public abstract double inverseCDF(double _val);
+	public abstract double CDF(double _val);
 	
 	@Override
 	public int compareTo(myRandGen othr) {return desc.compareTo(othr.desc);}
 
+	//synthesize numVals values from low to high to display 
+	public void calcFValsForDisp(int numVals, double low, double high) {
+		
+	}//calcFValsForDisp
+		
+	public void drawDist(GraphProbExpMain pa) {
+		if(distVisObj == null) {return;}
+		distVisObj.drawVis(pa);
+	}
+	
+	
+	
 	
 	//state flag management
 	private void initFlags(){stFlags = new int[1 + numFlags/32]; for(int i = 0; i<numFlags; ++i){setFlag(i,false);}}
@@ -152,44 +165,68 @@ class myZigRandGen extends myRandGen{
 		double res = nextNormal32();		
 		return func.processResValByMmnts(res);
 	}//getGaussian
+		
+	//find inverse CDF value for passed val - val must be between 0->1; 
+	//this is mapping from 0->1 to probability based on the random variable function definition
+	@Override
+	public double inverseCDF(double _val) {
+		return func.CDF_inv(_val);
+	}
+	//find the cdf value of the passed val -> prob (x<= _val)
+	@Override
+	public double CDF(double _val) {
+		return func.CDF(_val);		
+	}//CDF
+	
+	//takes sequential long value "bits", uses most sig bit as sign, next 8 sig bits as index, and last 54 bits as actual random value
+	private double _getFuncValFromLong(long val) {
+		//uLong is using 54 least Sig Bits (and 1st Most Sig Bits as sign bit).
+		long uLong = ((long)(val<<10))>>10;
+		//Using 9 least sig Bits as index and sign.
+		int index = ((int)val>>55) & 0xFF;
+		if (Math.abs(uLong) < zigVals.eqAreaZigRatio_NNorm[index]) {   	return uLong * zigVals.eqAreaZigX_NNorm[index]; }       
+		//if(index == 0) { 										return bottomCase((bits<<55) < 0);   }// Using 9th LSBit to decide +/-
+		if(index == 0) { 										return bottomCase(val < 0);   }// Using 1st MSSBit to decide +/-
+		// uLong * zigVals.invLBitMask in [-1,1], using 54 L Sig Bits, i.e. with 2^-53 granularity.
+		return rareCase(index, uLong * zigVals.invLBitMask);
+	}//_getFuncValFromLong
+	
+	//takes sequential int value val, uses most sig bit as sign, next 8 sig bits as index, and entire value as rand val
+	private double _getFuncValFromInt(int val) {
+		int bits = val;
+		int index = ((val>>16) & 0xFF);
+		if (-Math.abs(bits) >= zigVals.eqAreaZigRatio_NNormFast[index]) { 	return bits * zigVals.eqAreaZigX_NNormFast[index]; }
+		if(index == 0) { 											return bottomCase(bits < 0);   }//use most sig bit for +/-
+		// bits * zigVals.invBitMask in [-1,1], using 32 bits, i.e. with 2^-31 granularity.
+		return rareCase(index, bits * zigVals.invBitMask);
+	}//_getFuncValFromLong
+	
 	
     /**
      * @return A normal gaussian number.
      */
-    private double nextNormal53() {
-    	long bits, uLong;
-    	int index;
+	private double nextNormal53() {
+    	long longVal;
+    	double x;
     	while (true) {
-	    	//single random 64 bit value
-	        bits = getNextLong();
-	        //uLong is using 54 Most Sig Bits (and 1st Most Sig Bits as sign bit).
-	        uLong = (bits>>10);
-	        //Using 8 Least sig Bits as index.
-	        index = ((int)bits) & 0xFF;        
-	        if (Math.abs(uLong) < zigVals.eqAreaZigRatio_NNorm[index]) {   	return uLong * zigVals.eqAreaZigX_NNorm[index]; }       
-	        if(index == 0) { 										return bottomCase((bits<<55) < 0);   }// Using 9th LSBit to decide +/-
-	        // u in [-1,1], using 54 Most Sig Bits, i.e. with 2^-53 granularity.
-	        double u = uLong * zigVals.invLBitMask;
-	        // Using 9th LSBit to decide which side to go (has not been used yet).
-	        double x = rareCase(index, u);//, (bits<<55) < 0);
-	        if (x==x) {return x;    }		//Nan test -> NaN != NaN
+			//single random 64 bit value
+    		longVal = getNextLong();
+			x = _getFuncValFromLong(longVal);
+			if (x==x) {return x;    }		//Nan test -> NaN != NaN
     	}
     }//nextNormal
 
     /**
      * @return A normal gaussian number with 32 bit granularity
      */
+	static int minVal = 1000000,maxVal = -10000000;
     private double nextNormal32() {
-    	int bits, index;
+    	int val;
+    	double x;
     	while (true) {
-	        bits = getNextInt();
-	        index = (bits & 0xFF);
-	        if (-Math.abs(bits) >= zigVals.eqAreaZigRatio_NNormFast[index]) { 	return bits * zigVals.eqAreaZigX_NNormFast[index]; }
-	        if(index == 0) { 											return bottomCase(bits < 0);   }//use most sig bit for +/-
-	        // u in [-1,1], using 32 bits, i.e. with 2^-31 granularity.
-	        double u = bits * zigVals.invBitMask;
-	        double x = rareCase(index, u);//, bits < 0);
-	        if (x==x) {return x;    }		//Nan test -> NaN != NaN
+    		val = getNextInt();
+    		x = _getFuncValFromInt(val);
+			if (x==x) {return x;    }		//Nan test -> NaN != NaN
     	}
     }//nextNormalFast
 
@@ -238,13 +275,34 @@ class myFleishUniRandGen extends myRandGen{
 	public double getSample() {
 		double res = func.f(zigNormGen.getSample());		//needs to be fed from a normal distribution
 		return res;
-	}
+	}//getSample
 
 	@Override
 	public double getSampleFast() {
 		double res = func.f(zigNormGen.getSampleFast());
 		return res;
+	}//getSampleFast
+	
+	//will test that the volume under the function curve for this fleishman polynomial is 1
+	public double testInteg() {
+		return func.integral_f(-1.0, 1.0);
 	}
 	
+	//find inverse CDF value for passed val - val must be between 0->1; value for which prob(x<value) is _val
+	//this is mapping from 0->1 to probability based on the random variable function definition
+	//for fleishman polynomial, these use the opposite mapping from the normal distrubtion - 
+	//so for inverse cdf, we want normal dist's cdf of passed value passed to fleish inverse cdf
+	@Override
+	public double inverseCDF(double _val) {
+		return func.CDF_inv(zigNormGen.CDF(_val));
+	}
+	//find the cdf value of the passed val == returns prob (x<= _val)
+	//for fleishman polynomial, these use the opposite mapping from the normal distrubtion - 
+	//so for CDF, we want normal dist's inverse cdf of passed value passed to fleish CDF calc
+	@Override
+	public double CDF(double _val) {
+		return func.CDF(zigNormGen.inverseCDF(_val));		
+	}//CDF
+
 	
 }//class myFleishRandGen

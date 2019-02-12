@@ -133,6 +133,7 @@ public abstract class BaseProbExpMgr {
 		visScreenWidth = win.curVisScrDims[0];
 		setVisWidth_Priv();
 	}//setVisibleScreenWidth
+	public float getVisibleSreenWidth() {return visScreenWidth;}
 	
 	//set the experiment-specific quantities dependent on visible width of the display area - use this to shrink visualizations if necessary
 	protected abstract void setVisWidth_Priv();
@@ -155,6 +156,22 @@ public abstract class BaseProbExpMgr {
 	}
 	
 	//conduct a simple test on the passed random number generator - it will get a sample based on the pdf function given to generator
+	//uses the "fast" implementation - 32 bit random uniform value
+	protected void smplTestFastRandNumGen(myRandGen gen, int numVals) {
+		dispMessage("BaseProbExpMgr","testRandGen","Start synthesizing " + numVals+ " values using Gen : \n\t" + gen.getFuncDataStr());
+		double[] genVals = new double[numVals];
+		for(int i=0;i<genVals.length;++i) {	
+			//dispMessage("BaseProbExpMgr","testRandGen","Generating val : " + i);
+			genVals[i] = gen.getSampleFast();	
+		}
+		//now calculate mean value and
+		dispMessage("BaseProbExpMgr","testRandGen","Finished synthesizing " + numVals+ " values using Gen : " + gen.name + " | Begin analysis of values.");
+		myProbSummary analysis = new myProbSummary(genVals);
+		dispMessage("BaseProbExpMgr","testRandGen","Analysis res of " + gen.name + " : " + analysis.getMomentsVals());
+	}//testGen
+	
+	//conduct a simple test on the passed random number generator - it will get a sample based on the pdf function given to generator
+	//uses 64 bit random uniform val
 	protected void smplTestRandNumGen(myRandGen gen, int numVals) {
 		dispMessage("BaseProbExpMgr","testRandGen","Start synthesizing " + numVals+ " values using Gen : \n\t" + gen.getFuncDataStr());
 		double[] genVals = new double[numVals];
