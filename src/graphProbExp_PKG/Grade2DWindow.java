@@ -74,11 +74,15 @@ public class Grade2DWindow extends myDispWindow {
 		setFlags(useCustCam, true);
 		//this window uses right side info window
 		setFlags(drawRightSideMenu, true);
+		
+		//generic tester
 		tester = new myProbExpMgr(this);
 		
+		//grade experiments
 		gradeAvgExperiment = new ClassGradeExperiment(this);
-		setVisScreenDimsPriv();			//set visibility width
 		gradeAvgExperiment.buildStudentsAndClasses(numStudents, numClasses);
+		//set visibility width and send to experiments
+		setVisScreenDimsPriv();			
 		//set offset to use for custom menu objects
 		custMenuOffset = uiClkCoords[3];	
 		//moved from mapMgr ctor, to remove dependence on papplet in that object

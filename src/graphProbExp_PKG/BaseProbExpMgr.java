@@ -95,6 +95,9 @@ public abstract class BaseProbExpMgr {
 	//experiment instance-specific solver building funcitionality
 	protected abstract void buildSolvers_indiv();
 	
+	//using default GaussLengendre and 256 zig's for ziggurat alg
+	public myRandGen buildAndInitRandGen(int _type, myProbSummary _summaryObj) {return buildAndInitRandGen(_type, GL_QuadSlvrIDX, 256, _summaryObj);}
+	
 	//must build rand gen through this method
 	public myRandGen buildAndInitRandGen(int _type, int _quadSlvrIdx, int _numZigRects, myProbSummary _summaryObj) {
 
@@ -156,6 +159,21 @@ public abstract class BaseProbExpMgr {
 	}
 	
 	//conduct a simple test on the passed random number generator - it will get a sample based on the pdf function given to generator
+	//uses 64 bit random uniform val
+	protected void smplTestRandNumGen(myRandGen gen, int numVals) {
+		dispMessage("BaseProbExpMgr","testRandGen","Start synthesizing " + numVals+ " values using Gen : \n\t" + gen.getFuncDataStr());
+		double[] genVals = new double[numVals];
+		for(int i=0;i<genVals.length;++i) {	
+			//dispMessage("BaseProbExpMgr","testRandGen","Generating val : " + i);
+			genVals[i] = gen.getSample();	
+		}
+		//now calculate mean value and
+		dispMessage("BaseProbExpMgr","testRandGen","Finished synthesizing " + numVals+ " values using Gen : " + gen.name + " | Begin analysis of values.");
+		myProbSummary analysis = new myProbSummary(genVals);
+		dispMessage("BaseProbExpMgr","testRandGen","Analysis res of " + gen.name + " : " + analysis.getMomentsVals());
+	}//testGen
+	
+	//conduct a simple test on the passed random number generator - it will get a sample based on the pdf function given to generator
 	//uses the "fast" implementation - 32 bit random uniform value
 	protected void smplTestFastRandNumGen(myRandGen gen, int numVals) {
 		dispMessage("BaseProbExpMgr","testRandGen","Start synthesizing " + numVals+ " values using Gen : \n\t" + gen.getFuncDataStr());
@@ -170,20 +188,6 @@ public abstract class BaseProbExpMgr {
 		dispMessage("BaseProbExpMgr","testRandGen","Analysis res of " + gen.name + " : " + analysis.getMomentsVals());
 	}//testGen
 	
-	//conduct a simple test on the passed random number generator - it will get a sample based on the pdf function given to generator
-	//uses 64 bit random uniform val
-	protected void smplTestRandNumGen(myRandGen gen, int numVals) {
-		dispMessage("BaseProbExpMgr","testRandGen","Start synthesizing " + numVals+ " values using Gen : \n\t" + gen.getFuncDataStr());
-		double[] genVals = new double[numVals];
-		for(int i=0;i<genVals.length;++i) {	
-			//dispMessage("BaseProbExpMgr","testRandGen","Generating val : " + i);
-			genVals[i] = gen.getSample();	
-		}
-		//now calculate mean value and
-		dispMessage("BaseProbExpMgr","testRandGen","Finished synthesizing " + numVals+ " values using Gen : " + gen.name + " | Begin analysis of values.");
-		myProbSummary analysis = new myProbSummary(genVals);
-		dispMessage("BaseProbExpMgr","testRandGen","Analysis res of " + gen.name + " : " + analysis.getMomentsVals());
-	}//testGen
 	
 	
 	/////////////////////////////

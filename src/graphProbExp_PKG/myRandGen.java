@@ -22,7 +22,7 @@ public abstract class myRandGen implements Comparable<myRandGen> {
 	
 	//visualization tool for this random generator
 	protected myDistVis distVisObj; 
-	
+		
 	//state flags - bits in array holding relevant info about this random variable function
 	private int[] stFlags;						
 	public static final int
@@ -42,6 +42,8 @@ public abstract class myRandGen implements Comparable<myRandGen> {
 		distVisObj = null;
     }//ctor
 	
+	
+	
 	public void setDistVisObj(myDistVis _distVisObj) {	distVisObj = _distVisObj;	}
 	
 	public void reSetSummary(myProbSummary _summary) {
@@ -54,6 +56,8 @@ public abstract class myRandGen implements Comparable<myRandGen> {
     protected int getNextInt() {return ThreadLocalRandom.current().nextInt();  }
     protected double getNextDouble() {return ThreadLocalRandom.current().nextDouble();}
 	
+    public abstract double[] getMultiSamples(int num);
+    public abstract double[] getMultiFastSamples(int num);
     //return a sample based on func  - momments defined by myRandVarFunc
 	public abstract double getSample();
 	public abstract double getSampleFast();
@@ -152,24 +156,56 @@ class myZigRandGen extends myRandGen{
 		func.setZigVals(_numZigRects);			
 		zigVals = func.zigVals;
 	}//ctor
-	    
+	
+	@Override
+	public double[] getMultiSamples(int num) {
+		double[] res = new double[num];
+		for(int i=0;i<res.length;++i) {	res[i]=getSample();}
+		return res;
+	}//getNumSamples
+
+	@Override
+	public double[] getMultiFastSamples(int num) {
+		double[] res = new double[num];
+		for(int i=0;i<res.length;++i) {	res[i]=getSampleFast();}
+		return res;
+	}//getNumFastSamples
+	
+    
 	@Override
 	public double getSample() {
-		double res = nextNormal53();	
-		return func.processResValByMmnts(res);
+		double res;
+		if(func.summary.doClipAllSamples()) {
+			do {		
+				res = func.processResValByMmnts(nextNormal53());
+			} while (!func.summary.checkInBnds(res));
+		} else {
+			res = func.processResValByMmnts(nextNormal53());
+		}
+		return res;
 	}//getGaussian
 	
 	//int value
 	@Override
 	public double getSampleFast() {
-		double res = nextNormal32();		
-		return func.processResValByMmnts(res);
+		double res;
+		if(func.summary.doClipAllSamples()) {
+			do {		
+				res = func.processResValByMmnts(nextNormal32());
+			} while (!func.summary.checkInBnds(res));
+		} else {
+			res = func.processResValByMmnts(nextNormal32());
+		}
+		return res;
+//		double res = nextNormal32();		
+//		return func.processResValByMmnts(res);
 	}//getGaussian
 		
-	//find inverse CDF value for passed val - val must be between 0->1; 
+	//find inverse CDF value for passed val - val must be between 0->1 - value @ which p(x<=value) == val
 	//this is mapping from 0->1 to probability based on the random variable function definition
 	@Override
 	public double inverseCDF(double _val) {
+		//probit value
 		return func.CDF_inv(_val);
 	}
 	//find the cdf value of the passed val -> prob (x<= _val)
@@ -251,7 +287,7 @@ class myZigRandGen extends myRandGen{
         } 
         return negSide ? x - zigVals.R_last : zigVals.R_last - x;
     }
-	
+
 }//class myZigRandGen
 
 /**
@@ -264,44 +300,100 @@ class myFleishUniRandGen extends myRandGen{
 	//generator to manage synthesizing normals
 	private myZigRandGen zigNormGen;
 	
+	
 	//min and max of synthesized
 	public myFleishUniRandGen(myRandVarFunc _func, String _name) {
 		super(_func, _name);
 		//need to build a source of normal random vars
 		zigNormGen = new myZigRandGen(new myNormalFunc(func.expMgr, func.quadSlvr), 256, "Ziggurat Algorithm");		
 	}//ctor
+	
+	@Override
+	public double[] getMultiSamples(int num) {
+		double[] res = new double[num];
+		double val;
+		boolean clipRes = func.summary.doClipAllSamples();
+		//transformation via mean and std already performed as part of f function
+		if (clipRes){
+			int idx = 0;
+			while (idx < num) {
+				val = func.f(zigNormGen.getSample());	
+				if(func.summary.checkInBnds(val)) {				res[idx++]=val;			}
+			}
+		} else {
+			for(int i =0;i<res.length;++i) {		res[i]=func.f(zigNormGen.getSample());			}
+		}
+		return res;
+	}//getMultiSamples
 
 	@Override
-	public double getSample() {
-		double res = func.f(zigNormGen.getSample());		//needs to be fed from a normal distribution
+	public double[] getMultiFastSamples(int num) {
+		double[] res = new double[num];
+		boolean clipRes = func.summary.doClipAllSamples();
+		//transformation via mean and std already performed as part of f function
+		if (clipRes){
+			int idx = 0;
+			while (idx < num) {
+				double val = func.f(zigNormGen.getSampleFast());	
+				if(func.summary.checkInBnds(val)) {				res[idx++]=val;			}
+			}
+		} else {
+			for(int i =0;i<res.length;++i) {	res[i]=func.f(zigNormGen.getSampleFast());			}
+		}
 		return res;
+	}//getMultiFastSamples
+	
+	@Override
+	public double getSample() {
+		double res;
+		if(func.summary.doClipAllSamples()) {
+			do {		
+				res = func.f(zigNormGen.getSample());
+			} while (!func.summary.checkInBnds(res));
+		} else {
+			res = func.f(zigNormGen.getSample());
+		}
+		return res;
+//		double res;
+//		do {
+//			res = func.f(zigNormGen.getSample());		//needs to be fed from a normal distribution
+//		} while (!func.summary.checkInBnds(res));
+//		return res;
 	}//getSample
 
 	@Override
 	public double getSampleFast() {
-		double res = func.f(zigNormGen.getSampleFast());
+		double res;
+		if(func.summary.doClipAllSamples()) {
+			do {		
+				res = func.f(zigNormGen.getSampleFast());
+			} while (!func.summary.checkInBnds(res));
+		} else {
+			res = func.f(zigNormGen.getSampleFast());
+		}
 		return res;
+		
+//		double res = func.f(zigNormGen.getSampleFast());
+//		return res;
 	}//getSampleFast
 	
 	//will test that the volume under the function curve for this fleishman polynomial is 1
-	public double testInteg() {
-		return func.integral_f(-1.0, 1.0);
+	public double testInteg(double min, double max) {
+		return func.integral_f(min, max);
 	}
 	
-	//find inverse CDF value for passed val - val must be between 0->1; value for which prob(x<value) is _val
+	//find inverse CDF value for passed val - val must be between 0->1; value for which prob(x<=value) is _pval
 	//this is mapping from 0->1 to probability based on the random variable function definition
-	//for fleishman polynomial, these use the opposite mapping from the normal distrubtion - 
-	//so for inverse cdf, we want normal dist's cdf of passed value passed to fleish inverse cdf
 	@Override
-	public double inverseCDF(double _val) {
-		return func.CDF_inv(zigNormGen.CDF(_val));
+	public double inverseCDF(double _pval) {
+		return func.f(zigNormGen.inverseCDF(_pval));
 	}
 	//find the cdf value of the passed val == returns prob (x<= _val)
 	//for fleishman polynomial, these use the opposite mapping from the normal distrubtion - 
 	//so for CDF, we want normal dist's inverse cdf of passed value passed to fleish CDF calc
 	@Override
 	public double CDF(double _val) {
-		return func.CDF(zigNormGen.inverseCDF(_val));		
+		return func.f(zigNormGen.CDF(_val));		
 	}//CDF
 
 	

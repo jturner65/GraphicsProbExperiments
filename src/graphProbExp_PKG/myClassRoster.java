@@ -66,8 +66,9 @@ public class myClassRoster implements Comparable<myClassRoster>{
 		transGradeBar.setDispWidth(_dispWidth);
 	}//setBarWidth
 	//when new transform added, need to clear out existing transformed grades
-	public void setRandGenAndType(myRandGen _randGen, String _type) {		
+	public void setRandGenAndType(myRandGen _randGen) {		
 		randGen = _randGen;
+		String _type = randGen.getTransformName();
 		for (myStudent s : students.values()) {//keep raw grades, clear out all transformations
 			s.clearTransformedGrades(this);
 		}
@@ -99,13 +100,15 @@ public class myClassRoster implements Comparable<myClassRoster>{
 	//TODO need to retransform student when student is moved - need to set randGen and _type
 	public void transformStudentFromRaw(myStudent s) {
 		double _rawGrade = s.getRawGrade(this);
-		double _newGrade = randGen.inverseCDF(_rawGrade);
+		//double _newGrade = randGen.inverseCDF(_rawGrade);
+		double _newGrade = randGen.CDF(_rawGrade);
 		s.setTransformedGrade(transformType, this, _newGrade);
 	}//transformStudent
 	
 	public void transformStudentToRaw(myStudent s) {
 		double _transGrade = s.getTransformedGrade(transformType, this);
-		double _newGrade = randGen.CDF(_transGrade);
+		//double _newGrade = randGen.CDF(_transGrade);
+		double _newGrade = randGen.inverseCDF(_transGrade);
 		s.setRawGrade(this, _newGrade);
 	}//transformStudentToRaw
 		
@@ -179,6 +182,12 @@ public class myClassRoster implements Comparable<myClassRoster>{
 		transGradeBar.setType(_type);
 		transGradeBar.drawVis(pa);		
 	}//drawStudentGradesRaw
+	
+	public void drawStudentGradesTransformed() {
+		transGradeBar.setType(transformType);
+		transGradeBar.drawVis(pa);		
+	}//drawStudentGradesRaw
+	
 	
 	//incase we wish to store class rosters in sorted mechanism
 	@Override

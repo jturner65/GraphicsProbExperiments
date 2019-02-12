@@ -33,8 +33,8 @@ public class myProbExpMgr extends BaseProbExpMgr{
 	//called at end of ctor and whenever experiment needs to be re-instanced
 	@Override
 	public final void initExp() {		
-		nrmlGen = buildAndInitRandGen(ziggRandGen, GL_QuadSlvrIDX, 256, new myProbSummary(new double[] {0,1,0,0},2));	
-		gaussGen = buildAndInitRandGen(ziggRandGen, GL_QuadSlvrIDX, 256, new myProbSummary(new double[] {3,25.9,0,0},2));	
+		nrmlGen = buildAndInitRandGen(ziggRandGen, new myProbSummary(new double[] {0,1,0,0},2));	
+		gaussGen = buildAndInitRandGen(ziggRandGen, new myProbSummary(new double[] {3,25.9,0,0},2));	
 	}//initExp
 	
 	//this is called whenever screen width is changed - used to modify visualizations if necessary
@@ -67,7 +67,6 @@ public class myProbExpMgr extends BaseProbExpMgr{
 		dispMessage("myProbExpMgr","testRandGen","Start test of ThreadLocalRandom random gaussian gen of " +numVals + " vals.");
 		double[] genVals = new double[numVals];
 		//now test standard distribution of same # of values
-		genVals = new double[numVals];
 		double mean = gaussGen.func.getMean(), std = gaussGen.func.getStd();
 		for(int i=0;i<genVals.length;++i) {	genVals[i] = mean + (std*ThreadLocalRandom.current().nextGaussian());		}
 		dispMessage("myProbExpMgr","testRandGen","Finished synthesizing " + numVals +" gaussian vals ~ N(" + mean + ","+std +") using ThreadLocalRandom random gaussian");

@@ -323,6 +323,7 @@ class myGaussianFunc extends myRandVarFunc{
 	@Override
 	public double CDF_inv(double x) {	
 		double normRes = calcProbitApprox(x);
+		//System.out.print("Raw probit val : " + normRes + " : ");
 		return summary.normToGaussTransform(normRes);
 	}//CDF_inv
 	
@@ -374,15 +375,17 @@ class myFleishFunc_Uni extends myRandVarFunc{
 	//will generate data with mean ==0 and std == 1; if ex kurtosis lies outside of feasible region will return all 0's for coefficients
 	private double[] calcCoeffs(myProbSummary _summary) {		
 		double[] coeffs = new double[_summary.numMmntsGiven];
-		double exKurt = _summary.exKurt(), skew = _summary.skew(), skewSQ = skew*skew, exKurtSq = exKurt * exKurt;
+		double exKurt = _summary.exKurt(), skew = _summary.skew(), skewSQ = skew*skew;
         //first verify exkurt lies within feasible bound vs skew
         //this is fleish's bound from his paper - said to be wrong in subsequent 2010 paper
         //bound = -1.13168 + 1.58837 * skew**2
-        double bound = -1.2264489 + 1.6410373*skew*skew;
+        double bound = -1.2264489 + 1.6410373*skewSQ;
         if (exKurt < bound) { 
-        	expMgr.dispMessage("myFleishFunc_Uni", "calcCoeffs", "!!!! Coefficient error : ex kurt : " + exKurt+ " is not feasible with skew :" + skew);
-            return coeffs;
+        	expMgr.dispMessage("myFleishFunc_Uni", "calcCoeffs", "!!!! Coefficient error : ex kurt : " + exKurt+ " is not feasible with skew :" + skew +" | forcing exKurt to lower bound @ skew DANGER this is not going to reflect the sample quantities :"+bound);
+        	_summary.forceExKurt(bound);
+        	exKurt = _summary.exKurt();
         }
+        double exKurtSq = exKurt * exKurt;
         //add -coeff[1] as coeff[0]
         double c1 = 0.95357 - (0.05679*skew) + (0.03520*skewSQ) + (0.00133*exKurtSq);
         double c2 = (0.10007*skew) + (0.00844*skewSQ*skew);
@@ -470,7 +473,7 @@ class myFleishFunc_Uni extends myRandVarFunc{
 	public double CDF(double x) {	
 		//this function is fed by normal distribution -> this means that bound of neg inf into source distribution == this being fed by 0 as lower bound
 		//upper bound is inv_cdf of normal dist of original x
-		return integral_f(0.0, x);	
+		return integral_f(Double.NEGATIVE_INFINITY, x);	
 	}	//need to find most negative value of function corresponding to 0 probability => coeffs[0] 
 
 	@Override

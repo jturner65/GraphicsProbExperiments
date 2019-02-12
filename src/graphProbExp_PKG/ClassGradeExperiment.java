@@ -19,10 +19,15 @@ public class ClassGradeExperiment extends BaseProbExpMgr{
 	//random generator providing model of source distribution to be used to map from distribution to uniform
 	protected myRandGen gradeSourceDistGen;	
 	
+	//structure holding grades for a particular class read in from a file, or otherwise synthesized from some unknown distribution.  is keyed by class name and then by student ID
+	public HashMap<String,HashMap<Integer, Double>> perClassStudentGrades;
+	
+	//random generators describing the distributions of the grades in each class, keyed by class name
+	protected HashMap<String, myRandGen> gradeDistsPerClass;
 	//random # generator to be used to generate -inverse- mapping from uniform to target distribution for final grade
-	protected myRandGen gradeInvMapGen;
+	//protected myRandGen gradeInvMapGen;
 	//current transformation used for students
-	protected String curTransformType;
+	//protected String curTransformType;
 	
 	//types of different transformed grades
 	public static final int
@@ -38,9 +43,8 @@ public class ClassGradeExperiment extends BaseProbExpMgr{
 	//display-related values
 	public static final float 
 		distBtwnAdjBars = 60.0f, 
-		distBtwnRawTransBars = 600.0f;
-	//where first class bar starts
-	//public static myPointf classBarStart = new myPointf(10,100,0);
+		distBtwnRawTransBars = 500.0f;
+	//where first class bar starts relative to top left corner of display window
 	public static float[] classBarStart = new float[] {10,100};
 		
 	public ClassGradeExperiment(myDispWindow _win) {
@@ -55,17 +59,56 @@ public class ClassGradeExperiment extends BaseProbExpMgr{
 		numClasses = 0;
 		students = new HashMap<Integer,myStudent>();
 		numStudents = 0;		
-		gradeInvMapGen = buildAndInitRandGen(ziggRandGen, GL_QuadSlvrIDX, 256,new myProbSummary(new double[] {0.0,0.1,0,0},2));
+		//gradeInvMapGen = buildAndInitRandGen(ziggRandGen, new myProbSummary(new double[] {0.0,0.1,0,0},2));
 		//build fleishman with data set ultimately
-		gradeSourceDistGen = buildAndInitRandGen(fleishRandGen_Uni, GL_QuadSlvrIDX, 256,new myProbSummary(new double[] {0,1,1,4},4));	
-		curTransformType = gradeInvMapGen.getTransformName();
+		gradeSourceDistGen = buildAndInitRandGen(fleishRandGen_Uni, new myProbSummary(new double[] {0,1,1,4},4));	
+		//curTransformType = gradeInvMapGen.getTransformName();
 	}//	initExp
 	
-	//called by base class call to buildSolvers, during base class ctor
-	@Override
-	protected void buildSolvers_indiv() {	//any solvers that are custom should be built here		
-	}//buildSolvers_indiv
+	//load student grades into per class grade structure - all classes and students should be already made by here
+	public void loadStudentGrades() {
+		perClassStudentGrades = new HashMap<String,HashMap<Integer, Double>>();
+		gradeDistsPerClass = new HashMap<String, myRandGen>();
+		myProbSummary tmp = new myProbSummary(new double[] {0.5,1,0,0},2);
+		tmp.setMinMax(0.0, 1.0);
+		myRandGen tmpRandGen = buildAndInitRandGen(ziggRandGen, tmp);
+		
+		for (myClassRoster _cls : classes) {
+			HashMap<Integer, Double> classGrades = perClassStudentGrades.get(_cls.name);
+			if (null == classGrades) {classGrades = new HashMap<Integer, Double>(); perClassStudentGrades.put(_cls.name, classGrades);}
+			//to hold for distribution
+			double[] vals = new double[students.size()];
+			int idx =0;
+			
+			//get values from file
+			
+			for (myStudent s : students.values()) {
+				//replace this with source of class data - reading file, building from "unknown" distribution, etc.
+				double grade = tmpRandGen.getSample();
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				vals[idx++]=grade;
+				classGrades.put(s.ObjID, grade);
+			}//for each student assign a random grade and add them to class roster			
+			//build summary object from vals
+			myProbSummary summaryObj = new myProbSummary(vals);
+			dispMessage("ClassGradeExperiment","loadStudentGrades","Built Summary object with following stats : " + summaryObj.getMinNumMmnts());
+			//Ultimately need to model non-normal distributions
+			//gradeDistsPerClass.put(_cls.name, buildAndInitRandGen(fleishRandGen_Uni, summaryObj));
+			gradeDistsPerClass.put(_cls.name, buildAndInitRandGen(ziggRandGen, summaryObj));
+		
+		}
+	}//loadStudentGrades
+
 	
+		
 	//build an experiment with random students 
 	//need to build distribution of raw grades for each class before this is called
 	public void buildStudentsAndClasses(int _numStudents, int _numClasses) {
@@ -92,31 +135,52 @@ public class ClassGradeExperiment extends BaseProbExpMgr{
 			transBarLocSt[1] += distBtwnAdjBars;
 			for (myStudent s : students.values()) {
 				cls.addStudent(s);
-				double grade = ThreadLocalRandom.current().nextDouble();
-				cls.setStudentRawGrade(s.ObjID,grade);
 			}//for each student assign a random grade and add them to class roster			
 		}//for numClasses
 		
-		calcTotalStudentGrade();
+		//TODO remove this once it is working
+		loadStudentGrades();
+		setStudentGradeValues();
 		dispMessage("ClassGradeExperiment","buildStudentsAndClasses","Finished building " + students.size() +" students and " + classes.size()+" classes");		
 	}//buildStudentsAndClasses
 	
-	//calculate the mapping of the raw grades, that follow some distribution, to uniform.
-	public void calcMappingDistToUniform(double mappingStd) {		
-		//TODO need to determine distribution that follows the grades
-		
-		curTransformType = gradeInvMapGen.getTransformName();
-		for (myClassRoster cls : classes) {
-			cls.setRandGenAndType(gradeSourceDistGen,curTransformType);
-			cls.transformStudentGrades();
+	//call this to populate all student grades from class grade structure
+	public void setStudentGradeValues() {
+		dispMessage("ClassGradeExperiment","setStudentGradeValues","Start setting " + students.size() + " student grades for each of " + classes.size()+" classes");
+		//set grades
+		for (myClassRoster _cls : classes) {	
+			HashMap<Integer, Double> classGrades = perClassStudentGrades.get(_cls.name);
+			for (myStudent s : students.values()) {
+				Integer SID = s.ObjID;
+				Double grade = classGrades.get(SID);
+				if(null==grade) {//no grade for student - this is an error
+					dispMessage("ClassGradeExperiment","setStudentGradeValues","No grade found for student ID :"+SID +" | Name : " +s.name+" | Defaulting grade to 0");
+					grade=0.0;
+				}
+				_cls.setStudentRawGrade(s.ObjID,grade);
+			}//for each student assign a random grade and add them to class roster			
 		}
-	}//calcInverseMapping
+		calcTotalStudentGrade();
+		dispMessage("ClassGradeExperiment","setStudentGradeValues","Finished setting " + students.size() + " student grades for each of " + classes.size()+" classes");
+	}//setStudentGradeValues
+	
+//	//calculate the mapping of the raw grades, that follow some distribution, to uniform.
+//	public void calcMappingDistToUniform(double mappingStd) {		
+//		//TODO need to determine distribution that follows the grades
+//		
+//		curTransformType = gradeInvMapGen.getTransformName();
+//		for (myClassRoster cls : classes) {
+//			cls.setRandGenAndType(gradeSourceDistGen,curTransformType);
+//			cls.transformStudentGrades();
+//		}
+//	}//calcInverseMapping
 	
 	public void testFleishTransform() {
 		//test fleishman polynomial-based transformation
 		_testFlTransform(gradeSourceDistGen, 10000);
-		double area = ((myFleishUniRandGen) gradeSourceDistGen).testInteg();
-		dispMessage("ClassGradeExperiment","testFleishTransform","area under fleish poly from 0->1 : " + area);
+		double min = -1, max = 1;
+		double area = ((myFleishUniRandGen) gradeSourceDistGen).testInteg(min,max);
+		dispMessage("ClassGradeExperiment","testFleishTransform","area under fleish poly from "+min+"->"+max+" : " + area);
 	}//
 	
 	private void _testFlTransform(myRandGen flRandGen, int numVals) {
@@ -155,17 +219,20 @@ public class ClassGradeExperiment extends BaseProbExpMgr{
 	
 	//calculate the inverse mapping for the raw grades in every class that is active
 	public void calcInverseMapping(float mappingStd) {	
-		gradeInvMapGen = buildAndInitRandGen(ziggRandGen, GL_QuadSlvrIDX, 256, new myProbSummary(new double[] {0.5,mappingStd,0,0},2));	
-		curTransformType = gradeInvMapGen.getTransformName();
+//		gradeInvMapGen = buildAndInitRandGen(ziggRandGen, new myProbSummary(new double[] {0.5,mappingStd,0,0},2));	
+//		curTransformType = gradeInvMapGen.getTransformName();
+		
+		
 		for (myClassRoster cls : classes) {
-			cls.setRandGenAndType(gradeInvMapGen,curTransformType);
+			myRandGen randGen = gradeDistsPerClass.get(cls.name);
+			cls.setRandGenAndType(randGen);
 			cls.transformStudentGrades();
 		}
 	}//calcInverseMapping
 	
 	//this will calculate the values for the inverse cdf of the given gaussian, when fed 0->1
 	public void calcInverseCDFSpan(double std) {
-		myRandGen tmpRandGen = buildAndInitRandGen(ziggRandGen, GL_QuadSlvrIDX, 256, new myProbSummary(new double[] {0.5,std,0,0},2));	
+		myRandGen tmpRandGen = buildAndInitRandGen(ziggRandGen, new myProbSummary(new double[] {0.5,std,0,0},2));	
 		int numVals = 100;
 		double[] xVals = new double[numVals], resVals = new double[numVals];
 		for (int i=0;i<numVals; ++i) {
@@ -212,6 +279,11 @@ public class ClassGradeExperiment extends BaseProbExpMgr{
 	@Override	
 	public void setMouseReleaseInExp2D() {	for (myClassRoster cls : classes) {	cls.mseRelease();}	}
 
+	//called by base class call to buildSolvers, during base class ctor
+	@Override
+	protected void buildSolvers_indiv() {	//any solvers that are custom should be built here		
+	}//buildSolvers_indiv
+	
 
 	/////////////////////////////	
 	//draw routines
@@ -221,7 +293,8 @@ public class ClassGradeExperiment extends BaseProbExpMgr{
 		pa.pushMatrix();pa.pushStyle();
 			for (myClassRoster cls : classes) {
 				cls.drawStudentGradesRaw();
-				cls.drawStudentGradesTransformed(curTransformType);
+				//cls.drawStudentGradesTransformed(curTransformType);
+				cls.drawStudentGradesTransformed();
 				cls.drawRawToTransformedLine();
 			}
 		
