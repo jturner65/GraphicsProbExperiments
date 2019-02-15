@@ -18,6 +18,7 @@ public abstract class myDispWindow {
 	public float[] curVisScrDims;
 
 	public static final float xOff = 20 , yOff = 18.0f * (GraphProbExpMain.txtSz/12.0f), btnLblYOff = 2 * yOff, rowStYOff = yOff*.15f;
+	private static final float maxBtnWidthMult = .9f;
 	public static final int topOffY = 40;			//offset values to render boolean menu on side of screen - offset at top before drawing
 	public static final float clkBxDim = 10;//size of interaction/close window box in pxls
 	
@@ -82,7 +83,6 @@ public abstract class myDispWindow {
 	public String[] guiObjNames;							//display labels for UI components	
 	//idx 0 is treat as int, idx 1 is obj has list vals, idx 2 is object gets sent to windows
 	public boolean[][] guiBoolVals;						//array of UI flags for UI objects
-
 	
 	//offset to bottom of custom window menu 
 	protected float custMenuOffset;
@@ -151,12 +151,9 @@ public abstract class myDispWindow {
 		initClrDims( fc, sc, rd, rdClosed);
 		winText = _winTxt;
 		trajFillClrCnst = GraphProbExpMain.gui_Black;		//override this in the ctor of the instancing window class
-		trajStrkClrCnst = GraphProbExpMain.gui_Black;
-		
-		msClkObj = -1;//	lastTrajIDX = -1; //lastPBEQueryPlayTime = 0;	
+		trajStrkClrCnst = GraphProbExpMain.gui_Black;		
+		msClkObj = -1;
 		msOvrObj = -1;
-//			stAnimTime=0;
-//			lastAnimTime=0;
 	}	
 	
 	public void initThisWin(boolean _canDrawTraj, boolean _trajIsFlat, boolean _isMenu){
@@ -267,7 +264,7 @@ public abstract class myDispWindow {
 	//yDisp is displacement for button to be drawn
 	protected void initPrivBtnRects(float yDisp, int numBtns){
 		//pa.outStr2Scr("initPrivBtnRects in :"+ name + "st value for uiClkCoords[3]");
-		float maxBtnLen = .95f * pa.menuWidth, halfBtnLen = .5f*maxBtnLen;
+		float maxBtnLen = maxBtnWidthMult * pa.menuWidth, halfBtnLen = .5f*maxBtnLen;
 		//pa.pr("maxBtnLen : " + maxBtnLen);
 		privFlagBtns = new float[numBtns][];
 		this.uiClkCoords[3] += yOff;

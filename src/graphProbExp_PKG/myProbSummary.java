@@ -49,6 +49,10 @@ public class myProbSummary{
 		setValsAndAnalyse(_data);		
 	}//ctor
 	
+	public void updateVals(double[] _data) {
+		setValsAndAnalyse(_data);
+	}
+	
 	
 	//momments are passed
 	public myProbSummary(double[] _mmnts, int _numMmnts, boolean isExKurt) {
@@ -181,12 +185,15 @@ public class myProbSummary{
 	public void calcSmpleMomentsForSampleSize(int _smpleSize, double[] _minMax) {
 		sampleSize = _smpleSize;
 		popToSmplMmntMults = new double[numMmnts];
-		setMinMax(_minMax[0],_minMax[1]);		
+		setMinMax(_minMax[0],_minMax[1]);			
 		popToSmplMmntMults[meanIDX] = 1.0;
+		if(sampleSize <= 1) {return;}
 		popToSmplMmntMults[varIDX] = sampleSize/(sampleSize-1);
 		popToSmplMmntMults[stdIDX] =  Math.sqrt(popToSmplMmntMults[varIDX]);
+		if(sampleSize <= 2) {return;}
 		double smplSz2x = (sampleSize*sampleSize), sz1msz2 = (sampleSize-1)*(sampleSize-2);
 		popToSmplMmntMults[skewIDX] = (smplSz2x/sz1msz2) / (popToSmplMmntMults[varIDX] * popToSmplMmntMults[stdIDX]); 
+		if(sampleSize <= 3) {return;}
 		popToSmplMmntMults[kurtIDX] = ((smplSz2x*(sampleSize+1))/(sz1msz2*(sampleSize-3))) / (popToSmplMmntMults[varIDX] * popToSmplMmntMults[varIDX]);
 		popToSmplMmntMults[kurtIDX] = popToSmplMmntMults[kurtIDX];
 		setFlag(smplValsCalcedIDX, true);

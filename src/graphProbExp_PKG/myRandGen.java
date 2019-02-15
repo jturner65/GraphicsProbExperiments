@@ -42,13 +42,19 @@ public abstract class myRandGen implements Comparable<myRandGen> {
 		distVisObj = null;
     }//ctor
 	
+	public void setFuncSummary(myProbSummary _summary) {
+		summary = _summary;	
+		func.setSummary(_summary);
+		 _setFuncSummaryIndiv();
+	}//setFuncSummary
 	
+	public abstract void _setFuncSummaryIndiv();	
 	
 	public void setDistVisObj(myDistVis _distVisObj) {	distVisObj = _distVisObj;	}
 	
-	public void reSetSummary(myProbSummary _summary) {
+	public void resetSummary(myProbSummary _summary) {
 		summary = _summary;
-		func.setSummary(_summary);
+		func.rebuildFunc(_summary);
 	}//reSetSummary
 	
     //thread-safe queries for uniform values
@@ -149,13 +155,22 @@ class myZigRandGen extends myRandGen{
 	//based on "An Improved Ziggurat Method to Generate Normal Random Samples";J. A. Doornik, 2005
 	//reference to ziggurat values used by this random variable generator
 	private zigConstVals zigVals;
+	//# of rects used for zig
+	private final int numZigRects;
 	
 	//pass RV generating function
 	public myZigRandGen(myRandVarFunc _func, int _numZigRects, String _name) {
 		super(_func, _name);
-		func.setZigVals(_numZigRects);			
+		numZigRects=_numZigRects;
+		func.setZigVals(numZigRects);			
 		zigVals = func.zigVals;
 	}//ctor
+	
+	@Override
+	public void _setFuncSummaryIndiv() {
+		func.setZigVals(numZigRects);			
+		zigVals = func.zigVals;		
+	}
 	
 	@Override
 	public double[] getMultiSamples(int num) {
@@ -297,7 +312,7 @@ class myZigRandGen extends myRandGen{
 
 class myFleishUniRandGen extends myRandGen{
 	
-	//generator to manage synthesizing normals
+	//generator to manage synthesizing normals to feed fleishman
 	private myZigRandGen zigNormGen;
 	
 	
@@ -307,7 +322,10 @@ class myFleishUniRandGen extends myRandGen{
 		//need to build a source of normal random vars
 		zigNormGen = new myZigRandGen(new myNormalFunc(func.expMgr, func.quadSlvr), 256, "Ziggurat Algorithm");		
 	}//ctor
-	
+
+	@Override
+	public void _setFuncSummaryIndiv() {	}
+
 	@Override
 	public double[] getMultiSamples(int num) {
 		double[] res = new double[num];
@@ -395,6 +413,5 @@ class myFleishUniRandGen extends myRandGen{
 	public double CDF(double _val) {
 		return func.f(zigNormGen.CDF(_val));		
 	}//CDF
-
 	
 }//class myFleishRandGen

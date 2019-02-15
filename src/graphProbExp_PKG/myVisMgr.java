@@ -12,8 +12,16 @@ public abstract class myVisMgr {
 	//public BaseProbExpMgr expMgr;
 	public final int ObjID;
 	private static int IDCnt = 0;
+	//title string to display over visualiztion
+	protected final String name;
 	//check in this rectangle for a click in this object -> xStart,yStart (upper left corner), width,height
 	protected final float[] startRect;
+	//internal to base class state flags - bits in array holding relevant process info restricted to base class
+	protected int[] stFlags;						
+	protected static final int
+			debugIDX 				= 0,
+			isVisibleIDX			= 1;
+	protected static final int numStFlags = 2;	
 	
 	//prebuilt colors that will be used often
 	protected static final int[] 
@@ -24,13 +32,15 @@ public abstract class myVisMgr {
 			clr_grey = new int[] {100,100,100,255};	
 	
 	
-	public myVisMgr(float[] _startRect) {
-		ObjID = IDCnt++; startRect = _startRect;
+	public myVisMgr(float[] _startRect, String _name) {
+		ObjID = IDCnt++; startRect = _startRect;name=_name;
+		initFlags();
 		setDispWidth(startRect[2]);
 	}//ctor
 	
 	//check if mouse has been clicked within the bounds of this visualization, and move the frame of the mouse click location to be the upper left corner of this object's clickable region
 	public boolean checkMouseClick(int msx, int msy, int btn) {
+		if(!getFlag(isVisibleIDX)) {return false;}
 		//transform to top left corner of box region
 		int msXLoc = (int) (msx - startRect[0]), mxYLoc = (int) (msy - startRect[1]);
 		boolean inClassLineRegion = (msXLoc >= 0) && (mxYLoc >= 0) && (msXLoc <= startRect[2]) && (mxYLoc <= startRect[3]);
@@ -42,6 +52,7 @@ public abstract class myVisMgr {
 	//specifically if moved or dragged within the bounds of this visualization, and move the frame of the mouse current drag location to be the upper left corner of this object's clickable region
 	//drag has btn > 0, mouse-over has button < 0
 	public boolean checkMouseMoveDrag(int msx, int msy, int btn) {
+		if(!getFlag(isVisibleIDX)) {return false;}
 		//transform to top left corner of box region
 		int msXLoc = (int) (msx - startRect[0]), mxYLoc = (int) (msy - startRect[1]);
 		//System.out.println("ID : " + ObjID + " | Relative x : " + msXLoc + " | y : " + mxYLoc + " | orig x : " + msx + " | y : " + msy + " | Rect : ["+ startRect[0]+","+ startRect[1]+","+ startRect[2]+","+ startRect[3]+"] | mseBtn : " + btn);
@@ -73,15 +84,32 @@ public abstract class myVisMgr {
 	public abstract void _setDispWidthIndiv(float dispWidth);
 	
 	public void drawVis(GraphProbExpMain pa) {
+		if(!getFlag(isVisibleIDX)) {return;}
 		pa.pushMatrix();pa.pushStyle();
 		pa.translate(startRect[0], startRect[1],0);
+		pa.setFill(clr_white);
+		pa.text(name, 0, 0);
 		_drawVisIndiv(pa);
 		pa.popStyle();pa.popMatrix();			
 	}
 	
-	public abstract void _drawVisIndiv(GraphProbExpMain pa);
+	protected abstract void _drawVisIndiv(GraphProbExpMain pa);
 	
-
+	public void setIsVisible(boolean _isVis) {setFlag(isVisibleIDX, _isVis);}
+	
+	private void initFlags(){stFlags = new int[1 + numStFlags/32]; for(int i = 0; i<numStFlags; ++i){setFlag(i,false);}}
+	public void setAllFlags(int[] idxs, boolean val) {for (int idx : idxs) {setFlag(idx, val);}}
+	public void setFlag(int idx, boolean val){
+		int flIDX = idx/32, mask = 1<<(idx%32);
+		stFlags[flIDX] = (val ?  stFlags[flIDX] | mask : stFlags[flIDX] & ~mask);
+		switch (idx) {//special actions for each flag 
+			case debugIDX 		  : {
+				break;}	
+			case isVisibleIDX	  : {
+				break;}				
+		}
+	}//setFlag		
+	public boolean getFlag(int idx){int bitLoc = 1<<(idx%32);return (stFlags[idx/32] & bitLoc) == bitLoc;}
 }//class myDistributionDisplay
 
 /**
@@ -113,10 +141,12 @@ class gradeBar extends myVisMgr {
 	//student being moved by mouse click
 	protected myStudent _modStudent;
 	
-	//specific color constructor - used to set up overall grade bar
-	public gradeBar(myClassRoster _owningClass, float[] _dims, String _typ, int[] _barColor) {
-		super(new float[] {_dims[0],_dims[1], _barStX + (_owningClass.gradeExp.getVisibleSreenWidth()*barWidthMult) ,_dims[2]});
+	//specific color constructor - used to set up overall grade bar for a single class
+	public gradeBar(myClassRoster _owningClass, float[] _dims, String _typ, int[] _barColor, String _name) {
+		super(new float[] {_dims[0],_dims[1], _barStX + (_owningClass.gradeExp.getVisibleSreenWidth()*barWidthMult) ,_dims[2]}, _name);
 		gradeType=_typ;
+		setIsVisible(true);			//default bar to being visible
+		_setDispWidthIndiv(_owningClass.gradeExp.getVisibleSreenWidth());
 		_barStY = .5f * startRect[3];
 		_clkBox = new float[] {0,-8+_barStY,16,16};
 		barColor = _barColor;// getRndClr2 should be brighter colors
@@ -163,10 +193,12 @@ class gradeBar extends myVisMgr {
 	@Override
 	public void _mouseReleaseIndiv() {		_modStudent = null;}//
 	
+	public float getAbsYLoc() {return startRect[1]+_barStY;}
+	
 	//translate to where the par part of this par starts, so the lines connecting grades for same students can be drawn
 	public void transToBarStart(GraphProbExpMain pa) {pa.translate(startRect[0]+_barStX,startRect[1]+_barStY,0);}	
 	//draw grade bar and student locations
-	public void _drawVisIndiv(GraphProbExpMain pa) {
+	protected void _drawVisIndiv(GraphProbExpMain pa) {
 		if(enabled) {
 			pa.pushMatrix();pa.pushStyle();
 			_drawBoxAndBar(pa,clr_green,barColor);
@@ -221,7 +253,7 @@ class myDistVis extends myVisMgr {
 	
 	
 	public myDistVis(float[] _startRect, myRandVarFunc _func) {
-		super(_startRect);
+		super(_startRect,"Visualization of " + _func.name);
 		setGraphFrameDims();
 		func=_func;
 	}//ctor

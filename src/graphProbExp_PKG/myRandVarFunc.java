@@ -18,7 +18,7 @@ public abstract class myRandVarFunc {
 	public final String name;
 	
 	//quadrature solver for this random variable/function
-	protected myGaussQuad quadSlvr;
+	protected myIntegrator quadSlvr;
 	
 	//object to hold descriptive values and statistics for this distribution, and any source data/samples, if they exist
 	protected myProbSummary summary;
@@ -57,25 +57,28 @@ public abstract class myRandVarFunc {
 	protected static double invSqrt2 = 1.0/Math.sqrt(2.0),
 							ln2 = Math.log(2.0);
 	
-	public myRandVarFunc(BaseProbExpMgr _expMgr, myGaussQuad _quadSlvr, String _name) {
+	public myRandVarFunc(BaseProbExpMgr _expMgr, myIntegrator _quadSlvr, String _name) {
 		expMgr = _expMgr;name=_name;
 		initFlags();
 		setQuadSolver(_quadSlvr);
 	}//ctor
 	
+	public abstract void rebuildFunc(myProbSummary _summary);
+	
+	
 	//set new summary statistics for this function and rebuild functions 
-	public void setSummary(myProbSummary _summary) {
+	protected void setSummary(myProbSummary _summary) {
 		summary=_summary;
 		funcs= new Function[numFuncs];
 		buildFuncs();
 	}
 		
 	//set/get quadrature solver to be used to solve any integration for this RV func
-	public void setQuadSolver(myGaussQuad _quadSlvr) {
+	public void setQuadSolver(myIntegrator _quadSlvr) {
 		quadSlvr = _quadSlvr;
 		setFlag(quadSlvrSetIDX, quadSlvr!=null);
 	}//setSolver	
-	public myGaussQuad getQuadSolver() {return quadSlvr;}
+	public myIntegrator getQuadSolver() {return quadSlvr;}
 	public String getQuadSolverName() {
 		if (getFlag(quadSlvrSetIDX)) { return quadSlvr.name;}
 		return "None Set";
@@ -116,12 +119,12 @@ public abstract class myRandVarFunc {
 	//if this rand var is going to be accessed via the ziggurat algorithm, this needs to be called w/# of rectangles to use
 	//this must be called after an Quad solver has been set, since finding R and Vol for passed # of ziggurats requires such a solver
 	public void setZigVals(int _nRect) {
-		if (!getFlag(quadSlvrSetIDX)) {	expMgr.dispMessage("myRandVarFunc", "setZigVals", "No quadrature solver has been set, so cannot set ziggurat values for "+_nRect+" rectangles (incl tail)."); return;}
+		if (!getFlag(quadSlvrSetIDX)) {	expMgr.dispMessage("myRandVarFunc", "setZigVals", "No quadrature solver has been set, so cannot set ziggurat values for "+_nRect+" rectangles (incl tail).",true); return;}
 		double checkRect = Math.log(_nRect)/ln2;
 		int nRectCalc = (int)Math.pow(2.0, checkRect);//int drops all decimal values
 		if (_nRect != nRectCalc) {	
 			int numRectToUse = (int)Math.pow(2.0, (int)(checkRect) + 1);
-			expMgr.dispMessage("myRandVarFunc", "setZigVals", "Number of ziggurat rectangles requested " + _nRect + " : " + nRectCalc + " must be an integral power of 2, so forcing requested " + _nRect + " to be " + numRectToUse);
+			expMgr.dispMessage("myRandVarFunc", "setZigVals", "Number of ziggurat rectangles requested " + _nRect + " : " + nRectCalc + " must be an integral power of 2, so forcing requested " + _nRect + " to be " + numRectToUse,true);
 			numZigRects = numRectToUse;
 		}		
 		zigVals = new zigConstVals(this,numZigRects);
@@ -187,8 +190,14 @@ class myGaussianFunc extends myRandVarFunc{
 	
     protected double gaussSclFact, meanStd, invStdSclFact;
     //summary object needs to exist before ctor is called
-	public myGaussianFunc(BaseProbExpMgr _expMgr, myGaussQuad _quadSlvr, myProbSummary _summaryObj, String _name) {
+	public myGaussianFunc(BaseProbExpMgr _expMgr, myIntegrator _quadSlvr, myProbSummary _summaryObj, String _name) {
 		super(_expMgr,_quadSlvr, _name);
+		rebuildFunc(_summaryObj);
+	}//ctor
+	public myGaussianFunc(BaseProbExpMgr _expMgr, myIntegrator _quadSlvr, myProbSummary _summaryObj) {this(_expMgr, _quadSlvr,  _summaryObj, "Gaussian");}
+	//rebuild function with new summary object
+	@Override
+	public void rebuildFunc(myProbSummary _summaryObj) {
 		double mu = _summaryObj.mean(), std = _summaryObj.std();
 		
 		gaussSclFact = (1.0/std) *normalSclFact;
@@ -197,8 +206,7 @@ class myGaussianFunc extends myRandVarFunc{
 		invStdSclFact = (1.0/std) * invSqrt2;
 		//System.out.println("Mean : " + _mean + " std "+ _std + "| invStdSclFact : " +invStdSclFact);
 		setSummary(_summaryObj);
-	}//ctor
-	public myGaussianFunc(BaseProbExpMgr _expMgr, myGaussQuad _quadSlvr, myProbSummary _summaryObj) {this(_expMgr, _quadSlvr,  _summaryObj, "Gaussian");}
+	}//rebuildFunc
 	
 	@Override
 	protected void buildFuncs() {
@@ -223,7 +231,7 @@ class myGaussianFunc extends myRandVarFunc{
 	@Override
 	public double integral_f(Double x1, Double x2) {
 		double res = 0;
-		if (!getFlag(quadSlvrSetIDX)) {	expMgr.dispMessage("myGaussianFunc", "integral_f", "No quadrature solver has been set, so cannot integrate f");return res;}
+		if (!getFlag(quadSlvrSetIDX)) {	expMgr.dispMessage("myGaussianFunc", "integral_f", "No quadrature solver has been set, so cannot integrate f",true);return res;}
 		//expMgr.dispMessage("myGaussianFunc", "integral_f", "Integrating for : x1 : "+x1 + " and  x2 : " + x2);
 		
 		//if x1 is -inf... gauss-legendre quad - use error function via gaussian quad - calculating cdf
@@ -250,7 +258,7 @@ class myGaussianFunc extends myRandVarFunc{
 	@Override
 	public double integral_fZig(Double x1, Double x2) {
 		double res = 0;
-		if (!getFlag(quadSlvrSetIDX)) {	expMgr.dispMessage("myGaussianFunc", "integral_fZig", "No quadrature solver has been set, so cannot integrate f");return res;}
+		if (!getFlag(quadSlvrSetIDX)) {	expMgr.dispMessage("myGaussianFunc", "integral_fZig", "No quadrature solver has been set, so cannot integrate f",true);return res;}
 		//expMgr.dispMessage("myGaussianFunc", "integral_f", "Integrating for : x1 : "+x1 + " and  x2 : " + x2);		
 		//if x1 is -inf... gauss-legendre quad - use error function via gaussian quad - calculating cdf
 		if(x1==Double.NEGATIVE_INFINITY) {				//cdf of x2 == .5 + .5 * error function x2/sqrt(2) 
@@ -339,7 +347,7 @@ class myNormalFunc extends myGaussianFunc{
 	//////////////////////////////
 	//zig algorithm fields for scaled normal - all myRandVarFuncs need their own impelemtnations of this map, independent of base class
 	//////////////////////////////		
-	public myNormalFunc(BaseProbExpMgr _expMgr, myGaussQuad _quadSlvr) {
+	public myNormalFunc(BaseProbExpMgr _expMgr, myIntegrator _quadSlvr) {
 		super(_expMgr,_quadSlvr, new myProbSummary(new double[] {0.0, 1.0},2), "Normal");			
 	}//ctor	
 	
@@ -363,13 +371,21 @@ class myFleishFunc_Uni extends myRandVarFunc{
 	//convergence limit
 	private final double convLim=1e-5;
 	//summary object/
-	public myFleishFunc_Uni(BaseProbExpMgr _expMgr, myGaussQuad _quadSlvr, myProbSummary _summaryObj, String _name) {
+	public myFleishFunc_Uni(BaseProbExpMgr _expMgr, myIntegrator _quadSlvr, myProbSummary _summaryObj, String _name) {
 		super(_expMgr, _quadSlvr, _name);
+		rebuildFunc(_summaryObj);
+	}//ctor
+
+	@Override
+	public void rebuildFunc(myProbSummary _summaryObj) {
+		// TODO Auto-generated method stub
 		ready = false;
 		coeffs = calcCoeffs(_summaryObj);
 		//set summary builds functions - need to specify required elements before it is called
 		setSummary(_summaryObj);
-	}//ctor
+
+	}
+	
 	
 	//calculate the coefficients for the fleishman polynomial considering the given skew and excess kurtosis specified in summary object
 	//will generate data with mean ==0 and std == 1; if ex kurtosis lies outside of feasible region will return all 0's for coefficients
@@ -381,7 +397,7 @@ class myFleishFunc_Uni extends myRandVarFunc{
         //bound = -1.13168 + 1.58837 * skew**2
         double bound = -1.2264489 + 1.6410373*skewSQ;
         if (exKurt < bound) { 
-        	expMgr.dispMessage("myFleishFunc_Uni", "calcCoeffs", "!!!! Coefficient error : ex kurt : " + exKurt+ " is not feasible with skew :" + skew +" | forcing exKurt to lower bound @ skew DANGER this is not going to reflect the sample quantities :"+bound);
+        	expMgr.dispMessage("myFleishFunc_Uni", "calcCoeffs", "!!!! Coefficient error : ex kurt : " + exKurt+ " is not feasible with skew :" + skew +" | forcing exKurt to lower bound @ skew DANGER this is not going to reflect the sample quantities :"+bound,true);
         	_summary.forceExKurt(bound);
         	exKurt = _summary.exKurt();
         }
@@ -394,7 +410,7 @@ class myFleishFunc_Uni extends myRandVarFunc{
 
         double[] tmpC = newton(c1, c2, c3, skew, exKurt);
 		coeffs = new double[] {-tmpC[1], tmpC[0],tmpC[1],tmpC[2]};
-		expMgr.dispMessage("myFleishFunc_Uni", "calcCoeffs", "Coeffs calculated :  ["+ String.format("%3.8f",coeffs[0])+","+ String.format("%3.8f",coeffs[1])+","+ String.format("%3.8f",coeffs[2])+","+ String.format("%3.8f",coeffs[3])+"]");		
+		expMgr.dispMessage("myFleishFunc_Uni", "calcCoeffs", "Coeffs calculated :  ["+ String.format("%3.8f",coeffs[0])+","+ String.format("%3.8f",coeffs[1])+","+ String.format("%3.8f",coeffs[2])+","+ String.format("%3.8f",coeffs[3])+"]",true);		
 		return coeffs;
 	}//calcCoeffs
 	
@@ -503,8 +519,7 @@ class myFleishFunc_Uni extends myRandVarFunc{
 
 	@Override
 	public double processResValByMmnts(double val) {	return summary.normToGaussTransform(val);}//public abstract double processResValByMmnts(double val);	
-	
-	
+
 }//class myFleishFunc
 
 
@@ -583,7 +598,7 @@ class zigConstVals{
 		double integralRes = func.integral_fZig(rVal, Double.POSITIVE_INFINITY);
 		double vol = rVal* funcAtR + integralRes;//Q func == 1 - CDF
 		if (vol < 0) {
-			func.expMgr.dispMessage("zigConstVals", "z_R", func.getShortDesc()+ "| Initial Ziggurat R val chosen to be too high, causing integration to yield a negative volume due to error");
+			func.expMgr.dispMessage("zigConstVals", "z_R", func.getShortDesc()+ "| Initial Ziggurat R val chosen to be too high, causing integration to yield a negative volume due to error",true);
 			return new double[] {-rVal*9, 0};
 		}
 		//x values and functional eval of x vals
@@ -598,10 +613,10 @@ class zigConstVals{
 			xVals[i]=func.f_invZig(eval);
 			fXVals[i]=func.fZig(xVals[i]);
 			retVal = vol - xVals[i+1] + xVals[i+1]*fXVals[i+1];//area vol - vol of top block
-			//func.expMgr.dispMessage("myGaussianFunc", "z_R", "Inverse @ i=="+i+" =  " + xVals[i]  + " f(x[i]) : " + fXVals[i] + " eval : " + eval + " Vol : " + (xVals[i]* fXVals[i]));
+			//func.expMgr.dispMessage("myGaussianFunc", "z_R", "Inverse @ i=="+i+" =  " + xVals[i]  + " f(x[i]) : " + fXVals[i] + " eval : " + eval + " Vol : " + (xVals[i]* fXVals[i]),true);
 		}
 		//double retVal = vol - xVals[1] - xVals[1]*fXVals[1];
-		//func.expMgr.dispMessage("myGaussianFunc", "z_R", "End : Passed rval : " + rVal + " f(rVal) : " + funcAtR + " Vol : " + vol + " xVals[1] :"+ xVals[1]+ " F(x[1]) :"+fXVals[1] + " Return val : " + retVal);
+		//func.expMgr.dispMessage("myGaussianFunc", "z_R", "End : Passed rval : " + rVal + " f(rVal) : " + funcAtR + " Vol : " + vol + " xVals[1] :"+ xVals[1]+ " F(x[1]) :"+fXVals[1] + " Return val : " + retVal,true);
 		return new double[] {retVal, vol};
 	}//z_R
 	   
@@ -624,21 +639,21 @@ class zigConstVals{
 			else {//modify guess appropriately							
 				rValGuess += zValAra[0] * learnRate;
 				curLearnRate = learnRate;
-				//func.expMgr.dispMessage("myRandVarFunc", "calcRVal", "Name : " + func.name+ "| For " + Nrect + " rectangles, @ iter : " + iter + " rVal : " + String.format("%3.18f", rValGuess)+ "  oldGuess : " + String.format("%3.18f", oldGuess)+ " Gives zVal : " + String.format("%3.18f", zValAra[0]) + " Vol : " + String.format("%3.18f", zValAra[1]));
+				//func.expMgr.dispMessage("myRandVarFunc", "calcRVal", "Name : " + func.name+ "| For " + Nrect + " rectangles, @ iter : " + iter + " rVal : " + String.format("%3.18f", rValGuess)+ "  oldGuess : " + String.format("%3.18f", oldGuess)+ " Gives zVal : " + String.format("%3.18f", zValAra[0]) + " Vol : " + String.format("%3.18f", zValAra[1]),true);
 				while ((oldGuess < rValGuess) && (curLearnRate > minLearnRate)) {
 					//func.expMgr.dispMessage("myRandVarFunc", "calcRVal", "\tFlip : curLearnRate : " + curLearnRate + " new learn rate : " + curLearnRate/2.0);
 					curLearnRate /= 2.0;
 					rValGuess -= zValAra[0] * curLearnRate;	//change mod to 1/2 last mod					
 				}				
 			}//not close enough, modifying guess			
-			//func.expMgr.dispMessage("myRandVarFunc", "calcRVal", "Name : " + func.name+ "| For " + Nrect + " rectangles, @ iter : " + iter + " rVal : " + String.format("%3.18f", rValGuess)+ " Gives zVal : " + String.format("%3.18f", zValAra[0]) + " Vol : " + String.format("%3.18f", zValAra[1]));
+			//func.expMgr.dispMessage("myRandVarFunc", "calcRVal", "Name : " + func.name+ "| For " + Nrect + " rectangles, @ iter : " + iter + " rVal : " + String.format("%3.18f", rValGuess)+ " Gives zVal : " + String.format("%3.18f", zValAra[0]) + " Vol : " + String.format("%3.18f", zValAra[1]),true);
 		}//while
 		double[] res = new double[2];
 		if(done) {
 			res[0] = rValGuess;
 			res[1] = zValAra[1];
 		}
-		func.expMgr.dispMessage("zigConstVals", "calcRValAndVol",  func.getShortDesc()+ " | Done w/ " + Nrect + " rects, @ iter : " + iter + " rVal : " + String.format("%3.18f", rValGuess)+ " Gives Vol : " + String.format("%3.18f", zValAra[1]));
+		func.expMgr.dispMessage("zigConstVals", "calcRValAndVol",  func.getShortDesc()+ " | Done w/ " + Nrect + " rects, @ iter : " + iter + " rVal : " + String.format("%3.18f", rValGuess)+ " Gives Vol : " + String.format("%3.18f", zValAra[1]),true);
 		return res;
 	}//calcRVal
 	

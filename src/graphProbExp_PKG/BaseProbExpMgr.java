@@ -10,7 +10,7 @@ public abstract class BaseProbExpMgr {
 	////////////////////////////////////////
 	// gauss quadrature solver structures	
 	//integral solvers for gaussian quadrature method used by this experiment
-	protected myGaussQuad[] quadSlvrs;	
+	protected myIntegrator[] quadSlvrs;	
 	//types of solvers for comparison
 	public static final int
 		GL_QuadSlvrIDX 		= 0;			//gaussian legendre solver
@@ -113,7 +113,7 @@ public abstract class BaseProbExpMgr {
 				myRandVarFunc func = new myFleishFunc_Uni(this, quadSlvrs[GL_QuadSlvrIDX], _summaryObj, randGenAlgNames[_type]);
 				return new myFleishUniRandGen(func,  randGenAlgNames[_type]);	}
 			default	:	{		
-				dispMessage("BaseProbExpMgr","buildAndInitRandGen","Unknown random generator type : " + _type + ".  Aborting.");
+				dispMessage("BaseProbExpMgr","buildAndInitRandGen","Unknown random generator type : " + _type + ".  Aborting.", true);
 				return null;
 			}
 		}//switch
@@ -161,31 +161,31 @@ public abstract class BaseProbExpMgr {
 	//conduct a simple test on the passed random number generator - it will get a sample based on the pdf function given to generator
 	//uses 64 bit random uniform val
 	protected void smplTestRandNumGen(myRandGen gen, int numVals) {
-		dispMessage("BaseProbExpMgr","testRandGen","Start synthesizing " + numVals+ " values using Gen : \n\t" + gen.getFuncDataStr());
+		dispMessage("BaseProbExpMgr","testRandGen","Start synthesizing " + numVals+ " values using Gen : \n\t" + gen.getFuncDataStr(), true);
 		double[] genVals = new double[numVals];
 		for(int i=0;i<genVals.length;++i) {	
 			//dispMessage("BaseProbExpMgr","testRandGen","Generating val : " + i);
 			genVals[i] = gen.getSample();	
 		}
 		//now calculate mean value and
-		dispMessage("BaseProbExpMgr","testRandGen","Finished synthesizing " + numVals+ " values using Gen : " + gen.name + " | Begin analysis of values.");
+		dispMessage("BaseProbExpMgr","testRandGen","Finished synthesizing " + numVals+ " values using Gen : " + gen.name + " | Begin analysis of values.", true);
 		myProbSummary analysis = new myProbSummary(genVals);
-		dispMessage("BaseProbExpMgr","testRandGen","Analysis res of " + gen.name + " : " + analysis.getMomentsVals());
+		dispMessage("BaseProbExpMgr","testRandGen","Analysis res of " + gen.name + " : " + analysis.getMomentsVals(), true);
 	}//testGen
 	
 	//conduct a simple test on the passed random number generator - it will get a sample based on the pdf function given to generator
 	//uses the "fast" implementation - 32 bit random uniform value
 	protected void smplTestFastRandNumGen(myRandGen gen, int numVals) {
-		dispMessage("BaseProbExpMgr","testRandGen","Start synthesizing " + numVals+ " values using Gen : \n\t" + gen.getFuncDataStr());
+		dispMessage("BaseProbExpMgr","testRandGen","Start synthesizing " + numVals+ " values using Gen : \n\t" + gen.getFuncDataStr(), true);
 		double[] genVals = new double[numVals];
 		for(int i=0;i<genVals.length;++i) {	
 			//dispMessage("BaseProbExpMgr","testRandGen","Generating val : " + i);
 			genVals[i] = gen.getSampleFast();	
 		}
 		//now calculate mean value and
-		dispMessage("BaseProbExpMgr","testRandGen","Finished synthesizing " + numVals+ " values using Gen : " + gen.name + " | Begin analysis of values.");
+		dispMessage("BaseProbExpMgr","testRandGen","Finished synthesizing " + numVals+ " values using Gen : " + gen.name + " | Begin analysis of values.", true);
 		myProbSummary analysis = new myProbSummary(genVals);
-		dispMessage("BaseProbExpMgr","testRandGen","Analysis res of " + gen.name + " : " + analysis.getMomentsVals());
+		dispMessage("BaseProbExpMgr","testRandGen","Analysis res of " + gen.name + " : " + analysis.getMomentsVals(), true);
 	}//testGen
 	
 	
@@ -210,20 +210,24 @@ public abstract class BaseProbExpMgr {
 	}//getTimeStrFromPassedMillis	
 	
 	//show array of strings, either just to console or to applet window
-	public void dispMessageAra(String[] _sAra, String _callingClass, String _callingMethod, int _perLine) {
+	public void dispMessageAra(String[] _sAra, String _callingClass, String _callingMethod, int _perLine, boolean onlyConsole) {
 		String callingClassPrfx = getTimeStrFromProcStart() +"|" + _callingClass;		 
 		for(int i=0;i<_sAra.length; i+=_perLine){
 			String s = "";
 			for(int j=0; j<_perLine; ++j){	
 				if((i+j >= _sAra.length)) {continue;}
 				s+= _sAra[i+j]+ "\t";}
-			_dispMessage_base(callingClassPrfx,_callingMethod,s);
+			_dispMessage_base(callingClassPrfx,_callingMethod,s,onlyConsole);
 		}
 	}//dispMessageAra	
-	public void dispMessage(String srcClass, String srcMethod, String msgText) {_dispMessage_base(getTimeStrFromProcStart() +"|" + srcClass,srcMethod,msgText);	}	
-	private void _dispMessage_base(String srcClass, String srcMethod, String msgText) {
+	public void dispMessage(String srcClass, String srcMethod, String msgText, boolean onlyConsole) {_dispMessage_base(getTimeStrFromProcStart() +"|" + srcClass,srcMethod,msgText,onlyConsole);	}	
+	private void _dispMessage_base(String srcClass, String srcMethod, String msgText, boolean onlyConsole) {
 		String msg = srcClass + "::" + srcMethod + " : " + msgText;
-		win.pa.outStr2Scr(msg);
+		if(onlyConsole) {
+			System.out.println(msg);
+		} else {
+			win.pa.outStr2Scr(msg);
+		}
 	}//dispMessage
 	
 	/////////////////////////////

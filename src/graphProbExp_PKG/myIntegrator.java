@@ -8,52 +8,65 @@ import java.math.RoundingMode;
 import java.util.function.Function;
 
 /**
- * this class holds gaussian quadrature integrator implementations
+ * class to manage an integration strategy on a functional object
  * @author john
  *
  */
-public abstract class myGaussQuad {
+public abstract class myIntegrator {
 	public static BaseProbExpMgr expMgr;
-	
-	public final String name;
-	
-	//# of wts/points used for quadrature
+	//# of wts/points used for quadrature or # of samples
 	public int numPoints;
 	//convergence tolerance to use for iterative derivation methods
 	public double convTol;	
-	//big decimal scale to use
-    public int BDScale;	
-	//idx 0 == abscissas, idx 1 == wts for gaussian quadrature
-	protected BigDecimal[][] gaussQuad;
-		
-	public myGaussQuad(BaseProbExpMgr _expMgr, String _name, int _numPoints, double _tol, int _BDScale) {
+	//big decimal scale to use for big decimals in this integrator
+    public int BDScale;		
+	
+	public final String name;
+	public myIntegrator(BaseProbExpMgr _expMgr, String _name) {
 		expMgr=_expMgr;name=_name;
-		setSolverVals(_numPoints, _tol, _BDScale);
 	}//ctor
-	
-	//set the number of points/weights, the convergence tolerance and the scale for BigDecimals for this solver, 
-	//and rebuild the weighs and abscissas
-	public void setSolverVals(int _numPoints, double _tol, int _BDScale) {		
-		numPoints = _numPoints;convTol=_tol; BDScale=_BDScale;
-		//build precalced wts and abscissas for quadrature method
-		calcWtsAndAbscissas();
-	}//setSolverVals
-	
+		
 	//evaluate a polynomial given by the passed coefficient matrix, at x
 	protected BigDecimal evalPoly(BigDecimal [][] lcoef, int n, BigDecimal x) {
     	BigDecimal res = lcoef[n][n];
         for (int i = n; i > 0; --i) {res = (res.multiply(x)).add(lcoef[n][i - 1]);}		//((an * x + an-1) * x + an-2)...
         return res;
     }//evalPoly
-	
-	protected abstract void calcWtsAndAbscissas();
 	public abstract BigDecimal evalIntegral(Function<Double, Double> func, double min, double max);
+
+	//set the number of points/weights/samples, 
+	//the convergence tolerance and the scale for BigDecimals for this solver,
+	//and calculate any initial values and structures
+	public void setSolverVals(int _numPoints, double _tol, int _BDScale) {		
+		numPoints = _numPoints;convTol=_tol; BDScale=_BDScale;
+		//build precalced wts and abscissas for quadrature method
+		preCalcIntegratorValues();
+	}//setSolverVals
+
+	//any precalculated values used for this integrator
+	protected abstract void preCalcIntegratorValues();
+}//class myIntegrator
+
+
+/**
+ * this class holds gaussian quadrature integrator implementations
+ * @author john
+ */
+
+abstract class myGaussQuad extends myIntegrator {
+	//idx 0 == abscissas, idx 1 == wts for gaussian quadrature
+	protected BigDecimal[][] gaussQuad;
+		
+	public myGaussQuad(BaseProbExpMgr _expMgr, String _name, int _numPoints, double _tol, int _BDScale) {
+		super(_expMgr,_name);
+		setSolverVals(_numPoints, _tol, _BDScale);
+	}//ctor	
+
 }//class myGaussQuad
 
 /**
  * gauss legendre quadrature of definite integrals of function f(x)
  * @author john
- *
  */
 class myGaussLegenQuad extends myGaussQuad{
     //idx 0 == xvals, idx 1 == wts for gaussian quadrature with legendre polynomials for the integrator for this function
@@ -78,7 +91,7 @@ class myGaussLegenQuad extends myGaussQuad{
 	
 	//build precalced wts and abscissas for quadrature method
 	@Override
-	protected void calcWtsAndAbscissas() {
+	protected void preCalcIntegratorValues() {
      	
     	BigDecimal[][] lcoef = new BigDecimal[numPoints + 1][numPoints + 1];
     	for(int i=0;i<lcoef.length;++i) {for(int j=0;j<lcoef[i].length;++j) {lcoef[i][j]=new BigDecimal(0.0);}}

@@ -9,7 +9,7 @@ public class Grade2DWindow extends myDispWindow {
 	// ui objects 
 	////////////
 	// # of students across all classes
-	private int numStudents = 30;
+	private int numStudents = 5;
 	// # of classes to build final grade
 	private int numClasses = 3;
 	//std of mapping normal distribution
@@ -38,14 +38,17 @@ public class Grade2DWindow extends myDispWindow {
 	//use getPrivFlags(idx) and setPrivFlags(idx,val) to consume
 	//put idx-specific code in case statement in setPrivFlags
 	public static final int 
-			debugAnimIDX 		= 0;					//show debug
-	public static final int numPrivFlags = 1;
+			reCalcRandGradeSpread 		= 0,					//recalculate random grades given specified class and student # parameters
+			showScaledTransGrades 		= 1,					//display transformed grades from range 0->1 or in natural uniform scaled mapping from underlying distribution
+			useZScore					= 2,					//whether or not to use the z score calc to transform the uniform final grades
+			rebuildDistOnMove			= 3;					//rebuild class distribution when value is moved
+	public static final int numPrivFlags = 4;
 
 	/////////
 	//custom debug/function ui button names -empty will do nothing
 	public String[][] menuBtnNames = new String[][] {	//each must have literals for every button defined in side bar menu, or ignored
 		{},
-		{"Test Rand Gen", "Test R Calc","Calc Mapping"},	//row 1
+		{"Test Rand Gen", "Test R Calc","Func 3"},	//row 1
 		{"Func 1", "Test Fleish", "Tst Fl Range", "Func 4"},	//row 1
 		{"Dbg 1","Dbg 2","Dbg 3","Dbg 4","Dbg 5"}	
 	};
@@ -55,7 +58,6 @@ public class Grade2DWindow extends myDispWindow {
 	//class experiment
 	private ClassGradeExperiment gradeAvgExperiment;
 	
-
 	public Grade2DWindow(GraphProbExpMain _p, String _n, int _flagIdx, int[] fc, int[] sc, float[] rd, float[] rdClosed,String _winTxt, boolean _canDrawTraj) {
 		super(_p, _n, _flagIdx, fc, sc, rd, rdClosed, _winTxt, _canDrawTraj);
 		float stY = rectDim[1]+rectDim[3]-4*yOff,stYFlags = stY + 2*yOff;
@@ -93,13 +95,23 @@ public class Grade2DWindow extends myDispWindow {
 	public void initAllPrivBtns() {
 		//give true labels, false labels and specify the indexes of the booleans that should be tied to UI buttons
 		truePrivFlagNames = new String[]{			//needs to be in order of privModFlgIdxs
-				"Debugging",
+				"Recalculating Grades",
+				"Showing Scaled Uni Grades [0->1]",
+				"ZScore for final grades",
+				"Rebuild Class dist on move"
 		};
 		falsePrivFlagNames = new String[]{			//needs to be in order of flags
-				"Enable Debug",
+				"Recalculate Grades",
+				"Showing Unscaled Uni Grades",
+				"Specific Dist for final grades",
+				"Don't rebuild class dist on move"
+				
 		};
 		privModFlgIdxs = new int[]{					//idxs of buttons that are able to be interacted with
-				debugAnimIDX,
+				reCalcRandGradeSpread,
+				showScaledTransGrades,
+				useZScore,
+				rebuildDistOnMove
 		};
 		numClickBools = privModFlgIdxs.length;	
 		initPrivBtnRects(0,numClickBools);
@@ -113,7 +125,20 @@ public class Grade2DWindow extends myDispWindow {
 		int flIDX = idx/32, mask = 1<<(idx%32);
 		privFlags[flIDX] = (val ?  privFlags[flIDX] | mask : privFlags[flIDX] & ~mask);
 		switch(idx){
-			case debugAnimIDX 			: {
+			case reCalcRandGradeSpread 			: {
+				if (val) {
+					gradeAvgExperiment.buildStudentsAndClasses(numStudents, numClasses);
+					addPrivBtnToClear(reCalcRandGradeSpread);
+				}
+				break;}
+			case showScaledTransGrades : {
+				//TODO need to change what type of grades are shown
+				break;}			
+			case useZScore : {
+				gradeAvgExperiment.setUseZScore(val);
+				break;}
+			case rebuildDistOnMove : {
+				gradeAvgExperiment.setRebuildDistOnGradeMod(val);
 				break;}
 		}
 	}
@@ -123,7 +148,7 @@ public class Grade2DWindow extends myDispWindow {
 	protected void setupGUIObjsAras(){	
 		//pa.outStr2Scr("setupGUIObjsAras start");
 		guiMinMaxModVals = new double [][]{
-			{1,100,1},						//# students
+			{2,100,1},						//# students
 			{1,9,1},						//# classes
 			{.0001,1,.0001}					//mapping std
 		};		//min max modify values for each modifiable UI comp	
@@ -180,8 +205,7 @@ public class Grade2DWindow extends myDispWindow {
 			case gIDX_MappingSTD : {
 				if(val != mappingStd) {
 					mappingStd = val;
-					gradeAvgExperiment.calcInverseMapping(mappingStd);
-					//gradeAvgExperiment.calcInverseCDFSpan(mappingStd);
+					gradeAvgExperiment.calcInverseCDFSpan(mappingStd);
 				}	break;}
 			}
 		}//if val is different
@@ -306,7 +330,7 @@ public class Grade2DWindow extends myDispWindow {
 					resetButtonState();
 					break;}
 				case 2 : {	
-					gradeAvgExperiment.calcInverseMapping(mappingStd);
+					//gradeAvgExperiment.calcInverseMapping();
 					resetButtonState();
 					break;}
 				default : {

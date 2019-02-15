@@ -19,7 +19,6 @@ public class myProbExpMgr extends BaseProbExpMgr{
 	
 	public myProbExpMgr(myDispWindow _win) {
 		super(_win);
-		dispMessage("myProbExpMgr", "myProbExpMgr ctor", "Ctor");
 		initExp();
 	}//ctor
 
@@ -61,29 +60,29 @@ public class myProbExpMgr extends BaseProbExpMgr{
 	}
 
 	public void testRandGen(int numVals) {
-		dispMessage("myProbExpMgr","testRandGen","Start test of random normal gen of " +numVals + " vals from rand gen with momments : " + nrmlGen.getFuncDataStr());
+		dispMessage("myProbExpMgr","testRandGen","Start test of random normal gen of " +numVals + " vals from rand gen with momments : " + nrmlGen.getFuncDataStr(),true);
 		smplTestRandNumGen(nrmlGen, numVals);
 		smplTestRandNumGen(gaussGen, numVals);
-		dispMessage("myProbExpMgr","testRandGen","Start test of ThreadLocalRandom random gaussian gen of " +numVals + " vals.");
+		dispMessage("myProbExpMgr","testRandGen","Start test of ThreadLocalRandom random gaussian gen of " +numVals + " vals.",true);
 		double[] genVals = new double[numVals];
 		//now test standard distribution of same # of values
 		double mean = gaussGen.func.getMean(), std = gaussGen.func.getStd();
 		for(int i=0;i<genVals.length;++i) {	genVals[i] = mean + (std*ThreadLocalRandom.current().nextGaussian());		}
-		dispMessage("myProbExpMgr","testRandGen","Finished synthesizing " + numVals +" gaussian vals ~ N(" + mean + ","+std +") using ThreadLocalRandom random gaussian");
+		dispMessage("myProbExpMgr","testRandGen","Finished synthesizing " + numVals +" gaussian vals ~ N(" + mean + ","+std +") using ThreadLocalRandom random gaussian",true);
 		myProbSummary analysis = new myProbSummary(genVals);
-		dispMessage("myProbExpMgr","testRandGen","Analysis res of TLR.nextGauss : " + analysis.getMomentsVals());
+		dispMessage("myProbExpMgr","testRandGen","Analysis res of TLR.nextGauss : " + analysis.getMomentsVals(),true);
 	}//testRandGen
 	
 	
 	//test method for calculating r for rand var function
 	public void testRCalc() {
-		dispMessage("myProbExpMgr","testRCalc","Start test of r var calc");
+		dispMessage("myProbExpMgr","testRCalc","Start test of r var calc",true);
 		myRandVarFunc randVar = new myNormalFunc(this, quadSlvrs[GL_QuadSlvrIDX]);
 		myProbSummary analysis = new myProbSummary( new double[] {2.0, 3.0}, 2);
 		myRandVarFunc randGaussVar = new myGaussianFunc(this, quadSlvrs[GL_QuadSlvrIDX], analysis);
 		randVar.dbgTestCalcRVal(256);
 		
-		dispMessage("myProbExpMgr","testRCalc","End test of r var calc");
+		dispMessage("myProbExpMgr","testRCalc","End test of r var calc",true);
 		
 	}//testRCalc
 	
