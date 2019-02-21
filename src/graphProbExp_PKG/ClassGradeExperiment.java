@@ -16,14 +16,11 @@ public class ClassGradeExperiment extends BaseProbExpMgr{
 	//structure holding all students
 	public HashMap<Integer,myStudent> students;
 	public int numStudents;
-	//random generator providing model of source distribution to be used to map from distribution to uniform
-	protected myRandGen gradeSourceDistGen;	
 	
 	//structure holding grades for a particular class read in from a file, or otherwise synthesized from some unknown distribution.  is keyed by class name and then by student ID
 	public HashMap<String,HashMap<Integer, Double>> perClassStudentGrades;
-	
-	//random generators describing the distributions of the grades in each class, keyed by class name
-	protected HashMap<String, myRandGen> gradeDistsPerClass;
+	//summary objects for each class, based on loaded grades
+	public HashMap<String, myProbSummary> perClassSummaryObjMap;
 	
 	//types of different transformed grades
 	public static final int
@@ -61,24 +58,137 @@ public class ClassGradeExperiment extends BaseProbExpMgr{
 		classRosters = new HashSet<myClassRoster>();
 		numClasses = 0;
 		students = new HashMap<Integer,myStudent>();
-		numStudents = 0;		
+		numStudents = 0;
+		//build final grade roster
+		float[] finalUniBarLocSt = new float[] {classBarStart[0], win.curVisScrDims[1]- distBtwnAdjBars},
+				finalTransBarLocSt = new float[] {classBarStart[0], win.curVisScrDims[1] - 2*distBtwnAdjBars};		
+		
+		finalGradeClass = new myFinalGradeRoster(win.pa, this, "Final Grades For All Students", new float[][] { finalUniBarLocSt, finalTransBarLocSt});
+
 		//gradeInvMapGen = buildAndInitRandGen(ziggRandGen, new myProbSummary(new double[] {0.0,0.1,0,0},2));
 		//build fleishman with data set ultimately
-		gradeSourceDistGen = buildAndInitRandGen(fleishRandGen_Uni, new myProbSummary(new double[] {0,1,1,4},4));	
+		//gradeSourceDistGen = buildAndInitRandGen(fleishRandGen_UniVar, new myProbSummary(new double[] {0,1,1,4},4));	
 		//curTransformType = gradeInvMapGen.getTransformName();
 		//finalGPA = new gradeBar(this, new float[] {_barLocs[barLocIDX][0], _barLocs[barLocIDX][1], distBtwnClassBars}, transTypes[i],clsLineClr, "Visualization of "+transTypes[i]+" grades for class :"+name);	
 	}//	initExp
 	
-	//load student grades into per class grade structure - all classes and students should be already made by here
-	public void loadStudentGrades() {
+	//numMmnts are # of moments that should be used of mmnts array (<= len mmnts Ara)
+	private void setDesiredFinalGradeSummaryObj(double[] _mmnts, double[] _minMax, int _numMmnts) {
+		double[] mmnts = new double[_numMmnts];		
+		for(int i=0;i< _numMmnts; ++i) {			mmnts[i]=_mmnts[i];		}
+		myProbSummary tmpFinal = new myProbSummary(mmnts,_numMmnts);
+		tmpFinal.setMinMax(_minMax);
+		perClassSummaryObjMap.put(finalGradeClass.name, tmpFinal);		
+	}//setDesiredFinalGradeSummaryObj
+	
+	//rebuild final grade distribution mapping based on passed type, momments and minMax
+	public void buildNewDesiredFinalGradeRandGen(double[] _mmnts, double[] _minMax, int _numMmnts, int _type) {
+		setDesiredFinalGradeSummaryObj(_mmnts,  _minMax, _numMmnts);
+		myRandGen tmpFinalRandGen = buildAndInitRandGen(_type, perClassSummaryObjMap.get(finalGradeClass.name));
+		finalGradeClass.setBaseDistModel(tmpFinalRandGen);
+	}//buildNewDesiredFinalGradeRandGen
+		
+	
+	//perform affine linear transformation of grades so that they span 0->1
+	public void linearTransformExperiment(int _numStudents, int _numClasses) {
+		dispMessage("ClassGradeExperiment","linearTransformExperiment","Start building " + _numStudents +" students and " + _numClasses+" classes for LinearTransform EXP",true);
+		//rebuild all student and class objs, and final roster object
+		buildStudentsAndClasses(buildRandStudentNameList(_numStudents), _numClasses);
+		//generate random/load specified student grades, assign to students
+		buildAndSetStudentGrades(true, null);
+		//build randGen mapper
+		setRandGensAndTransformGrades(linearTransformMap);
+		refreshBuildStateFlags();
+		dispMessage("ClassGradeExperiment","linearTransformExperiment","Finished building " + students.size() +" students and " + classRosters.size()+" classes for LinearTransform EXP",true);		
+	}//linearTransformExperiment
+	
+	//perform uniform transform of grades so that the actual value is lost but the grades are just ranked #/n where # is sorted order of grade and n is total # of grades
+	public void uniformTransformExperiment(int _numStudents, int _numClasses) {
+		dispMessage("ClassGradeExperiment","uniformTransformExperiment","Start building " + _numStudents +" students and " + _numClasses+" classes for Uniform Mapping EXP",true);
+		//rebuild all student and class objs, and final roster object
+		buildStudentsAndClasses(buildRandStudentNameList(_numStudents), _numClasses);
+		//generate random/load specified student grades, assign to students
+		buildAndSetStudentGrades(true, null);
+		//build randGen mapper
+		setRandGensAndTransformGrades(uniformTransformMap);
+		refreshBuildStateFlags();
+		dispMessage("ClassGradeExperiment","uniformTransformExperiment","Finished building " + students.size() +" students and " + classRosters.size()+" classes for Uniform Mapping EXP",true);		
+	}//uniformTransformExperiment
+	
+//	//perform affine linear transformation of grades so that they span 0->1
+//	public void linearTransformZExperiment(int _numStudents, int _numClasses) {
+//		dispMessage("ClassGradeExperiment","linearTransformZExperiment","Start building " + _numStudents +" students and " + _numClasses+" classes for LinearTransform Z map EXP",true);
+//		
+//		//rebuild all student and class objs, and final roster object
+//		buildStudentsAndClasses(buildRandStudentNameList(_numStudents), _numClasses);
+//		//generate random/load specified student grades, assign to students
+//		buildAndSetStudentGrades(true, null);
+//		
+//		refreshBuildStateFlags();
+//		dispMessage("ClassGradeExperiment","linearTransformZExperiment","Finished building " + students.size() +" students and " + classRosters.size()+" classes for LinearTransform Z map EXP",true);		
+//	}//linearTransformZExperiment
+	
+	//build list of students with randomly assigned names - to be replaced by file loading all student names
+	public String[] buildRandStudentNameList(int _numStudents) {
+		String[] res = new String[_numStudents];
+		for (int i=0;i<numStudents;++i) {			res[i]="Student : " +i;	}
+		return res;
+	}//buildStudentList_Random
+
+	//this will build _numStudents random students, _numClasses classes, a final class roster and setup random grades and grade mappings
+	public void buildStudentsClassesRandGrades(int _numStudents, int _numClasses) {
+		//rebuild all student and class objs, and final roster object
+		buildStudentsAndClasses( buildRandStudentNameList(_numStudents), _numClasses);			
+		//generate random/load specified student grades, assign to students
+		buildAndSetStudentGrades(true, null);
+		//build and assign all randGen transforms to each class and final roster, and transform grades
+		setRandGensAndTransformGrades(ziggRandGen);		
+	}//buildStudentsClassesRandGrades clearAllTransformedStudentGrades()
+	
+	//call this to build student grades - if is random file name is ignored, otherwise will load grades for classes specified in file name
+	public void buildAndSetStudentGrades(boolean isRandom, String[] fileNames) {
+		dispMessage("ClassGradeExperiment","buildAndSetStudentGrades","Start loading/generating and assigning student grades, and building and assigning randGens of sample dists for each class",true);
+		//build random grades for each class, or load random grades for each class, including summary objects
+		if (isRandom) {			buildRandomStudentGrades();		} 
+		else {				
+			perClassStudentGrades = new HashMap<String,HashMap<Integer, Double>>();
+			perClassSummaryObjMap = new HashMap<String, myProbSummary>();
+			for(String fileName : fileNames) {			loadSpecifiedStudentGrades(fileName);			}
+		}
+		
+		//perClassStudentGrades and perClassSummaryObjMap should be populated by here	
+		//set grades for each student, in each class
+		for (myClassRoster _cls : classRosters) {				_cls.setAllStudentRawGrades(perClassStudentGrades.get(_cls.name));	}
+
+		dispMessage("ClassGradeExperiment","buildAndSetStudentGrades","Finished loading/generating and assigning student grades, and building and assigning randGens of sample dists for each class",true);
+	}//buildAndSetStudentGrades
+	
+	//use passed randGenType to build modeling distributions of loaded/random grades - model will be of this type; possible models are specified in 
+	//BaseProbExpMgr at tag "types of random number generators implemented/supported so far"
+	public void setRandGensAndTransformGrades(int randGenType) {		
+		//set up desired final grade prob
+		//!!!! NEED TO REBUILD  perClassSummaryObjMap.get(finalGradeClass.name) if moving to different kind of transform
+		myRandGen tmpFinalRandGen = buildAndInitRandGen(randGenType, perClassSummaryObjMap.get(finalGradeClass.name));
+		finalGradeClass.setBaseDistModel(tmpFinalRandGen);
+		//final grades need to be specified first
+		for (myClassRoster _cls : classRosters) {	
+			myRandGen gen = buildAndInitRandGen(randGenType, perClassSummaryObjMap.get(_cls.name));
+			_cls.setBaseDistModel(gen);
+			_cls.transformStudentGradesToUniform();
+		}
+	}//setAllRosterTransforms
+	
+	
+	//derive random student grades for each class, build prob summary objs of sample dists per class, and define and set final grade dist prob summary
+	private void buildRandomStudentGrades() {
+		dispMessage("ClassGradeExperiment","buildRandomStudentGrades","Start sampling "  +students.size() + " random student grades for " + classRosters.size() +" classes",true);
 		perClassStudentGrades = new HashMap<String,HashMap<Integer, Double>>();
-		gradeDistsPerClass = new HashMap<String, myRandGen>();
-		//tmp dist for use with generating raw grades
+		perClassSummaryObjMap = new HashMap<String, myProbSummary>();
+		
+		//tmp dist for use with generating raw grades - since raw grades are rejected outside the range 0-1 the final dist will be somewhat different
 		myProbSummary tmp = new myProbSummary(new double[] {0.5,.15,0,0},2);
 		tmp.setMinMax(0.0, 1.0);
 		myRandGen tmpRandGen = buildAndInitRandGen(ziggRandGen, tmp);
-		
-		
 		for (myClassRoster _cls : classRosters) {
 			HashMap<Integer, Double> classGrades = perClassStudentGrades.get(_cls.name);
 			if (null == classGrades) {classGrades = new HashMap<Integer, Double>(); perClassStudentGrades.put(_cls.name, classGrades);}
@@ -86,7 +196,7 @@ public class ClassGradeExperiment extends BaseProbExpMgr{
 			double[] vals = new double[students.size()];
 			int idx =0;			
 			//get values from file
-			
+			//overwrites grade in structure
 			for (myStudent s : students.values()) {
 				//replace this with source of class data - reading file, building from "unknown" distribution, etc.
 				double grade = tmpRandGen.getSample();
@@ -100,34 +210,42 @@ public class ClassGradeExperiment extends BaseProbExpMgr{
 			//build summary object from vals
 			myProbSummary summaryObj = new myProbSummary(vals);
 			dispMessage("ClassGradeExperiment","loadStudentGrades","Built Summary object with following stats : " + summaryObj.getMinNumMmnts(),true);
-			//Ultimately need to model non-normal distributions
-			//gradeDistsPerClass.put(_cls.name, buildAndInitRandGen(fleishRandGen_Uni, summaryObj));
-			gradeDistsPerClass.put(_cls.name, buildAndInitRandGen(ziggRandGen, summaryObj));		
+			perClassSummaryObjMap.put(_cls.name, summaryObj);
 		}
-		myProbSummary tmpFinal = new myProbSummary(new double[] {0.75,.2,0,0},2);
-		tmp.setMinMax(0.0, 1.0);
-		myRandGen tmpFinalRandGen = buildAndInitRandGen(ziggRandGen, tmpFinal);
-		//TODO set final grade distribution rand gen here
-		gradeDistsPerClass.put(finalGradeClass.name, tmpFinalRandGen);
-	}//loadStudentGrades	
+		//set desired final mapping
+		setDesiredFinalGradeSummaryObj(new double[] {0.75,.2,0,0}, new double[] {0.0,1.0}, 2);
+		dispMessage("ClassGradeExperiment","buildRandomStudentGrades","Finished sampling "  +students.size() + " random student grades for " + classRosters.size() +" classes",true);
+	}//buildRandomStudentGrades
+	
+	private void loadSpecifiedStudentGrades(String fileName) {
+		dispMessage("ClassGradeExperiment","loadSpecifiedStudentGrades","Start loading grades from " + fileName,true);
 		
-	//build an experiment with random students 
-	//need to build distribution of raw grades for each class before this is called
-	public void buildStudentsAndClasses(int _numStudents, int _numClasses) {
-		dispMessage("ClassGradeExperiment","buildStudentsAndClasses","Start building " + _numStudents +" students and " + _numClasses+" classes",true);
-		numStudents = _numStudents;
+		//TODO - load grades specified by fileName (perhaps per class?
+		
+		dispMessage("ClassGradeExperiment","loadSpecifiedStudentGrades","Finished loading grades from " + fileName,true);
+		
+	}//loadSpecifiedStudentGrades
+
+	
+	//rebuild all students, classes and final grades class roster
+	private void buildStudentsAndClasses(String[] _studentNames, int _numClasses) {
+		dispMessage("ClassGradeExperiment","buildStudentsAndClasses","Start building " + _studentNames.length +" students and " + _numClasses+" classes",true);		
+		numStudents = _studentNames.length;
 		students.clear();
 		myStudent stdnt;
 		for (int i=0;i<numStudents;++i) {
-			stdnt = new myStudent(win.pa, "Student : " +i);
+			stdnt = new myStudent(win.pa, _studentNames[i]);
 			students.put(stdnt.ObjID, stdnt);			
-		}
+		}		
 		//build final grade roster
 		float[] finalUniBarLocSt = new float[] {classBarStart[0], win.curVisScrDims[1]- distBtwnAdjBars},
 				finalTransBarLocSt = new float[] {classBarStart[0], win.curVisScrDims[1] - 2*distBtwnAdjBars};		
 		
 		finalGradeClass = new myFinalGradeRoster(win.pa, this, "Final Grades For All Students", new float[][] { finalUniBarLocSt, finalTransBarLocSt});
+
+		//set students in final grade roster
 		finalGradeClass.setStudents(students);	
+		finalGradeClass.setUseZScore(getFlag(useZScoreFinalGradeIDX));
 		
 		numClasses = _numClasses;
 		myClassRoster cls;
@@ -138,34 +256,17 @@ public class ClassGradeExperiment extends BaseProbExpMgr{
 		for (int i=0;i<numClasses;++i) {
 			cls = new myClassRoster(win.pa, this, "Class : " + i, new float[][] { rawBarLocSt, transBarLocSt});
 			cls.setFinalGradeRoster(finalGradeClass);
+			cls.setStudents(students);			
 			classRosters.add(cls);
 			//move to next class's bar
 			rawBarLocSt[1] +=distBtwnAdjBars;
 			transBarLocSt[1] += distBtwnAdjBars;
-			cls.setStudents(students);			
 		}//for numClasses
-		//TODO remove this once it is working
-		loadStudentGrades();
-		setStudentGradeValues();
 		dispMessage("ClassGradeExperiment","buildStudentsAndClasses","Finished building " + students.size() +" students and " + classRosters.size()+" classes",true);		
 	}//buildStudentsAndClasses
 	
-	//call this to populate all student grades from class grade structure
-	public void setStudentGradeValues() {
-		dispMessage("ClassGradeExperiment","setStudentGradeValues","Start setting " + students.size() + " student grades for each of " + classRosters.size()+" classes",true);
-		//set grades
-		finalGradeClass.setBaseDistModel(gradeDistsPerClass.get(finalGradeClass.name));
-		for (myClassRoster cls : classRosters) {	
-			cls.setAllStudentRawGrades(perClassStudentGrades.get(cls.name));
-			cls.setBaseDistModel(gradeDistsPerClass.get(cls.name));
-			cls.transformStudentGradesToUniform();
-		}
-		
-//		finalGradeClass.calcTotalGrades();
-		
-		//after total grade is calculated, 
-		dispMessage("ClassGradeExperiment","setStudentGradeValues","Finished setting " + students.size() + " student grades for each of " + classRosters.size()+" classes",true);
-	}//setStudentGradeValues
+	
+
 
 //	//calculate the mapping of the raw grades, that follow some distribution, to uniform.
 //	public void calcMappingDistToUniform(double mappingStd) {		
@@ -178,11 +279,13 @@ public class ClassGradeExperiment extends BaseProbExpMgr{
 //		}
 //	}//calcInverseMapping
 	
+	//test efficacy of fleishman polynomial transform
 	public void testFleishTransform() {
+		myRandGen gradeSourceDistGen = buildAndInitRandGen(fleishRandGen_UniVar, new myProbSummary(new double[] {0,1,1,4},4));
 		//test fleishman polynomial-based transformation
 		_testFlTransform(gradeSourceDistGen, 10000);
 		double min = -1, max = 1;
-		double area = ((myFleishUniRandGen) gradeSourceDistGen).testInteg(min,max);
+		double area = ((myFleishUniVarRandGen) gradeSourceDistGen).testInteg(min,max);
 		dispMessage("ClassGradeExperiment","testFleishTransform","area under fleish poly from "+min+"->"+max+" : " + area,true);
 	}//
 	
@@ -296,6 +399,12 @@ public class ClassGradeExperiment extends BaseProbExpMgr{
 	//init and manage state flags
 	public void setUseZScore(boolean val) {				setFlag(useZScoreFinalGradeIDX,val);	}	
 	public void setRebuildDistOnGradeMod(boolean val) {	setFlag(rebuildDistOnGradeModIDX, val);	}
+	private static int[] rebuildFlags = new int[] {useZScoreFinalGradeIDX,rebuildDistOnGradeModIDX};
+	private void refreshBuildStateFlags() {
+		for (int idx : rebuildFlags) {
+			setFlag(idx, getFlag(idx));
+		}
+	}
 	
 	@Override
 	protected void initFlags(){stFlags = new int[1 + numFlags/32]; for(int i = 0; i<numFlags; ++i){setFlag(i,false);}}

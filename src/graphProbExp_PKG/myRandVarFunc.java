@@ -63,16 +63,8 @@ public abstract class myRandVarFunc {
 		setQuadSolver(_quadSlvr);
 	}//ctor
 	
-	public abstract void rebuildFunc(myProbSummary _summary);
-	
-	
-	//set new summary statistics for this function and rebuild functions 
-	protected void setSummary(myProbSummary _summary) {
-		summary=_summary;
-		funcs= new Function[numFuncs];
-		buildFuncs();
-	}
-		
+	public abstract void rebuildFuncs(myProbSummary _summary);
+
 	//set/get quadrature solver to be used to solve any integration for this RV func
 	public void setQuadSolver(myIntegrator _quadSlvr) {
 		quadSlvr = _quadSlvr;
@@ -192,12 +184,12 @@ class myGaussianFunc extends myRandVarFunc{
     //summary object needs to exist before ctor is called
 	public myGaussianFunc(BaseProbExpMgr _expMgr, myIntegrator _quadSlvr, myProbSummary _summaryObj, String _name) {
 		super(_expMgr,_quadSlvr, _name);
-		rebuildFunc(_summaryObj);
+		rebuildFuncs(_summaryObj);
 	}//ctor
 	public myGaussianFunc(BaseProbExpMgr _expMgr, myIntegrator _quadSlvr, myProbSummary _summaryObj) {this(_expMgr, _quadSlvr,  _summaryObj, "Gaussian");}
 	//rebuild function with new summary object
 	@Override
-	public void rebuildFunc(myProbSummary _summaryObj) {
+	public void rebuildFuncs(myProbSummary _summaryObj) {
 		double mu = _summaryObj.mean(), std = _summaryObj.std();
 		
 		gaussSclFact = (1.0/std) *normalSclFact;
@@ -205,7 +197,9 @@ class myGaussianFunc extends myRandVarFunc{
 		meanStd = mu/std;
 		invStdSclFact = (1.0/std) * invSqrt2;
 		//System.out.println("Mean : " + _mean + " std "+ _std + "| invStdSclFact : " +invStdSclFact);
-		setSummary(_summaryObj);
+		summary=_summaryObj;
+		funcs= new Function[numFuncs];
+		buildFuncs();
 	}//rebuildFunc
 	
 	@Override
@@ -218,7 +212,7 @@ class myGaussianFunc extends myRandVarFunc{
 		//zigurat functions -> want pure normal distribution
 		funcs[fZigIDX]		= (x -> Math.exp(-0.5 *(x*x)));
 		funcs[fInvZigIDX]	= (xinv -> (Math.sqrt(-2.0 * Math.log(xinv)))); 
-		// no closed form integrals exist, so have to use quadrature
+		// no closed form integrals exist, so have to use quadrature - THESE SHOULD BE IGNORED
 		funcs[fIntegIDX]		= (x -> x);
 		funcs[fZigIntegIDX]		= (x -> x);
 	}//buildFuncs
@@ -373,18 +367,18 @@ class myFleishFunc_Uni extends myRandVarFunc{
 	//summary object/
 	public myFleishFunc_Uni(BaseProbExpMgr _expMgr, myIntegrator _quadSlvr, myProbSummary _summaryObj, String _name) {
 		super(_expMgr, _quadSlvr, _name);
-		rebuildFunc(_summaryObj);
+		rebuildFuncs(_summaryObj);
 	}//ctor
 
 	@Override
-	public void rebuildFunc(myProbSummary _summaryObj) {
-		// TODO Auto-generated method stub
+	public void rebuildFuncs(myProbSummary _summaryObj) {
 		ready = false;
 		coeffs = calcCoeffs(_summaryObj);
 		//set summary builds functions - need to specify required elements before it is called
-		setSummary(_summaryObj);
-
-	}
+		summary=_summaryObj;
+		funcs= new Function[numFuncs];
+		buildFuncs();
+	}//rebuildFunc
 	
 	
 	//calculate the coefficients for the fleishman polynomial considering the given skew and excess kurtosis specified in summary object
@@ -653,7 +647,7 @@ class zigConstVals{
 			res[0] = rValGuess;
 			res[1] = zValAra[1];
 		}
-		func.expMgr.dispMessage("zigConstVals", "calcRValAndVol",  func.getShortDesc()+ " | Done w/ " + Nrect + " rects, @ iter : " + iter + " rVal : " + String.format("%3.18f", rValGuess)+ " Gives Vol : " + String.format("%3.18f", zValAra[1]),true);
+		//func.expMgr.dispMessage("zigConstVals", "calcRValAndVol",  func.getShortDesc()+ " | Done w/ " + Nrect + " rects, @ iter : " + iter + " rVal : " + String.format("%3.18f", rValGuess)+ " Gives Vol : " + String.format("%3.18f", zValAra[1]),true);
 		return res;
 	}//calcRVal
 	

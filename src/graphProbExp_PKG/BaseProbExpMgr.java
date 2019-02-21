@@ -33,11 +33,11 @@ public abstract class BaseProbExpMgr {
 	
 	//types of random number generators implemented/supported so far
 	public static final int 
-		ziggRandGen 		= 0,
-		fleishRandGen_Uni	= 1;	//uses fleishman algorithm for univariate - needs first 4 moments
-	
-    public static final String[] randGenAlgNames = new String[] {"Ziggurat Algorithm", "Fleishman Univariate Polynomial Algorithm"};
-	
+		ziggRandGen 			= 0,
+		fleishRandGen_UniVar	= 1,	//uses fleishman algorithm for univariate - needs first 4 moments
+		linearTransformMap		= 2,	//just performs linear transformation mapping - does not actually represent a random function
+		uniformTransformMap		= 3;	//just performs an order-based transformation from original grade to #/n where # is order in rank (from lowest to highest) and n is total # of grades
+    public static final String[] randGenAlgNames = new String[] {"Ziggurat Algorithm", "Fleishman Univariate Polynomial Algorithm", "Linear Transformation Mapping", "Uniform Transformation Mapping"};
 	
 	////////////////////////////////////////
 	// internal functionality
@@ -108,10 +108,20 @@ public abstract class BaseProbExpMgr {
 				//_numZigRects must be pwr of 2 - is forced to be if is not.  Should be 256
 				return new myZigRandGen(func, _numZigRects, randGenAlgNames[_type]);}
 			
-			case fleishRandGen_Uni : {
+			case fleishRandGen_UniVar : {
 				//specify fleishman rand function with either moments or data - if only moments given, then need to provide hull as well
 				myRandVarFunc func = new myFleishFunc_Uni(this, quadSlvrs[GL_QuadSlvrIDX], _summaryObj, randGenAlgNames[_type]);
-				return new myFleishUniRandGen(func,  randGenAlgNames[_type]);	}
+				return new myFleishUniVarRandGen(func,  randGenAlgNames[_type]);	}
+			
+			case linearTransformMap : {	
+				//does not actually represent a random function generator, just represents a transformation, to be used by class rosters in ClassGradeExperiment				
+				return new linearTransform(_summaryObj);}
+			
+			case uniformTransformMap : {
+				//does not represent random func generator/model, just represents a mapping from grade to order-based 1/n..n/n equal partition of grade space
+				return new uniformCountTransform(_summaryObj);}
+			
+			
 			default	:	{		
 				dispMessage("BaseProbExpMgr","buildAndInitRandGen","Unknown random generator type : " + _type + ".  Aborting.", true);
 				return null;

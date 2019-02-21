@@ -1,9 +1,10 @@
 package graphProbExp_PKG;
 
+import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 
 /**
- * Provides random generation of prob distributions given a uniform distribution
+ * Provides generation of random variables from prob distributions given a uniform distribution
  */
 public abstract class myRandGen implements Comparable<myRandGen> {
 	public final int ObjID;
@@ -15,7 +16,7 @@ public abstract class myRandGen implements Comparable<myRandGen> {
 	public final String name;
 	
 	//descriptor of this random generator
-	public final RandGenDesc desc;	
+	public RandGenDesc desc;	
 	
 	//function this rand gen uses
 	protected myRandVarFunc func;
@@ -35,27 +36,29 @@ public abstract class myRandGen implements Comparable<myRandGen> {
 		name=_name;
 		initFlags();
 		func = _func;
+		initRandGen();
+    }//ctor
+	
+	public void initRandGen() {
 		setFlag(funcSetIDX, true);
 		desc = new RandGenDesc(func.getQuadSolverName(), func.name, this);
 		//func built with summary data - allow for quick access
 		summary = func.summary;	
+		 _setFuncSummaryIndiv();
 		distVisObj = null;
-    }//ctor
+	}
 	
+	//set summary for this object and for function
 	public void setFuncSummary(myProbSummary _summary) {
 		summary = _summary;	
-		func.setSummary(_summary);
+		func.rebuildFuncs(_summary);
 		 _setFuncSummaryIndiv();
 	}//setFuncSummary
 	
+	//called whenever summary object is set/reset
 	public abstract void _setFuncSummaryIndiv();	
 	
 	public void setDistVisObj(myDistVis _distVisObj) {	distVisObj = _distVisObj;	}
-	
-	public void resetSummary(myProbSummary _summary) {
-		summary = _summary;
-		func.rebuildFunc(_summary);
-	}//reSetSummary
 	
     //thread-safe queries for uniform values
     protected long getNextLong() {return ThreadLocalRandom.current().nextLong();}  
@@ -76,8 +79,15 @@ public abstract class myRandGen implements Comparable<myRandGen> {
 		String res = name+"_"+ desc.quadName+"_" + func.getMinDescString();
 		return res;
 	}
+		
+	//mapping to go from uniform 0->1 to distribution (from p(X<= val) -> val) 
 	public abstract double inverseCDF(double _val);
+	//alias for above
+	public double uniformToDist(double _val) {return inverseCDF(_val);}
+	//mapping to go from distribution to uniform 0->1 (from val -> prob p(X<= val))
 	public abstract double CDF(double _val);
+	//alias for above
+	public double distToUniform(double _val) {return CDF(_val);}
 	
 	@Override
 	public int compareTo(myRandGen othr) {return desc.compareTo(othr.desc);}
@@ -91,10 +101,7 @@ public abstract class myRandGen implements Comparable<myRandGen> {
 		if(distVisObj == null) {return;}
 		distVisObj.drawVis(pa);
 	}
-	
-	
-	
-	
+		
 	//state flag management
 	private void initFlags(){stFlags = new int[1 + numFlags/32]; for(int i = 0; i<numFlags; ++i){setFlag(i,false);}}
 	public void setAllFlags(int[] idxs, boolean val) {for (int idx : idxs) {setFlag(idx, val);}}
@@ -118,7 +125,6 @@ class RandGenDesc implements Comparable<RandGenDesc>{
 	public final myRandGen randGen;
 	//names of quadrature algorithm and random number distribution name and algorithm name 
 	public final String quadName, distName, algName;
-		
 	
 	public RandGenDesc(String _quadName, String _distName, myRandGen _randGen) {
 		quadName = _quadName; 
@@ -133,8 +139,7 @@ class RandGenDesc implements Comparable<RandGenDesc>{
 		res = (res == 0 ? quadName.toLowerCase().compareTo(othr.quadName.toLowerCase()) : res);
 		res = (res == 0 ? algName.toLowerCase().compareTo(othr.algName.toLowerCase()) : res);
 		return (res == 0 ? Integer.compare(randGen.ObjID, othr.randGen.ObjID) : res);
-	}
-	
+	}//compareTo	
 	
 	@Override
 	public String toString() {
@@ -168,8 +173,10 @@ class myZigRandGen extends myRandGen{
 	
 	@Override
 	public void _setFuncSummaryIndiv() {
-		func.setZigVals(numZigRects);			
-		zigVals = func.zigVals;		
+		//these lines shouldn't be needed - changing summary will not change underlying functional nature of func or zigvals - 
+		//these are based on function, and have no bearing on moments, which is only thing that summary obj will have changed
+		//func.setZigVals(numZigRects);			
+		//zigVals = func.zigVals;		
 	}
 	
 	@Override
@@ -309,20 +316,21 @@ class myZigRandGen extends myRandGen{
  * class that will model a distribution using first 4 moments via a polynomial transformation
  * @author john *
  */
-
-class myFleishUniRandGen extends myRandGen{
+class myFleishUniVarRandGen extends myRandGen{
 	
 	//generator to manage synthesizing normals to feed fleishman
 	private myZigRandGen zigNormGen;
 	
 	
 	//min and max of synthesized
-	public myFleishUniRandGen(myRandVarFunc _func, String _name) {
+	public myFleishUniVarRandGen(myRandVarFunc _func, String _name) {
 		super(_func, _name);
 		//need to build a source of normal random vars
 		zigNormGen = new myZigRandGen(new myNormalFunc(func.expMgr, func.quadSlvr), 256, "Ziggurat Algorithm");		
 	}//ctor
-
+	
+	//if summary object is changed, new fleishman polynomial values need to be synthesized - this is done already in calling function 
+	//when func.rebuildFuncs is called	
 	@Override
 	public void _setFuncSummaryIndiv() {	}
 
@@ -415,3 +423,136 @@ class myFleishUniRandGen extends myRandGen{
 	}//CDF
 	
 }//class myFleishRandGen
+
+//////////////////////////////////
+// linear and uniform transformation classes
+//	these are just mappers and will not be used to synthesize random values
+
+abstract class transform extends myRandGen{
+	//func will be null for these, so all functionality that is dependent on func variable needs to be overridden
+	public transform(String _name, myProbSummary _summary) {
+		super(null, _name);
+		setFuncSummary(_summary);
+	}
+	//overrding base class verison to remove refs to func
+	@Override
+	public void initRandGen() {
+		setFlag(funcSetIDX, func!=null);
+		desc = new RandGenDesc("No Quad Solver", "No Rand Func", this);
+		distVisObj = null;
+	}//initRandGen
+	
+	//override base class version to remove ref to func, which will be null
+	@Override
+	public void setFuncSummary(myProbSummary _summary) {
+		summary = _summary;	
+		 _setFuncSummaryIndiv();
+	}//setFuncSummary
+	
+	//return string description of rand function
+	@Override
+	public String getFuncDataStr() {return "No Function for Transform RandGen - only has mapping";}
+
+	//transform "randGen" objects are actually intended only as a mappers,so never going to ever generate any values
+	@Override
+	public double[] getMultiSamples(int num) {	return new double[0];}
+	@Override
+	public double[] getMultiFastSamples(int num) {return new double[0];}
+	@Override
+	public double getSample() {return 0;}
+	@Override
+	public double getSampleFast() {return 0;}
+	@Override
+	public String getTransformName() {		return name+"_"+ _getTransformNameIndiv();	}
+	
+	public abstract String _getTransformNameIndiv();
+
+}//class transform
+
+//min/max to 0->1 -> using this method to facilitate implementing structure for trivial examples - 
+//will never generate values, nor will it ever access a random variable function.
+//only maps values via affine transformation to 0->1
+class linearTransform extends transform{
+	//func must not be null, but doesn't matter for this transforming rand gen
+	double min, max, diff;
+	//summary must have min and max
+	public linearTransform( myProbSummary _summary) {
+		super( "Linear Transform Mapping", _summary);		
+	}//ctor
+	//called whenever summary object is set/reset
+	@Override
+	public void _setFuncSummaryIndiv() {	
+		min = summary.getMin();
+		max = summary.getMax();
+		diff = max - min;
+		if(diff == 0) {//should never happen - give error if it does
+			System.out.println("The linear transform " + name + " must have min != max.  Min and max being set to 0 and 1");
+			min = 0;
+			max = 1.0;
+		}
+	}
+	//really just provides mapping from 0->1 to original span 
+	@Override
+	public double inverseCDF(double _val) {return (diff*_val)+min;}
+
+	@Override
+	public double CDF(double _val) {		return (_val - min)/diff;}
+
+	@Override
+	public String _getTransformNameIndiv() {		return "|Linear Transform | Min : "+ String.format("%3.8f", min) + " | Max : "+ String.format("%3.8f", max);	}
+	
+}//class linearTransform
+
+//maps each grade to a specific location based on its order - does not care about original grade value, just uses rank
+class uniformCountTransform extends transform{
+	//# of -unique- grades
+	int count;
+	//grades sorted in ascending order
+	TreeMap<Double, Integer> sortedGrades;
+	//ranks and actual grade values
+	TreeMap<Integer, Double> rankedGrades;
+	
+	//summary must be built by data and have data vals
+	public uniformCountTransform(myProbSummary _summary) {
+		super("Uniform Count Transform Mapping", _summary);
+	}
+
+	//This object MUST have vals, so that grades can be sorted;
+	//for final grade roster, this object must have updated summary object
+	@Override
+	public void _setFuncSummaryIndiv() {
+		//when summary is set, need to add all grades in ascending order to sortedGrades
+		sortedGrades = new TreeMap<Double, Integer>();
+		rankedGrades = new TreeMap<Integer, Double>();
+		double [] vals = summary.getDataVals();
+		//place in grade map
+		for (double val : vals) {			sortedGrades.put(val, 0);		}
+		//find count
+		count = sortedGrades.size();
+		//System.out.println("uniformCountTransform : This object has :"+ count+" elements");
+		//place count in sorted map - treats grades of same value as same grade
+		int idx =0;
+		for(double val : sortedGrades.keySet()) {		rankedGrades.put(idx, val);	sortedGrades.put(val, idx++);	}//start with 1
+	}
+	//provides mapping from rank/n to original grade
+	@Override
+	public double inverseCDF(double _val) {		
+		System.out.println("Wanting inv cdf of _val == " + _val + " currently contains : ");
+		for(int key : rankedGrades.keySet()) {
+			System.out.println("Key : " + key + " | Val :  "+ rankedGrades.get(key));
+		}
+		//update every time?
+		_setFuncSummaryIndiv();
+		return rankedGrades.get((int)(_val * count));	}
+	//provides mapping from original grade to rank/n (0->1)
+	@Override
+	public double CDF(double _val) {		
+		//update every time?
+		_setFuncSummaryIndiv();
+		
+		return (1.0 * sortedGrades.get(_val))/count;	}
+	
+	@Override
+	public String _getTransformNameIndiv() {return "Uniformly Ranked | # of unique grades : " + count;	}	
+	
+}//class uniformCountTransform

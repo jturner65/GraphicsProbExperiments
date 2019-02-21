@@ -12,18 +12,14 @@ public class Grade2DWindow extends myDispWindow {
 	private int numStudents = 5;
 	// # of classes to build final grade
 	private int numClasses = 3;
-	//std of mapping normal distribution
-	private float mappingStd = .213f;
 	//idxs - need one per object
 	public final static int
 		gIDX_NumStudents		= 0,
-		gIDX_NumClasses			= 1,
-		gIDX_MappingSTD			= 2;
+		gIDX_NumClasses			= 1;
 	//initial values - need one per object
 	public float[] uiVals = new float[]{
 			numStudents,
-			numClasses,
-			mappingStd
+			numClasses
 	};			//values of 8 ui-controlled quantities
 	public final int numGUIObjs = uiVals.length;	
 	/////////
@@ -48,9 +44,9 @@ public class Grade2DWindow extends myDispWindow {
 	//custom debug/function ui button names -empty will do nothing
 	public String[][] menuBtnNames = new String[][] {	//each must have literals for every button defined in side bar menu, or ignored
 		{},
-		{"Test Rand Gen", "Test R Calc","Func 3"},	//row 1
-		{"Func 1", "Test Fleish", "Tst Fl Range", "Func 4"},	//row 1
-		{"Dbg 1","Dbg 2","Dbg 3","Dbg 4","Dbg 5"}	
+		{"Test Rand Gen", "Test R Calc","Func 3"},				//row 1
+		{"Func 1", "Test Fleish", "Tst Fl Range", "Func 4"},	//row 2
+		{"Linear","Uniform","Dbg 3","Dbg 4","Dbg 5"}	
 	};
 
 	private myProbExpMgr tester;
@@ -64,7 +60,7 @@ public class Grade2DWindow extends myDispWindow {
 		trajFillClrCnst = GraphProbExpMain.gui_DarkCyan;		//override this in the ctor of the instancing window class
 		trajStrkClrCnst = GraphProbExpMain.gui_Cyan;
 		super.initThisWin(_canDrawTraj, true, false);
-	}
+	}//ctor
 			
 	@Override
 	protected void initMe() {
@@ -82,7 +78,7 @@ public class Grade2DWindow extends myDispWindow {
 		
 		//grade experiments
 		gradeAvgExperiment = new ClassGradeExperiment(this);
-		gradeAvgExperiment.buildStudentsAndClasses(numStudents, numClasses);
+		gradeAvgExperiment.buildStudentsClassesRandGrades(numStudents, numClasses);
 		//set visibility width and send to experiments
 		setVisScreenDimsPriv();			
 		//set offset to use for custom menu objects
@@ -125,9 +121,9 @@ public class Grade2DWindow extends myDispWindow {
 		int flIDX = idx/32, mask = 1<<(idx%32);
 		privFlags[flIDX] = (val ?  privFlags[flIDX] | mask : privFlags[flIDX] & ~mask);
 		switch(idx){
-			case reCalcRandGradeSpread 			: {
+			case reCalcRandGradeSpread : {//build new grade distribution
 				if (val) {
-					gradeAvgExperiment.buildStudentsAndClasses(numStudents, numClasses);
+					gradeAvgExperiment.buildStudentsClassesRandGrades(numStudents, numClasses);
 					addPrivBtnToClear(reCalcRandGradeSpread);
 				}
 				break;}
@@ -150,27 +146,23 @@ public class Grade2DWindow extends myDispWindow {
 		guiMinMaxModVals = new double [][]{
 			{2,100,1},						//# students
 			{1,9,1},						//# classes
-			{.0001,1,.0001}					//mapping std
 		};		//min max modify values for each modifiable UI comp	
 
 		guiStVals = new double[]{
 				uiVals[gIDX_NumStudents],	//# students
 				uiVals[gIDX_NumClasses],	//# classes
-				uiVals[gIDX_MappingSTD],	//mapping std
 				
 		};								//starting value
 		
 		guiObjNames = new String[]{
 				"Number of Students",
 				"Number of Classes",
-				"Std of Normal Mapping"
 		};								//name/label of component	
 		
 		//idx 0 is treat as int, idx 1 is obj has list vals, idx 2 is object gets sent to windows
 		guiBoolVals = new boolean [][]{
 			{true, false, true},	//# students
 			{true, false, true},	//# classes
-			{false,false,true}
 		};						//per-object  list of boolean flags
 		
 		//since horizontal row of UI comps, uiClkCoords[2] will be set in buildGUIObjs		
@@ -193,20 +185,15 @@ public class Grade2DWindow extends myDispWindow {
 			case gIDX_NumStudents 			:{
 				if(ival != numStudents){
 					numStudents = ival;
-					gradeAvgExperiment.buildStudentsAndClasses(numStudents, numClasses);
+					gradeAvgExperiment.buildStudentsClassesRandGrades(numStudents, numClasses);
 				}	break;}
 			
 			case gIDX_NumClasses 			:{
 				if(ival != numClasses){
 					numClasses = ival;
-					gradeAvgExperiment.buildStudentsAndClasses(numStudents, numClasses);
+					gradeAvgExperiment.buildStudentsClassesRandGrades(numStudents, numClasses);
 				}	break;}
 			
-			case gIDX_MappingSTD : {
-				if(val != mappingStd) {
-					mappingStd = val;
-					gradeAvgExperiment.calcInverseCDFSpan(mappingStd);
-				}	break;}
 			}
 		}//if val is different
 	}//setUIWinVals
@@ -341,7 +328,7 @@ public class Grade2DWindow extends myDispWindow {
 			pa.outStr2Scr("Clicked Btn row : Aux Func 2 | Btn : " + btn);
 			switch(btn){
 				case 0 : {	
-					gradeAvgExperiment.calcInverseCDFSpan(mappingStd);
+
 					resetButtonState();
 					break;}
 				case 1 : {	
@@ -362,13 +349,20 @@ public class Grade2DWindow extends myDispWindow {
 			pa.outStr2Scr("Clicked Btn row : Debug | Btn : " + btn);
 			switch(btn){
 				case 0 : {	
+					setPrivFlags(useZScore, false);
+					setPrivFlags(rebuildDistOnMove, true);
+					gradeAvgExperiment.linearTransformExperiment(numStudents, numClasses);
 					resetButtonState();
-					break;}//verify priority queue functionality
+					break;}
 				case 1 : {	
-
+					setPrivFlags(rebuildDistOnMove, true);
+					gradeAvgExperiment.uniformTransformExperiment(numStudents, numClasses);
 					resetButtonState();
-					break;}//verify FEL pq integrity
+					break;}
 				case 2 : {	
+					setPrivFlags(useZScore, true);
+					setPrivFlags(rebuildDistOnMove, true);
+					gradeAvgExperiment.linearTransformExperiment(numStudents, numClasses);
 					resetButtonState();
 					break;}
 				case 3 : {	
