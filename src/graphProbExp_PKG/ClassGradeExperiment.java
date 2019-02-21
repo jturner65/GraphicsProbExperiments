@@ -115,18 +115,19 @@ public class ClassGradeExperiment extends BaseProbExpMgr{
 		dispMessage("ClassGradeExperiment","uniformTransformExperiment","Finished building " + students.size() +" students and " + classRosters.size()+" classes for Uniform Mapping EXP",true);		
 	}//uniformTransformExperiment
 	
-//	//perform affine linear transformation of grades so that they span 0->1
-//	public void linearTransformZExperiment(int _numStudents, int _numClasses) {
-//		dispMessage("ClassGradeExperiment","linearTransformZExperiment","Start building " + _numStudents +" students and " + _numClasses+" classes for LinearTransform Z map EXP",true);
-//		
-//		//rebuild all student and class objs, and final roster object
-//		buildStudentsAndClasses(buildRandStudentNameList(_numStudents), _numClasses);
-//		//generate random/load specified student grades, assign to students
-//		buildAndSetStudentGrades(true, null);
-//		
-//		refreshBuildStateFlags();
-//		dispMessage("ClassGradeExperiment","linearTransformZExperiment","Finished building " + students.size() +" students and " + classRosters.size()+" classes for LinearTransform Z map EXP",true);		
-//	}//linearTransformZExperiment
+	//fleishman model of distribution
+	public void fleishModelExperiment(int _numStudents, int _numClasses) {
+		dispMessage("ClassGradeExperiment","fleishModelExperiment","Start building " + _numStudents +" students and " + _numClasses+" classes for Fleishman model of grades EXP",true);
+		//rebuild all student and class objs, and final roster object
+		buildStudentsAndClasses(buildRandStudentNameList(_numStudents), _numClasses);
+		//generate random/load specified student grades, assign to students
+		buildAndSetStudentGrades(true, null);
+		//build randGen mapper
+		setRandGensAndTransformGrades(fleishRandGen_UniVar);
+		refreshBuildStateFlags();
+		dispMessage("ClassGradeExperiment","fleishModelExperiment","Finished building " + students.size() +" students and " + classRosters.size()+" classes for Fleishman model of grades EXP",true);		
+	}//uniformTransformExperiment
+
 	
 	//build list of students with randomly assigned names - to be replaced by file loading all student names
 	public String[] buildRandStudentNameList(int _numStudents) {

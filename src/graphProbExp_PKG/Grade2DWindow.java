@@ -46,7 +46,7 @@ public class Grade2DWindow extends myDispWindow {
 		{},
 		{"Test Rand Gen", "Test R Calc","Func 3"},				//row 1
 		{"Func 1", "Test Fleish", "Tst Fl Range", "Func 4"},	//row 2
-		{"Linear","Uniform","Dbg 3","Dbg 4","Dbg 5"}	
+		{"Linear","Uniform","Linear w/Z","Fleish","Dbg 5"}	
 	};
 
 	private myProbExpMgr tester;
@@ -366,6 +366,7 @@ public class Grade2DWindow extends myDispWindow {
 					resetButtonState();
 					break;}
 				case 3 : {	
+					gradeAvgExperiment.fleishModelExperiment(numStudents, numClasses);
 					resetButtonState();
 					break;}
 				case 4 : {						

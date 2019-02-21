@@ -96,7 +96,8 @@ public abstract class myRandGen implements Comparable<myRandGen> {
 	public void calcFValsForDisp(int numVals, double low, double high) {
 		
 	}//calcFValsForDisp
-		
+	
+	//draw a represntation of this distribution
 	public void drawDist(GraphProbExpMain pa) {
 		if(distVisObj == null) {return;}
 		distVisObj.drawVis(pa);
@@ -197,10 +198,10 @@ class myZigRandGen extends myRandGen{
 	@Override
 	public double getSample() {
 		double res;
-		if(func.summary.doClipAllSamples()) {
+		if(summary.doClipAllSamples()) {
 			do {		
 				res = func.processResValByMmnts(nextNormal53());
-			} while (!func.summary.checkInBnds(res));
+			} while (!summary.checkInBnds(res));
 		} else {
 			res = func.processResValByMmnts(nextNormal53());
 		}
@@ -211,10 +212,10 @@ class myZigRandGen extends myRandGen{
 	@Override
 	public double getSampleFast() {
 		double res;
-		if(func.summary.doClipAllSamples()) {
+		if(summary.doClipAllSamples()) {
 			do {		
 				res = func.processResValByMmnts(nextNormal32());
-			} while (!func.summary.checkInBnds(res));
+			} while (!summary.checkInBnds(res));
 		} else {
 			res = func.processResValByMmnts(nextNormal32());
 		}
@@ -338,13 +339,13 @@ class myFleishUniVarRandGen extends myRandGen{
 	public double[] getMultiSamples(int num) {
 		double[] res = new double[num];
 		double val;
-		boolean clipRes = func.summary.doClipAllSamples();
+		boolean clipRes = summary.doClipAllSamples();
 		//transformation via mean and std already performed as part of f function
 		if (clipRes){
 			int idx = 0;
 			while (idx < num) {
 				val = func.f(zigNormGen.getSample());	
-				if(func.summary.checkInBnds(val)) {				res[idx++]=val;			}
+				if(summary.checkInBnds(val)) {				res[idx++]=val;			}
 			}
 		} else {
 			for(int i =0;i<res.length;++i) {		res[i]=func.f(zigNormGen.getSample());			}
@@ -355,13 +356,13 @@ class myFleishUniVarRandGen extends myRandGen{
 	@Override
 	public double[] getMultiFastSamples(int num) {
 		double[] res = new double[num];
-		boolean clipRes = func.summary.doClipAllSamples();
+		boolean clipRes = summary.doClipAllSamples();
 		//transformation via mean and std already performed as part of f function
 		if (clipRes){
 			int idx = 0;
 			while (idx < num) {
 				double val = func.f(zigNormGen.getSampleFast());	
-				if(func.summary.checkInBnds(val)) {				res[idx++]=val;			}
+				if(summary.checkInBnds(val)) {				res[idx++]=val;			}
 			}
 		} else {
 			for(int i =0;i<res.length;++i) {	res[i]=func.f(zigNormGen.getSampleFast());			}
@@ -372,10 +373,10 @@ class myFleishUniVarRandGen extends myRandGen{
 	@Override
 	public double getSample() {
 		double res;
-		if(func.summary.doClipAllSamples()) {
+		if(summary.doClipAllSamples()) {
 			do {		
 				res = func.f(zigNormGen.getSample());
-			} while (!func.summary.checkInBnds(res));
+			} while (!summary.checkInBnds(res));
 		} else {
 			res = func.f(zigNormGen.getSample());
 		}
@@ -393,7 +394,7 @@ class myFleishUniVarRandGen extends myRandGen{
 		if(func.summary.doClipAllSamples()) {
 			do {		
 				res = func.f(zigNormGen.getSampleFast());
-			} while (!func.summary.checkInBnds(res));
+			} while (!summary.checkInBnds(res));
 		} else {
 			res = func.f(zigNormGen.getSampleFast());
 		}
@@ -536,21 +537,22 @@ class uniformCountTransform extends transform{
 	}
 	//provides mapping from rank/n to original grade
 	@Override
-	public double inverseCDF(double _val) {		
-		System.out.println("Wanting inv cdf of _val == " + _val + " currently contains : ");
+	public double inverseCDF(double _val) {	
+		int desKey = (int)(((_val) * count) - 1.0/count);
+		System.out.println("Wanting inv cdf of _val == " + _val + " des key : " + desKey+ " currently contains : ");
 		for(int key : rankedGrades.keySet()) {
 			System.out.println("Key : " + key + " | Val :  "+ rankedGrades.get(key));
 		}
 		//update every time?
 		_setFuncSummaryIndiv();
-		return rankedGrades.get((int)(_val * count));	}
+		return rankedGrades.get(desKey);	}
 	//provides mapping from original grade to rank/n (0->1)
 	@Override
 	public double CDF(double _val) {		
 		//update every time?
 		_setFuncSummaryIndiv();
 		
-		return (1.0 * sortedGrades.get(_val))/count;	}
+		return (1.0 * sortedGrades.get(_val)+1)/count;	}
 	
 	@Override
 	public String _getTransformNameIndiv() {return "Uniformly Ranked | # of unique grades : " + count;	}	

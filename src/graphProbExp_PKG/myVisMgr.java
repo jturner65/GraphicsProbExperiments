@@ -91,7 +91,7 @@ public abstract class myVisMgr {
 		pa.text(name, 0, 0);
 		_drawVisIndiv(pa);
 		pa.popStyle();pa.popMatrix();			
-	}
+	}//drawVis
 	
 	protected abstract void _drawVisIndiv(GraphProbExpMain pa);
 	
@@ -245,17 +245,17 @@ class gradeBar extends myVisMgr {
  */
 class myDistVis extends myVisMgr {
 	//the func to draw
-	private myRandVarFunc func;
+	private myRandGen randGen;
 	//graph frame dims
 	private float[] frameDims = new float[4];
 	//bounds for graph box - left, top, right, bottom
 	private static final float[] frmBnds = new float[] {10.0f, 30.0f, 10.0f, 20.0f};
 	
 	
-	public myDistVis(float[] _startRect, myRandVarFunc _func) {
-		super(_startRect,"Visualization of " + _func.name);
+	public myDistVis(float[] _startRect, myRandGen _gen) {
+		super(_startRect,"Visualization of " + _gen.name);
 		setGraphFrameDims();
-		func=_func;
+		randGen=_gen;
 	}//ctor
 
 	private void setGraphFrameDims() {
@@ -266,8 +266,6 @@ class myDistVis extends myVisMgr {
 	public void setValsToDisp(int numVals, double low, double high) {
 		
 	}
-	
-	
 	
 	@Override
 	public boolean _mouseClickIndiv(int msXLoc, int mxYLoc, int btn) {
