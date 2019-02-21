@@ -539,10 +539,10 @@ class uniformCountTransform extends transform{
 	@Override
 	public double inverseCDF(double _val) {	
 		int desKey = (int)(((_val) * count) - 1.0/count);
-		System.out.println("Wanting inv cdf of _val == " + _val + " des key : " + desKey+ " currently contains : ");
-		for(int key : rankedGrades.keySet()) {
-			System.out.println("Key : " + key + " | Val :  "+ rankedGrades.get(key));
-		}
+//		System.out.println("Wanting inv cdf of _val == " + _val + " des key : " + desKey+ " currently contains : ");
+//		for(int key : rankedGrades.keySet()) {
+//			System.out.println("Key : " + key + " | Val :  "+ rankedGrades.get(key));
+//		}
 		//update every time?
 		_setFuncSummaryIndiv();
 		return rankedGrades.get(desKey);	}
