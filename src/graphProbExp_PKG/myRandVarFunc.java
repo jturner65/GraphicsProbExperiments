@@ -57,6 +57,15 @@ public abstract class myRandVarFunc {
 	protected static double invSqrt2 = 1.0/Math.sqrt(2.0),
 							ln2 = Math.log(2.0);
 	
+	//types of functions to query
+	public static final int
+		queryFuncIDX = 0,
+		queryCDFIDX = 1,
+		queryInvCDFIDX = 2,
+		queryIntegIDX = 3;
+	
+	public static final String[] queryFuncTypes = new String[] {"Function Eval", "CDF Eval", "Inv CDF Eval","Integral Eval"};	
+	
 	public myRandVarFunc(BaseProbExpMgr _expMgr, myIntegrator _quadSlvr, String _name) {
 		expMgr = _expMgr;name=_name;
 		initFlags();
@@ -83,6 +92,23 @@ public abstract class myRandVarFunc {
 	public double getVar() {return summary.var();}
 	public double getSkew() {return summary.skew();}
 	public double getKurt() {return summary.kurt();}
+	
+	//ignores x2 for all functions but integral
+	public final double getFuncVal(int funcType, double x1, double x2) {
+		switch(funcType) {
+		case queryFuncIDX : {
+			return funcs[fIDX].apply(x1);}
+		case queryCDFIDX : {
+			return CDF(x1);	}
+		case queryInvCDFIDX: {
+			return CDF_inv(x1);}
+		case queryIntegIDX : {
+			return integral_f(x1,x2);}		
+		default : {
+			expMgr.dispMessage("myRandVarFunc", "getFuncVal", "Attempting to evaluate unknown func type : " + funcType +" on value(s) : [" + x1 + ", "+ x2 + "] Aborting." , true);
+			return x1;}
+		}
+	}//getFuncVal
 	
 	//build individual functions that describe pdf, inverse pdf and zigggurat (scaled to y==1 @ x==0) pdf and inv pdf, if necesssary
 	protected abstract void buildFuncs();
@@ -318,7 +344,7 @@ class myGaussianFunc extends myRandVarFunc{
 	}//calcProbitApprox
 	
 	
-	//get CDF of passed x value for this distribution
+	//get CDF of passed x value for this distribution - assume this value is from actual gaussian distribution (i.e. hasn't been normalized yet)
 	@Override
 	public double CDF(double x) {	return integral_f(Double.NEGATIVE_INFINITY, x);	}
 	//calculate inverse cdf of passed value 0->1; this is probit function, related to inverse erf
@@ -474,8 +500,9 @@ class myFleishFunc_Uni extends myRandVarFunc{
 		funcs[fInvZigIDX]	= (xinv -> xinv);
 		//easily integrated since we have coefficients of polynomial - should always be used in definite integral over a span, so coefficient will cancel
 		//TODO need to verify this - should integral be of full equation or just underlying polynomial
-		funcs[fIntegIDX]		= (x -> (((x*coeffs[0] + .5*x*x*coeffs[1] + (1.0/3.0)*x*x*x*coeffs[2]+ .25*x*x*x*x*coeffs[3])*std) +  mu));
-		funcs[fZigIntegIDX]		= (x -> (x*coeffs[0] + .5*x*x*coeffs[1] + (1.0/3.0)*x*x*x*coeffs[2]+ .25*x*x*x*x*coeffs[3]));
+		//funcs[fIntegIDX]		= (x -> ((x*(coeffs[0]+mu) + .5*x*x*coeffs[1] + (1.0/3.0)*x*x*x*coeffs[2]+ .25*x*x*x*x*coeffs[3])*std));
+		funcs[fIntegIDX]		= (x -> ((x*(coeffs[0]+mu + x*(.5*coeffs[1] + x*((1.0/3.0)*coeffs[2]+ .25*x*coeffs[3]))))*std));
+		funcs[fZigIntegIDX]		= (x -> (x*(coeffs[0] + x*(.5*coeffs[1] + x*((1.0/3.0)*coeffs[2]+ .25*x*coeffs[3])))));
 
 	}//buildFuncs
 

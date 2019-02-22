@@ -13,7 +13,7 @@ public abstract class myVisMgr {
 	public final int ObjID;
 	private static int IDCnt = 0;
 	//title string to display over visualiztion
-	protected final String name;
+	protected String name;
 	//check in this rectangle for a click in this object -> xStart,yStart (upper left corner), width,height
 	protected final float[] startRect;
 	//internal to base class state flags - bits in array holding relevant process info restricted to base class
@@ -27,6 +27,7 @@ public abstract class myVisMgr {
 	protected static final int[] 
 			clr_black = new int[] {0,0,0,255},
 			clr_white = new int[] {255,255,255,255},
+			clr_clearWite = new int[] {255,255,255,50},
 			clr_red = new int[] {255,0,0,255}, 
 			clr_green = new int[] {0,255,0,255},
 			clr_grey = new int[] {100,100,100,255};	
@@ -63,6 +64,11 @@ public abstract class myVisMgr {
 		//if btn >= 0 then mouse drag in bounds of this object
 		return _mouseDragIndiv(msXLoc, mxYLoc, btn);
 	}//checkMouseMoveDrag
+	
+	//modify name to reflect changes in underlying data/distribution
+	public void updateName(String _newName) {
+		this.name = _newName;
+	}
 	
 	//functionality when mouse is released
 	public void mouseRelease(){
@@ -153,6 +159,7 @@ class gradeBar extends myVisMgr {
 		owningClass = _owningClass;
 	}//ctor
 	//random color ctor - used by classes
+		
 	
 	@Override
 	public boolean _mouseClickIndiv(int msXLoc, int mxYLoc, int btn) {
@@ -181,13 +188,11 @@ class gradeBar extends myVisMgr {
 		return false;
 	}//_mouseDragIndiv
 	
-	
 	//if mouse over this bar - if near student, show student's name at mouse loc?
 	@Override
 	public boolean _mouseOverIndiv(int msXLoc, int msYLoc) {
 		return false;
 	}//_mouseDragIndiv
-
 	
 	//release student being dragged
 	@Override
@@ -239,71 +244,200 @@ class gradeBar extends myVisMgr {
 }//class gradeBar
 
 /**
- * this class will display the results of a random variable function 
+ * this class will display the results of a random variable function/generator
  * @author john
  *
  */
 class myDistVis extends myVisMgr {
 	//the func to draw
-	private myRandGen randGen;
+	private final myRandGen randGen;
 	//graph frame dims
 	private float[] frameDims = new float[4];
 	//bounds for graph box - left, top, right, bottom
-	private static final float[] frmBnds = new float[] {10.0f, 30.0f, 10.0f, 20.0f};
+	private static final float[] frmBnds = new float[] {60.0f, 30.0f, 20.0f, 20.0f};
+	//x,y vals for calculation - n x 2 array, n points of x=0 idx, y=1 idx values; min, max, diff values of func eval (in x=idx 0 and in y = idx 1)
+	private double[][] funcVals, axisDispVals,minMaxDiffFuncVals;
+	//x,y vals for display - n x 2 array, n points of x=0 idx, y=1 idx values - x=0 -> dispWidth; y=0->dispHeight; axis values, to be displayed at equally space intervals along axis
+	private float[][] dispVals,  axisVals;
+	//whether this is currently display function values or histogram values
+	private boolean showHist;
+	//format strings for x and y values to display on graphs
+	private final String fmtXStr = "%3.4f", fmtYStr = "%3.4f";
+	//axis tick dim on either side of axis
+	private static final float tic = 5.0f;
 	
 	
-	public myDistVis(float[] _startRect, myRandGen _gen) {
-		super(_startRect,"Visualization of " + _gen.name);
+	public myDistVis(float[] _dims, myRandGen _gen) {
+		super(new float[] {_dims[0],_dims[1],_dims[2], _dims[3]},"Vis of " + _gen.name);
 		setGraphFrameDims();
 		randGen=_gen;
 	}//ctor
 
-	private void setGraphFrameDims() {
+	private void setGraphFrameDims() {//start x, start y, width, height
 		frameDims = new float[] {frmBnds[0], frmBnds[1], startRect[2]-frmBnds[0]-frmBnds[2], startRect[3]-frmBnds[1]-frmBnds[3]};  		
 	}
 	
-	//set values to display
-	public void setValsToDisp(int numVals, double low, double high) {
-		
-	}
+	//
+	//set function and display values from randGen; scale function values to properly display in frame
+	//_funcVals : x and y values of function to be plotted; 
+	//_minMaxDiffFuncVals : min, max, diff y values of function to be plotted, for scaling
+	public void setValuesFunc(double[][] _funcVals, double[][] _minMaxDiffFuncVals) {
+		funcVals = _funcVals;
+		minMaxDiffFuncVals = _minMaxDiffFuncVals;
+		rescaleDispValues();
+		showHist = false;
+		setIsVisible(true);
+	}//setValuesFunc
+	
+	//set values to display a distribution result - display histogram
+	//_bucketVals : n buckets(1st idx); idx2 : idx 0 is lower x value of bucket, y value is count; last entry should always have 0 count
+	//_minMaxFuncVals : 1st array is x min,max, diff; 2nd array is y axis min, max, diff
+	public void setValuesHist(double[][] _bucketVals, double[][] _minMaxDiffFuncVals) {
+		funcVals = _bucketVals;		
+		minMaxDiffFuncVals = _minMaxDiffFuncVals;
+		//each dispValue should be min x position along x axis for hist, and height of bar scaled to fit in frame
+		rescaleDispValues();
+		showHist = true;
+		setIsVisible(true);
+	}//setValuesHist
+	
+	//build axis values to display along axes
+	private void buildAxisVals() {
+		int numAxisVals = 21;
+		axisVals = new float[numAxisVals][2];
+		axisDispVals = new double[numAxisVals][2]; 
+		float[] denom = new float[] {frameDims[2]/(numAxisVals-1), -(frameDims[3]/(numAxisVals-1)*.95f)};
+		for(int i=0;i<axisVals.length;++i) {
+			float iterDenom = i/(1.0f*numAxisVals-1);
+			for (int j=0;j<2;++j) {
+				//location of tick line
+				axisVals[i][j] = i*denom[j];
+				//value to display
+				axisDispVals[i][j] = minMaxDiffFuncVals[j][0] + (iterDenom *minMaxDiffFuncVals[j][2]);	
+			}	
+		}		
+	}//buildAxisVals	
+	
+	private void rescaleDispValues() {	
+		dispVals = new float[funcVals.length][2];
+		for(int i=0;i<dispVals.length;++i) {	
+			float scaleX = (float) ((funcVals[i][0] - minMaxDiffFuncVals[0][0])/minMaxDiffFuncVals[0][2]);
+			dispVals[i][0] = scaleX*frameDims[2];
+			//set y values to be negative so will display properly (up instead of down)
+			//how much to scale height
+			float scaleY = -(float) ((funcVals[i][1] - minMaxDiffFuncVals[1][0])/minMaxDiffFuncVals[1][2]);
+			dispVals[i][1] =  scaleY*frameDims[3]*.95f;		
+		}		
+		buildAxisVals();
+	}//rescaleDispValues
+	
+	//clear precalced values for visualization
+	public void clearEvalVals() {
+		funcVals = new double[0][0];
+		dispVals = new float[0][0];
+		axisVals = new float[0][0];
+		axisDispVals = new double[0][0]; 
+		minMaxDiffFuncVals = new double[2][3];
+		showHist = false;
+		setIsVisible(false);
+	}//clearVals
 	
 	@Override
 	public boolean _mouseClickIndiv(int msXLoc, int mxYLoc, int btn) {
-		// TODO Auto-generated method stub
 		return false;
 	}//_mouseClickIndiv
 
 	@Override
 	public boolean _mouseDragIndiv(int msXLoc, int mxYLoc, int btn) {
-		// TODO Auto-generated method stub
 		return false;
 	}//_mouseDragIndiv
 
 	@Override
 	public boolean _mouseOverIndiv(int msXLoc, int mxYLoc) {
-		// TODO Auto-generated method stub
 		return false;
 	}//_mouseOverIndiv
 
 	@Override
-	public void _mouseReleaseIndiv() {
-		// TODO Auto-generated method stub
-		
+	public void _mouseReleaseIndiv() {		
 	}//_mouseReleaseIndiv
 
 	@Override
-	public void _setDispWidthIndiv(float dispWidth) {
+	public void _setDispWidthIndiv(float dispWidth) {	
 		//resize frame
 		setGraphFrameDims();
-		
+		//rescale any values 
+		if(funcVals == null) {clearEvalVals();}
+		rescaleDispValues();		
 	}//_setDispWidthIndiv
-
+	
+	//draw functional result
+	private void _drawFunc(GraphProbExpMain pa) {
+		pa.setFill(clr_black);
+		pa.point(dispVals[0][0], dispVals[0][1], 0);
+		for (int idx = 1; idx <dispVals.length;++idx) {	
+			//draw point 			
+			pa.point(dispVals[idx][0], dispVals[idx][1], 0);
+			//draw line between points
+			pa.line(dispVals[idx-1][0], dispVals[idx-1][1], 0, dispVals[idx][0], dispVals[idx][1], 0);
+		}			
+		drawAxes(pa);
+	}//_drawFunc
+	
+	//draw histogram of random value results
+	private void _drawHist(GraphProbExpMain pa) {
+		//draw all histogram values - x == bucket spans, y = count
+		pa.setFill(clr_red);
+		for (int idx = 0; idx <dispVals.length-1;++idx) {	
+			pa.rect(dispVals[idx][0], 0, (dispVals[idx+1][0]-dispVals[idx][0]), dispVals[idx][1]);			
+		}
+		drawAxes(pa);
+	}//_drawFunc
+	
+	
+	//draw x and y axis values
+	private void drawAxes(GraphProbExpMain pa) {
+		pa.pushMatrix();pa.pushStyle();
+		pa.setFill(clr_white);
+		for (int idx = 0; idx <axisVals.length;++idx) {
+			float xVal = axisVals[idx][0];
+			String dispX = String.format(fmtXStr, axisDispVals[idx][0]); 
+			//draw tick line @ x Val
+			pa.setStroke(clr_white);
+			pa.line(xVal, -tic, 0, xVal, tic, 0);	
+			//draw line to other side
+			pa.setStroke(clr_clearWite);
+			pa.line(xVal, -frameDims[3], 0, xVal, tic, 0);	
+			//draw text for display
+			pa.text(dispX, xVal - 20.0f, tic+10.0f);
+			if(idx%2==0) {//only draw every other y tick
+				float yVal = axisVals[idx][1];
+				String dispY = String.format(fmtYStr, axisDispVals[idx][1]);
+				//draw line @ y Val
+				pa.setStroke(clr_white);
+				pa.line(-tic, yVal, 0, tic, yVal, 0);
+				//draw line to other side
+				pa.setStroke(clr_clearWite);
+				pa.line(-tic, yVal, 0, frameDims[2], yVal, 0);
+				//draw text for display
+				pa.text(dispY, -tic-frmBnds[0]+10, yVal+5.0f);
+			}
+		}
+		pa.popStyle();pa.popMatrix();
+	}//drawAxes
+	
 	@Override
 	public void _drawVisIndiv(GraphProbExpMain pa) {
-		pa.setFill(clr_white);
-		pa.setStroke(clr_black);
+		pa.setFill(clr_black);
+		pa.setStroke(clr_white);
+	
+		//draw box around graph area
 		pa.rect(frameDims);
-		
+		pa.pushMatrix();pa.pushStyle();
+		pa.translate(frameDims[0],frameDims[1]+frameDims[3], 0.0f);
+		pa.sphere(3.0f);
+		if (showHist) {			_drawHist(pa);		} 
+		else {					_drawFunc(pa);		}
+		pa.popStyle();pa.popMatrix();
 	}//_drawVisIndiv
 	
 }

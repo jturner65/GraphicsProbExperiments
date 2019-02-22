@@ -12,19 +12,34 @@ public class Grade2DWindow extends myDispWindow {
 	private int numStudents = 5;
 	// # of classes to build final grade
 	private int numClasses = 3;
+	//eval func IDX
+	private int funcEvalType = 0, funcEvalNumVals = 10000, funcEvalNumBuckets = 10;
+	//lower and upper bound for functional evaluation 
+	private float funcEvalLow = 0, funcEvalHigh = 1;
+	
 	//idxs - need one per object
 	public final static int
 		gIDX_NumStudents		= 0,
-		gIDX_NumClasses			= 1;
+		gIDX_NumClasses			= 1,
+		gIDX_FuncTypeEval		= 2,
+		gIDX_FuncEvalLower		= 3,
+		gIDX_FuncEvalHigher		= 4, 
+		gIDX_FuncEvalNumVals	= 5,
+		gIDX_FuncEvalNumBkts	= 6;
 	//initial values - need one per object
 	public float[] uiVals = new float[]{
 			numStudents,
-			numClasses
+			numClasses,
+			funcEvalType,
+			funcEvalLow,
+			funcEvalHigh,
+			funcEvalNumVals,
+			funcEvalNumBuckets
 	};			//values of 8 ui-controlled quantities
 	public final int numGUIObjs = uiVals.length;	
 	/////////
 	//ui button names -empty will do nothing, otherwise add custom labels for debug and custom functionality names
-
+	public static final String[] gIDX_FuncTypeEvalList = myRandVarFunc.queryFuncTypes;
 
 	//////////////
 	// local/ui interactable boolean buttons
@@ -37,8 +52,11 @@ public class Grade2DWindow extends myDispWindow {
 			reCalcRandGradeSpread 		= 0,					//recalculate random grades given specified class and student # parameters
 			showScaledTransGrades 		= 1,					//display transformed grades from range 0->1 or in natural uniform scaled mapping from underlying distribution
 			useZScore					= 2,					//whether or not to use the z score calc to transform the uniform final grades
-			rebuildDistOnMove			= 3;					//rebuild class distribution when value is moved
-	public static final int numPrivFlags = 4;
+			rebuildDistOnMove			= 3,					//rebuild class distribution when value is moved
+			//drawing functions
+			drawFuncEval				= 4,					//draw results of function evaluation
+			drawHistEval				= 5;					//draw results of histogram evaluation
+	public static final int numPrivFlags = 6;
 
 	/////////
 	//custom debug/function ui button names -empty will do nothing
@@ -94,20 +112,25 @@ public class Grade2DWindow extends myDispWindow {
 				"Recalculating Grades",
 				"Showing Scaled Uni Grades [0->1]",
 				"ZScore for final grades",
-				"Rebuild Class dist on move"
+				"Rebuild Class dist on move",
+				"Eval/Draw Func on Bounds",
+				"Eval/Draw  Distribution"
 		};
 		falsePrivFlagNames = new String[]{			//needs to be in order of flags
 				"Recalculate Grades",
 				"Showing Unscaled Uni Grades",
 				"Specific Dist for final grades",
-				"Don't rebuild class dist on move"
-				
+				"Don't rebuild class dist on move",
+				"Eval/Draw Func on Bounds",
+				"Eval/Draw Distribution"				
 		};
 		privModFlgIdxs = new int[]{					//idxs of buttons that are able to be interacted with
 				reCalcRandGradeSpread,
 				showScaledTransGrades,
 				useZScore,
-				rebuildDistOnMove
+				rebuildDistOnMove,
+				drawFuncEval,
+				drawHistEval
 		};
 		numClickBools = privModFlgIdxs.length;	
 		initPrivBtnRects(0,numClickBools);
@@ -125,6 +148,8 @@ public class Grade2DWindow extends myDispWindow {
 				if (val) {
 					gradeAvgExperiment.buildStudentsClassesRandGrades(numStudents, numClasses);
 					addPrivBtnToClear(reCalcRandGradeSpread);
+					setPrivFlags(drawHistEval, false);
+					setPrivFlags(drawFuncEval, false);
 				}
 				break;}
 			case showScaledTransGrades : {
@@ -136,6 +161,34 @@ public class Grade2DWindow extends myDispWindow {
 			case rebuildDistOnMove : {
 				gradeAvgExperiment.setRebuildDistOnGradeMod(val);
 				break;}
+			//evalPlotClassDists(boolean isHist, int funcType, int numVals, int numBuckets, double low, double high)
+			case drawFuncEval : {
+				if (val) {
+					setPrivFlags(drawHistEval, false);
+					//first clear existing results					
+					gradeAvgExperiment.clearAllPlotEval();
+					//now evaluate new results
+					gradeAvgExperiment.evalPlotClassDists(false, funcEvalType, funcEvalNumVals,funcEvalNumBuckets,funcEvalLow, funcEvalHigh);
+				} else {//turning off
+					if(!getFlags(drawHistEval)) {//if both off then set class experiment draw evals to off
+						gradeAvgExperiment.setShowPlots(false);
+					}
+				}
+				break;}
+			case drawHistEval : {
+				if (val) {
+					setPrivFlags(drawFuncEval, false);	
+					//first clear existing results					
+					gradeAvgExperiment.clearAllPlotEval();
+					//now evaluate new results
+					gradeAvgExperiment.evalPlotClassDists(true, funcEvalType, funcEvalNumVals,funcEvalNumBuckets,funcEvalLow, funcEvalHigh);					
+				} else {//turning off					
+					if(!getFlags(drawFuncEval)) {//if both off then set class experiment draw evals to off
+						gradeAvgExperiment.setShowPlots(false);
+					}
+				}
+				break;}
+			
 		}
 	}
 	
@@ -146,23 +199,44 @@ public class Grade2DWindow extends myDispWindow {
 		guiMinMaxModVals = new double [][]{
 			{2,100,1},						//# students
 			{1,9,1},						//# classes
+			{0,gIDX_FuncTypeEvalList.length-1,1}, //gIDX_FuncTypeEval	
+			{-10.0, 10.0,.01},				//gIDX_FuncEvalLower
+			{-10.0, 10.0,.01},				//gIDX_FuncEvalHigher
+			{10000,1000000,1000},           // gIDX_FuncEvalNumVals 
+			{10,1000,1}                     // gIDX_FuncEvalNumBkts 
+			
 		};		//min max modify values for each modifiable UI comp	
 
 		guiStVals = new double[]{
-				uiVals[gIDX_NumStudents],	//# students
-				uiVals[gIDX_NumClasses],	//# classes
-				
+				uiVals[gIDX_NumStudents],		//# students
+				uiVals[gIDX_NumClasses],		//# classes
+				uiVals[gIDX_FuncTypeEval],		//gIDX_FuncTypeEval	
+				uiVals[gIDX_FuncEvalLower],		//gIDX_FuncEvalLower
+				uiVals[gIDX_FuncEvalHigher],	//gIDX_FuncEvalHigher				
+				uiVals[gIDX_FuncEvalNumVals],    // gIDX_FuncEvalNumVals
+				uiVals[gIDX_FuncEvalNumBkts],    // gIDX_FuncEvalNumBkts
 		};								//starting value
 		
 		guiObjNames = new String[]{
 				"Number of Students",
 				"Number of Classes",
+				"Eval Func Type : ",		//gIDX_FuncTypeEval	
+				"Eval Func Low : ",			//gIDX_FuncEvalLower
+				"Eval Func High : ",		//gIDX_FuncEvalHigher
+				"Eval Func # Vals : ", 			// gIDX_FuncEvalNumVals        
+				"Eval Func # Bkts (dist) : ",	// gIDX_FuncEvalNumBkts     			
 		};								//name/label of component	
 		
 		//idx 0 is treat as int, idx 1 is obj has list vals, idx 2 is object gets sent to windows
 		guiBoolVals = new boolean [][]{
 			{true, false, true},	//# students
 			{true, false, true},	//# classes
+			{true, true, true},		//gIDX_FuncTypeEval	
+			{false, false, true},	//gIDX_FuncEvalLower
+			{false, false, true},	//gIDX_FuncEvalHigher
+			{true, false, true}, 	// gIDX_FuncEvalNumVals        
+			{true, false, true}, 	// gIDX_FuncEvalNumBkts        
+			
 		};						//per-object  list of boolean flags
 		
 		//since horizontal row of UI comps, uiClkCoords[2] will be set in buildGUIObjs		
@@ -186,14 +260,27 @@ public class Grade2DWindow extends myDispWindow {
 				if(ival != numStudents){
 					numStudents = ival;
 					gradeAvgExperiment.buildStudentsClassesRandGrades(numStudents, numClasses);
-				}	break;}
-			
+				}	break;}			
 			case gIDX_NumClasses 			:{
 				if(ival != numClasses){
 					numClasses = ival;
 					gradeAvgExperiment.buildStudentsClassesRandGrades(numStudents, numClasses);
 				}	break;}
-			
+			case gIDX_FuncTypeEval : 	{
+				if (ival != funcEvalType) {				funcEvalType = ival;}		
+				break;	}
+			case gIDX_FuncEvalLower : 	{						
+				if (val != funcEvalLow) {				funcEvalLow = val;	}				
+				break;	}
+			case gIDX_FuncEvalHigher : 	{
+				if (val != funcEvalHigh) {				funcEvalHigh = val;	}				
+				break;	}
+			case gIDX_FuncEvalNumVals : 	{						
+				if (ival != funcEvalNumVals) {			funcEvalNumVals = ival;	}				
+				break;	}
+			case gIDX_FuncEvalNumBkts : 	{						
+				if (ival != funcEvalNumBuckets) {		funcEvalNumBuckets = ival;	}				
+				break;	}
 			}
 		}//if val is different
 	}//setUIWinVals
@@ -202,6 +289,7 @@ public class Grade2DWindow extends myDispWindow {
 	@Override
 	protected String getUIListValStr(int UIidx, int validx) {
 		switch(UIidx){
+		case gIDX_FuncTypeEval : {return gIDX_FuncTypeEvalList[validx % gIDX_FuncTypeEvalList.length];}
 		default : {break;}
 	}
 	return "";	}
@@ -227,7 +315,7 @@ public class Grade2DWindow extends myDispWindow {
 		pa.pushMatrix();pa.pushStyle();
 		pa.translate(this.rectDim[0],0,0);
 		//all drawing stuff goes here
-		gradeAvgExperiment.drawClassRes();
+		gradeAvgExperiment.drawExp();
 		pa.popStyle();pa.popMatrix();
 	}
 

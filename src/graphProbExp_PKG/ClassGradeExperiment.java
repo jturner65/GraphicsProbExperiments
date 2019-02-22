@@ -37,20 +37,27 @@ public class ClassGradeExperiment extends BaseProbExpMgr{
 	//experiment-specific state flag idxs - bits in array holding relevant process info
 	public static final int
 			debugIDX 				= 0,
-			useZScoreFinalGradeIDX	= 1;
-	public static final int numFlags = 2;	
+			useZScoreFinalGradeIDX	= 1,
+			showPlotsIDX			= 2;			//if true show each class distribution plot, if false show class bar
+	public static final int numFlags = 3;	
 	
 	//display-related values
 	public static final float 
 		distBtwnAdjBars = 70.0f, 
-		distBtwnRawTransBars = 500.0f;
+		distBtwnRawTransBars = 500.0f,
+		distBtwnAdjPlots = 300.0f;
 	//where first class bar starts relative to top left corner of display window
 	public static float[] classBarStart = new float[] {10,100};
-		
+	public static float[] classPlotStart = new float[] {10,50};
+	
 	public ClassGradeExperiment(myDispWindow _win) {
 		super(_win);
 		initExp();
 	}//ctor
+	
+	private float getPlotHeight() {
+		return .95f * win.curVisScrDims[1]/(numClasses + 1);
+	}
 	
 	//called at end of ctor and whenever experiment needs to be re-instanced
 	@Override
@@ -59,11 +66,9 @@ public class ClassGradeExperiment extends BaseProbExpMgr{
 		numClasses = 0;
 		students = new HashMap<Integer,myStudent>();
 		numStudents = 0;
-		//build final grade roster
-		float[] finalUniBarLocSt = new float[] {classBarStart[0], win.curVisScrDims[1]- distBtwnAdjBars},
-				finalTransBarLocSt = new float[] {classBarStart[0], win.curVisScrDims[1] - 2*distBtwnAdjBars};		
 		
-		finalGradeClass = new myFinalGradeRoster(win.pa, this, "Final Grades For All Students", new float[][] { finalUniBarLocSt, finalTransBarLocSt});
+		finalGradeClass = buildFinalGradeRoster(getPlotHeight());
+		
 
 		//gradeInvMapGen = buildAndInitRandGen(ziggRandGen, new myProbSummary(new double[] {0.0,0.1,0,0},2));
 		//build fleishman with data set ultimately
@@ -179,6 +184,28 @@ public class ClassGradeExperiment extends BaseProbExpMgr{
 		}
 	}//setAllRosterTransforms
 	
+	public void clearAllPlotEval() {
+		for (myClassRoster _cls : classRosters) {			_cls.clearPlotEval();	}
+		finalGradeClass.clearPlotEval();	
+		setShowPlots(false);
+	}//clearAllPlotEval
+	
+	//derive and show plots of different distributions behind each class calc
+	public void evalPlotClassDists(boolean isHist, int funcType, int numVals, int numBuckets, double low, double high) {
+		if(isHist) {
+			for (myClassRoster _cls : classRosters) {			_cls.evalAndPlotHistRes(numVals, numBuckets);	}
+			finalGradeClass.evalAndPlotHistRes(numVals, numBuckets);	
+			
+		} else {
+			for (myClassRoster _cls : classRosters) {			_cls.evalAndPlotFuncRes(numVals, low, high, funcType);	}
+			finalGradeClass.evalAndPlotFuncRes(numVals, low, high, funcType);
+		}
+		setShowPlots(true);
+	}//evalPlotClassDists
+	
+	
+	//whether or not to show plots for all specified distributions
+	public void setShowPlots(boolean val) {setFlag(this.showPlotsIDX,val);	}	
 	
 	//derive random student grades for each class, build prob summary objs of sample dists per class, and define and set final grade dist prob summary
 	private void buildRandomStudentGrades() {
@@ -227,6 +254,15 @@ public class ClassGradeExperiment extends BaseProbExpMgr{
 		
 	}//loadSpecifiedStudentGrades
 
+	private myFinalGradeRoster buildFinalGradeRoster(float heightOfFinalPlot) {
+		//build final grade roster
+		float[] finalUniBarLocSt = new float[] {classBarStart[0], win.curVisScrDims[1]- distBtwnAdjBars},
+				finalTransBarLocSt = new float[] {classBarStart[0], win.curVisScrDims[1] - 3*distBtwnAdjBars}, 
+				finalPlotLocSt = new float[] {classPlotStart[0], win.curVisScrDims[1] - heightOfFinalPlot , heightOfFinalPlot}
+				;		
+
+		return new myFinalGradeRoster(win.pa, this, "Final Grades For All Students", new float[][] { finalUniBarLocSt, finalTransBarLocSt,finalPlotLocSt});
+	}//buildFinalGradeRoster
 	
 	//rebuild all students, classes and final grades class roster
 	private void buildStudentsAndClasses(String[] _studentNames, int _numClasses) {
@@ -237,31 +273,28 @@ public class ClassGradeExperiment extends BaseProbExpMgr{
 		for (int i=0;i<numStudents;++i) {
 			stdnt = new myStudent(win.pa, _studentNames[i]);
 			students.put(stdnt.ObjID, stdnt);			
-		}		
-		//build final grade roster
-		float[] finalUniBarLocSt = new float[] {classBarStart[0], win.curVisScrDims[1]- distBtwnAdjBars},
-				finalTransBarLocSt = new float[] {classBarStart[0], win.curVisScrDims[1] - 2*distBtwnAdjBars};		
-		
-		finalGradeClass = new myFinalGradeRoster(win.pa, this, "Final Grades For All Students", new float[][] { finalUniBarLocSt, finalTransBarLocSt});
-
+		}	
+		numClasses = _numClasses;
+		float heightOfPlots =  getPlotHeight();
+		finalGradeClass = buildFinalGradeRoster(heightOfPlots);
 		//set students in final grade roster
 		finalGradeClass.setStudents(students);	
 		finalGradeClass.setUseZScore(getFlag(useZScoreFinalGradeIDX));
-		
-		numClasses = _numClasses;
 		myClassRoster cls;
 		//start location x,y for raw and transformed bars
 		float[] rawBarLocSt = new float[] {classBarStart[0],classBarStart[1]},
-				transBarLocSt = new float[] {classBarStart[0],classBarStart[1] + distBtwnRawTransBars};
+				transBarLocSt = new float[] {classBarStart[0],classBarStart[1] + distBtwnRawTransBars},
+				plotRectLocSt = new float[] {classPlotStart[0],classPlotStart[1], heightOfPlots};
 		classRosters.clear();
 		for (int i=0;i<numClasses;++i) {
-			cls = new myClassRoster(win.pa, this, "Class : " + i, new float[][] { rawBarLocSt, transBarLocSt});
+			cls = new myClassRoster(win.pa, this, "Class : " + i, new float[][] { rawBarLocSt, transBarLocSt,plotRectLocSt});
 			cls.setFinalGradeRoster(finalGradeClass);
 			cls.setStudents(students);			
 			classRosters.add(cls);
 			//move to next class's bar
 			rawBarLocSt[1] +=distBtwnAdjBars;
 			transBarLocSt[1] += distBtwnAdjBars;
+			plotRectLocSt[1] += heightOfPlots;
 		}//for numClasses
 		dispMessage("ClassGradeExperiment","buildStudentsAndClasses","Finished building " + students.size() +" students and " + classRosters.size()+" classes",true);		
 	}//buildStudentsAndClasses
@@ -380,8 +413,22 @@ public class ClassGradeExperiment extends BaseProbExpMgr{
 	/////////////////////////////	
 	//draw routines
 	
+	public void drawExp() {
+		if(getFlag(showPlotsIDX)) {			drawPlotRes();		} 
+		else {								drawExpRes();		}		
+	}//drawExp
+	private void drawPlotRes() {
+		pa.pushMatrix();pa.pushStyle();
+			for (myClassRoster cls : classRosters) {
+				cls.drawPlotRes();
+			}
+			finalGradeClass.drawPlotRes();
+	
+		pa.popStyle();pa.popMatrix();
+		
+	}//drawPlotRes
 	//draw raw and transformed class results
-	public void drawClassRes() {
+	private void drawExpRes() {
 		pa.pushMatrix();pa.pushStyle();
 			for (myClassRoster cls : classRosters) {
 				cls.drawStudentGradesRaw();
@@ -389,9 +436,9 @@ public class ClassGradeExperiment extends BaseProbExpMgr{
 				cls.drawRawToUniformLine();
 				cls.drawTransToFinalLine(finalGradeClass);
 			}
-		finalGradeClass.drawStudentGradesRaw();
-		finalGradeClass.drawStudentGradesUni();
-		finalGradeClass.drawRawToUniformLine();
+			finalGradeClass.drawStudentGradesRaw();
+			finalGradeClass.drawStudentGradesUni();
+			finalGradeClass.drawRawToUniformLine();
 		
 		pa.popStyle();pa.popMatrix();
 	}//drawClassRes
@@ -402,9 +449,7 @@ public class ClassGradeExperiment extends BaseProbExpMgr{
 	public void setRebuildDistOnGradeMod(boolean val) {	setFlag(rebuildDistOnGradeModIDX, val);	}
 	private static int[] rebuildFlags = new int[] {useZScoreFinalGradeIDX,rebuildDistOnGradeModIDX};
 	private void refreshBuildStateFlags() {
-		for (int idx : rebuildFlags) {
-			setFlag(idx, getFlag(idx));
-		}
+		for (int idx : rebuildFlags) {			setFlag(idx, getFlag(idx));		}
 	}
 	
 	@Override
@@ -424,6 +469,14 @@ public class ClassGradeExperiment extends BaseProbExpMgr{
 				for (myClassRoster cls : classRosters) {cls.setRebuildDistWhenMove(val);}
 				finalGradeClass.setRebuildDistWhenMove(val);
 				break;}
+			case showPlotsIDX : {
+				if (val) {
+					
+				} else {
+					
+				}
+				
+			break;}
 		}
 	}//setFlag		
 	@Override

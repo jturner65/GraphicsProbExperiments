@@ -58,8 +58,7 @@ public abstract class myRandGen implements Comparable<myRandGen> {
 	//called whenever summary object is set/reset
 	public abstract void _setFuncSummaryIndiv();	
 	
-	public void setDistVisObj(myDistVis _distVisObj) {	distVisObj = _distVisObj;	}
-	
+	public void buildDistVisObj(float[] _startRect) {		distVisObj = new myDistVis(_startRect, this);	}
     //thread-safe queries for uniform values
     protected long getNextLong() {return ThreadLocalRandom.current().nextLong();}  
     protected int getNextInt() {return ThreadLocalRandom.current().nextInt();  }
@@ -70,38 +69,88 @@ public abstract class myRandGen implements Comparable<myRandGen> {
     //return a sample based on func  - momments defined by myRandVarFunc
 	public abstract double getSample();
 	public abstract double getSampleFast();
-		
-	//return string description of rand function
-	public String getFuncDataStr() {return func.getFuncDataStr();}
-	
-	//get short string suitable for key for map
-	public String getTransformName() {
-		String res = name+"_"+ desc.quadName+"_" + func.getMinDescString();
-		return res;
-	}
-		
-	//mapping to go from uniform 0->1 to distribution (from p(X<= val) -> val) 
-	public abstract double inverseCDF(double _val);
-	//alias for above
-	public double uniformToDist(double _val) {return inverseCDF(_val);}
 	//mapping to go from distribution to uniform 0->1 (from val -> prob p(X<= val))
 	public abstract double CDF(double _val);
-	//alias for above
+	//mapping to go from uniform 0->1 to distribution (from p(X<= val) -> val) 
+	public abstract double inverseCDF(double _val);
+	//alias for CDF
 	public double distToUniform(double _val) {return CDF(_val);}
+	//alias for inverseCDF
+	public double uniformToDist(double _val) {return inverseCDF(_val);}
+	//test integral evaluation
+	public double testInteg(double min, double max) {		return func.integral_f(min, max);	}
 	
 	@Override
 	public int compareTo(myRandGen othr) {return desc.compareTo(othr.desc);}
 
 	//synthesize numVals values from low to high to display 
-	public void calcFValsForDisp(int numVals, double low, double high) {
-		
+	public void calcFuncValsForDisp(int numVals, double low, double high, int funcType ) {
+		if(numVals < 2) {		numVals = 2;		}//minimum 2 values
+		if (low == high) {//ignore if same value
+			System.out.println("myRandGen : "+name+" :: calcFValsForDisp : Low == High : " +low +" : "+ high +" : Ignored, no values set/changed.");
+			return;			
+		} 
+		else if(low > high) {	double s = low;		low = high;		high = s;		}  //swap if necessary
+		double[][] funcVals = new double[numVals][2];
+		double xdiff = high-low;
+		for(int i=0;i<funcVals.length;++i) {		
+			funcVals[i][0] = low + (i * xdiff)/numVals;	
+		}
+		//evaluate specified function on funcVals
+		double minY = Double.MAX_VALUE, maxY = -minY, ydiff;
+		for(int i=0;i<funcVals.length-1;++i) {		
+			funcVals[i][1] = func.getFuncVal(funcType,funcVals[i][0],funcVals[i+1][0]);
+			minY = (minY > funcVals[i][1] ? funcVals[i][1] : minY);
+			maxY = (maxY < funcVals[i][1] ? funcVals[i][1] : maxY);
+		}
+		//last argument is ignored except for integral calc 
+		int i=funcVals.length-1;
+		funcVals[i][1] = func.getFuncVal(funcType,funcVals[i][0],Double.POSITIVE_INFINITY);
+		if(Math.abs(funcVals[i][1]) <= 10000000* Math.abs(funcVals[i-1][1])) {//- don't count this last value for min/max in case of divergence 
+			minY = (minY > funcVals[i][1] ? funcVals[i][1] : minY);
+			maxY = (maxY < funcVals[i][1] ? funcVals[i][1] : maxY);
+		}
+		ydiff = maxY - minY;
+		distVisObj.setValuesFunc(funcVals, new double[][]{{low, high, xdiff}, {minY, maxY, ydiff}});
 	}//calcFValsForDisp
+	
+	//build display function for distribution
+	//Num buckets should be << numVals
+	public void calcDistValsForDisp(int numVals, int numBuckets) {
+		//x val is distribution/max bucket value, y val is count
+		double [] distVals = getMultiSamples(numVals);		
+		myProbSummary summary = new myProbSummary(distVals);
+		//build buckets : numBuckets+1 x 2 array; 2nd idxs : idx 0 is lower x value of bucket, y value is count; last entry should always have 0 count
+		double[][] distBuckets = summary.calcBucketVals(numBuckets);
+		//min, max and diff values for x axis (rand val) and y axis (counts)
+		double[][] minMaxDiffXVals = new double[2][3];
+		minMaxDiffXVals[0][0] = summary.getMin();
+		minMaxDiffXVals[0][1] = summary.getMax();
+		minMaxDiffXVals[0][2] = minMaxDiffXVals[0][1] - minMaxDiffXVals[0][0];
+		//bucket min max diff
+		minMaxDiffXVals[1][0] = 100000;
+		minMaxDiffXVals[1][1] = -100000;
+		for(int i=0;i<distBuckets.length;++i) {
+			minMaxDiffXVals[1][0] = (minMaxDiffXVals[1][0] > distBuckets[i][1] ? distBuckets[i][1] : minMaxDiffXVals[1][0]);
+			minMaxDiffXVals[1][1] = (minMaxDiffXVals[1][1] < distBuckets[i][1] ? distBuckets[i][1] : minMaxDiffXVals[1][1]);
+		}		
+		minMaxDiffXVals[1][2] = minMaxDiffXVals[1][1] - minMaxDiffXVals[1][0];
+		
+		distVisObj.setValuesHist(distBuckets, minMaxDiffXVals);
+	}//calcDistValsForDisp
+	
+	//clear out any existing plot evaluations
+	public void clearPlotEval() {	distVisObj.clearEvalVals();}
+	//change width of visualization object
+	public void dataVisSetDispWidth(float dispWidth) {	distVisObj.setDispWidth(dispWidth);}
+	//update the visualization name
+	public void updateVisName(String _newName) {distVisObj.updateName(_newName);}	
 	
 	//draw a represntation of this distribution
 	public void drawDist(GraphProbExpMain pa) {
-		if(distVisObj == null) {return;}
+		if(distVisObj == null) {			System.out.println("NO Vis Obj");		return;}
 		distVisObj.drawVis(pa);
-	}
+	}//drawDist
 		
 	//state flag management
 	private void initFlags(){stFlags = new int[1 + numFlags/32]; for(int i = 0; i<numFlags; ++i){setFlag(i,false);}}
@@ -115,7 +164,20 @@ public abstract class myRandGen implements Comparable<myRandGen> {
 		}
 	}//setFlag		
 	public boolean getFlag(int idx){int bitLoc = 1<<(idx%32);return (stFlags[idx/32] & bitLoc) == bitLoc;}	
+	//return string description of rand function
+	public String getFuncDataStr() {return func.getFuncDataStr();}
 	
+	//get short string suitable for key for map
+	public String getTransformName() {
+		String res = name+"_"+ desc.quadName+"_" + func.getMinDescString();
+		return res;
+	}
+	
+	//get short display string
+	public String getDispTransName() {
+		return name +" "+summary.getMinNumMmntsDesc();
+	}
+
 }//class myRandGen
 /**
  * this class holds a description of a random number generator, including the momments and algorithms it uses
@@ -144,7 +206,7 @@ class RandGenDesc implements Comparable<RandGenDesc>{
 	
 	@Override
 	public String toString() {
-		String res = "Rand Gen Alg Name : " + algName + " | Distribution : " + distName + " | Quadrature Alg Used : " + quadName;
+		String res = "Alg Name : " + algName + " | Dist : " + distName + " | Quad Alg : " + quadName;
 		return res;
 	}
 }//class RandGenDesc
@@ -175,7 +237,7 @@ class myZigRandGen extends myRandGen{
 	@Override
 	public void _setFuncSummaryIndiv() {
 		//these lines shouldn't be needed - changing summary will not change underlying functional nature of func or zigvals - 
-		//these are based on function, and have no bearing on moments, which is only thing that summary obj will have changed
+		//these are based on function and numZigRects, and have no bearing on moments, min/max or other underlying data, which is only thing that summary obj will have changed
 		//func.setZigVals(numZigRects);			
 		//zigVals = func.zigVals;		
 	}
@@ -381,11 +443,7 @@ class myFleishUniVarRandGen extends myRandGen{
 			res = func.f(zigNormGen.getSample());
 		}
 		return res;
-//		double res;
-//		do {
-//			res = func.f(zigNormGen.getSample());		//needs to be fed from a normal distribution
-//		} while (!func.summary.checkInBnds(res));
-//		return res;
+
 	}//getSample
 
 	@Override
@@ -403,11 +461,6 @@ class myFleishUniVarRandGen extends myRandGen{
 //		double res = func.f(zigNormGen.getSampleFast());
 //		return res;
 	}//getSampleFast
-	
-	//will test that the volume under the function curve for this fleishman polynomial is 1
-	public double testInteg(double min, double max) {
-		return func.integral_f(min, max);
-	}
 	
 	//find inverse CDF value for passed val - val must be between 0->1; value for which prob(x<=value) is _pval
 	//this is mapping from 0->1 to probability based on the random variable function definition
@@ -467,6 +520,7 @@ abstract class transform extends myRandGen{
 	public String getTransformName() {		return name+"_"+ _getTransformNameIndiv();	}
 	
 	public abstract String _getTransformNameIndiv();
+
 
 }//class transform
 

@@ -27,7 +27,8 @@ public class myClassRoster implements Comparable<myClassRoster>{
 	//3 class bars - original distribution (raw), uniform, and scaled
 	protected gradeBar[] gradeBars;// rawGradeBar, transGradeBar;
 	
-	
+	//distribution plot rectangle
+	protected float[] distPlotDimRect;
 	//rand gen used to model underlying grade distribution for this class
 	protected myRandGen rawGradeDistModel;
 	
@@ -64,6 +65,7 @@ public class myClassRoster implements Comparable<myClassRoster>{
 		ObjID = IDCnt++;  name=_name;
 		initFlags();
 		//visualization stuff
+		distPlotDimRect = new float[] {_barLocs[2][0], _barLocs[2][1],gradeExp.getVisibleSreenWidth(),ClassGradeExperiment.distBtwnAdjPlots};
 		distBtwnClassBars = ClassGradeExperiment.distBtwnAdjBars;
 		distBtwnRawTransBars =  _barLocs[1][1] - _barLocs[0][1];
 		clsLineClr = pa.getRndClr2(255);//should be brighter colors
@@ -81,15 +83,27 @@ public class myClassRoster implements Comparable<myClassRoster>{
 	public void setFinalGradeRoster(myFinalGradeRoster _fgr) {_finalGrades=_fgr;}
 	
 	public void setDispWidth(float _dispWidth) {
-		for(int i=0;i<gradeBars.length;++i) {
-			gradeBars[i].setDispWidth(_dispWidth);
-		}
+		for(int i=0;i<gradeBars.length;++i) {			gradeBars[i].setDispWidth(_dispWidth);		}
+		//also for plot res object
+		rawGradeDistModel.dataVisSetDispWidth(_dispWidth);
 	}//setBarWidth
 	//when new transform added, need to clear out existing transformed grades
 	public void setBaseDistModel(myRandGen _randGen) {		
 		rawGradeDistModel = _randGen;
+		rawGradeDistModel.buildDistVisObj(distPlotDimRect);
+		updateName();
 		setFlag(rawGradeDistMdlSetIDX, true);
 	}//setRandGenAndType	
+	
+	protected void updateName() {
+		for(int i=0;i<gradeBars.length;++i) {
+			String newVisName = "Vis of "+transTypes[i]+" grades for class :"+name+"|Dist Mdl :"+ rawGradeDistModel.getDispTransName();
+			gradeBars[i].updateName(newVisName);
+		}
+		rawGradeDistModel.updateVisName("Vis of Dist/Hist for sample grade distribution for class :"+name+"|Dist Mdl :"+ rawGradeDistModel.getDispTransName());
+		
+	}//updateName
+	
 	//remove all students from class
 	public void clearClass() {	students.clear();}
 	
@@ -204,6 +218,7 @@ public class myClassRoster implements Comparable<myClassRoster>{
 			if(barIDX == 0) {				
 				myProbSummary newSummary = getCurGradeProbSummary(transTypes[GB_rawGradeTypeIDX]);
 				rawGradeDistModel.setFuncSummary(newSummary);
+				updateName();
 				transformStudentGradesToUniform();//transform all grades here				
 			} 		//using raw grade, transform student grade appropriately
 			else {		
@@ -212,6 +227,7 @@ public class myClassRoster implements Comparable<myClassRoster>{
 				//rebuild summary obj
 				myProbSummary newSummary = getCurGradeProbSummary(transTypes[GB_rawGradeTypeIDX]);
 				rawGradeDistModel.setFuncSummary(newSummary);
+				updateName();
 				transformStudentGradesToUniform();			
 			}		//using transformed grade, re-calc raw grade appropriately
 		} else {
@@ -241,9 +257,27 @@ public class myClassRoster implements Comparable<myClassRoster>{
 		return closest;
 	}//findClosestStudent
 	
+	public void clearPlotEval() {
+		rawGradeDistModel.clearPlotEval();
+	}
+	
+	public void evalAndPlotFuncRes(int numVals, double low, double high, int funcType ) {
+		if(rawGradeDistModel == null) {			this.gradeExp.dispMessage("myClassRoster", "evalAndPlotFuncRes", "rawGradeDistModel has not been set/is null.  Aborting", true);		}
+		rawGradeDistModel.calcFuncValsForDisp(numVals, low, high, funcType);		
+	}
+	public void evalAndPlotHistRes(int numVals, int numBuckets) {
+		if(rawGradeDistModel == null) {			this.gradeExp.dispMessage("myClassRoster", "evalAndPlotHistRes", "rawGradeDistModel has not been set/is null.  Aborting", true);		}		
+		rawGradeDistModel.calcDistValsForDisp(numVals, numBuckets);
+	}
+	
+		
 	public void mseRelease() {
 		for(int i=0;i<gradeBars.length;++i) {gradeBars[i].mouseRelease();}
 	}//mseRelease
+	
+	//draw plot results from functional histogram/evaluation of rawGradeDistModel
+	public void drawPlotRes() {	rawGradeDistModel.drawDist(pa);}
+	
 	public void drawRawToUniformLine() {
 		drawRawToTransformedLine(transTypes[GB_rawGradeTypeIDX],
 				transTypes[GB_uniTransGradeTypeIDX], this, this, 
@@ -363,6 +397,7 @@ class myFinalGradeRoster extends myClassRoster {
 		} else {
 			if(null==rawGradeDistModel) {return;}
 			rawGradeDistModel.setFuncSummary(tmpSummary);
+			updateName();
 			for (myStudent s : students.values()) {
 				//now need to transform all uniform student grades for this class roster back to "raw", which in this case will be the final grade
 				//transformStudentFromUniToRaw(s);
