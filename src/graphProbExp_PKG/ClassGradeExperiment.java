@@ -43,7 +43,7 @@ public class ClassGradeExperiment extends BaseProbExpMgr{
 	
 	//display-related values
 	public static final float 
-		distBtwnAdjBars = 70.0f, 
+		distBtwnAdjBars = 80.0f, 
 		distBtwnRawTransBars = 500.0f,
 		distBtwnAdjPlots = 300.0f;
 	//where first class bar starts relative to top left corner of display window
@@ -287,7 +287,7 @@ public class ClassGradeExperiment extends BaseProbExpMgr{
 				plotRectLocSt = new float[] {classPlotStart[0],classPlotStart[1], heightOfPlots};
 		classRosters.clear();
 		for (int i=0;i<numClasses;++i) {
-			cls = new myClassRoster(win.pa, this, "Class : " + i, new float[][] { rawBarLocSt, transBarLocSt,plotRectLocSt});
+			cls = new myClassRoster(win.pa, this, "Class : " + (i+1), new float[][] { rawBarLocSt, transBarLocSt,plotRectLocSt});
 			cls.setFinalGradeRoster(finalGradeClass);
 			cls.setStudents(students);			
 			classRosters.add(cls);
@@ -300,18 +300,6 @@ public class ClassGradeExperiment extends BaseProbExpMgr{
 	}//buildStudentsAndClasses
 	
 	
-
-
-//	//calculate the mapping of the raw grades, that follow some distribution, to uniform.
-//	public void calcMappingDistToUniform(double mappingStd) {		
-//		//TODO need to determine distribution that follows the grades
-//		
-//		curTransformType = gradeInvMapGen.getTransformName();
-//		for (myClassRoster cls : classes) {
-//			cls.setRandGenAndType(gradeSourceDistGen,curTransformType);
-//			cls.transformStudentGrades();
-//		}
-//	}//calcInverseMapping
 	
 	//test efficacy of fleishman polynomial transform
 	public void testFleishTransform() {
@@ -377,6 +365,13 @@ public class ClassGradeExperiment extends BaseProbExpMgr{
 			dispMessage("ClassGradeExperiment","calcInverseCDFSpan","Xval ["+i+"] = " + String.format("%3.10f", xVals[i])+" -> Y : "  + String.format("%3.10f", resVals[i]),true);			
 		}
 	}//calcInverseCDFSpan
+	
+	//test inverse fleishman calculation
+	public void testInvFleishCalc(double xDesired) {
+		myRandGen gradeSourceDistGen = buildAndInitRandGen(fleishRandGen_UniVar, new myProbSummary(new double[] {0,1,1,4},4));
+		((myFleishUniVarRandGen)gradeSourceDistGen).calcInvFuncVal(xDesired);
+
+	}
 	
 	//this is called whenever screen width is changed - used to modify visualizations if necessary
 	@Override

@@ -119,6 +119,7 @@ public abstract class myRandGen implements Comparable<myRandGen> {
 	public void calcDistValsForDisp(int numVals, int numBuckets) {
 		//x val is distribution/max bucket value, y val is count
 		double [] distVals = getMultiSamples(numVals);		
+		
 		myProbSummary summary = new myProbSummary(distVals);
 		//build buckets : numBuckets+1 x 2 array; 2nd idxs : idx 0 is lower x value of bucket, y value is count; last entry should always have 0 count
 		double[][] distBuckets = summary.calcBucketVals(numBuckets);
@@ -300,7 +301,7 @@ class myZigRandGen extends myRandGen{
 	}//CDF
 	
 	//takes sequential long value "bits", uses most sig bit as sign, next 8 sig bits as index, and last 54 bits as actual random value
-	private double _getFuncValFromLong(long val) {
+	public double _getFuncValFromLong(long val) {
 		//uLong is using 54 least Sig Bits (and 1st Most Sig Bits as sign bit).
 		long uLong = ((long)(val<<10))>>10;
 		//Using 9 least sig Bits as index and sign.
@@ -313,7 +314,7 @@ class myZigRandGen extends myRandGen{
 	}//_getFuncValFromLong
 	
 	//takes sequential int value val, uses most sig bit as sign, next 8 sig bits as index, and entire value as rand val
-	private double _getFuncValFromInt(int val) {
+	public double _getFuncValFromInt(int val) {
 		int bits = val;
 		int index = ((val>>16) & 0xFF);
 		if (-Math.abs(bits) >= zigVals.eqAreaZigRatio_NNormFast[index]) { 	return bits * zigVals.eqAreaZigX_NNormFast[index]; }
@@ -360,7 +361,7 @@ class myZigRandGen extends myRandGen{
     private double rareCase(int idx, double u) {
         double x = u * zigVals.eqAreaZigX[idx];
         //verify under curve
-        if (zigVals.rareCaseEqAreaX[idx+1] + (zigVals.rareCaseEqAreaX[idx] - zigVals.rareCaseEqAreaX[idx+1]) * getNextDouble() < func.fZig(x)) {          return x;    }
+        if (zigVals.rareCaseEqAreaX[idx+1] + (zigVals.rareCaseEqAreaX[idx] - zigVals.rareCaseEqAreaX[idx+1]) * getNextDouble() < func.fStd(x)) {          return x;    }
         return Double.NaN;
     }
     
@@ -396,7 +397,47 @@ class myFleishUniVarRandGen extends myRandGen{
 	//when func.rebuildFuncs is called	
 	@Override
 	public void _setFuncSummaryIndiv() {	}
-
+	//test function to test iterative method to derive fl inverse
+	public void calcInvFuncVal(double y) {
+		double x = ((myFleishFunc_Uni)func).calcInvF(y);
+	}
+	
+	@Override
+	//synthesize numVals values from low to high to display 
+	//overridden to get apprpriate values - feed low->high into zi
+	public void calcFuncValsForDisp(int numVals, double low, double high, int funcType ) {
+		if(numVals < 2) {		numVals = 2;		}//minimum 2 values
+		if (low == high) {//ignore if same value
+			System.out.println("myRandGen : "+name+" :: calcFValsForDisp : Low == High : " +low +" : "+ high +" : Ignored, no values set/changed.");
+			return;			
+		} 
+		else if(low > high) {	double s = low;		low = high;		high = s;		}  //swap if necessary
+		double[][] funcVals = new double[numVals][2];
+		double xdiff = high-low;
+		for(int i=0;i<funcVals.length;++i) {		
+			funcVals[i][0] = low + (i * xdiff)/numVals;	
+		}
+		//evaluate specified function on funcVals
+		double minY = Double.MAX_VALUE, maxY = -minY, ydiff;
+		for(int i=0;i<funcVals.length-1;++i) {	
+			double lowVal = zigNormGen.func.f(funcVals[i][0]), highVal = zigNormGen.func.f(funcVals[i+1][0]);
+			funcVals[i][1] = func.getFuncVal(funcType,lowVal,highVal);
+			minY = (minY > funcVals[i][1] ? funcVals[i][1] : minY);
+			maxY = (maxY < funcVals[i][1] ? funcVals[i][1] : maxY);
+		}
+		//last argument is ignored except for integral calc 
+		int i=funcVals.length-1;
+		double lowVal = zigNormGen.func.f(funcVals[i][0]);
+		funcVals[i][1] = func.getFuncVal(funcType,lowVal,Double.POSITIVE_INFINITY);
+		if(Math.abs(funcVals[i][1]) <= 10000000* Math.abs(funcVals[i-1][1])) {//- don't count this last value for min/max in case of divergence 
+			minY = (minY > funcVals[i][1] ? funcVals[i][1] : minY);
+			maxY = (maxY < funcVals[i][1] ? funcVals[i][1] : maxY);
+		}
+		ydiff = maxY - minY;
+		distVisObj.setValuesFunc(funcVals, new double[][]{{low, high, xdiff}, {minY, maxY, ydiff}});
+	}//calcFValsForDisp
+	
+	
 	@Override
 	public double[] getMultiSamples(int num) {
 		double[] res = new double[num];
@@ -405,13 +446,8 @@ class myFleishUniVarRandGen extends myRandGen{
 		//transformation via mean and std already performed as part of f function
 		if (clipRes){
 			int idx = 0;
-			while (idx < num) {
-				val = func.f(zigNormGen.getSample());	
-				if(summary.checkInBnds(val)) {				res[idx++]=val;			}
-			}
-		} else {
-			for(int i =0;i<res.length;++i) {		res[i]=func.f(zigNormGen.getSample());			}
-		}
+			while (idx < num) {		val = func.f(zigNormGen.getSample());		if(summary.checkInBnds(val)) {				res[idx++]=val;	}}
+		} else {					for(int i =0;i<res.length;++i) {		res[i]=func.f(zigNormGen.getSample());			}		}
 		return res;
 	}//getMultiSamples
 
@@ -422,13 +458,8 @@ class myFleishUniVarRandGen extends myRandGen{
 		//transformation via mean and std already performed as part of f function
 		if (clipRes){
 			int idx = 0;
-			while (idx < num) {
-				double val = func.f(zigNormGen.getSampleFast());	
-				if(summary.checkInBnds(val)) {				res[idx++]=val;			}
-			}
-		} else {
-			for(int i =0;i<res.length;++i) {	res[i]=func.f(zigNormGen.getSampleFast());			}
-		}
+			while (idx < num) {			double val = func.f(zigNormGen.getSampleFast());	if(summary.checkInBnds(val)) {				res[idx++]=val;	}}
+		} else {						for(int i =0;i<res.length;++i) {	res[i]=func.f(zigNormGen.getSampleFast());			}		}
 		return res;
 	}//getMultiFastSamples
 	
@@ -436,12 +467,8 @@ class myFleishUniVarRandGen extends myRandGen{
 	public double getSample() {
 		double res;
 		if(summary.doClipAllSamples()) {
-			do {		
-				res = func.f(zigNormGen.getSample());
-			} while (!summary.checkInBnds(res));
-		} else {
-			res = func.f(zigNormGen.getSample());
-		}
+			do {				res = func.f(zigNormGen.getSample());			} while (!summary.checkInBnds(res));
+		} else {				res = func.f(zigNormGen.getSample());			}
 		return res;
 
 	}//getSample
@@ -450,12 +477,8 @@ class myFleishUniVarRandGen extends myRandGen{
 	public double getSampleFast() {
 		double res;
 		if(func.summary.doClipAllSamples()) {
-			do {		
-				res = func.f(zigNormGen.getSampleFast());
-			} while (!summary.checkInBnds(res));
-		} else {
-			res = func.f(zigNormGen.getSampleFast());
-		}
+			do {				res = func.f(zigNormGen.getSampleFast());		} while (!summary.checkInBnds(res));
+		} else {				res = func.f(zigNormGen.getSampleFast());		}
 		return res;
 		
 //		double res = func.f(zigNormGen.getSampleFast());
@@ -502,6 +525,10 @@ abstract class transform extends myRandGen{
 		summary = _summary;	
 		 _setFuncSummaryIndiv();
 	}//setFuncSummary
+	
+	//for a transform this is meaningless - transforms just remap given data to affine transformations, they don't model them
+	public void calcDistValsForDisp(int numVals, int numBuckets) {}
+	public void calcFuncValsForDisp(int numVals, double low, double high, int funcType ) {}
 	
 	//return string description of rand function
 	@Override

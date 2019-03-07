@@ -13,7 +13,7 @@ public class Grade2DWindow extends myDispWindow {
 	// # of classes to build final grade
 	private int numClasses = 3;
 	//eval func IDX
-	private int funcEvalType = 0, funcEvalNumVals = 10000, funcEvalNumBuckets = 10;
+	private int funcEvalType = 0, funcEvalNumVals = 10000, funcEvalNumBuckets = 50;
 	//lower and upper bound for functional evaluation 
 	private float funcEvalLow = 0, funcEvalHigh = 1;
 	
@@ -63,7 +63,7 @@ public class Grade2DWindow extends myDispWindow {
 	public String[][] menuBtnNames = new String[][] {	//each must have literals for every button defined in side bar menu, or ignored
 		{},
 		{"Test Rand Gen", "Test R Calc","Func 3"},				//row 1
-		{"Func 1", "Test Fleish", "Tst Fl Range", "Func 4"},	//row 2
+		{"Test Inv Fl", "Test Fleish", "Tst Fl Range", "Func 4"},	//row 2
 		{"Linear","Uniform","Linear w/Z","Fleish","Dbg 5"}	
 	};
 
@@ -101,8 +101,12 @@ public class Grade2DWindow extends myDispWindow {
 		setVisScreenDimsPriv();			
 		//set offset to use for custom menu objects
 		custMenuOffset = uiClkCoords[3];	
+		//set this to default to moving distribution
+		setPrivFlags(rebuildDistOnMove, true);
+		
 		//moved from mapMgr ctor, to remove dependence on papplet in that object
 		pa.setAllMenuBtnNames(menuBtnNames);	
+	
 	}//
 	//initialize all UI buttons here
 	@Override
@@ -416,7 +420,9 @@ public class Grade2DWindow extends myDispWindow {
 			pa.outStr2Scr("Clicked Btn row : Aux Func 2 | Btn : " + btn);
 			switch(btn){
 				case 0 : {	
-
+					//test calculation of inverse fleish function -> derive x such that y = f(x) for fleishman polynomial.  This x is then the value from normal dist that yields y from fleish dist
+					double xDesired = -2.0;
+					gradeAvgExperiment.testInvFleishCalc(xDesired);
 					resetButtonState();
 					break;}
 				case 1 : {	

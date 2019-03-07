@@ -1,20 +1,74 @@
 package graphProbExp_PKG;
 
-import java.util.*;
+import java.util.HashMap;
+
+/**
+ * a sample of multiple observations from a distribution
+ * @author john
+ *
+ */
+public abstract class mySampleSet implements Comparable<mySampleSet> {
+	public static GraphProbExpMain pa;
+	//experiment owning/using this sample set
+	public BaseProbExpMgr probExp;
+	public final int ObjID;
+	private static int IDCnt = 0;
+	//sample set name
+	public final String name;
+	//rand gen used to model underlying grade distribution for this class
+	protected myRandGen baseDistModel;
+
+	public mySampleSet(GraphProbExpMain _pa, BaseProbExpMgr _probExp, String _name) {
+		pa =_pa;probExp=_probExp;
+		ObjID = IDCnt++;  name=_name;		
+	}//ctor
+	
+	//when new transform added, need to clear out existing transformed grades
+	public void setBaseDistModel(myRandGen _randGen) {		
+		baseDistModel = _randGen;
+		setBaseDistModel_Indiv();
+	}//setRandGenAndType	
+	
+	//instance class specific functionality for setting base distribution model
+	protected abstract void setBaseDistModel_Indiv();
+
+	
+	
+	////////////////////////////////////////
+	// underlying distribution evaluation and plotting functions
+	
+	public void evalAndPlotFuncRes(int numVals, double low, double high, int funcType ) {
+		if(baseDistModel == null) {			this.probExp.dispMessage("myClassRoster", "evalAndPlotFuncRes", "baseDistModel has not been set/is null.  Aborting", true);		}
+		baseDistModel.calcFuncValsForDisp(numVals, low, high, funcType);		
+	}
+	public void evalAndPlotHistRes(int numVals, int numBuckets) {
+		if(baseDistModel == null) {			this.probExp.dispMessage("myClassRoster", "evalAndPlotHistRes", "baseDistModel has not been set/is null.  Aborting", true);		}		
+		baseDistModel.calcDistValsForDisp(numVals, numBuckets);
+	}
+	
+	public void clearPlotEval() {	baseDistModel.clearPlotEval();	}	
+	//draw plot results from functional histogram/evaluation of baseDistModel
+	public void drawPlotRes() {	baseDistModel.drawDist(pa);}
+	
+	
+	//incase we wish to store class sample sets in sorted mechanism
+	@Override
+	public int compareTo(mySampleSet othr) {
+		int res = this.name.toLowerCase().compareTo(othr.name.toLowerCase());
+		return (res == 0 ? Integer.compare(ObjID, othr.ObjID) : res);
+	}//compareTo
+	
+	
+	
+}//class mySampleSet
+
 
 /**
  * this class will hold a roster - a collection of students for a specific class, and will manage working with grades
  * it will consist of a collection of "grade bars" that will be used to display the grades of the class on a line,
  * @author john
  */
-public class myClassRoster implements Comparable<myClassRoster>{
-	public static GraphProbExpMain pa;
-	//experiment owning this class
-	public static ClassGradeExperiment gradeExp;
-	public final int ObjID;
-	private static int IDCnt = 0;
-	//class name
-	public final String name;
+class myClassRoster extends mySampleSet{
 	//structure holding references to the students in this class - students need to be created external to class and added
 	protected HashMap<Integer,myStudent> students;
 
@@ -29,14 +83,13 @@ public class myClassRoster implements Comparable<myClassRoster>{
 	
 	//distribution plot rectangle
 	protected float[] distPlotDimRect;
-	//rand gen used to model underlying grade distribution for this class
-	protected myRandGen rawGradeDistModel;
 	
-	//types of transforms that have been calculated for this class
-	protected int[] transPerformed;	
+//	//types of transforms that have been calculated for this class
+//	protected int[] transPerformed;	
 	
 	//list of possible classifications of grades
 	protected static final String[] transTypes = new String[] {"raw","uniform","uni_scaled"};
+	
 	//idxs corresponding to trans types
 	protected static final int
 		GB_rawGradeTypeIDX 			= 0,
@@ -60,12 +113,12 @@ public class myClassRoster implements Comparable<myClassRoster>{
 	
 	private myFinalGradeRoster _finalGrades;			//ref to final grade roster
 	
-	public myClassRoster(GraphProbExpMain _pa, ClassGradeExperiment _gradeExp, String _name, float[][] _barLocs) {
-		pa =_pa;gradeExp=_gradeExp;
-		ObjID = IDCnt++;  name=_name;
+	public myClassRoster(GraphProbExpMain _pa, BaseProbExpMgr _gradeExp, String _name, float[][] _barLocs) {
+		super(_pa, _gradeExp, _name);
+
 		initFlags();
 		//visualization stuff
-		distPlotDimRect = new float[] {_barLocs[2][0], _barLocs[2][1],gradeExp.getVisibleSreenWidth(),ClassGradeExperiment.distBtwnAdjPlots};
+		distPlotDimRect = new float[] {_barLocs[2][0], _barLocs[2][1],probExp.getVisibleSreenWidth(),ClassGradeExperiment.distBtwnAdjPlots};
 		distBtwnClassBars = ClassGradeExperiment.distBtwnAdjBars;
 		distBtwnRawTransBars =  _barLocs[1][1] - _barLocs[0][1];
 		clsLineClr = pa.getRndClr2(255);//should be brighter colors
@@ -76,8 +129,7 @@ public class myClassRoster implements Comparable<myClassRoster>{
 			gradeBars[i]=new gradeBar(this, new float[] {_barLocs[barLocIDX][0], _barLocs[barLocIDX][1], distBtwnClassBars}, transTypes[i],clsLineClr, "Visualization of "+transTypes[i]+" grades for class :"+name);			
 		}
 		gradeBars[GB_scaledUniGradeTypeIDX].setIsVisible(false);
-		students = new HashMap<Integer,myStudent>();			
-		transPerformed = new int[transTypes.length];
+		students = new HashMap<Integer,myStudent>();		
 	}//ctor
 	
 	public void setFinalGradeRoster(myFinalGradeRoster _fgr) {_finalGrades=_fgr;}
@@ -85,22 +137,23 @@ public class myClassRoster implements Comparable<myClassRoster>{
 	public void setDispWidth(float _dispWidth) {
 		for(int i=0;i<gradeBars.length;++i) {			gradeBars[i].setDispWidth(_dispWidth);		}
 		//also for plot res object
-		rawGradeDistModel.dataVisSetDispWidth(_dispWidth);
+		baseDistModel.dataVisSetDispWidth(_dispWidth);
 	}//setBarWidth
+	
 	//when new transform added, need to clear out existing transformed grades
-	public void setBaseDistModel(myRandGen _randGen) {		
-		rawGradeDistModel = _randGen;
-		rawGradeDistModel.buildDistVisObj(distPlotDimRect);
+	@Override
+	protected void setBaseDistModel_Indiv() {	
+		baseDistModel.buildDistVisObj(distPlotDimRect);
 		updateName();
 		setFlag(rawGradeDistMdlSetIDX, true);
 	}//setRandGenAndType	
 	
 	protected void updateName() {
 		for(int i=0;i<gradeBars.length;++i) {
-			String newVisName = "Vis of "+transTypes[i]+" grades for class :"+name+"|Dist Mdl :"+ rawGradeDistModel.getDispTransName();
+			String newVisName = "Vis of "+transTypes[i]+" grades for class :"+name+"|Dist Mdl :"+ baseDistModel.getDispTransName();
 			gradeBars[i].updateName(newVisName);
 		}
-		rawGradeDistModel.updateVisName("Vis of Dist/Hist for sample grade distribution for class :"+name+"|Dist Mdl :"+ rawGradeDistModel.getDispTransName());
+		baseDistModel.updateVisName("Vis of Dist/Hist for sample grade distribution for class :"+name+"|Dist Mdl :"+ baseDistModel.getDispTransName());
 		
 	}//updateName
 	
@@ -116,12 +169,11 @@ public class myClassRoster implements Comparable<myClassRoster>{
 	public void setStudents(HashMap<Integer,myStudent> _students) {	students = _students;}	
 	//set the raw grade for a student
 	public void setAllStudentRawGrades(HashMap<Integer, Double> classGrades) {
-		transPerformed[GB_rawGradeTypeIDX] = 1;		
 		for (myStudent s : students.values()) {
 			Integer SID = s.ObjID;
 			Double grade = classGrades.get(SID);
 			if(null==grade) {//no grade for student - this is an error
-				gradeExp.dispMessage("myClassRoster","setAllStudentRawGrades","In class : " +name + "| No grade found for student ID :"+SID +" | Name : " +s.name+" | Defaulting grade to 0",true);
+				probExp.dispMessage("myClassRoster","setAllStudentRawGrades","In class : " +name + "| No grade found for student ID :"+SID +" | Name : " +s.name+" | Defaulting grade to 0",true);
 				grade=0.0;
 			}
 			s.setTransformedGrade(transTypes[GB_rawGradeTypeIDX], this, grade);
@@ -134,7 +186,6 @@ public class myClassRoster implements Comparable<myClassRoster>{
 	
 	//transform all students in this class using passed rand gen's function to uniform from base distribution
 	public void transformStudentGradesToUniform() {
-		transPerformed[GB_uniTransGradeTypeIDX] = 1;
 		for (myStudent s : students.values()) { transformStudentFromRawToUni(s);}
 		setFlag(classRawIsTransformedIDX, true);
 		updateFinalGrades();
@@ -142,7 +193,6 @@ public class myClassRoster implements Comparable<myClassRoster>{
 	
 	//transform all students in this class using passed rand gen's function to uniform from base distribution
 	public void transformStudentGradesFromUniform() {
-		transPerformed[GB_uniTransGradeTypeIDX] = 1;
 		for (myStudent s : students.values()) { transformStudentFromUniToRaw(s);}
 		setFlag(classRawIsTransformedIDX, true);
 		updateFinalGrades();
@@ -152,7 +202,7 @@ public class myClassRoster implements Comparable<myClassRoster>{
 	public void transformStudentFromRawToUni(myStudent s) {
 		double _rawGrade = s.getTransformedGrade(transTypes[GB_rawGradeTypeIDX], this);
 		//double _newGrade = randGen.inverseCDF(_rawGrade);
-		double _newGrade = rawGradeDistModel.CDF(_rawGrade);
+		double _newGrade = baseDistModel.CDF(_rawGrade);
 		s.setTransformedGrade(transTypes[GB_uniTransGradeTypeIDX], this, _newGrade);
 		updateFinalGrades();
 	}//transformStudent
@@ -161,7 +211,7 @@ public class myClassRoster implements Comparable<myClassRoster>{
 	public void transformStudentFromUniToRaw(myStudent s) {
 		double _transGrade = s.getTransformedGrade(transTypes[GB_uniTransGradeTypeIDX], this);
 		//double _newGrade = randGen.CDF(_transGrade);
-		double _newGrade = rawGradeDistModel.inverseCDF(_transGrade);
+		double _newGrade = baseDistModel.inverseCDF(_transGrade);
 		s.setTransformedGrade(transTypes[GB_rawGradeTypeIDX],this, _newGrade);
 		updateFinalGrades();
 	}//transformStudentToRaw
@@ -217,7 +267,7 @@ public class myClassRoster implements Comparable<myClassRoster>{
 			//if we are modifying distribution
 			if(barIDX == 0) {				
 				myProbSummary newSummary = getCurGradeProbSummary(transTypes[GB_rawGradeTypeIDX]);
-				rawGradeDistModel.setFuncSummary(newSummary);
+				baseDistModel.setFuncSummary(newSummary);
 				updateName();
 				transformStudentGradesToUniform();//transform all grades here				
 			} 		//using raw grade, transform student grade appropriately
@@ -226,7 +276,7 @@ public class myClassRoster implements Comparable<myClassRoster>{
 				transformStudentFromUniToRaw(gradeBars[barIDX]._modStudent);
 				//rebuild summary obj
 				myProbSummary newSummary = getCurGradeProbSummary(transTypes[GB_rawGradeTypeIDX]);
-				rawGradeDistModel.setFuncSummary(newSummary);
+				baseDistModel.setFuncSummary(newSummary);
 				updateName();
 				transformStudentGradesToUniform();			
 			}		//using transformed grade, re-calc raw grade appropriately
@@ -257,26 +307,10 @@ public class myClassRoster implements Comparable<myClassRoster>{
 		return closest;
 	}//findClosestStudent
 	
-	public void clearPlotEval() {
-		rawGradeDistModel.clearPlotEval();
-	}
-	
-	public void evalAndPlotFuncRes(int numVals, double low, double high, int funcType ) {
-		if(rawGradeDistModel == null) {			this.gradeExp.dispMessage("myClassRoster", "evalAndPlotFuncRes", "rawGradeDistModel has not been set/is null.  Aborting", true);		}
-		rawGradeDistModel.calcFuncValsForDisp(numVals, low, high, funcType);		
-	}
-	public void evalAndPlotHistRes(int numVals, int numBuckets) {
-		if(rawGradeDistModel == null) {			this.gradeExp.dispMessage("myClassRoster", "evalAndPlotHistRes", "rawGradeDistModel has not been set/is null.  Aborting", true);		}		
-		rawGradeDistModel.calcDistValsForDisp(numVals, numBuckets);
-	}
-	
 		
 	public void mseRelease() {
 		for(int i=0;i<gradeBars.length;++i) {gradeBars[i].mouseRelease();}
 	}//mseRelease
-	
-	//draw plot results from functional histogram/evaluation of rawGradeDistModel
-	public void drawPlotRes() {	rawGradeDistModel.drawDist(pa);}
 	
 	public void drawRawToUniformLine() {
 		drawRawToTransformedLine(transTypes[GB_rawGradeTypeIDX],
@@ -318,12 +352,6 @@ public class myClassRoster implements Comparable<myClassRoster>{
 	
 	private void _drawStudentBar(int idx) {gradeBars[idx].drawVis(pa);}
 	
-	//incase we wish to store class rosters in sorted mechanism
-	@Override
-	public int compareTo(myClassRoster othr) {
-		int res = this.name.toLowerCase().compareTo(othr.name.toLowerCase());
-		return (res == 0 ? Integer.compare(ObjID, othr.ObjID) : res);
-	}//compareTo
 	
 	public void setRebuildDistWhenMove(boolean val) {setFlag(rebuildDistWhenMoveIDX, val);}
 	
@@ -356,8 +384,6 @@ public class myClassRoster implements Comparable<myClassRoster>{
 
 
 
-
-
 /**
  * this class will implement a final grade roster that will aggregate all the (uniform/transformed) 
  * class grades for a student and map them to a particular distribution
@@ -380,8 +406,6 @@ class myFinalGradeRoster extends myClassRoster {
 	
 	//take result of per class totals, determine the inverse mapping based on desired output distribution
 	public void calcTotalGrades() {
-		transPerformed[GB_rawGradeTypeIDX] = 1;		
-		transPerformed[GB_uniTransGradeTypeIDX] = 1;
 		for (myStudent s : students.values()) {		s.calcTotalGrade(this);	}
 		//get summary of current aggregate uniform grades
 		myProbSummary tmpSummary = getCurGradeProbSummary(transTypes[GB_uniTransGradeTypeIDX]);
@@ -395,15 +419,15 @@ class myFinalGradeRoster extends myClassRoster {
 				s.setTransformedGrade(transTypes[GB_rawGradeTypeIDX],this, _newGrade);
 			}			
 		} else {
-			if(null==rawGradeDistModel) {return;}
-			rawGradeDistModel.setFuncSummary(tmpSummary);
+			if(null==baseDistModel) {return;}
+			baseDistModel.setFuncSummary(tmpSummary);
 			updateName();
 			for (myStudent s : students.values()) {
 				//now need to transform all uniform student grades for this class roster back to "raw", which in this case will be the final grade
 				//transformStudentFromUniToRaw(s);
 				double _transGrade = s.getTransformedGrade(transTypes[GB_uniTransGradeTypeIDX], this);
 				//double _newGrade = randGen.CDF(_transGrade);
-				double _newGrade = rawGradeDistModel.inverseCDF(_transGrade);
+				double _newGrade = baseDistModel.inverseCDF(_transGrade);
 				s.setTransformedGrade(transTypes[GB_rawGradeTypeIDX],this, _newGrade);
 			}			
 		}
@@ -438,7 +462,7 @@ class myFinalGradeRoster extends myClassRoster {
 			myProbSummary tmpSummary = getCurGradeProbSummary(transTypes[GB_uniTransGradeTypeIDX]);
 			_newGrade = getGradeFromZScore(tmpSummary, _rawGrade);
 		} else {
-			_newGrade = rawGradeDistModel.CDF(_rawGrade);
+			_newGrade = baseDistModel.CDF(_rawGrade);
 		}
 		s.setTransformedGrade(transTypes[GB_uniTransGradeTypeIDX], this, _newGrade);
 		updateFinalGrades();
@@ -455,7 +479,7 @@ class myFinalGradeRoster extends myClassRoster {
 			myProbSummary tmpSummary = getCurGradeProbSummary(transTypes[GB_uniTransGradeTypeIDX]);
 			_newGrade =getZScoreFromGrade(tmpSummary,_transGrade);			
 		} else {
-			_newGrade = rawGradeDistModel.inverseCDF(_transGrade);
+			_newGrade = baseDistModel.inverseCDF(_transGrade);
 		}
 		s.setTransformedGrade(transTypes[GB_rawGradeTypeIDX],this, _newGrade);
 		updateFinalGrades();
@@ -473,7 +497,7 @@ class myFinalGradeRoster extends myClassRoster {
 	//this is not used to set grades
 	@Override
 	public void setAllStudentRawGrades(HashMap<Integer, Double> classGrades) {
-		this.gradeExp.dispMessage("myFinalGradeRoster", "setAllStudentRawGrades", "Final Grades for students are not set via setAllStudentRawGrades method.  Final Grades must be calculated" , true);
+		this.probExp.dispMessage("myFinalGradeRoster", "setAllStudentRawGrades", "Final Grades for students are not set via setAllStudentRawGrades method.  Final Grades must be calculated" , true);
 	}
 }//class myFinalGradeRoster
 
@@ -490,186 +514,3 @@ class myFinalGradeRoster extends myClassRoster {
 //	}
 //}//class myUniformCountFinalGradeRoster
 
-
-/**
- * this class will hold an instance of a student, who belongs to numerous class rosters, and has grades in each. 
- * This class will record their grade values and map them to a line
- * @author john
- *
- */
-class myStudent implements Comparable<myStudent>{
-	public final int ObjID;
-	private static int IDCnt = 0;
-	//used these for rendering student on line
-	private static final float rad = 12.0f;
-	//black for stroke
-	private static final int[] blkStrk = new int[] {0,0,0,255};
-	//grey for disabled
-	private static final int[] greyOff = new int[] {100,100,100,255};
-	//student name
-	public final String name;
-	//color to render student
-	public final int[] clr;
-	//location to put point for text display
-	private final myPointf textLoc;
-	
-	//listing of raw grade following some distribution, and uniform grade, from result of mapping
-	private HashMap<String,HashMap<myClassRoster, Double>> grades;
-	
-	public myStudent(GraphProbExpMain pa, String _name) {
-		ObjID = IDCnt++;  name=_name;
-		grades = new HashMap<String,HashMap<myClassRoster, Double>>();
-		clr = pa.getRndClr2(255);//should be brighter colors
-		int tag = ObjID % 4;
-		textLoc = new myPointf(-10, (tag < 2 ? 15 * (tag+1) : -10 * ( tag-1)) , 0);
-	}//ctor
-
-	//clip to be within 0->1 - should always be within this range
-	private double clipGrade(String _type, double _gr) {
-		//_type present for dbg messages only - add any debugging display code here if desired
-		if(_gr >= 1) {			return 1;} 
-		else if (_gr <= 0 ) {	return 0;}
-		return _gr;
-	}//clipGrade
-	
-	//clear out current transformed grades, preserving raw grades
-	public void clearTransformedGrades(myClassRoster _cls) {
-		for (String typ : grades.keySet()) {
-			if (typ.equals("raw")) {continue;}		//don't clear raw grades
-			HashMap<myClassRoster, Double> typeToClearForClasses = grades.get(typ);
-			typeToClearForClasses.put(_cls,null);
-		}
-	}//
-	
-	//convert transformed uniform grade to span 0->1, using passed min and max values of observed uniform grades in a particular class
-	public void setScaledUniformGrade(myClassRoster _cls, String _transType, String _scaledUnitype,  double min, double max) {
-		HashMap<myClassRoster, Double> allClassesUniType = grades.get(_transType);
-		HashMap<myClassRoster, Double> allClassesScaledType = grades.get(_scaledUnitype);
-		double uniVal = allClassesUniType.get(_cls), diff = max - min, sclVal;
-		if(max - min == 0) {	sclVal = uniVal;} 
-		else {					sclVal = (uniVal - min)/diff; }
-		sclVal = (sclVal < 0 ? 0 : sclVal > 1 ? 1 : sclVal);
-		allClassesScaledType.put(_cls, sclVal);
-	}//setUniformGrade
-		
-	//calculate the total grade for this student for each type of grade
-	public void calcTotalGrade(myClassRoster _finalRoster) {
-		for (String typ : grades.keySet()) {		//for every type of grade, calculate total grade and put in new "class"
-			if(typ.equals(myClassRoster.transTypes[myClassRoster.GB_rawGradeTypeIDX])) {continue;}
-			HashMap<myClassRoster, Double> classValsForType = grades.get(typ);
-			double tot = 0, ttlGrade = 0;
-			int numClasses = 0;
-			for (myClassRoster _class : classValsForType.keySet()) {
-				if(_class.name.equals(_finalRoster.name)){continue;}
-				Double gr = classValsForType.get(_class);
-				tot += gr;	
-				++numClasses;				
-			}
-			if(numClasses > 0) {	
-				ttlGrade = tot/numClasses;		
-			}
-			classValsForType.put(_finalRoster, ttlGrade);			
-		}
-	}//calcTotalGrade
-	//recalculate transformed grades in every class based on newly transformed final grade
-	public void disperseFromTotalGrade(myClassRoster _finalRoster) {
-		for (String typ : grades.keySet()) {		//for every type of grade, calculate total grade and put in new "class"
-			if(typ.equals(myClassRoster.transTypes[myClassRoster.GB_rawGradeTypeIDX])) {continue;}
-			HashMap<myClassRoster, Double> classValsForType = grades.get(typ);
-			//new value from moving student grade
-			double newAvg = classValsForType.get(_finalRoster);
-			double tot = 0, oldAverage = 0;
-			int numClasses = 0;
-			for (myClassRoster _class : classValsForType.keySet()) {
-				if(_class.name.equals(_finalRoster.name)){continue;}
-				Double gr = classValsForType.get(_class);
-				tot += gr;	
-				++numClasses;				
-			}
-			if(numClasses > 0) {	oldAverage = tot/numClasses;	}
-			double ratio = newAvg/oldAverage;
-			for (myClassRoster _class : classValsForType.keySet()) {
-				if(_class.name.equals(_finalRoster.name)){continue;}
-				Double gr = classValsForType.get(_class);
-				gr *= ratio;
-				classValsForType.put(_class, gr);
-			}
-		}
-	}
-	
-	//set transformed values for student, keyed by type of transformation and class
-	public void setTransformedGrade(String _type, myClassRoster _class, double _gr) {	
-		HashMap<myClassRoster, Double> classValsForType = grades.get(_type);	
-		if (classValsForType==null) {// no values for this class set yet - build new map of types for this class
-			classValsForType = new HashMap<myClassRoster, Double>(); 
-			grades.put(_type,classValsForType);
-		}		
-		classValsForType.put(_class,clipGrade(_type,_gr));
-	}//setTransformedGrade
-	
-	public double getTransformedGrade(String _type,myClassRoster _class) {
-		HashMap<myClassRoster, Double> classValsForType = grades.get(_type);
-		if (classValsForType==null) {						// no values for this type for any classes set yet  - return 0			
-			return 0.0;	}
-		Double val = classValsForType.get(_class);			//no grade for this particular class for specified type
-		if (val==null) {									//student has no transformed grade for this class, default to 0	- db message here if desired				
-			return 0.0;	}
-		return val;
-	}//getTransformedGrade
-
-	public float getGradeXLoc(String _type,  myClassRoster _class, float ttlWidth) {
-		HashMap<myClassRoster, Double> classValsForType = grades.get(_type);
-		if (classValsForType==null) {						// no values for this type for any classes set yet 		
-			return 0.0f;
-		}
-		Double val = classValsForType.get(_class);			//grade for class for specified type
-		if (val==null) {									//student has no transformed grade for this class	
-			return 0.0f; }
-		return ttlWidth*val.floatValue();
-	}//getGradeXLoc
-	
-	//////////////////
-	// draw this student on line of width ttlWidth - expected to be at start of line when this is called
-	public void drawMeTransformed(GraphProbExpMain pa, String _type, myClassRoster _class, float ttlWidth) {	
-		HashMap<myClassRoster, Double> classValsForType = grades.get(_type);
-		if (classValsForType==null) {						// no values for this type for any classes set yet 		
-			return;	}
-		Double val = classValsForType.get(_class);			//grade for class for specified type
-		if (val==null) {									//student has no transformed grade for this class	
-			return;	}
-		float gr = val.floatValue();
-		pa.pushMatrix();pa.pushStyle();
-		pa.translate(ttlWidth*gr, 0.0f, 0.0f);
-		pa.showCrclNoBox_ClrAra(myPointf.ZEROPT, rad, clr,blkStrk, pa.gui_White, textLoc,  ""+ String.format("%.3f",gr));
-		pa.popStyle();pa.popMatrix();
-	}//drawMeTransformed
-	
-	public void drawMeTransformedOff(GraphProbExpMain pa, String _type, myClassRoster _class, float ttlWidth) {	
-		HashMap<myClassRoster, Double> classValsForType = grades.get(_type);
-		if (classValsForType==null) {						// no values for this type for any classes set yet 		
-			return;	}
-		Double val = classValsForType.get(_class);			//grade for class for specified type
-		if (val==null) {									//student has no transformed grade for this class	
-			return;	}
-		float gr = val.floatValue();
-		pa.pushMatrix();pa.pushStyle();
-		pa.translate(ttlWidth*gr, 0.0f, 0.0f);
-		pa.showCrclNoBox_ClrAra(myPointf.ZEROPT, rad, greyOff,blkStrk, pa.gui_White, textLoc,  ""+ String.format("%.3f",gr));
-		pa.popStyle();pa.popMatrix();
-	}//drawMeTransformed
-	
-	//compare based on name first, then sort by ObjID
-	@Override
-	public int compareTo(myStudent othr) {
-		int res = this.name.toLowerCase().compareTo(othr.name.toLowerCase());
-		return (res == 0 ? Integer.compare(ObjID, othr.ObjID) : res);
-	}//compareTo
-	
-	
-	@Override
-	public String toString() {
-		String res = "Name : " + name;		
-		return res;
-	}
-	
-}//myStudent

@@ -38,12 +38,12 @@ public abstract class myRandVarFunc {
 	protected static final int 
 		fIDX	 		= 0,
 		fInvIDX 		= 1,
-		//functions specifically for ziggurat calc - expected to be 0-centered
-		fZigIDX			= 2,
-		fInvZigIDX		= 3,
-		//integral functions, for closed form integrals
-		fIntegIDX 		= 4,
-		fZigIntegIDX 	= 5;
+		//standardized results-> 0 mean, 1 std (i.e. functions specifically for ziggurat calc - expected to be 0-centered
+		fStdIDX			= 2,
+		fInvStdIDX		= 3,
+		//derivative functions
+		fDerivIDX		= 4,
+		fStdDeriveIDX	= 5;
 	protected static final int numFuncs = 6;
 	
 	//object used to perform ziggurat calcs for a particular function - contains pre-calced arrays
@@ -117,9 +117,9 @@ public abstract class myRandVarFunc {
 	//calculate the inverse of f
 	public final double f_inv(double xInv){return funcs[fInvIDX].apply(xInv);}	
 	//calculate f normalized for ziggurate method, so that f(0) == 1;
-	public final double fZig(double x){return funcs[fZigIDX].apply(x);}
+	public final double fStd(double x){return funcs[fStdIDX].apply(x);}
 	//calculate the inverse of f
-	public final double f_invZig(double xInv){return funcs[fInvZigIDX].apply(xInv);}
+	public final double f_invStd(double xInv){return funcs[fInvStdIDX].apply(xInv);}
 	
 	//calculate the cdf
 	public abstract double CDF(double x);
@@ -129,7 +129,7 @@ public abstract class myRandVarFunc {
 	//calculate integral of f between x1 and x2.  Use to calculate cumulative distribution by making x1==-inf, and x2 definite; qfunc by setting x1 to a value and x2 == +inf
 	protected abstract double integral_f(Double x1, Double x2);	
 	//calculate integral of normalized f (for ziggurat calc) between x1 and x2.  Use to calculate cumulative distribution by making x1==-inf, and x2 definite; qfunc by setting x1 to a value and x2 == +inf
-	protected abstract double integral_fZig(Double x1, Double x2);	
+	protected abstract double integral_fStd(Double x1, Double x2);	
 		
 	//process a result from a 0-centered, 1-std distribution to match stated moments of this distribution
 	public abstract double processResValByMmnts(double val);	
@@ -235,12 +235,13 @@ class myGaussianFunc extends myRandVarFunc{
 		//actual probablity functions
 		funcs[fIDX] 		= (x -> (gaussSclFact  * Math.exp(-0.5 * ((x-mu)*(x-mu))/var)));
 		funcs[fInvIDX] 		= (xinv -> (std*Math.sqrt(-2.0 * Math.log(xinv/gaussSclFact))) + meanStd);
-		//zigurat functions -> want pure normal distribution
-		funcs[fZigIDX]		= (x -> Math.exp(-0.5 *(x*x)));
-		funcs[fInvZigIDX]	= (xinv -> (Math.sqrt(-2.0 * Math.log(xinv)))); 
-		// no closed form integrals exist, so have to use quadrature - THESE SHOULD BE IGNORED
-		funcs[fIntegIDX]		= (x -> x);
-		funcs[fZigIntegIDX]		= (x -> x);
+		//zigurat uses standardized functions -> want pure normal distribution 
+		funcs[fStdIDX]		= (x -> Math.exp(-0.5 *(x*x)));
+		funcs[fInvStdIDX]	= (xinv -> (Math.sqrt(-2.0 * Math.log(xinv)))); 
+		
+		//derivative functions		
+		funcs[fDerivIDX]	= (x -> (-(x-mu)/var) * (gaussSclFact  * Math.exp(-0.5 * ((x-mu)*(x-mu))/var)));	
+		funcs[fStdDeriveIDX] = (x -> (-x * Math.exp(-0.5 *(x*x))));	                                                                       ;
 	}//buildFuncs
 	
 	//shift by mean, multiply by std
@@ -276,9 +277,9 @@ class myGaussianFunc extends myRandVarFunc{
 
 	//calculate integral of f from x1 to x2.  Use to calculate cumulative distribution by making x1== -inf, and x2 definite val
 	@Override
-	public double integral_fZig(Double x1, Double x2) {
+	public double integral_fStd(Double x1, Double x2) {
 		double res = 0;
-		if (!getFlag(quadSlvrSetIDX)) {	expMgr.dispMessage("myGaussianFunc", "integral_fZig", "No quadrature solver has been set, so cannot integrate f",true);return res;}
+		if (!getFlag(quadSlvrSetIDX)) {	expMgr.dispMessage("myGaussianFunc", "integral_fStd", "No quadrature solver has been set, so cannot integrate f",true);return res;}
 		//expMgr.dispMessage("myGaussianFunc", "integral_f", "Integrating for : x1 : "+x1 + " and  x2 : " + x2);		
 		//if x1 is -inf... gauss-legendre quad - use error function via gaussian quad - calculating cdf
 		if(x1==Double.NEGATIVE_INFINITY) {				//cdf of x2 == .5 + .5 * error function x2/sqrt(2) 
@@ -294,7 +295,7 @@ class myGaussianFunc extends myRandVarFunc{
 			//res = BigDecimal.ONE.subtract(halfVal.add(halfVal.multiply(erroFuncVal)));		
 			res = 1.0 - (.5 + .5 * erroFuncVal.doubleValue());				
 		} else {
-			res = quadSlvr.evalIntegral(funcs[fZigIDX], x1, x2).doubleValue();
+			res = quadSlvr.evalIntegral(funcs[fStdIDX], x1, x2).doubleValue();
 		}
 		//expMgr.dispMessage("myGaussianFunc", "integral_f", "Integrating for : x1 : "+x1 + " and  x2 : " + x2 + " Res : \n" + res);
 		return 1.0/normalSclFact * res;		//must have 1.0/normalSclFact to normalize integration results (i.e. scale CDF for function with p(0) == 1
@@ -371,6 +372,16 @@ class myNormalFunc extends myGaussianFunc{
 		super(_expMgr,_quadSlvr, new myProbSummary(new double[] {0.0, 1.0},2), "Normal");			
 	}//ctor	
 	
+	//if this is a normal function, then these will not change
+	@Override
+	public double processResValByMmnts(double val) {	return val;}//public abstract double processResValByMmnts(double val);
+	@Override
+	public double CDF_inv(double x) {	
+		double normRes = calcProbitApprox(x);
+		//System.out.print("Raw probit val : " + normRes + " : ");
+		return normRes;
+	}//CDF_inv
+
 }//class myNormalFunc
 
 
@@ -389,10 +400,14 @@ class myFleishFunc_Uni extends myRandVarFunc{
 	//maximum iterations
 	private final int maxIter = 35;
 	//convergence limit
-	private final double convLim=1e-5;
+	private final double convLim=1e-6;
 	//summary object/
+
+	//normal distribution for inverse calc
+	private myNormalFunc normFunc;
 	public myFleishFunc_Uni(BaseProbExpMgr _expMgr, myIntegrator _quadSlvr, myProbSummary _summaryObj, String _name) {
 		super(_expMgr, _quadSlvr, _name);
+		normFunc = new myNormalFunc(_expMgr, _quadSlvr);
 		rebuildFuncs(_summaryObj);
 	}//ctor
 
@@ -417,17 +432,18 @@ class myFleishFunc_Uni extends myRandVarFunc{
         //bound = -1.13168 + 1.58837 * skew**2
         double bound = -1.2264489 + 1.6410373*skewSQ;
         if (exKurt < bound) { 
-        	expMgr.dispMessage("myFleishFunc_Uni", "calcCoeffs", "!!!! Coefficient error : ex kurt : " + exKurt+ " is not feasible with skew :" + skew +" | forcing exKurt to lower bound @ skew DANGER this is not going to reflect the sample quantities :"+bound,true);
+        	expMgr.dispMessage("myFleishFunc_Uni", "calcCoeffs", "!!!! Coefficient error : ex kurt : " + String.format("%3.8f",exKurt)+ " is not feasible with skew :" + String.format("%3.8f",skew) +" | forcing exKurt to lower bound @ skew "+String.format("%3.8f",bound)+" DANGER this is not going to reflect the sample quantities",true);
         	_summary.forceExKurt(bound);
         	exKurt = _summary.exKurt();
         }
         double exKurtSq = exKurt * exKurt;
         //add -coeff[1] as coeff[0]
+        //initial coeff estimates
         double c1 = 0.95357 - (0.05679*skew) + (0.03520*skewSQ) + (0.00133*exKurtSq);
         double c2 = (0.10007*skew) + (0.00844*skewSQ*skew);
         double c3 = 0.30978 - (0.31655 * c1);
 
-
+        //solve with newton-raphson
         double[] tmpC = newton(c1, c2, c3, skew, exKurt);
 		coeffs = new double[] {-tmpC[1], tmpC[0],tmpC[1],tmpC[2]};
 		expMgr.dispMessage("myFleishFunc_Uni", "calcCoeffs", "Coeffs calculated :  ["+ String.format("%3.8f",coeffs[0])+","+ String.format("%3.8f",coeffs[1])+","+ String.format("%3.8f",coeffs[2])+","+ String.format("%3.8f",coeffs[3])+"]",true);		
@@ -464,16 +480,18 @@ class myFleishFunc_Uni extends myRandVarFunc{
 	
 	private boolean isNewtonDone(DoubleMatrix f) {
 		for(double x : f.data) {
-			if(Math.abs(x) < convLim) {return true;}
+			if(Math.abs(x) > convLim) {return false;}
 		}		
-		return false;
-	}
+		return true;
+	}//isNewtonDone
+	
 	//simple newton method solver
 	private double[] newton(double a,double b,double c,double skew,double exKurtosis) {
         //Implements newtons method to find a root of flfunc
 		DoubleMatrix f = flfunc(a, b, c, skew, exKurtosis), delta;
         DoubleMatrix Jacob;
-        for (int i=0; i<maxIter; ++i) {
+        int i = 0;
+        for (i=0; i<maxIter; ++i) {
             if (isNewtonDone(f)){          break;   }
             //get jacobian
             Jacob = flDeriv(a, b, c);
@@ -484,33 +502,59 @@ class myFleishFunc_Uni extends myRandVarFunc{
             c -= delta.data[2];
             f = flfunc(a, b, c, skew, exKurtosis);
         }
+        System.out.println("newton iters to find coeffs : " + i);
         return new double[] {a,b,c};
 	}//newton
+	
+	
+	//find functional inverse - given specific y value, find x such that y = func(x) -> x = func^-1(y)
+	//i.e. find x value that will give f(x)==y
+	public double calcInvF(double y) {
+		double res = y, diff, diffSq, fRes = 0;
+		boolean done = false;
+		double convLimSq = convLim*convLim;
+		//use newton method to find value
+		int i = 0;
+		for (i=0; i<maxIter; ++i) {
+			fRes = f(res);
+			diff = (fRes - y);
+			diffSq = diff * diff;
+			if (diffSq < convLimSq) {          break;   }
+			System.out.println("iter " + i + " diff : " + String.format("%3.8f", diff) + "\t y :"+ y + " res : " + String.format("%3.8f", res) + " f(res) : "+ String.format("%3.8f", fRes));
+			res -= .5f *diff;
+		}	
+		System.out.println("newton iters to find inverse : " + i + " result : " + res + " y : " + y + " f(res) : "+ fRes);
+		return res;
+		
+	}//calcInvF
+	
 	
 	//this takes a normal input, not a uniform input
 	@Override
 	protected void buildFuncs() {
 		double mu = summary.mean(), std = summary.std();//, var = summary.var();
 		//actual functions
-		funcs[fIDX] 		= (x ->  ((coeffs[0] + x*(coeffs[1] +x*(coeffs[2]+ x*coeffs[3])))*std +  mu));
+		funcs[fIDX] 		= x ->  {return ((coeffs[0] + x*(coeffs[1] +x*(coeffs[2]+ x*coeffs[3])))*std +  mu);};
 		//TODO find inverse of polynomial?  inverse of this function may not exist
 		funcs[fInvIDX] 		= (xinv -> xinv);
 		//zigurat functions -> want pure normal distribution
-		funcs[fZigIDX]		= (x -> (coeffs[0] + x*(coeffs[1] +x*(coeffs[2]+ x*coeffs[3]))));
-		funcs[fInvZigIDX]	= (xinv -> xinv);
-		//easily integrated since we have coefficients of polynomial - should always be used in definite integral over a span, so coefficient will cancel
-		//TODO need to verify this - should integral be of full equation or just underlying polynomial
-		//funcs[fIntegIDX]		= (x -> ((x*(coeffs[0]+mu) + .5*x*x*coeffs[1] + (1.0/3.0)*x*x*x*coeffs[2]+ .25*x*x*x*x*coeffs[3])*std));
-		funcs[fIntegIDX]		= (x -> ((x*(coeffs[0]+mu + x*(.5*coeffs[1] + x*((1.0/3.0)*coeffs[2]+ .25*x*coeffs[3]))))*std));
-		funcs[fZigIntegIDX]		= (x -> (x*(coeffs[0] + x*(.5*coeffs[1] + x*((1.0/3.0)*coeffs[2]+ .25*x*coeffs[3])))));
-
+		funcs[fStdIDX]		= x -> {return (coeffs[0] + x*(coeffs[1] +x*(coeffs[2]+ x*coeffs[3])));};
+		funcs[fInvStdIDX]	= (xinv -> xinv);
+		//analytical derivatives
+		funcs[fDerivIDX]	= x -> {return ((coeffs[1] +x*(coeffs[2]+ x*coeffs[3]))*std +  mu);};
+		funcs[fStdDeriveIDX] = x -> {return (coeffs[1] +x*(coeffs[2]+ x*coeffs[3]));};                                                                   ;
+		
 	}//buildFuncs
-
+	
+	//find cumulative value 
 	@Override
 	public double CDF(double x) {	
-		//this function is fed by normal distribution -> this means that bound of neg inf into source distribution == this being fed by 0 as lower bound
-		//upper bound is inv_cdf of normal dist of original x
-		return integral_f(Double.NEGATIVE_INFINITY, x);	
+		//must find t @ f(t) where f is normal fed to poly, and f(t)==x.  in other words, need to know what t will give f(t) == x
+		double t = normFunc.f_inv(x);
+		//find polynomial 
+		//now we can find the CDF of transformed x by finding normFunc cdf of t and transforming it
+		return f(normFunc.CDF(t));
+		
 	}	//need to find most negative value of function corresponding to 0 probability => coeffs[0] 
 
 	@Override
@@ -523,18 +567,33 @@ class myFleishFunc_Uni extends myRandVarFunc{
 	@Override
 	protected double integral_f(Double x1, Double x2) {
 		//definite integral of polynomial		
-		double res; 
-		//res = quadSlvr.evalIntegral(funcs[fIDX], x1, x2).doubleValue();
-		res = funcs[fIntegIDX].apply(x2) - funcs[fIntegIDX].apply(x1);
+		double res = 0; 
+		if(x1==Double.NEGATIVE_INFINITY) {				//cdf of x2 == .5 + .5 * error function x2/sqrt(2) 
+//			//expMgr.dispMessage("myGaussianFunc", "integral_f", "CDF : x1 : "+x1 + " and  x2 : " + x2 + " Using x2");
+//			BigDecimal erroFuncVal = quadSlvr.evalIntegral(errorFunc, 0.0, (x2 - summary.mean())*invStdSclFact);
+//			//cdf == .5*(1+erf(x/sqrt(2))) 
+//			//res = halfVal.add(halfVal.multiply(erroFuncVal));		
+//			res = .5 + .5 * erroFuncVal.doubleValue();			
+		} else if (x2==Double.POSITIVE_INFINITY) {		//pos inf -> this is 1- CDF == Q function
+//			//expMgr.dispMessage("myGaussianFunc", "integral_f", "Q func : x1 : "+x1 + " and  x2 : " + x2 + " Using x1");
+//			BigDecimal erroFuncVal = quadSlvr.evalIntegral(errorFunc, 0.0, (x1 - summary.mean())*invStdSclFact);
+//			//Q function is == 1 - (.5*(1+erf(x/sqrt(2))))
+//			//res = BigDecimal.ONE.subtract(halfVal.add(halfVal.multiply(erroFuncVal)));		
+//			res = 1.0 - (.5 + .5 * erroFuncVal.doubleValue());				
+		} else {
+			//find integral of f(normFunc.f_inv(x2)) - f(normFunc.f_inv(x1)) 
+			//double
+			
+			res = quadSlvr.evalIntegral(funcs[fIDX], x1, x2).doubleValue();
+		}
 		
 		return res;
 	}
 
 	@Override
-	protected double integral_fZig(Double x1, Double x2) {
-		double res;
-		//res = quadSlvr.evalIntegral(funcs[fZigIDX], x1, x2).doubleValue();
-		res = funcs[fZigIntegIDX].apply(x2) - funcs[fZigIntegIDX].apply(x1);
+	protected double integral_fStd(Double x1, Double x2) {
+		double res = 0;
+
 		return res;
 	}
 
@@ -588,15 +647,15 @@ class zigConstVals{
 		eqAreaZigRatio_NNormFast = new int[Nrect];
 		rareCaseEqAreaX = new double[eqAreaZigX.length];
 		
-		double f = func.fZig(R_last);
+		double f = func.fStd(R_last);
 		double[] eqAreaZigRatio = new double[Nrect];
 		//calculate X values for each equal area
 		eqAreaZigX[0] = V_each / f;
 		eqAreaZigX[1] = R_last;
 		for (int i=2;i<Nrect;++i) {
-			double xi = func.f_invZig(V_each/eqAreaZigX[i-1] + f);
+			double xi = func.f_invStd(V_each/eqAreaZigX[i-1] + f);
 			eqAreaZigX[i] = xi;
-			f = func.fZig(xi);
+			f = func.fStd(xi);
 		}
 		eqAreaZigX[Nrect] = 0.0;
 		
@@ -607,16 +666,16 @@ class zigConstVals{
 			eqAreaZigRatio_NNormFast[i] = (int)Math.floor(-eqAreaZigRatio[i] * bitMask);
 			eqAreaZigX_NNormFast[i] = eqAreaZigX[i] * invBitMask;
 		}
-		for (int i=0;i<rareCaseEqAreaX.length;++i) {       	rareCaseEqAreaX[i] = func.fZig(eqAreaZigX[i]); }    	
+		for (int i=0;i<rareCaseEqAreaX.length;++i) {       	rareCaseEqAreaX[i] = func.fStd(eqAreaZigX[i]); }    	
 	}//ctor
 	
 	//function described in zig paper to find appropriate r value - need to find r to make this funct == 0 
 	private double[] z_R(double rVal) {
 		//expMgr.dispMessage("myGaussianFunc", "z_R", "Start : rVal : " + rVal + " nRect " + nRect);
 		//this gives the volume at the tail - rectangle @ r + tail from r to end		
-		double funcAtR = func.fZig(rVal);  							
+		double funcAtR = func.fStd(rVal);  							
 		//vol = rF(r) + integral(r->+inf) (f_zig(x))
-		double integralRes = func.integral_fZig(rVal, Double.POSITIVE_INFINITY);
+		double integralRes = func.integral_fStd(rVal, Double.POSITIVE_INFINITY);
 		double vol = rVal* funcAtR + integralRes;//Q func == 1 - CDF
 		if (vol < 0) {
 			func.expMgr.dispMessage("zigConstVals", "z_R", func.getShortDesc()+ "| Initial Ziggurat R val chosen to be too high, causing integration to yield a negative volume due to error",true);
@@ -631,8 +690,8 @@ class zigConstVals{
 			double eval = (vol/xVals[i+1]) + fXVals[i+1];
 			//if eval > 1 then this is going to break ---V - this is wrong, changes the curve being fitted
 			eval = (eval > 1 ? 1 : eval);
-			xVals[i]=func.f_invZig(eval);
-			fXVals[i]=func.fZig(xVals[i]);
+			xVals[i]=func.f_invStd(eval);
+			fXVals[i]=func.fStd(xVals[i]);
 			retVal = vol - xVals[i+1] + xVals[i+1]*fXVals[i+1];//area vol - vol of top block
 			//func.expMgr.dispMessage("myGaussianFunc", "z_R", "Inverse @ i=="+i+" =  " + xVals[i]  + " f(x[i]) : " + fXVals[i] + " eval : " + eval + " Vol : " + (xVals[i]* fXVals[i]),true);
 		}

@@ -67,7 +67,7 @@ public abstract class myVisMgr {
 	
 	//modify name to reflect changes in underlying data/distribution
 	public void updateName(String _newName) {
-		this.name = _newName;
+		name = _newName;
 	}
 	
 	//functionality when mouse is released
@@ -149,10 +149,10 @@ class gradeBar extends myVisMgr {
 	
 	//specific color constructor - used to set up overall grade bar for a single class
 	public gradeBar(myClassRoster _owningClass, float[] _dims, String _typ, int[] _barColor, String _name) {
-		super(new float[] {_dims[0],_dims[1], _barStX + (_owningClass.gradeExp.getVisibleSreenWidth()*barWidthMult) ,_dims[2]}, _name);
+		super(new float[] {_dims[0],_dims[1], _barStX + (_owningClass.probExp.getVisibleSreenWidth()*barWidthMult) ,_dims[2]}, _name);
 		gradeType=_typ;
 		setIsVisible(true);			//default bar to being visible
-		_setDispWidthIndiv(_owningClass.gradeExp.getVisibleSreenWidth());
+		_setDispWidthIndiv(_owningClass.probExp.getVisibleSreenWidth());
 		_barStY = .5f * startRect[3];
 		_clkBox = new float[] {0,-8+_barStY,16,16};
 		barColor = _barColor;// getRndClr2 should be brighter colors
@@ -207,12 +207,12 @@ class gradeBar extends myVisMgr {
 		if(enabled) {
 			pa.pushMatrix();pa.pushStyle();
 			_drawBoxAndBar(pa,clr_green,barColor);
-			for (myStudent s : owningClass.students.values()) {		s.drawMeTransformed(pa, gradeType, owningClass, barWidth);	}
+			for (myStudent s : owningClass.students.values()) {		s.drawMeTransformed(pa, gradeType, owningClass, s.clr, barWidth);	}
 			pa.popStyle();pa.popMatrix();					
 		} else {							
 			pa.pushMatrix();pa.pushStyle();
 			_drawBoxAndBar(pa,clr_red,clr_grey);
-			for (myStudent s : owningClass.students.values()) {		s.drawMeTransformedOff(pa, gradeType, owningClass, barWidth);	}		
+			for (myStudent s : owningClass.students.values()) {		s.drawMeTransformed(pa, gradeType, owningClass, mySmplObs.greyOff, barWidth);	}		
 			pa.popStyle();pa.popMatrix();
 		}
 	}//_drawVisIndiv
