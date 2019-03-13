@@ -1376,7 +1376,7 @@ class mySideBarMenu extends myDispWindow{
 	//	//GUI Objects	
 	//idx's of objects in gui objs array	
 	public static final int 
-		gIDX_TimeStep 			= 0;//, 
+		gIDX_Temp 				= 0;//, 						//placeholder
 	public final int numGUIObjs = 0;							//# of gui objects for ui
 	
 	//private child-class flags - window specific
@@ -1384,9 +1384,10 @@ class mySideBarMenu extends myDispWindow{
 			mseClickedInBtnsIDX 		= 0;					//the mouse was clicked in the button region of the menu and a click event was processed
 	//private flag based buttons - ui menu won't have these
 	public static final int numPrivFlags = 1;
+	//where buttons should start on side menu
+	public float minBtnClkY;			
 	
 	//GUI Buttons
-	public float minBtnClkY;			//where buttons should start on side menu
 
 	public static final String[] guiBtnRowNames = new String[]{ 
 			"Window","Raw Data/Ftr Processing","Post Proc Load And Map Config/Exec","DEBUG","File"};
@@ -1399,15 +1400,15 @@ class mySideBarMenu extends myDispWindow{
 			btnFileCmdIdx = 4;				//load/save files
 	//names for each row of buttons - idx 1 is name of row
 	public final String[][] guiBtnNames = new String[][]{
-		new String[]{pa.winTitles[1], pa.winTitles[2], pa.winTitles[3]},							//display specific windows - multi-select/ always on if sel
-		new String[]{"Func 1","Func 2","Func 3"},						//per-window user functions - momentary
+		new String[]{pa.winTitles[1], pa.winTitles[2], pa.winTitles[3], pa.winTitles[4]},							//display specific windows - multi-select/ always on if sel
+		new String[]{"Func 1","Func 2","Func 3"},								//per-window user functions - momentary
 		new String[]{"Func 1","Func 2","Func 3","Func 4"},						//per-window user functions - momentary
 		new String[]{"Dbg 1","Dbg 2","Dbg 3","Dbg 4","Dbg 5"},						//DEBUG - momentary
 		new String[]{"Load Txt File","Save Txt File"}							//load an existing score, save an existing score - momentary		
 	};
 	//default names, to return to if not specified by user
 	public final String[][] defaultUIBtnNames = new String[][]{
-		new String[]{pa.winTitles[1], pa.winTitles[2], pa.winTitles[3]},							//display specific windows - multi-select/ always on if sel
+		new String[]{pa.winTitles[1], pa.winTitles[2], pa.winTitles[3], pa.winTitles[4]},							//display specific windows - multi-select/ always on if sel
 		new String[]{"Func 1","Func 2","Func 3"},					//per-window user functions - momentary
 		new String[]{"Func 1","Func 2","Func 3","Func 4"},			//per-window user functions - momentary
 		new String[]{"Dbg 1","Dbg 2","Dbg 3","Dbg 4","Dbg 5"},						//DEBUG - momentary
@@ -1415,7 +1416,7 @@ class mySideBarMenu extends myDispWindow{
 	};
 	//whether buttons are momentary or not (on only while being clicked)
 	public boolean[][] guiBtnInst = new boolean[][]{
-		new boolean[]{false,false,false},         						//display specific windows - multi-select/ always on if sel
+		new boolean[]{false,false,false,false},         						//display specific windows - multi-select/ always on if sel
 		new boolean[]{false,false,false,false,false},                   //functionality - momentary
 		new boolean[]{false,false,false,false,false},                   //functionality - momentary
 		new boolean[]{false,false,false,false,false},                   		//debug - momentary
@@ -1423,7 +1424,7 @@ class mySideBarMenu extends myDispWindow{
 	};		
 	//whether buttons are waiting for processing to complete (for non-momentary buttons)
 	public boolean[][] guiBtnWaitForProc = new boolean[][]{
-		new boolean[]{false,false,false},         						//display specific windows - multi-select/ always on if sel
+		new boolean[]{false,false,false,false},         						//display specific windows - multi-select/ always on if sel
 		new boolean[]{false,false,false,false,false},                   //functionality - momentary
 		new boolean[]{false,false,false,false,false},                   //functionality - momentary
 		new boolean[]{false,false,false,false,false},                   		//debug - momentary
@@ -1432,7 +1433,7 @@ class mySideBarMenu extends myDispWindow{
 	
 	//whether buttons are disabled(-1), enabled but not clicked/on (0), or enabled and on/clicked(1)
 	public int[][] guiBtnSt = new int[][]{
-		new int[]{0,0,1},                    					//display specific windows - multi-select/ always on if sel
+		new int[]{0,0,1,0},                    					//display specific windows - multi-select/ always on if sel
 		new int[]{0,0,0,0,0},                   					//debug - momentary
 		new int[]{0,0,0,0,0},                   					//debug - momentary
 		new int[]{0,0,0,0,0},                   					//debug - momentary

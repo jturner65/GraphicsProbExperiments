@@ -33,12 +33,20 @@ public abstract class BaseProbExpMgr {
 	
 	//types of random number generators implemented/supported so far
 	public static final int 
-		ziggRandGen 			= 0,
+		ziggRandGen 			= 0,	//ziggurat method to generate distribution
 		fleishRandGen_UniVar	= 1,	//uses fleishman algorithm for univariate - needs first 4 moments
 		linearTransformMap		= 2,	//just performs linear transformation mapping - does not actually represent a random function
 		uniformTransformMap		= 3;	//just performs an order-based transformation from original grade to #/n where # is order in rank (from lowest to highest) and n is total # of grades
     public static final String[] randGenAlgNames = new String[] {"Ziggurat Algorithm", "Fleishman Univariate Polynomial Algorithm", "Linear Transformation Mapping", "Uniform Transformation Mapping"};
 	
+    //type of random variable function to use with ziggurat algorithm
+    public static final int
+    	normRandVarIDX			= 0,
+    	gaussRandVarIDX			= 1,
+    	cosRandVarIDX			= 2;
+    public static final String[] randVarFuncNames = new String[] {"Normal Distribution", "Gaussian Distribution", "Cosine-PDF Distribution"};
+    	
+    
 	////////////////////////////////////////
 	// internal functionality
 	
@@ -77,6 +85,9 @@ public abstract class BaseProbExpMgr {
 		expMgrBuiltTime = now.toEpochMilli();//milliseconds since 1/1/1970 when this exec was built.
 		//run once - all solvers for this experiment should be built
 		buildSolvers();
+		//initialize exp - in instance class
+		initExp();
+		
 	}//ctor
 	
 	//(re)init this experiment - specific functionality for each instance class
@@ -95,22 +106,37 @@ public abstract class BaseProbExpMgr {
 	//experiment instance-specific solver building funcitionality
 	protected abstract void buildSolvers_indiv();
 	
-	//using default GaussLengendre and 256 zig's for ziggurat alg
-	public myRandGen buildAndInitRandGen(int _type, myProbSummary _summaryObj) {return buildAndInitRandGen(_type, GL_QuadSlvrIDX, 256, _summaryObj);}
 	
+	public myRandVarFunc buildRandVarType (int _pdfType,  int _quadSlvrIdx, myProbSummary _summaryObj) {
+		switch (_pdfType) {		
+		   	case normRandVarIDX		: { return new myNormalFunc(this, quadSlvrs[_quadSlvrIdx]);}
+	    	case gaussRandVarIDX	: { return new myGaussianFunc(this, quadSlvrs[_quadSlvrIdx], _summaryObj);}
+	    	case cosRandVarIDX		: { return new myCosFunc(this, quadSlvrs[_quadSlvrIdx], _summaryObj);}			
+			default : {return null;}		
+		}
+	}//myRandVarFunc
+	
+	//using default GaussLengendre and 256 zig's for ziggurat alg
+	public myRandGen buildAndInitRandGen(int _type, int _pdfType, myProbSummary _summaryObj) {return buildAndInitRandGen(_type, _pdfType, GL_QuadSlvrIDX, 256, _summaryObj);}
 	//must build rand gen through this method
-	public myRandGen buildAndInitRandGen(int _type, int _quadSlvrIdx, int _numZigRects, myProbSummary _summaryObj) {
+	public myRandGen buildAndInitRandGen(int _type, int _pdfType, int _quadSlvrIdx, int _numZigRects, myProbSummary _summaryObj) {
 
 		switch (_type) {
 			case ziggRandGen : {//ziggurat alg solver - will use zigg algorithm to generate a gaussian of passed momments using a uniform source of RVs
 				//need to build a random variable generator function
-				myRandVarFunc func = new myGaussianFunc(this, quadSlvrs[GL_QuadSlvrIDX], _summaryObj);
+				myRandVarFunc func = buildRandVarType(_pdfType, _quadSlvrIdx, _summaryObj);// new myGaussianFunc(this, quadSlvrs[_quadSlvrIdx], _summaryObj);
+				myRandGen res;
+				if (cosRandVarIDX == _pdfType) {
+					res = new myCosVarRandGen(func, "Bounded Cosine PDF");
+				} else {
+					res = new myZigRandGen(func, _numZigRects, randGenAlgNames[_type]);
+				}
 				//_numZigRects must be pwr of 2 - is forced to be if is not.  Should be 256
-				return new myZigRandGen(func, _numZigRects, randGenAlgNames[_type]);}
+				return res;}
 			
 			case fleishRandGen_UniVar : {
 				//specify fleishman rand function with either moments or data - if only moments given, then need to provide hull as well
-				myRandVarFunc func = new myFleishFunc_Uni(this, quadSlvrs[GL_QuadSlvrIDX], _summaryObj, randGenAlgNames[_type]);
+				myRandVarFunc func = new myFleishFunc_Uni(this, quadSlvrs[_quadSlvrIdx], _summaryObj, randGenAlgNames[_type]);
 				return new myFleishUniVarRandGen(func,  randGenAlgNames[_type]);	}
 			
 			case linearTransformMap : {	
@@ -198,6 +224,11 @@ public abstract class BaseProbExpMgr {
 		dispMessage("BaseProbExpMgr","testRandGen","Analysis res of " + gen.name + " : " + analysis.getMomentsVals(), true);
 	}//testGen
 	
+	//////////////////////////////
+	// drawing
+	
+	public abstract void drawExp();
+	
 	
 	
 	/////////////////////////////
@@ -243,12 +274,12 @@ public abstract class BaseProbExpMgr {
 	/////////////////////////////
 	// state flags specific to each experiment
 	protected abstract void initFlags();
-	public abstract void setAllFlags(int[] idxs, boolean val);
 	public abstract void setFlag(int idx, boolean val);
-	public abstract boolean getFlag(int idx);
+	public final void setAllFlags(int[] idxs, boolean val) {for (int idx : idxs) {setFlag(idx, val);}}
+	public final boolean getFlag(int idx){int bitLoc = 1<<(idx%32);return (stFlags[idx/32] & bitLoc) == bitLoc;}
 	
 	/////////////////////////////
-	//init and manage state flags - internal to base class computation
+	//init and manage state flags internal to base class computation
 	private void initBaseFlags(){_baseStFlags = new int[1 + _BaseNumStFlags/32]; for(int i = 0; i<_BaseNumStFlags; ++i){setBaseFlag(i,false);}}
 	private void setAllBaseFlags(int[] idxs, boolean val) {for (int idx : idxs) {setBaseFlag(idx, val);}}
 	private void setBaseFlag(int idx, boolean val){

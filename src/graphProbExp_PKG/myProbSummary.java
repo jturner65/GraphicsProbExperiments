@@ -10,6 +10,8 @@ import java.util.*;
 public class myProbSummary{
 	//values to analyze
 	private double[] vals;
+	
+	private int numVals;
 	//(population) moments of this distribution.  mean, std, var may be null/undefined for certain distributions (i.e. cauchy)
 	protected double[] mmnts;
 	//min and max values of data
@@ -52,7 +54,8 @@ public class myProbSummary{
 	//numMmnts are # of moments actually specified
 	public myProbSummary(double[] _mmnts, int _numMmnts, boolean isExKurt) {
 		initFlags();
-		setMoments(_mmnts, _numMmnts, isExKurt);		
+		setMoments(_mmnts, _numMmnts, isExKurt);	
+		numVals = 0;	//no data values set
 	}//ctor
 	//if not specified then assume kurtosis passed is not excess but rather actual 
 	public myProbSummary(double[] _mmnts, int _numMmnts) {this(_mmnts,_numMmnts, false);}
@@ -70,20 +73,24 @@ public class myProbSummary{
 	//using Kahan summation to minimize errors from large differences in value magnitude
 	public void setValsAndAnalyse(double[] _vals) {
 		setFlag(setByDataIDX, true);
+		numVals = _vals.length;
 		mmnts = new double[numMmnts];  
 		popToSmplMmntMults = new double[numMmnts];
+		//array of values
+		vals = _vals;
+		
 		for(int i=0;i<numMmnts;++i) {mmnts[i]=0.0;}
-		vals=_vals;
-		int numVals = vals.length;
+		
+		
 		if(numVals ==0 ) {return;}
 		///calculate mean while minimizing float error
-		double sumMu = vals[0], min = vals[0], max = vals[0];
+		double sumMu = _vals[0], min = _vals[0], max = _vals[0];
 		double cMu = 0.0, y, t;
-		for(int i=1;i<vals.length;++i) {
-			min=(vals[i]<min?vals[i]:min);
-			max=(vals[i]>max?vals[i]:max);
+		for(int i=1;i<numVals;++i) {
+			min=(_vals[i]<min?_vals[i]:min);
+			max=(_vals[i]>max?_vals[i]:max);
 			
-			y = vals[i] - cMu;
+			y = _vals[i] - cMu;
 			t = sumMu + y;
 			cMu = (t-sumMu) - y;
 			sumMu = t;
@@ -92,13 +99,14 @@ public class myProbSummary{
 		//calculate variance/std while minimizing float error
 		//double sumVar = (vals[0] - mmnts[meanIDX])*(vals[0] - mmnts[meanIDX]);
 		double tDiff, tDiffSq;
-		double valMMean = (vals[0] - mmnts[meanIDX]);
+		//initialize for Kahan summation method
+		double valMMean = (_vals[0] - mmnts[meanIDX]);
 		double [] sumAndCSq = new double[] {valMMean*valMMean, 0.0};
 		double [] sumAndCCu = new double[] {(sumAndCSq[0])*valMMean, 0.0};
 		double [] sumAndCQu = new double[] {(sumAndCSq[0])*(sumAndCSq[0]), 0.0};
 		//kahan summation to address magnitude issues in adding 2 values of largely different magnitudes
-		for(int i=1;i<vals.length;++i) {
-			tDiff = vals[i] - mmnts[meanIDX];
+		for(int i=1;i<numVals;++i) {
+			tDiff = _vals[i] - mmnts[meanIDX];
 			tDiffSq = (tDiff*tDiff);
 			calcSumAndC(sumAndCSq,tDiffSq - sumAndCSq[1]);
 			calcSumAndC(sumAndCCu,(tDiffSq*tDiff) - sumAndCCu[1]);
@@ -128,7 +136,7 @@ public class myProbSummary{
 	//returns array of numBuckets, 2, where idx 0 is lower xVal of bucket, and idx 1 is count in bucket - last element has idx0 == max bucket limit, count 0 (none above max)
 	public double[][] calcBucketVals(int numBuckets){
 		//if no data, return empty array - need data to calculate this
-		if ((vals == null) || (vals.length == 0)) {return new double[0][0];}
+		if ((vals == null) || (numVals == 0)) {return new double[0][0];}
 		double[][] results = new double[numBuckets+1][2];
 		//split min->max into numBuckets partitions
 		double diff = minMax[1] - minMax[0];
@@ -152,7 +160,7 @@ public class myProbSummary{
 		mmnts[kurtIDX] = mmnts[excKurtIDX] + 3;
 		setFlag(kurtIDX, true);
 		setFlag(excKurtIDX, true);
-		if(vals.length > 0) {			calcSmpleMomentsForSampleSize();		} 
+		if(numVals > 0) {			calcSmpleMomentsForSampleSize();		} 
 		else {							setFlag(smplValsCalcedIDX, false);		}			
 	}//forceExKurt
 	
@@ -199,7 +207,7 @@ public class myProbSummary{
 	public void setMinMax(double min, double max) {setMinMax(new double[] {min,max});}
 	public void setMinMax(double[] _minMax) {	minMax = _minMax;}
 	
-	public void calcSmpleMomentsForSampleSize(){calcSmpleMomentsForSampleSize(vals.length, minMax);}
+	public void calcSmpleMomentsForSampleSize(){calcSmpleMomentsForSampleSize(numVals, minMax);}
 	//assuming calculated moments are population moments, modify popToSmpleMmntMults values so they can be used to calculate sample moments
 	public void calcSmpleMomentsForSampleSize(int _smpleSize, double[] _minMax) {
 		sampleSize = _smpleSize;
@@ -230,6 +238,31 @@ public class myProbSummary{
 	
 	public double[] getDataVals() {return vals;}
 	
+	//return CDF map of data, where key is p(X<=x) and value is x
+	public TreeMap<Double,Double> getCDFOfData(){
+		//keyed by cum prob, value is sample value
+		TreeMap<Double, Double> valsCDF = new TreeMap<Double, Double>();
+		if (vals != null) {
+			//map of values and counts - use this to build CDF
+			TreeMap<Double, Integer> valsCount = new TreeMap<Double, Integer>();
+			Integer count;
+			for (int i=0;i<vals.length;++i) {
+				count = valsCount.get(vals[i]);
+				if(null==count) {count=0;};
+				valsCount.put(vals[i], ++count);
+			}
+			Double cumProb = 0.0;
+			//now build result map based on prob for every value
+			for (Double key : valsCount.keySet()) {
+				Double prob = valsCount.get(key)/(1.0 * vals.length);
+				cumProb += prob;
+				valsCDF.put(cumProb, key);				
+			}			
+		}//if vals		
+		return valsCDF;
+	}//getCDFOfData
+	
+	
 	//get moments of sampled data, if specified that given moments are of underlying population
 	public double smpl_mean() {return (getFlag(meanIDX) & getFlag(smplValsCalcedIDX)) ? mmnts[meanIDX] * popToSmplMmntMults[meanIDX]: 0;}
 	public double smpl_var() { return (getFlag(varIDX) & getFlag(smplValsCalcedIDX))  ? mmnts[varIDX] * popToSmplMmntMults[varIDX]  : 0;}
@@ -257,12 +290,13 @@ public class myProbSummary{
 			case excKurtIDX			: {break;}
 			case setByDataIDX		: {break;}
 			case smplValsCalcedIDX	: {break;}			//whether multipliers to modify calculated pop moments to be appropriate sample moments have been calculated
+			case clipAllSmplsIDX 	: {break;}
 		}
 	}//setFlag		
 	public boolean getFlag(int idx){int bitLoc = 1<<(idx%32);return (stFlags[idx/32] & bitLoc) == bitLoc;}		
 
 	public String getMomentsVals() {
-		String res = "# vals : " +vals.length + " | Set By Data : " + getFlag(setByDataIDX) + " | "  + getMoments();
+		String res = "# vals : " +numVals + " | Set By Data : " + getFlag(setByDataIDX) + " | "  + getMoments();
 		return res;
 	}
 	

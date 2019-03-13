@@ -52,7 +52,6 @@ public class ClassGradeExperiment extends BaseProbExpMgr{
 	
 	public ClassGradeExperiment(myDispWindow _win) {
 		super(_win);
-		initExp();
 	}//ctor
 	
 	private float getPlotHeight() {
@@ -87,9 +86,9 @@ public class ClassGradeExperiment extends BaseProbExpMgr{
 	}//setDesiredFinalGradeSummaryObj
 	
 	//rebuild final grade distribution mapping based on passed type, momments and minMax
-	public void buildNewDesiredFinalGradeRandGen(double[] _mmnts, double[] _minMax, int _numMmnts, int _type) {
+	public void buildNewDesiredFinalGradeRandGen(double[] _mmnts, double[] _minMax, int _numMmnts, int _type, int _randVarType) {
 		setDesiredFinalGradeSummaryObj(_mmnts,  _minMax, _numMmnts);
-		myRandGen tmpFinalRandGen = buildAndInitRandGen(_type, perClassSummaryObjMap.get(finalGradeClass.name));
+		myRandGen tmpFinalRandGen = buildAndInitRandGen(_type, _randVarType, perClassSummaryObjMap.get(finalGradeClass.name));
 		finalGradeClass.setBaseDistModel(tmpFinalRandGen);
 	}//buildNewDesiredFinalGradeRandGen
 		
@@ -102,7 +101,7 @@ public class ClassGradeExperiment extends BaseProbExpMgr{
 		//generate random/load specified student grades, assign to students
 		buildAndSetStudentGrades(true, null);
 		//build randGen mapper
-		setRandGensAndTransformGrades(linearTransformMap);
+		setRandGensAndTransformGrades(linearTransformMap,-1);
 		refreshBuildStateFlags();
 		dispMessage("ClassGradeExperiment","linearTransformExperiment","Finished building " + students.size() +" students and " + classRosters.size()+" classes for LinearTransform EXP",true);		
 	}//linearTransformExperiment
@@ -115,7 +114,7 @@ public class ClassGradeExperiment extends BaseProbExpMgr{
 		//generate random/load specified student grades, assign to students
 		buildAndSetStudentGrades(true, null);
 		//build randGen mapper
-		setRandGensAndTransformGrades(uniformTransformMap);
+		setRandGensAndTransformGrades(uniformTransformMap,-1);
 		refreshBuildStateFlags();
 		dispMessage("ClassGradeExperiment","uniformTransformExperiment","Finished building " + students.size() +" students and " + classRosters.size()+" classes for Uniform Mapping EXP",true);		
 	}//uniformTransformExperiment
@@ -128,11 +127,22 @@ public class ClassGradeExperiment extends BaseProbExpMgr{
 		//generate random/load specified student grades, assign to students
 		buildAndSetStudentGrades(true, null);
 		//build randGen mapper
-		setRandGensAndTransformGrades(fleishRandGen_UniVar);
+		setRandGensAndTransformGrades(fleishRandGen_UniVar,-1);
 		refreshBuildStateFlags();
 		dispMessage("ClassGradeExperiment","fleishModelExperiment","Finished building " + students.size() +" students and " + classRosters.size()+" classes for Fleishman model of grades EXP",true);		
 	}//uniformTransformExperiment
-
+	
+	public void cosineModelExperiment(int _numStudents, int _numClasses) {
+		dispMessage("ClassGradeExperiment","cosineModelExperiment","Start building " + _numStudents +" students and " + _numClasses+" classes for Cosine model of grades PDF",true);
+		//rebuild all student and class objs, and final roster object
+		buildStudentsAndClasses(buildRandStudentNameList(_numStudents), _numClasses);
+		//generate random/load specified student grades, assign to students
+		buildAndSetStudentGrades(true, null);
+		//build randGen mapper
+		setRandGensAndTransformGrades(ziggRandGen, cosRandVarIDX);	
+		refreshBuildStateFlags();
+		dispMessage("ClassGradeExperiment","cosineModelExperiment","Finished building " + students.size() +" students and " + classRosters.size()+" classes for Cosine model of grades PDF",true);		
+	}
 	
 	//build list of students with randomly assigned names - to be replaced by file loading all student names
 	public String[] buildRandStudentNameList(int _numStudents) {
@@ -148,7 +158,8 @@ public class ClassGradeExperiment extends BaseProbExpMgr{
 		//generate random/load specified student grades, assign to students
 		buildAndSetStudentGrades(true, null);
 		//build and assign all randGen transforms to each class and final roster, and transform grades
-		setRandGensAndTransformGrades(ziggRandGen);		
+		setRandGensAndTransformGrades(ziggRandGen, gaussRandVarIDX);		
+		//setRandGensAndTransformGrades(ziggRandGen, cosRandVarIDX);		
 	}//buildStudentsClassesRandGrades clearAllTransformedStudentGrades()
 	
 	//call this to build student grades - if is random file name is ignored, otherwise will load grades for classes specified in file name
@@ -171,14 +182,15 @@ public class ClassGradeExperiment extends BaseProbExpMgr{
 	
 	//use passed randGenType to build modeling distributions of loaded/random grades - model will be of this type; possible models are specified in 
 	//BaseProbExpMgr at tag "types of random number generators implemented/supported so far"
-	public void setRandGensAndTransformGrades(int randGenType) {		
+	//_randVarType : type of random variable to use for _randGenType generator - currently only zig randGenType uses this value
+	public void setRandGensAndTransformGrades(int _randGenType, int _randVarType) {		
 		//set up desired final grade prob
 		//!!!! NEED TO REBUILD  perClassSummaryObjMap.get(finalGradeClass.name) if moving to different kind of transform
-		myRandGen tmpFinalRandGen = buildAndInitRandGen(randGenType, perClassSummaryObjMap.get(finalGradeClass.name));
+		myRandGen tmpFinalRandGen = buildAndInitRandGen(_randGenType, _randVarType, perClassSummaryObjMap.get(finalGradeClass.name));
 		finalGradeClass.setBaseDistModel(tmpFinalRandGen);
 		//final grades need to be specified first
 		for (myClassRoster _cls : classRosters) {	
-			myRandGen gen = buildAndInitRandGen(randGenType, perClassSummaryObjMap.get(_cls.name));
+			myRandGen gen = buildAndInitRandGen(_randGenType, _randVarType, perClassSummaryObjMap.get(_cls.name));
 			_cls.setBaseDistModel(gen);
 			_cls.transformStudentGradesToUniform();
 		}
@@ -215,8 +227,9 @@ public class ClassGradeExperiment extends BaseProbExpMgr{
 		
 		//tmp dist for use with generating raw grades - since raw grades are rejected outside the range 0-1 the final dist will be somewhat different
 		myProbSummary tmp = new myProbSummary(new double[] {0.5,.15,0,0},2);
+		int _randVarType = gaussRandVarIDX;
 		tmp.setMinMax(0.0, 1.0);
-		myRandGen tmpRandGen = buildAndInitRandGen(ziggRandGen, tmp);
+		myRandGen tmpRandGen = buildAndInitRandGen(ziggRandGen, _randVarType,  tmp);
 		for (myClassRoster _cls : classRosters) {
 			HashMap<Integer, Double> classGrades = perClassStudentGrades.get(_cls.name);
 			if (null == classGrades) {classGrades = new HashMap<Integer, Double>(); perClassStudentGrades.put(_cls.name, classGrades);}
@@ -303,7 +316,7 @@ public class ClassGradeExperiment extends BaseProbExpMgr{
 	
 	//test efficacy of fleishman polynomial transform
 	public void testFleishTransform() {
-		myRandGen gradeSourceDistGen = buildAndInitRandGen(fleishRandGen_UniVar, new myProbSummary(new double[] {0,1,1,4},4));
+		myRandGen gradeSourceDistGen = buildAndInitRandGen(fleishRandGen_UniVar, -1, new myProbSummary(new double[] {0,1,1,4},4));
 		//test fleishman polynomial-based transformation
 		_testFlTransform(gradeSourceDistGen, 10000);
 		double min = -1, max = 1;
@@ -339,6 +352,13 @@ public class ClassGradeExperiment extends BaseProbExpMgr{
 		}
 	}//testFleishRangeOfVals	
 	
+	public void testCosFunction() {
+    	dispMessage("ClassGradeExperiment", "testCosFunction", "Starting test cosine function",true);
+    	myRandGen cosFuncTestGen = buildAndInitRandGen(ziggRandGen, cosRandVarIDX, new myProbSummary(new double[] {0,10,0,0},2));
+		
+    	dispMessage("ClassGradeExperiment", "testCosFunction", "Finished test cosine function",true);
+	}//testCosFunction
+	
 	//this will calculate the mapping from uniform for each class to a total mapping that follows some distribution
 	public void calcMappingClassToTotal() {
 		
@@ -356,7 +376,7 @@ public class ClassGradeExperiment extends BaseProbExpMgr{
 	
 	//this will calculate the values for the inverse cdf of the given gaussian, when fed 0->1
 	public void calcInverseCDFSpan(double std) {
-		myRandGen tmpRandGen = buildAndInitRandGen(ziggRandGen, new myProbSummary(new double[] {0.5,std,0,0},2));	
+		myRandGen tmpRandGen = buildAndInitRandGen(ziggRandGen, gaussRandVarIDX, new myProbSummary(new double[] {0.5,std,0,0},2));	
 		int numVals = 100;
 		double[] xVals = new double[numVals], resVals = new double[numVals];
 		for (int i=0;i<numVals; ++i) {
@@ -368,10 +388,10 @@ public class ClassGradeExperiment extends BaseProbExpMgr{
 	
 	//test inverse fleishman calculation
 	public void testInvFleishCalc(double xDesired) {
-		myRandGen gradeSourceDistGen = buildAndInitRandGen(fleishRandGen_UniVar, new myProbSummary(new double[] {0,1,1,4},4));
+		myRandGen gradeSourceDistGen = buildAndInitRandGen(fleishRandGen_UniVar, -1, new myProbSummary(new double[] {0,1,1,4},4));
 		((myFleishUniVarRandGen)gradeSourceDistGen).calcInvFuncVal(xDesired);
 
-	}
+	}//testInvFleishCalc
 	
 	//this is called whenever screen width is changed - used to modify visualizations if necessary
 	@Override
@@ -408,6 +428,7 @@ public class ClassGradeExperiment extends BaseProbExpMgr{
 	/////////////////////////////	
 	//draw routines
 	
+	@Override
 	public void drawExp() {
 		if(getFlag(showPlotsIDX)) {			drawPlotRes();		} 
 		else {								drawExpRes();		}		
@@ -450,8 +471,6 @@ public class ClassGradeExperiment extends BaseProbExpMgr{
 	@Override
 	protected void initFlags(){stFlags = new int[1 + numFlags/32]; for(int i = 0; i<numFlags; ++i){setFlag(i,false);}}
 	@Override
-	public void setAllFlags(int[] idxs, boolean val) {for (int idx : idxs) {setFlag(idx, val);}}
-	@Override
 	public void setFlag(int idx, boolean val){
 		int flIDX = idx/32, mask = 1<<(idx%32);
 		stFlags[flIDX] = (val ?  stFlags[flIDX] | mask : stFlags[flIDX] & ~mask);
@@ -474,8 +493,6 @@ public class ClassGradeExperiment extends BaseProbExpMgr{
 			break;}
 		}
 	}//setFlag		
-	@Override
-	public boolean getFlag(int idx){int bitLoc = 1<<(idx%32);return (stFlags[idx/32] & bitLoc) == bitLoc;}
 
 }//class ClassGradeExperiment
 

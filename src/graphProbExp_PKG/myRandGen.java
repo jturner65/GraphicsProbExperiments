@@ -82,19 +82,23 @@ public abstract class myRandGen implements Comparable<myRandGen> {
 	
 	@Override
 	public int compareTo(myRandGen othr) {return desc.compareTo(othr.desc);}
-
+	
 	//synthesize numVals values from low to high to display 
-	public void calcFuncValsForDisp(int numVals, double low, double high, int funcType ) {
+	public void calcFuncValsForDisp(int numVals,double low, double high,  int funcType ) {
 		if(numVals < 2) {		numVals = 2;		}//minimum 2 values
-		if (low == high) {//ignore if same value
-			System.out.println("myRandGen : "+name+" :: calcFValsForDisp : Low == High : " +low +" : "+ high +" : Ignored, no values set/changed.");
-			return;			
-		} 
-		else if(low > high) {	double s = low;		low = high;		high = s;		}  //swap if necessary
+//		if (low == high) {//ignore if same value
+//			System.out.println("myRandGen : "+name+" :: calcFValsForDisp : Low == High : " +low +" : "+ high +" : Ignored, no values set/changed.");
+//			return;			
+//		} 
+//		else if(low > high) {	double s = low;		low = high;		high = s;		}  //swap if necessary
+		//get min/max values based on mean +/- 3.5 stds
+		double[] minMaxVals = func.getPlotValBounds();
+
 		double[][] funcVals = new double[numVals][2];
-		double xdiff = high-low;
+		double xdiff = minMaxVals[1]-minMaxVals[0];//high-low;
 		for(int i=0;i<funcVals.length;++i) {		
-			funcVals[i][0] = low + (i * xdiff)/numVals;	
+			//funcVals[i][0] = low + (i * xdiff)/numVals;	
+			funcVals[i][0] = minMaxVals[0] + (i * xdiff)/numVals;	
 		}
 		//evaluate specified function on funcVals
 		double minY = Double.MAX_VALUE, maxY = -minY, ydiff;
@@ -111,8 +115,12 @@ public abstract class myRandGen implements Comparable<myRandGen> {
 			maxY = (maxY < funcVals[i][1] ? funcVals[i][1] : maxY);
 		}
 		ydiff = maxY - minY;
-		distVisObj.setValuesFunc(funcVals, new double[][]{{low, high, xdiff}, {minY, maxY, ydiff}});
+		//distVisObj.setValuesFunc(funcVals, new double[][]{{low, high, xdiff}, {minY, maxY, ydiff}});
+		double minVal = (minMaxVals[0] < low ? minMaxVals[0] : low),
+				maxVal = (minMaxVals[1] > high ? minMaxVals[1] : high);
+		distVisObj.setValuesFunc(funcVals, new double[][]{{minVal, maxVal, (maxVal-minVal)}, {minY, maxY, ydiff}});
 	}//calcFValsForDisp
+	
 	
 	//build display function for distribution
 	//Num buckets should be << numVals
@@ -123,6 +131,7 @@ public abstract class myRandGen implements Comparable<myRandGen> {
 		myProbSummary summary = new myProbSummary(distVals);
 		//build buckets : numBuckets+1 x 2 array; 2nd idxs : idx 0 is lower x value of bucket, y value is count; last entry should always have 0 count
 		double[][] distBuckets = summary.calcBucketVals(numBuckets);
+		
 		//min, max and diff values for x axis (rand val) and y axis (counts)
 		double[][] minMaxDiffXVals = new double[2][3];
 		minMaxDiffXVals[0][0] = summary.getMin();
@@ -246,17 +255,34 @@ class myZigRandGen extends myRandGen{
 	@Override
 	public double[] getMultiSamples(int num) {
 		double[] res = new double[num];
-		for(int i=0;i<res.length;++i) {	res[i]=getSample();}
+		if(summary.doClipAllSamples()) {
+			int idx = 0;
+			double smpl;
+			while (idx <= num){
+				smpl=func.processResValByMmnts(nextNormal53());
+				if (summary.checkInBnds(smpl)){					res[idx++]=smpl;			}
+			}//while			
+		} else {
+			for(int i=0;i<res.length;++i) {	res[i]=func.processResValByMmnts(nextNormal53());}
+		}
 		return res;
 	}//getNumSamples
 
 	@Override
 	public double[] getMultiFastSamples(int num) {
 		double[] res = new double[num];
-		for(int i=0;i<res.length;++i) {	res[i]=getSampleFast();}
+		if(summary.doClipAllSamples()) {			
+			int idx = 0;
+			double smpl;
+			while (idx <= num){
+				smpl=func.processResValByMmnts(nextNormal32());
+				if (summary.checkInBnds(smpl)){					res[idx++]=smpl;			}
+			}//while			
+		} else {
+			for(int i=0;i<res.length;++i) {	res[i]=func.processResValByMmnts(nextNormal32());}
+		}		
 		return res;
-	}//getNumFastSamples
-	
+	}//getNumFastSamples	
     
 	@Override
 	public double getSample() {
@@ -376,6 +402,82 @@ class myZigRandGen extends myRandGen{
 
 }//class myZigRandGen
 
+
+/**
+ * rand gen class for cosine function - cannot use ziggurat alg because algorithm is predicated on having unbounded x - instead use inverse function
+ */
+
+class myCosVarRandGen extends myRandGen{
+
+	public myCosVarRandGen(myRandVarFunc _func, String _name) {
+		super(_func, _name);
+	}
+
+	@Override
+	public void _setFuncSummaryIndiv() {//no extra settings required		
+	}
+
+	@Override
+	public double[] getMultiSamples(int num) {
+		double[] res = new double[num];
+		if(summary.doClipAllSamples()) {
+			int idx = 0;
+			double smpl;
+			while (idx <= num){
+				smpl=func.processResValByMmnts(nextRandCosVal());
+				if (summary.checkInBnds(smpl)){					res[idx++]=smpl;			}
+			}//while			
+		} else {
+			for(int i=0;i<res.length;++i) {	res[i]=func.processResValByMmnts(nextRandCosVal());}
+		}
+		return res;
+	}//getNumSamples
+
+	@Override
+	public double[] getMultiFastSamples(int num) {return getMultiSamples(num);}//getNumFastSamples
+	
+    
+	@Override
+	public double getSample() {
+		double res;
+		if(summary.doClipAllSamples()) {
+			do {		
+				res = func.processResValByMmnts(nextRandCosVal());
+			} while (!summary.checkInBnds(res));
+		} else {
+			res = func.processResValByMmnts(nextRandCosVal());
+		}
+		return res;
+	}//getGaussian
+	
+	//get a random value based on cosine pdf
+	private double nextRandCosVal() {
+		double res = func.CDF_inv(getNextDouble());
+		return res;		
+	}
+	
+	//int value
+	@Override
+	public double getSampleFast() {
+
+		return getSample();
+//		double res = nextNormal32();		
+//		return func.processResValByMmnts(res);
+	}//getGaussian
+
+	@Override
+	public double inverseCDF(double _val) {
+		//probit value
+		return func.CDF_inv(_val);
+	}
+	//find the cdf value of the passed val -> prob (x<= _val)
+	@Override
+	public double CDF(double _val) {
+		return func.CDF(_val);		
+	}//CDF
+	
+}//class myCosVarRandGen
+
 /**
  * class that will model a distribution using first 4 moments via a polynomial transformation
  * @author john *
@@ -405,18 +507,22 @@ class myFleishUniVarRandGen extends myRandGen{
 	@Override
 	//synthesize numVals values from low to high to display 
 	//overridden to get apprpriate values - feed low->high into zi
-	public void calcFuncValsForDisp(int numVals, double low, double high, int funcType ) {
+	public void calcFuncValsForDisp(int numVals,double low, double high,  int funcType ) {
 		if(numVals < 2) {		numVals = 2;		}//minimum 2 values
-		if (low == high) {//ignore if same value
-			System.out.println("myRandGen : "+name+" :: calcFValsForDisp : Low == High : " +low +" : "+ high +" : Ignored, no values set/changed.");
-			return;			
-		} 
-		else if(low > high) {	double s = low;		low = high;		high = s;		}  //swap if necessary
+//		if (low == high) {//ignore if same value
+//			System.out.println("myRandGen : "+name+" :: calcFValsForDisp : Low == High : " +low +" : "+ high +" : Ignored, no values set/changed.");
+//			return;			
+//		} 
+//		else if(low > high) {	double s = low;		low = high;		high = s;		}  //swap if necessary
+		double[] minMaxVals = func.getPlotValBounds();
+
 		double[][] funcVals = new double[numVals][2];
-		double xdiff = high-low;
+		double xdiff = minMaxVals[1]-minMaxVals[0];//high-low;
 		for(int i=0;i<funcVals.length;++i) {		
-			funcVals[i][0] = low + (i * xdiff)/numVals;	
+			//funcVals[i][0] = low + (i * xdiff)/numVals;	
+			funcVals[i][0] = minMaxVals[0] + (i * xdiff)/numVals;	
 		}
+		
 		//evaluate specified function on funcVals
 		double minY = Double.MAX_VALUE, maxY = -minY, ydiff;
 		for(int i=0;i<funcVals.length-1;++i) {	
@@ -434,7 +540,11 @@ class myFleishUniVarRandGen extends myRandGen{
 			maxY = (maxY < funcVals[i][1] ? funcVals[i][1] : maxY);
 		}
 		ydiff = maxY - minY;
-		distVisObj.setValuesFunc(funcVals, new double[][]{{low, high, xdiff}, {minY, maxY, ydiff}});
+		//distVisObj.setValuesFunc(funcVals, new double[][]{{minMaxVals[0], minMaxVals[1], xdiff}, {minY, maxY, ydiff}});
+		double minVal = (minMaxVals[0] < low ? minMaxVals[0] : low),
+				maxVal = (minMaxVals[1] > high ? minMaxVals[1] : high);
+		distVisObj.setValuesFunc(funcVals, new double[][]{{minVal, maxVal, (maxVal-minVal)}, {minY, maxY, ydiff}});
+
 	}//calcFValsForDisp
 	
 	

@@ -30,6 +30,7 @@ public abstract class myVisMgr {
 			clr_clearWite = new int[] {255,255,255,50},
 			clr_red = new int[] {255,0,0,255}, 
 			clr_green = new int[] {0,255,0,255},
+			clr_cyan = new int[] {0,255,255,255},
 			clr_grey = new int[] {100,100,100,255};	
 	
 	
@@ -259,12 +260,16 @@ class myDistVis extends myVisMgr {
 	private double[][] funcVals, axisDispVals,minMaxDiffFuncVals;
 	//x,y vals for display - n x 2 array, n points of x=0 idx, y=1 idx values - x=0 -> dispWidth; y=0->dispHeight; axis values, to be displayed at equally space intervals along axis
 	private float[][] dispVals,  axisVals;
+	//y and x values for display of x and y "0" axes, respectively
+	private float[] zeroAxisVals;
 	//whether this is currently display function values or histogram values
 	private boolean showHist;
 	//format strings for x and y values to display on graphs
 	private final String fmtXStr = "%3.4f", fmtYStr = "%3.4f";
 	//axis tick dim on either side of axis
 	private static final float tic = 5.0f;
+	//whether or not to draw special axes (if shown in graph)
+	private boolean[] drawZeroAxes;
 	
 	
 	public myDistVis(float[] _dims, myRandGen _gen) {
@@ -284,6 +289,7 @@ class myDistVis extends myVisMgr {
 	public void setValuesFunc(double[][] _funcVals, double[][] _minMaxDiffFuncVals) {
 		funcVals = _funcVals;
 		minMaxDiffFuncVals = _minMaxDiffFuncVals;
+		
 		rescaleDispValues();
 		showHist = false;
 		setIsVisible(true);
@@ -295,6 +301,7 @@ class myDistVis extends myVisMgr {
 	public void setValuesHist(double[][] _bucketVals, double[][] _minMaxDiffFuncVals) {
 		funcVals = _bucketVals;		
 		minMaxDiffFuncVals = _minMaxDiffFuncVals;
+		
 		//each dispValue should be min x position along x axis for hist, and height of bar scaled to fit in frame
 		rescaleDispValues();
 		showHist = true;
@@ -306,20 +313,26 @@ class myDistVis extends myVisMgr {
 		int numAxisVals = 21;
 		axisVals = new float[numAxisVals][2];
 		axisDispVals = new double[numAxisVals][2]; 
+		zeroAxisVals = new float[2];
+		
 		float[] denom = new float[] {frameDims[2]/(numAxisVals-1), -(frameDims[3]/(numAxisVals-1)*.95f)};
 		for(int i=0;i<axisVals.length;++i) {
 			float iterDenom = i/(1.0f*numAxisVals-1);
 			for (int j=0;j<2;++j) {
 				//location of tick line
-				axisVals[i][j] = i*denom[j];
+				axisVals[i][j] = i*denom[j];	//j == x,y
 				//value to display
 				axisDispVals[i][j] = minMaxDiffFuncVals[j][0] + (iterDenom *minMaxDiffFuncVals[j][2]);	
 			}	
-		}		
+		}	
+		for(int i=0;i<2;++i) {
+			zeroAxisVals[(i+1)%2] = (float) ((-minMaxDiffFuncVals[i][0]/minMaxDiffFuncVals[i][2])*denom[i] * (numAxisVals-1));
+		}
 	}//buildAxisVals	
 	
 	private void rescaleDispValues() {	
-		dispVals = new float[funcVals.length][2];
+		dispVals = new float[funcVals.length][2];//x,y values for each point
+		drawZeroAxes = new boolean[2];
 		for(int i=0;i<dispVals.length;++i) {	
 			float scaleX = (float) ((funcVals[i][0] - minMaxDiffFuncVals[0][0])/minMaxDiffFuncVals[0][2]);
 			dispVals[i][0] = scaleX*frameDims[2];
@@ -327,7 +340,10 @@ class myDistVis extends myVisMgr {
 			//how much to scale height
 			float scaleY = -(float) ((funcVals[i][1] - minMaxDiffFuncVals[1][0])/minMaxDiffFuncVals[1][2]);
 			dispVals[i][1] =  scaleY*frameDims[3]*.95f;		
-		}		
+		}	
+		//check whether or not we will build display axes
+		for (int i=0;i<drawZeroAxes.length;++i) {		drawZeroAxes[(i+1)%2] = ((minMaxDiffFuncVals[i][0] < 0) && (minMaxDiffFuncVals[i][1] > 0));		}
+		
 		buildAxisVals();
 	}//rescaleDispValues
 	
@@ -370,6 +386,7 @@ class myDistVis extends myVisMgr {
 		rescaleDispValues();		
 	}//_setDispWidthIndiv
 	
+	
 	//draw functional result
 	private void _drawFunc(GraphProbExpMain pa) {
 		pa.setFill(clr_black);
@@ -393,6 +410,47 @@ class myDistVis extends myVisMgr {
 		drawAxes(pa);
 	}//_drawFunc
 	
+	//draw axis lines through 0,0 and give tags
+	private void _drawZeroY(GraphProbExpMain pa) {
+		pa.pushMatrix();pa.pushStyle();
+		pa.strokeWeight(2.0f);
+		pa.setFill(clr_cyan);
+		if (drawZeroAxes[0]) {//draw x==0 axis
+			float yVal = zeroAxisVals[0];
+			//draw line @ y Val
+			pa.setStroke(clr_white);
+			pa.line(-tic, yVal, 0, tic, yVal, 0);
+			//draw line to other side
+			pa.setStroke(clr_cyan);
+			pa.line(-tic, yVal, 0, frameDims[2], yVal, 0);
+			//draw text for display
+			pa.setStroke(clr_white);
+			pa.pushMatrix();pa.pushStyle();
+			pa.translate(-tic-10, yVal+5.0f,0);
+			pa.scale(1.4f);
+			pa.text("0", 0,0);
+			pa.popStyle();pa.popMatrix();
+		}
+		
+		if (drawZeroAxes[1]) {//draw y==0 axis
+			float xVal = zeroAxisVals[1];
+			//draw tick line @ x Val
+			pa.setStroke(clr_white);
+			pa.line(xVal, -tic, 0, xVal, tic, 0);	
+			//draw line to other side
+			pa.setStroke(clr_cyan);
+			pa.line(xVal, -frameDims[3], 0, xVal, tic, 0);	
+			//draw text for display
+			pa.setStroke(clr_white);
+			pa.pushMatrix();pa.pushStyle();
+			pa.translate( xVal - 4.0f, tic+20.0f,0);
+			pa.scale(1.4f);
+			pa.text("0", 0,0);
+			pa.popStyle();pa.popMatrix();
+		}
+		
+		pa.popStyle();pa.popMatrix();
+	}//
 	
 	//draw x and y axis values
 	private void drawAxes(GraphProbExpMain pa) {
@@ -422,6 +480,7 @@ class myDistVis extends myVisMgr {
 				pa.text(dispY, -tic-frmBnds[0]+10, yVal+5.0f);
 			}
 		}
+		_drawZeroY(pa);
 		pa.popStyle();pa.popMatrix();
 	}//drawAxes
 	

@@ -3,38 +3,20 @@ package graphProbExp_PKG;
 import java.util.*;
 
 
-public class Grade2DWindow extends myDispWindow {
+public class RayTracer2DWin extends myDispWindow {
 	
 	/////////////
 	// ui objects 
 	////////////
 	// # of students across all classes
-	private int numStudents = 5;
-	// # of classes to build final grade
-	private int numClasses = 3;
-	//eval func IDX
-	private int funcEvalType = 0, funcEvalNumVals = 10000, funcEvalNumBuckets = 100;
-	//lower and upper bound for functional evaluation 
-	private float funcEvalLow = 0, funcEvalHigh = 1;
+	private int numCircles = 5;
 	
 	//idxs - need one per object
 	public final static int
-		gIDX_NumStudents		= 0,
-		gIDX_NumClasses			= 1,
-		gIDX_FuncTypeEval		= 2,
-		gIDX_FuncEvalLower		= 3,
-		gIDX_FuncEvalHigher		= 4, 
-		gIDX_FuncEvalNumVals	= 5,
-		gIDX_FuncEvalNumBkts	= 6;
+		gIDX_NumCircles			= 0;
 	//initial values - need one per object
 	public float[] uiVals = new float[]{
-			numStudents,
-			numClasses,
-			funcEvalType,
-			funcEvalLow,
-			funcEvalHigh,
-			funcEvalNumVals,
-			funcEvalNumBuckets
+			numCircles,
 	};			//values of 8 ui-controlled quantities
 	public final int numGUIObjs = uiVals.length;	
 	/////////
@@ -49,30 +31,22 @@ public class Grade2DWindow extends myDispWindow {
 	//use getPrivFlags(idx) and setPrivFlags(idx,val) to consume
 	//put idx-specific code in case statement in setPrivFlags
 	public static final int 
-			reCalcRandGradeSpread 		= 0,					//recalculate random grades given specified class and student # parameters
-			showScaledTransGrades 		= 1,					//display transformed grades from range 0->1 or in natural uniform scaled mapping from underlying distribution
-			useZScore					= 2,					//whether or not to use the z score calc to transform the uniform final grades
-			rebuildDistOnMove			= 3,					//rebuild class distribution when value is moved
-			//drawing functions
-			drawFuncEval				= 4,					//draw results of function evaluation
-			drawHistEval				= 5;					//draw results of histogram evaluation
-	public static final int numPrivFlags = 6;
+			shootRays			 		= 0;					//shoot rays
+	public static final int numPrivFlags = 1;
 
+	private RayTracerExperiment RTExp;
+	
 	/////////
 	//custom debug/function ui button names -empty will do nothing
 	public String[][] menuBtnNames = new String[][] {	//each must have literals for every button defined in side bar menu, or ignored
 		{},
-		{"Test Rand Gen", "Test R Calc","Func 3"},				//row 1
-		{"Test Inv Fl", "Test Fleish", "Tst Fl Range", "Test COS"},	//row 2
-		{"Linear","Uniform","Linear w/Z","Fleish","Cosine MDL"}	
+		{"Func 00", "Func 01", "Func 02"},				//row 1
+		{"Func 10", "Func 11", "Func 12", "Func 13"},	//row 2
+		{"Func 20", "Func 21", "Func 22", "Func 23","Func 24"}	
 	};
 
-	private myProbExpMgr tester;
-	
-	//class experiment
-	private ClassGradeExperiment gradeAvgExperiment;
-	
-	public Grade2DWindow(GraphProbExpMain _p, String _n, int _flagIdx, int[] fc, int[] sc, float[] rd, float[] rdClosed,String _winTxt, boolean _canDrawTraj) {
+		
+	public RayTracer2DWin(GraphProbExpMain _p, String _n, int _flagIdx, int[] fc, int[] sc, float[] rd, float[] rdClosed,String _winTxt, boolean _canDrawTraj) {
 		super(_p, _n, _flagIdx, fc, sc, rd, rdClosed, _winTxt, _canDrawTraj);
 		float stY = rectDim[1]+rectDim[3]-4*yOff,stYFlags = stY + 2*yOff;
 		trajFillClrCnst = GraphProbExpMain.gui_DarkCyan;		//override this in the ctor of the instancing window class
@@ -91,19 +65,13 @@ public class Grade2DWindow extends myDispWindow {
 		//this window uses right side info window
 		setFlags(drawRightSideMenu, true);
 		
-		//generic tester
-		tester = new myProbExpMgr(this);
-		
-		//grade experiments
-		gradeAvgExperiment = new ClassGradeExperiment(this);
-		gradeAvgExperiment.buildStudentsClassesRandGrades(numStudents, numClasses);
+		//build exps before visible screen with set
+		RTExp = new RayTracerExperiment(this);
 		//set visibility width and send to experiments
 		setVisScreenDimsPriv();			
 		//set offset to use for custom menu objects
 		custMenuOffset = uiClkCoords[3];	
-		//set this to default to moving distribution
-		setPrivFlags(rebuildDistOnMove, true);
-		
+			
 		//moved from mapMgr ctor, to remove dependence on papplet in that object
 		pa.setAllMenuBtnNames(menuBtnNames);	
 	
@@ -113,28 +81,13 @@ public class Grade2DWindow extends myDispWindow {
 	public void initAllPrivBtns() {
 		//give true labels, false labels and specify the indexes of the booleans that should be tied to UI buttons
 		truePrivFlagNames = new String[]{			//needs to be in order of privModFlgIdxs
-				"Recalculating Grades",
-				"Showing Scaled Uni Grades [0->1]",
-				"ZScore for final grades",
-				"Rebuild Class dist on move",
-				"Eval/Draw Func on Bounds",
-				"Eval/Draw  Distribution"
+				"Shooting Rays",
 		};
 		falsePrivFlagNames = new String[]{			//needs to be in order of flags
-				"Recalculate Grades",
-				"Showing Unscaled Uni Grades",
-				"Specific Dist for final grades",
-				"Don't rebuild class dist on move",
-				"Eval/Draw Func on Bounds",
-				"Eval/Draw Distribution"				
+				"Shoot Rays",
 		};
 		privModFlgIdxs = new int[]{					//idxs of buttons that are able to be interacted with
-				reCalcRandGradeSpread,
-				showScaledTransGrades,
-				useZScore,
-				rebuildDistOnMove,
-				drawFuncEval,
-				drawHistEval
+				shootRays,
 		};
 		numClickBools = privModFlgIdxs.length;	
 		initPrivBtnRects(0,numClickBools);
@@ -148,98 +101,36 @@ public class Grade2DWindow extends myDispWindow {
 		int flIDX = idx/32, mask = 1<<(idx%32);
 		privFlags[flIDX] = (val ?  privFlags[flIDX] | mask : privFlags[flIDX] & ~mask);
 		switch(idx){
-			case reCalcRandGradeSpread : {//build new grade distribution
+			case shootRays : {//build new grade distribution
 				if (val) {
-					gradeAvgExperiment.buildStudentsClassesRandGrades(numStudents, numClasses);
-					addPrivBtnToClear(reCalcRandGradeSpread);
-					setPrivFlags(drawHistEval, false);
-					setPrivFlags(drawFuncEval, false);
+
 				}
 				break;}
-			case showScaledTransGrades : {
-				//TODO need to change what type of grades are shown
-				break;}			
-			case useZScore : {
-				gradeAvgExperiment.setUseZScore(val);
-				break;}
-			case rebuildDistOnMove : {
-				gradeAvgExperiment.setRebuildDistOnGradeMod(val);
-				break;}
-			//evalPlotClassDists(boolean isHist, int funcType, int numVals, int numBuckets, double low, double high)
-			case drawFuncEval : {
-				if (val) {
-					setPrivFlags(drawHistEval, false);
-					//first clear existing results					
-					gradeAvgExperiment.clearAllPlotEval();
-					//now evaluate new results
-					gradeAvgExperiment.evalPlotClassDists(false, funcEvalType, funcEvalNumVals,funcEvalNumBuckets,funcEvalLow, funcEvalHigh);
-				} else {//turning off
-					if(!getFlags(drawHistEval)) {//if both off then set class experiment draw evals to off
-						gradeAvgExperiment.setShowPlots(false);
-					}
-				}
-				break;}
-			case drawHistEval : {
-				if (val) {
-					setPrivFlags(drawFuncEval, false);	
-					//first clear existing results					
-					gradeAvgExperiment.clearAllPlotEval();
-					//now evaluate new results
-					gradeAvgExperiment.evalPlotClassDists(true, funcEvalType, funcEvalNumVals,funcEvalNumBuckets,funcEvalLow, funcEvalHigh);					
-				} else {//turning off					
-					if(!getFlags(drawFuncEval)) {//if both off then set class experiment draw evals to off
-						gradeAvgExperiment.setShowPlots(false);
-					}
-				}
-				break;}
+
 			
 		}
-	}
+	}//setPrivFlags
 	
 	//initialize structure to hold modifiable menu regions
 	@Override
 	protected void setupGUIObjsAras(){	
 		//pa.outStr2Scr("setupGUIObjsAras start");
 		guiMinMaxModVals = new double [][]{
-			{2,100,1},						//# students
-			{1,9,1},						//# classes
-			{0,gIDX_FuncTypeEvalList.length-1,1}, //gIDX_FuncTypeEval	
-			{-10.0, 10.0,.01},				//gIDX_FuncEvalLower
-			{-10.0, 10.0,.01},				//gIDX_FuncEvalHigher
-			{10000,1000000,1000},           // gIDX_FuncEvalNumVals 
-			{10,1000,1}                     // gIDX_FuncEvalNumBkts 
+			{2,100,1},							//# circles 
 			
 		};		//min max modify values for each modifiable UI comp	
 
 		guiStVals = new double[]{
-				uiVals[gIDX_NumStudents],		//# students
-				uiVals[gIDX_NumClasses],		//# classes
-				uiVals[gIDX_FuncTypeEval],		//gIDX_FuncTypeEval	
-				uiVals[gIDX_FuncEvalLower],		//gIDX_FuncEvalLower
-				uiVals[gIDX_FuncEvalHigher],	//gIDX_FuncEvalHigher				
-				uiVals[gIDX_FuncEvalNumVals],    // gIDX_FuncEvalNumVals
-				uiVals[gIDX_FuncEvalNumBkts],    // gIDX_FuncEvalNumBkts
+				uiVals[gIDX_NumCircles],		//# circles 
 		};								//starting value
 		
 		guiObjNames = new String[]{
-				"Number of Students",
-				"Number of Classes",
-				"Eval Func Type : ",		//gIDX_FuncTypeEval	
-				"Eval Func Low : ",			//gIDX_FuncEvalLower
-				"Eval Func High : ",		//gIDX_FuncEvalHigher
-				"Eval Func # Vals : ", 			// gIDX_FuncEvalNumVals        
-				"Eval Func # Bkts (dist) : ",	// gIDX_FuncEvalNumBkts     			
+				"Number of Circles",			//# circles 
 		};								//name/label of component	
 		
 		//idx 0 is treat as int, idx 1 is obj has list vals, idx 2 is object gets sent to windows
 		guiBoolVals = new boolean [][]{
-			{true, false, true},	//# students
-			{true, false, true},	//# classes
-			{true, true, true},		//gIDX_FuncTypeEval	
-			{false, false, true},	//gIDX_FuncEvalLower
-			{false, false, true},	//gIDX_FuncEvalHigher
-			{true, false, true}, 	// gIDX_FuncEvalNumVals        
-			{true, false, true}, 	// gIDX_FuncEvalNumBkts        
+			{true, false, true},				//# circles 
 			
 		};						//per-object  list of boolean flags
 		
@@ -260,31 +151,11 @@ public class Grade2DWindow extends myDispWindow {
 		if(val != uiVals[UIidx]){//if value has changed...
 			uiVals[UIidx] = val;
 			switch(UIidx){		
-			case gIDX_NumStudents 			:{
-				if(ival != numStudents){
-					numStudents = ival;
-					gradeAvgExperiment.buildStudentsClassesRandGrades(numStudents, numClasses);
+			case gIDX_NumCircles 			:{
+				if(ival != numCircles){
+					numCircles = ival;
+					
 				}	break;}			
-			case gIDX_NumClasses 			:{
-				if(ival != numClasses){
-					numClasses = ival;
-					gradeAvgExperiment.buildStudentsClassesRandGrades(numStudents, numClasses);
-				}	break;}
-			case gIDX_FuncTypeEval : 	{
-				if (ival != funcEvalType) {				funcEvalType = ival;}		
-				break;	}
-			case gIDX_FuncEvalLower : 	{						
-				if (val != funcEvalLow) {				funcEvalLow = val;	}				
-				break;	}
-			case gIDX_FuncEvalHigher : 	{
-				if (val != funcEvalHigh) {				funcEvalHigh = val;	}				
-				break;	}
-			case gIDX_FuncEvalNumVals : 	{						
-				if (ival != funcEvalNumVals) {			funcEvalNumVals = ival;	}				
-				break;	}
-			case gIDX_FuncEvalNumBkts : 	{						
-				if (ival != funcEvalNumBuckets) {		funcEvalNumBuckets = ival;	}				
-				break;	}
 			}
 		}//if val is different
 	}//setUIWinVals
@@ -293,7 +164,7 @@ public class Grade2DWindow extends myDispWindow {
 	@Override
 	protected String getUIListValStr(int UIidx, int validx) {
 		switch(UIidx){
-		case gIDX_FuncTypeEval : {return gIDX_FuncTypeEvalList[validx % gIDX_FuncTypeEvalList.length];}
+		//case gIDX_FuncTypeEval : {return gIDX_FuncTypeEvalList[validx % gIDX_FuncTypeEvalList.length];}
 		default : {break;}
 	}
 	return "";	}
@@ -301,17 +172,17 @@ public class Grade2DWindow extends myDispWindow {
 
 	//check whether the mouse is over a legitimate map location
 	public boolean chkMouseClick2D(int mouseX, int mouseY, int btn){		
-		return gradeAvgExperiment.checkMouseClickInExp2D( mouseX-(int)this.rectDim[0], mouseY, btn);
+		return RTExp.checkMouseClickInExp2D( mouseX-(int)this.rectDim[0], mouseY, btn);
 	}//chkMouseOvr
 
 	
 	//check whether the mouse is over a legitimate map location
 	public boolean chkMouseMoveDragState2D(int mouseX, int mouseY, int btn){		
-		return gradeAvgExperiment.checkMouseDragMoveInExp2D( mouseX-(int)this.rectDim[0], mouseY, btn);
+		return RTExp.checkMouseDragMoveInExp2D( mouseX-(int)this.rectDim[0], mouseY, btn);
 	}//chkMouseOvr
 	
 	//check whether the mouse is over a legitimate map location
-	public void setMouseReleaseState2D(){	gradeAvgExperiment.setMouseReleaseInExp2D();}//chkMouseOvr
+	public void setMouseReleaseState2D(){	RTExp.setMouseReleaseInExp2D();}//chkMouseOvr
 
 	
 	@Override
@@ -319,7 +190,7 @@ public class Grade2DWindow extends myDispWindow {
 		pa.pushMatrix();pa.pushStyle();
 		pa.translate(this.rectDim[0],0,0);
 		//all drawing stuff goes here
-		gradeAvgExperiment.drawExp();
+		RTExp.drawExp();
 		pa.popStyle();pa.popMatrix();
 	}
 
@@ -350,7 +221,7 @@ public class Grade2DWindow extends myDispWindow {
 	//manage any functionality specific to this window that needs to be recalced when the visibile dims of the window change
 	@Override
 	protected void setVisScreenDimsPriv() {	
-		gradeAvgExperiment.setVisibleScreenWidth();
+		RTExp.setVisibleScreenWidth();
 		
 	}//setVisScreenDimsPriv
 
@@ -401,15 +272,12 @@ public class Grade2DWindow extends myDispWindow {
 			pa.outStr2Scr("Clicked Btn row : Aux Func 1 | Btn : " + btn);
 			switch(btn){
 				case 0 : {						
-					tester.testRandGen(10000000);
 					resetButtonState();
 					break;}
 				case 1 : {	
-					tester.testRCalc();
 					resetButtonState();
 					break;}
 				case 2 : {	
-					//gradeAvgExperiment.calcInverseMapping();
 					resetButtonState();
 					break;}
 				default : {
@@ -422,20 +290,16 @@ public class Grade2DWindow extends myDispWindow {
 				case 0 : {	
 					//test calculation of inverse fleish function -> derive x such that y = f(x) for fleishman polynomial.  This x is then the value from normal dist that yields y from fleish dist
 					double xDesired = -2.0;
-					gradeAvgExperiment.testInvFleishCalc(xDesired);
 					resetButtonState();
 					break;}
 				case 1 : {	
-					gradeAvgExperiment.testFleishTransform();
 					resetButtonState();
 					break;}
 				case 2 : {	
-					gradeAvgExperiment.testFleishRangeOfVals();
 					resetButtonState();
 					break;}
 				case 3 : {	
 					//test cosine function
-					gradeAvgExperiment.testCosFunction();
 					resetButtonState();
 					break;}
 				default : {
@@ -446,29 +310,19 @@ public class Grade2DWindow extends myDispWindow {
 			pa.outStr2Scr("Clicked Btn row : Debug | Btn : " + btn);
 			switch(btn){
 				case 0 : {	
-					setPrivFlags(useZScore, false);
-					setPrivFlags(rebuildDistOnMove, true);
-					gradeAvgExperiment.linearTransformExperiment(numStudents, numClasses);
 					resetButtonState();
 					break;}
 				case 1 : {	
-					setPrivFlags(rebuildDistOnMove, true);
-					gradeAvgExperiment.uniformTransformExperiment(numStudents, numClasses);
 					resetButtonState();
 					break;}
 				case 2 : {	
-					setPrivFlags(useZScore, true);
-					setPrivFlags(rebuildDistOnMove, true);
-					gradeAvgExperiment.linearTransformExperiment(numStudents, numClasses);
 					resetButtonState();
 					break;}
 				case 3 : {	
-					gradeAvgExperiment.fleishModelExperiment(numStudents, numClasses);
 					resetButtonState();
 					break;}
 				case 4 : {	
 					//test with cosine
-					gradeAvgExperiment.cosineModelExperiment(numStudents, numClasses);
 					resetButtonState();
 					break;}
 				default : {

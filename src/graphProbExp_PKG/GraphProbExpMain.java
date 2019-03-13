@@ -294,7 +294,7 @@ public class GraphProbExpMain extends PApplet {
 	private void setMenuBtnState(int row, int col, int val) {
 		((mySideBarMenu)dispWinFrames[dispMenuIDX]).guiBtnSt[row][col] = val;	
 		if (val == 1) {
-			outStr2Scr("turning on button row : " + row + "  col " + col);
+			//outStr2Scr("turning on button row : " + row + "  col " + col);
 			((mySideBarMenu)dispWinFrames[dispMenuIDX]).setWaitForProc(row,col);}//if programmatically (not through UI) setting button on, then set wait for proc value true 
 	}//setMenuBtnState
 	
@@ -306,11 +306,8 @@ public class GraphProbExpMain extends PApplet {
 	} else {//called from clicking on buttons in UI
 		//val is btn state before transition 
 		boolean bVal = (val == 1?  false : true);
-		switch(btn){
-			case 0 : {setFlags(show1stWinIDX, bVal);break;}
-			case 1 : {setFlags(show2ndWinIDX, bVal);break;}
-			case 2 : {setFlags(showGradeWinIDX, bVal);break;}
-			}
+		//each entry in this array should correspond to a clickable window
+		setFlags(winFlagsXOR[btn], bVal);
 		}
 	}//handleShowWin
 	
@@ -406,19 +403,24 @@ public class GraphProbExpMain extends PApplet {
 		//instanced window dimensions when open and closed - only showing 1 open at a time
 		winRectDimOpen[disp1stWinIDX] =  new float[]{menuWidth, 0,width-menuWidth,height};			
 		winRectDimOpen[disp2ndWinIDX] =   new float[]{menuWidth, 0,width-menuWidth,height};				
+		winRectDimOpen[disp2DRayTracerIDX] =   new float[]{menuWidth, 0,width-menuWidth,height};				
 		winRectDimOpen[dispGradeWinIDX] =   new float[]{menuWidth, 0,width-menuWidth,height};				
 		//hidden
 		winRectDimClose[disp1stWinIDX] =  new float[]{menuWidth, 0, hideWinWidth, height};				
 		winRectDimClose[disp2ndWinIDX] =  new float[]{menuWidth, 0, hideWinWidth, height};				
+		winRectDimClose[disp2DRayTracerIDX] =  new float[]{menuWidth, 0, hideWinWidth, height};				
 		winRectDimClose[dispGradeWinIDX] =  new float[]{menuWidth, 0, hideWinWidth, height};				
 		
-		winTrajFillClrs = new int []{gui_Black,gui_LightGray,gui_LightGray,gui_LightGray};		//set to color constants for each window
-		winTrajStrkClrs = new int []{gui_Black,gui_DarkGray,gui_DarkGray,gui_DarkGray};				//set to color constants for each window			
+		winTrajFillClrs = new int []{gui_Black,gui_LightGray,gui_LightGray,gui_LightGray,gui_LightGray};		//set to color constants for each window
+		winTrajStrkClrs = new int []{gui_Black,gui_DarkGray,gui_DarkGray,gui_DarkGray,gui_DarkGray};				//set to color constants for each window			
 		//			//display window initialization	
 		int wIdx = disp1stWinIDX , fIdx = show1stWinIDX;
 		dispWinFrames[wIdx] = new Main3DWindow(this, winTitles[wIdx], fIdx, winFillClrs[wIdx], winStrkClrs[wIdx], winRectDimOpen[wIdx], winRectDimClose[wIdx], winDescr[wIdx],canDrawInWin[wIdx]);
 		wIdx = disp2ndWinIDX; fIdx = show2ndWinIDX;
 		dispWinFrames[wIdx] = new Alt2DWindow(this, winTitles[wIdx], fIdx,winFillClrs[wIdx], winStrkClrs[wIdx], winRectDimOpen[wIdx], winRectDimClose[wIdx], winDescr[wIdx],canDrawInWin[wIdx]);
+		wIdx = disp2DRayTracerIDX; fIdx = show2DRayTracerIDX;
+		dispWinFrames[wIdx] = new RayTracer2DWin(this, winTitles[wIdx], fIdx,winFillClrs[wIdx], winStrkClrs[wIdx], winRectDimOpen[wIdx], winRectDimClose[wIdx], winDescr[wIdx],canDrawInWin[wIdx]);
+
 		wIdx = dispGradeWinIDX; fIdx = showGradeWinIDX;
 		dispWinFrames[wIdx] = new Grade2DWindow(this, winTitles[wIdx], fIdx,winFillClrs[wIdx], winStrkClrs[wIdx], winRectDimOpen[wIdx], winRectDimClose[wIdx], winDescr[wIdx],canDrawInWin[wIdx]);
 
@@ -443,6 +445,7 @@ public class GraphProbExpMain extends PApplet {
 			case dispMenuIDX 		: { return new float[0];}			//idx 0 is parent menu sidebar
 			case disp1stWinIDX 		: { return dispWinFrames[dispMenuIDX].uiClkCoords;}
 			case disp2ndWinIDX 		: {	return dispWinFrames[dispMenuIDX].uiClkCoords;}
+			case disp2DRayTracerIDX	: {	return dispWinFrames[dispMenuIDX].uiClkCoords;}
 			case dispGradeWinIDX	: {	return dispWinFrames[dispMenuIDX].uiClkCoords;}
 			
 			default :  return dispWinFrames[dispMenuIDX].uiClkCoords;
@@ -507,28 +510,30 @@ public class GraphProbExpMain extends PApplet {
 	// boolean flags used to control various elements of the program 
 	public boolean[] flags;
 	//dev/debug flags
-	public final int debugMode 			= 0;			//whether we are in debug mode or not	
-	public final int finalInitDone		= 1;			//used only to call final init in first draw loop, to avoid stupid timeout error processing 3.x's setup introduced
-	public final int saveAnim 			= 2;			//whether we are saving or not
+	public final static int 	
+			debugMode 			= 0,			//whether we are in debug mode or not	
+			finalInitDone		= 1,			//used only to call final init in first draw loop, to avoid stupid timeout error processing 3.x's setup introduced
+			saveAnim 			= 2,			//whether we are saving or not
 	//interface flags	
-	public final int shiftKeyPressed 	= 3;			//shift pressed
-	public final int altKeyPressed  	= 4;			//alt pressed
-	public final int cntlKeyPressed  	= 5;			//cntrl pressed
-	public final int mouseClicked 		= 6;			//mouse left button is held down	
-	public final int drawing			= 7; 			//currently drawing  showSOMMapUI
-	public final int modView	 		= 8;			//shift+mouse click+mouse move being used to modify the view
+			shiftKeyPressed 	= 3,			//shift pressed
+			altKeyPressed  		= 4,			//alt pressed
+			cntlKeyPressed  	= 5,			//cntrl pressed
+			mouseClicked 		= 6,			//mouse left button is held down	
+			drawing				= 7, 			//currently drawing  showSOMMapUI
+			modView	 			= 8,			//shift+mouse click+mouse move being used to modify the view
 	//simulation
-	public final int runSim				= 9;			//run simulation
-	public final int singleStep			= 10;			//run single sim step
-	public final int showRtSideMenu		= 11;			//display the right side info menu for the current window, if it supports that display
-	public final int flipDrawnTraj  	= 12;			//whether or not to flip the direction of the drawn trajectory
-	//window control
-	public final int showUIMenu 		= 13;			//whether or not to show sidebar menu
-	public final int show1stWinIDX		= 14;			//whether to show 1st window
-	public final int show2ndWinIDX		= 15;			//whether to show 2nd window
-	public final int showGradeWinIDX	= 16;			//whether or not to show grade experiment window
+			runSim				= 9,			//run simulation
+			singleStep			= 10,			//run single sim step
+			showRtSideMenu		= 11,			//display the right side info menu for the current window, if it supports that display
+			flipDrawnTraj  		= 12,			//whether or not to flip the direction of the drawn trajectory
+	//window control                        ,
+			showUIMenu 			= 13,			//whether or not to show sidebar menu
+			show1stWinIDX		= 14,			//whether to show 1st window
+			show2ndWinIDX		= 15,			//whether to show 2nd window
+			show2DRayTracerIDX 	= 16,
+			showGradeWinIDX		= 17;			//whether or not to show grade experiment window
 	
-	public final int numFlags = 17;
+	public final int numFlags = 18;
 	
 	public final int numDebugVisFlags = 6;
 	//flags to actually display in menu as clickable text labels - order does matter
@@ -552,35 +557,43 @@ public class GraphProbExpMain extends PApplet {
 			);
 	public final int numStFlagsToShow = stateFlagsToShow.size();	
 	
-	public String[] winTitles = new String[]{"","3D Exp Win","2D Exp Win","Grading Exp Win"},
-			winDescr = new String[] {"", "3D environment to conduct and visualize experiments","2D environment to conduct and visualize experiments","2D Class Grade Experiment Visualization"};
+	//specify mutually exclusive flags here - these are windows accessible via buttons on UI
+	public final int[] winFlagsXOR = new int[]{show1stWinIDX,show2ndWinIDX, show2DRayTracerIDX, showGradeWinIDX};
+	//specify windows that cannot be shown simultaneously here
+	public final int[] winDispIdxXOR = new int[]{disp1stWinIDX, disp2ndWinIDX, disp2DRayTracerIDX, dispGradeWinIDX};
+	
+	public String[] winTitles = new String[]{"","3D Exp Win","2D Exp Win","2D Ray Tracer","Grading Exp Win"},
+			winDescr = new String[] {"", "3D environment to conduct and visualize experiments","2D environment to conduct and visualize experiments","2D ray tracing environment for probability experiments","2D Class Grade Experiment Visualization"};
 	//individual display/HUD windows for gui/user interaction
 	public myDispWindow[] dispWinFrames;
 	//idx's in dispWinFrames for each window
 	public static final int dispMenuIDX = 0,
 							disp1stWinIDX = 1,
 							disp2ndWinIDX = 2,
-							dispGradeWinIDX = 3;
+							disp2DRayTracerIDX = 3,
+							dispGradeWinIDX = 4;
 	
-	public static final int numDispWins = 4;	
+	public static final int numDispWins = 5;	
 			
 	public int curFocusWin;				//which myDispWindow currently has focus 
 	
 	//whether or not the display windows will accept a drawn trajectory
-	public boolean[] canDrawInWin = new boolean[]{false,false,false,false};		
-	public boolean[] canShow3DBox = new boolean[]{false,true,false,false};		
-	public boolean[] canMoveView = new boolean[]{false,true,false,false};		
-	public static final boolean[] dispWinIs3D = new boolean[]{false,true,false,false};
+	public boolean[] canDrawInWin = new boolean[]{false,false,false,false,false};		
+	public boolean[] canShow3DBox = new boolean[]{false,true,false,false,false};		
+	public boolean[] canMoveView = new boolean[]{false,true,false,false,false};		
+	public static final boolean[] dispWinIs3D = new boolean[]{false,true,false,false,false};
 	
 	public static final int[][] winFillClrs = new int[][]{          
 		new int[]{255,255,255,255},                                 	// dispMenuIDX = 0,
 		new int[]{255,255,255,255},                                        	// disp1stWinIDX = 1;
 		new int[]{50,40,20,255},                                        	// disp2ndWinIDX = 2
+		new int[]{20,30,10,255},                                        	// disp2ndWinIDX = 2
 		new int[]{50,20,50,255}                                        	// dispGradeWinIDX = 3
 	};
 	public static final int[][] winStrkClrs = new int[][]{
 		new int[]{0,0,0,255},                                    		//dispMenuIDX = 0,
 		new int[]{0,0,0,255},                               			//disp1stWinIDX = 1
+		new int[]{255,255,255,255},                               		//disp2ndWinIDX = 2
 		new int[]{255,255,255,255},                               		//disp2ndWinIDX = 2
 		new int[]{255,255,255,255}                               		//dispGradeWinIDX = 3
 	};
@@ -730,6 +743,8 @@ public class GraphProbExpMain extends PApplet {
 
 			case show1stWinIDX			: {setWinFlagsXOR(disp1stWinIDX, val); break;}
 			case show2ndWinIDX			: {setWinFlagsXOR(disp2ndWinIDX, val); break;}
+			case show2DRayTracerIDX		: {setWinFlagsXOR(disp2DRayTracerIDX, val); break;}
+			
 			case showGradeWinIDX		: {setWinFlagsXOR(dispGradeWinIDX, val); break;}
 			//case showSOMMapUI 		: {dispWinFrames[dispSOMMapIDX].setFlags(myDispWindow.showIDX,val);handleShowWin(dispSOMMapIDX-1 ,(val ? 1 : 0),false); setWinsHeight(dispSOMMapIDX); break;}	//show InstEdit window
 	
@@ -744,10 +759,6 @@ public class GraphProbExpMain extends PApplet {
 			dispWinFrames[winDispIdxXOR[i]].setRectDimsY( dispWinFrames[popUpWinIDX].getRectDim(1));
 		}						
 	}			//specify mutually exclusive flags here
-	//specify mutually exclusive flags here
-	public int[] winFlagsXOR = new int[]{show1stWinIDX,show2ndWinIDX, showGradeWinIDX};//showSequence,showSphereUI};
-	//specify windows that cannot be shown simultaneously here
-	public int[] winDispIdxXOR = new int[]{disp1stWinIDX, disp2ndWinIDX, dispGradeWinIDX};//dispPianoRollIDX,dispSphereUIIDX};
 	public void setWinFlagsXOR(int idx, boolean val){
 		//outStr2Scr("SetWinFlagsXOR : idx " + idx + " val : " + val);
 		if(val){//turning one on

@@ -1,6 +1,7 @@
 package graphProbExp_PKG;
 
 import java.math.*;
+import java.util.TreeMap;
 import java.util.function.Function;
 
 import org.jblas.*;
@@ -23,6 +24,9 @@ public abstract class myRandVarFunc {
 	//object to hold descriptive values and statistics for this distribution, and any source data/samples, if they exist
 	protected myProbSummary summary;
 	
+	//convergence limit for iterative calcs
+	public final double convLim=1e-6;
+	
 	//state flags - bits in array holding relevant info about this random variable function
 	private int[] stFlags;						
 	public static final int
@@ -33,7 +37,7 @@ public abstract class myRandVarFunc {
 	public static final int numFlags 	= 2;	
 
 	//functional representation of pdfs and inv pdfs, and normalized @ 0 for ziggurat calc
-	protected Function<Double, Double>[] funcs;
+	protected Function<Double, Double>[] funcs;	
 	//function idxs
 	protected static final int 
 		fIDX	 		= 0,
@@ -44,7 +48,14 @@ public abstract class myRandVarFunc {
 		//derivative functions
 		fDerivIDX		= 4,
 		fStdDeriveIDX	= 5;
+
 	protected static final int numFuncs = 6;
+	//integral functions - take in 2 arguments as input, give 1 argument as out
+	protected Function<Double[], Double>[] integrals;
+	protected static final int 
+		fIntegIDX		= 0,
+		fStdIntegIDX	= 1;
+	protected static final int numIntegrals  =2;
 	
 	//object used to perform ziggurat calcs for a particular function - contains pre-calced arrays
 	//each instancing class will have a static map of these, and only build a new one if called for
@@ -54,8 +65,10 @@ public abstract class myRandVarFunc {
 	//////////////////////////////////
 	///useful constants
     //scale factor for normal N(0,1)
-	protected static double invSqrt2 = 1.0/Math.sqrt(2.0),
-							ln2 = Math.log(2.0);
+	protected static final double invSqrt2 = 1.0/Math.sqrt(2.0),
+							ln2 = Math.log(2.0),
+							halfPi =  Math.PI*.5, 
+							twoPi = Math.PI*2.0;
 	
 	//types of functions to query
 	public static final int
@@ -66,13 +79,24 @@ public abstract class myRandVarFunc {
 	
 	public static final String[] queryFuncTypes = new String[] {"Function Eval", "CDF Eval", "Inv CDF Eval","Integral Eval"};	
 	
-	public myRandVarFunc(BaseProbExpMgr _expMgr, myIntegrator _quadSlvr, String _name) {
+	public myRandVarFunc(BaseProbExpMgr _expMgr, myIntegrator _quadSlvr, myProbSummary _summaryObj, String _name) {
 		expMgr = _expMgr;name=_name;
 		initFlags();
 		setQuadSolver(_quadSlvr);
+		rebuildFuncs(_summaryObj);
 	}//ctor
 	
-	public abstract void rebuildFuncs(myProbSummary _summary);
+	public void rebuildFuncs(myProbSummary _summaryObj) {
+		summary=_summaryObj;
+		rebuildFuncs_Indiv( );
+		funcs= new Function[numFuncs];
+		integrals = new Function[numIntegrals];
+		buildFuncs();
+	}//rebuildFuncs
+	//instancing class should call buildFuncs from this function
+	protected abstract void rebuildFuncs_Indiv();
+	//build individual functions that describe pdf, inverse pdf and zigggurat (scaled to y==1 @ x==0) pdf and inv pdf, if necesssary
+	protected abstract void buildFuncs();
 
 	//set/get quadrature solver to be used to solve any integration for this RV func
 	public void setQuadSolver(myIntegrator _quadSlvr) {
@@ -83,8 +107,7 @@ public abstract class myRandVarFunc {
 	public String getQuadSolverName() {
 		if (getFlag(quadSlvrSetIDX)) { return quadSlvr.name;}
 		return "None Set";
-	}
-	
+	}	
 	//momments
 	
 	public double getMean() {return summary.mean();}
@@ -92,12 +115,14 @@ public abstract class myRandVarFunc {
 	public double getVar() {return summary.var();}
 	public double getSkew() {return summary.skew();}
 	public double getKurt() {return summary.kurt();}
+	//for plotting results - this returns bounds
+	public abstract double[] getPlotValBounds();
 	
 	//ignores x2 for all functions but integral
 	public final double getFuncVal(int funcType, double x1, double x2) {
 		switch(funcType) {
 		case queryFuncIDX : {
-			return funcs[fIDX].apply(x1);}
+			return f(x1);}
 		case queryCDFIDX : {
 			return CDF(x1);	}
 		case queryInvCDFIDX: {
@@ -110,8 +135,6 @@ public abstract class myRandVarFunc {
 		}
 	}//getFuncVal
 	
-	//build individual functions that describe pdf, inverse pdf and zigggurat (scaled to y==1 @ x==0) pdf and inv pdf, if necesssary
-	protected abstract void buildFuncs();
 	//calculate pdf function f
 	public final double f(double x) {return funcs[fIDX].apply(x);}
 	//calculate the inverse of f
@@ -120,6 +143,11 @@ public abstract class myRandVarFunc {
 	public final double fStd(double x){return funcs[fStdIDX].apply(x);}
 	//calculate the inverse of f
 	public final double f_invStd(double xInv){return funcs[fInvStdIDX].apply(xInv);}
+	
+	//calculate f normalized for ziggurate method, so that f(0) == 1;
+	public final double fDeriv(double x){return funcs[fDerivIDX].apply(x);}
+	//calculate the inverse of f
+	public final double fStdDeriv(double xInv){return funcs[fStdDeriveIDX].apply(xInv);}
 	
 	//calculate the cdf
 	public abstract double CDF(double x);
@@ -209,24 +237,29 @@ class myGaussianFunc extends myRandVarFunc{
     protected double gaussSclFact, meanStd, invStdSclFact;
     //summary object needs to exist before ctor is called
 	public myGaussianFunc(BaseProbExpMgr _expMgr, myIntegrator _quadSlvr, myProbSummary _summaryObj, String _name) {
-		super(_expMgr,_quadSlvr, _name);
-		rebuildFuncs(_summaryObj);
+		super(_expMgr,_quadSlvr, _summaryObj, _name);	
 	}//ctor
 	public myGaussianFunc(BaseProbExpMgr _expMgr, myIntegrator _quadSlvr, myProbSummary _summaryObj) {this(_expMgr, _quadSlvr,  _summaryObj, "Gaussian");}
-	//rebuild function with new summary object
+	
+	//rebuild function with new summary object - establish instance-class specific requirements before rebuilding
 	@Override
-	public void rebuildFuncs(myProbSummary _summaryObj) {
-		double mu = _summaryObj.mean(), std = _summaryObj.std();
-		
+	protected void rebuildFuncs_Indiv() {
+		double mu = summary.mean(), std = summary.std();		
 		gaussSclFact = (1.0/std) *normalSclFact;
 		inGaussSclFactBD = new BigDecimal(1.0/gaussSclFact);
 		meanStd = mu/std;
 		invStdSclFact = (1.0/std) * invSqrt2;
-		//System.out.println("Mean : " + _mean + " std "+ _std + "| invStdSclFact : " +invStdSclFact);
-		summary=_summaryObj;
-		funcs= new Function[numFuncs];
-		buildFuncs();
 	}//rebuildFunc
+	
+	@Override
+	//for plotting - return min and max vals to plot between
+	public double[] getPlotValBounds() {
+		double mu = summary.mean(), std = summary.std();
+		// TODO Auto-generated method stub
+		return new double[] {mu-(3.5*std), mu+(3.5*std)};
+	}//getPlotValBounds
+	
+
 	
 	@Override
 	protected void buildFuncs() {
@@ -241,7 +274,11 @@ class myGaussianFunc extends myRandVarFunc{
 		
 		//derivative functions		
 		funcs[fDerivIDX]	= (x -> (-(x-mu)/var) * (gaussSclFact  * Math.exp(-0.5 * ((x-mu)*(x-mu))/var)));	
-		funcs[fStdDeriveIDX] = (x -> (-x * Math.exp(-0.5 *(x*x))));	                                                                       ;
+		funcs[fStdDeriveIDX] = (x -> (-x * Math.exp(-0.5 *(x*x))));	
+		//integrals
+		integrals[fIntegIDX] = (x -> integral_f(x[0],x[1]));
+		integrals[fStdIntegIDX] = (x -> integral_fStd(x[0],x[1]));
+		
 	}//buildFuncs
 	
 	//shift by mean, multiply by std
@@ -355,7 +392,6 @@ class myGaussianFunc extends myRandVarFunc{
 		//System.out.print("Raw probit val : " + normRes + " : ");
 		return summary.normToGaussTransform(normRes);
 	}//CDF_inv
-	
 
 }//class myGaussianFunc
 
@@ -399,42 +435,46 @@ class myFleishFunc_Uni extends myRandVarFunc{
 	private boolean ready;
 	//maximum iterations
 	private final int maxIter = 35;
-	//convergence limit
-	private final double convLim=1e-6;
+
 	//summary object/
 
 	//normal distribution for inverse calc
 	private myNormalFunc normFunc;
 	public myFleishFunc_Uni(BaseProbExpMgr _expMgr, myIntegrator _quadSlvr, myProbSummary _summaryObj, String _name) {
-		super(_expMgr, _quadSlvr, _name);
-		normFunc = new myNormalFunc(_expMgr, _quadSlvr);
-		rebuildFuncs(_summaryObj);
+		super(_expMgr, _quadSlvr,_summaryObj, _name);		
 	}//ctor
 
 	@Override
-	public void rebuildFuncs(myProbSummary _summaryObj) {
+	protected void rebuildFuncs_Indiv() {
+		normFunc = new myNormalFunc(expMgr, quadSlvr);
 		ready = false;
-		coeffs = calcCoeffs(_summaryObj);
+		coeffs = calcCoeffs();
 		//set summary builds functions - need to specify required elements before it is called
-		summary=_summaryObj;
-		funcs= new Function[numFuncs];
-		buildFuncs();
 	}//rebuildFunc
 	
+	@Override
+	//for plotting - return min and max vals to plot between
+	public double[] getPlotValBounds() {
+		double mu = summary.mean(), std = summary.std();
+		// TODO Auto-generated method stub
+		return new double[] {mu-(3.5*std), mu+(3.5*std)};
+	}//getPlotValBounds
+	
+
 	
 	//calculate the coefficients for the fleishman polynomial considering the given skew and excess kurtosis specified in summary object
 	//will generate data with mean ==0 and std == 1; if ex kurtosis lies outside of feasible region will return all 0's for coefficients
-	private double[] calcCoeffs(myProbSummary _summary) {		
-		double[] coeffs = new double[_summary.numMmntsGiven];
-		double exKurt = _summary.exKurt(), skew = _summary.skew(), skewSQ = skew*skew;
+	private double[] calcCoeffs() {		
+		double[] coeffs = new double[summary.numMmntsGiven];
+		double exKurt = summary.exKurt(), skew = summary.skew(), skewSQ = skew*skew;
         //first verify exkurt lies within feasible bound vs skew
         //this is fleish's bound from his paper - said to be wrong in subsequent 2010 paper
         //bound = -1.13168 + 1.58837 * skew**2
         double bound = -1.2264489 + 1.6410373*skewSQ;
         if (exKurt < bound) { 
         	expMgr.dispMessage("myFleishFunc_Uni", "calcCoeffs", "!!!! Coefficient error : ex kurt : " + String.format("%3.8f",exKurt)+ " is not feasible with skew :" + String.format("%3.8f",skew) +" | forcing exKurt to lower bound @ skew "+String.format("%3.8f",bound)+" DANGER this is not going to reflect the sample quantities",true);
-        	_summary.forceExKurt(bound);
-        	exKurt = _summary.exKurt();
+        	summary.forceExKurt(bound);
+        	exKurt = summary.exKurt();
         }
         double exKurtSq = exKurt * exKurt;
         //add -coeff[1] as coeff[0]
@@ -508,28 +548,28 @@ class myFleishFunc_Uni extends myRandVarFunc{
 	
 	
 	//find functional inverse - given specific y value, find x such that y = func(x) -> x = func^-1(y)
-	//i.e. find x value that will give f(x)==y
+	//i.e. find x value that will give f(x)==y - note y should not be shifted by mean and std
 	public double calcInvF(double y) {
-		double res = y, diff, diffSq, fRes = 0;
+		double res = -10, diff, diffSq, fRes = 0, dfRes = 0;
 		boolean done = false;
 		double convLimSq = convLim*convLim;
 		//use newton method to find value
 		int i = 0;
 		for (i=0; i<maxIter; ++i) {
 			fRes = f(res);
+			//dfRes = fDeriv(res);
 			diff = (fRes - y);
 			diffSq = diff * diff;
 			if (diffSq < convLimSq) {          break;   }
-			System.out.println("iter " + i + " diff : " + String.format("%3.8f", diff) + "\t y :"+ y + " res : " + String.format("%3.8f", res) + " f(res) : "+ String.format("%3.8f", fRes));
-			res -= .5f *diff;
+			System.out.println("iter " + i + " diff : " + String.format("%3.8f", diff) + "\t y :"+ y + " res : " + String.format("%3.8f", res) + " f(res) : "+ String.format("%3.8f", fRes) );//+ "\t f'(res) : " + String.format("%3.8f", dfRes));
+			res += .1f *diff;
 		}	
 		System.out.println("newton iters to find inverse : " + i + " result : " + res + " y : " + y + " f(res) : "+ fRes);
 		return res;
 		
 	}//calcInvF
 	
-	
-	//this takes a normal input, not a uniform input
+	//this takes a normal input, not a uniform input - TODO change this to take uniform input (?)
 	@Override
 	protected void buildFuncs() {
 		double mu = summary.mean(), std = summary.std();//, var = summary.var();
@@ -543,32 +583,40 @@ class myFleishFunc_Uni extends myRandVarFunc{
 		//analytical derivatives
 		funcs[fDerivIDX]	= x -> {return ((coeffs[1] +x*(coeffs[2]+ x*coeffs[3]))*std +  mu);};
 		funcs[fStdDeriveIDX] = x -> {return (coeffs[1] +x*(coeffs[2]+ x*coeffs[3]));};                                                                   ;
+		//integrals
+		integrals[fIntegIDX] = (x -> integral_f(x[0],x[1]));
+		integrals[fStdIntegIDX] = (x -> integral_fStd(x[0],x[1]));
 		
 	}//buildFuncs
 	
 	//find cumulative value 
 	@Override
 	public double CDF(double x) {	
+		//must find underlying normal draw x' that yielded x once fed into fleishman polynomial
+		
 		//must find t @ f(t) where f is normal fed to poly, and f(t)==x.  in other words, need to know what t will give f(t) == x
-		double t = normFunc.f_inv(x);
+		double xPrime = calcInvF(x);
 		//find polynomial 
 		//now we can find the CDF of transformed x by finding normFunc cdf of t and transforming it
-		return f(normFunc.CDF(t));
+		return normFunc.CDF(xPrime);
 		
 	}	//need to find most negative value of function corresponding to 0 probability => coeffs[0] 
 
 	@Override
-	public double CDF_inv(double x) {
-		// TODO Auto-generated method stub
-		return 0;
+	public double CDF_inv(double prob) {
+		double t = normFunc.CDF_inv(prob);
+		return f(t);
 	}
 	
 	//evaluate integral
 	@Override
 	protected double integral_f(Double x1, Double x2) {
-		//definite integral of polynomial		
+		//definite integral of polynomial along with normal pdf - should we use gauss-hermite? only for infinite	
 		double res = 0; 
+		
+		
 		if(x1==Double.NEGATIVE_INFINITY) {				//cdf of x2 == .5 + .5 * error function x2/sqrt(2) 
+			
 //			//expMgr.dispMessage("myGaussianFunc", "integral_f", "CDF : x1 : "+x1 + " and  x2 : " + x2 + " Using x2");
 //			BigDecimal erroFuncVal = quadSlvr.evalIntegral(errorFunc, 0.0, (x2 - summary.mean())*invStdSclFact);
 //			//cdf == .5*(1+erf(x/sqrt(2))) 
@@ -584,7 +632,7 @@ class myFleishFunc_Uni extends myRandVarFunc{
 			//find integral of f(normFunc.f_inv(x2)) - f(normFunc.f_inv(x1)) 
 			//double
 			
-			res = quadSlvr.evalIntegral(funcs[fIDX], x1, x2).doubleValue();
+			//res = quadSlvr.evalIntegral(funcs[fIDX], x1, x2).doubleValue();
 		}
 		
 		return res;
@@ -602,7 +650,327 @@ class myFleishFunc_Uni extends myRandVarFunc{
 
 }//class myFleishFunc
 
+//class to model a pdf via a cosine
+//mean is phase, std is function of frequency
+class myCosFunc extends myRandVarFunc{
+	//constants to modify cosine so that we represent desired moment behavior
+	//area under pdf corresponding to x val @ 0,1,2,3 std from mean - used to determine appropriate frequency values
+	private static final double[] stdAreaAra = new double[] {0.0,0.3413447460685429485852 ,0.4772498680518207927997 , 0.4986501019683699054734};
+	//don't set this to 0!
+	private static final int stdFreqMultToUse = 1;
+	
+	//frequency == 1/period; needs to be calculated so that stdArea is under curve from mean -> x @ 1 std - cos(x) has freq 1/2pi, so this value is actually 2pi*freq
+	//xBnds == x value where function == 0 -> corresponds to +Pi for freq = 1
+	private double freqMult, xBnd, actLBnd, actUBnd;
+	//for standardized functions
+	private static double freq1StdMult = -1, halfAmpl1Std, xBnd1Std;
+	//half amplitude - needs to be freq/2pi; 
+	//amplitude to maintain area == 1 under 1 period of cosine is actually freq/pi but we are using .5 + .5*cos, so make calc easier to use freq/2pi * ( 1 + cos)
+	private double halfAmpl;
 
+	public myCosFunc(BaseProbExpMgr _expMgr, myIntegrator _quadSlvr, myProbSummary _summaryObj) {
+		super(_expMgr, _quadSlvr, _summaryObj, "Cosine PDF");
+		if(freq1StdMult == -1) {
+			freq1StdMult = calcFreq(1.0);
+			halfAmpl1Std = freq1StdMult/twoPi;
+			xBnd1Std = Math.PI/freq1StdMult;		//values need to be between mu - xBnd and mu + xBnd
+		}
+	}
+	
+	//this will calculate the freq val for a given std iteratively - calculates volume to be vol
+	public double calcFreq(double std) {
+		//qStd is std @ 
+		double stdArea = stdAreaAra[stdFreqMultToUse], twoPiStdArea = stdArea* twoPi;
+		double res = std,sinFreqS,diff, qStd = stdFreqMultToUse * std ;
+		boolean done = false;
+		int i = 0;
+		while ((!done) && (i < 1000)){
+			sinFreqS = Math.sin(res * qStd);//solve CDF for std value - ignore mu
+			diff = res - ((twoPiStdArea - sinFreqS)/std); 
+			//System.out.println("iter " + i + " diff : " + String.format("%3.8f", diff) + "\t std :"+ String.format("%3.8f", std) + " res : " + String.format("%3.8f", res) + " sinFreqS : "+ String.format("%3.8f", sinFreqS));
+			if(Math.abs(diff) < convLim) {				done=true;			}
+			res -= .2*diff;
+			++i;
+		}//
+		//System.out.println("Final freq val : iters " + i + "\t std :"+ String.format("%3.8f", std) + " freq res : " + String.format("%3.8f", res));
+		
+		return res;
+	}//calcFreq
+	
+
+	@Override
+	protected void rebuildFuncs_Indiv() {
+		double mu = summary.mean(), std = summary.std();//, var = summary.var();
+		//setup before actual functions are built
+		//TODO need to solve for freq based on area from 0->1 std being stdArea
+		if(std==0) {
+			freqMult = 1.0;//temp placeholder - NOT CORRECT
+		} else {
+			freqMult = calcFreq(std);	//solve based on std	
+		}
+		xBnd = Math.PI/freqMult;		//values need to be between mu - xBnd and mu + xBnd
+		actLBnd = mu - xBnd;
+		actUBnd = mu + xBnd;
+		halfAmpl = freqMult/twoPi;
+		
+	}//rebuildFuncs_Indiv
+	
+	@Override
+	//for plotting - return min and max vals to plot between
+	public double[] getPlotValBounds() {
+		double mu = summary.mean(), std = summary.std();
+		// TODO Auto-generated method stub
+		return new double[] {actLBnd, actUBnd};
+	}//getPlotValBounds
+	
+
+
+	@Override
+	protected void buildFuncs() {
+		double mu = summary.mean();//, var = summary.var();
+		//form should be freq/2pi * (1 + (cos(freq(x - mu)))); 
+		//want to find appropriate freq so that area under curve [0,std] == 0.3413447460685429 		
+		//actual functions
+		funcs[fIDX] 		= x ->  {return (halfAmpl * (1 +  Math.cos(freqMult * (x - mu))));};
+		funcs[fInvIDX] 		= xinv -> {return  (Math.acos(  (xinv/halfAmpl) - 1.0) + (freqMult*mu))/freqMult; };
+//		//zigurat functions -> want 0 mean 1 std distribution
+		funcs[fStdIDX]		= x -> {return (halfAmpl1Std * (1 +  Math.cos(freq1StdMult * x)));};
+		funcs[fInvStdIDX]	= xinv -> {return  (Math.acos(  (xinv/halfAmpl1Std) - 1.0))/freq1StdMult; };
+//		//analytical derivatives
+		funcs[fDerivIDX]	= x -> {return (halfAmpl * (- freqMult * Math.sin(freqMult * x)));};    
+		funcs[fStdDeriveIDX] = x -> {return (halfAmpl1Std * (- freq1StdMult * Math.sin(freq1StdMult * x)));};                                                         ;
+		//integrals - solve analytically
+		integrals[fIntegIDX] = x -> {return (halfAmpl * ((x[1]-x[0]) +  (Math.sin(freqMult * (x[1] - mu)) - Math.sin(freqMult * (x[0] - mu)))/freqMult));};
+		integrals[fStdIntegIDX] = x -> {return (halfAmpl1Std * ((x[1]-x[0]) +  (Math.sin(freq1StdMult * x[1]) - Math.sin(freq1StdMult * x[0]))/freq1StdMult));};
+	}//
+
+	//find CDF value of x; x must be within bounds mu-xBnd to mu+xBnd
+	//CDF is integral from -inf to x of pdf - can be solved analytically 
+	@Override
+	public double CDF(double x) {
+		//expMgr.dispMessage("myRandVarFunc", "CDF", "Begin CDF calc for val : " + String.format("%3.8f", x) , true);
+		double res = integral_f(actLBnd, x);		 
+		//expMgr.dispMessage("myRandVarFunc", "CDF", "End CDF calc for val : " + String.format("%3.8f", x) , true);
+		return res;
+	}//CDF
+	
+	//find inverse STD value -> x value such that CDF(X<= x) == p
+	public double calcInvCDF(double p, double a, double freq, double lbnd, double mu) {
+		double xVal = 0, calcPVal = 0, diff;
+		double lBndVal = a*(lbnd + Math.sin(freq*lbnd)/freq);
+		boolean done = false;
+		int i = 0;
+		while ((!done) && (i < 1000)){
+			calcPVal = a*(xVal + Math.sin(freq*(xVal-mu))/freq) - lBndVal;//solve for std value - ignore mu
+			diff = p - calcPVal;
+			//System.out.println("iter " + i + " diff : " + String.format("%3.8f", diff) + "\t tar prob :"+ String.format("%3.8f", p) + " xVal : " + String.format("%3.8f", xVal) + " sinFreqS : "+ String.format("%3.8f", calcPVal));
+			if(Math.abs(diff) < convLim) {				done=true;			}
+			xVal += .2*diff;
+			++i;
+		}//
+		//System.out.println("Final InvCDF val : iters " + i + "\t tar prob :"+ String.format("%3.8f", p) + " xVal : " + String.format("%3.8f", xVal) + " prob(xVal) : " +  String.format("%3.8f", calcPVal)+ " lbnd : " +  String.format("%3.8f", lBndVal));
+		return xVal;
+	}//calcInvCDF
+	
+	//given probability p find value x such that CDF(X<= x) == p
+	@Override
+	public double CDF_inv(double p) {
+		//expMgr.dispMessage("myCosFunc", "CDF_inv", "Begin CDF_inv calc for prob : " + String.format("%3.8f", p), true);
+		double res = calcInvCDF(p, halfAmpl1Std, freq1StdMult,  -xBnd1Std, 0);
+		//double res = calcInvCDF(p, halfAmpl, freqMult,  actLBnd, summary.mean());
+		//expMgr.dispMessage("myCosFunc", "CDF_inv", "Finish CDF_inv calc for prob : " + String.format("%3.8f", p) + "\t stdzd res : " + String.format("%3.8f",res)+ "\t low xBnd1Std : " + String.format("%3.8f", -xBnd1Std), true);			
+		return processResValByMmnts(res);
+		//return res;//processResValByMmnts(res);
+	}//CDF_inv
+	
+	//private boolean checkInBnds(Double x, double mu) {return ((x>= mu - xBnd) && (x<= mu + xBnd));}
+	
+	private Double forceInBounds(Double x, double lBnd, double uBnd, boolean forceToBnd) {		
+		if(forceToBnd) {
+			return (x < lBnd ? lBnd : x > uBnd ? uBnd : x);
+		} else {
+			double pd =  uBnd - lBnd;//period is 2x bound
+			if(x < lBnd) {				do {	x += pd;} while (x < lBnd);	} 
+			else if(x > uBnd) {			do {	x -= pd;} while (x > uBnd);	} 
+			return x;	
+		}
+	}//forceInBounds
+	private Double forceInBounds(Double x, double lBnd, double uBnd) {return forceInBounds(x, lBnd, uBnd, true);}
+	@Override
+	protected double integral_f(Double x1, Double x2) {
+		//expMgr.dispMessage("myRandVarFunc", "integral_f", "Begin integral_f calc for vals : " + String.format("%3.8f", x1) +","+ String.format("%3.8f", x2) , true);
+		if(x1 == Double.NEGATIVE_INFINITY) {x1 = actLBnd;}
+		if(x2 == Double.POSITIVE_INFINITY) {x2 = actUBnd;}
+		
+		double newX1 = forceInBounds(x1,actLBnd, actUBnd);
+		double newX2 = forceInBounds(x2,actLBnd, actUBnd); 
+		
+		double  resEval = integrals[fIntegIDX].apply(new Double[] {newX1, newX2});
+		//double res = quadSlvr.evalIntegral(funcs[fIDX], newX1, newX2).doubleValue();
+		//expMgr.dispMessage("myRandVarFunc", "integral_f", "End integral_f calc for vals : " + String.format("%3.8f", x1) +","+ String.format("%3.8f", x2)+ " : res = " +  String.format("%3.8f", quadSlvr.evalIntegral(funcs[fIDX], newX1, newX2).doubleValue()) + " Analytic eval : " +  String.format("%3.8f", resEval) , true);
+		return resEval;
+	}
+
+	@Override
+	protected double integral_fStd(Double x1, Double x2) {
+		//expMgr.dispMessage("myRandVarFunc", "integral_fStd", "Begin integral_fStd calc for vals : " + String.format("%3.8f", x1) +","+ String.format("%3.8f", x2) , true);
+		if(x1 == Double.NEGATIVE_INFINITY) {x1 = -xBnd1Std;}
+		if(x2 == Double.POSITIVE_INFINITY) {x2 = xBnd1Std;}		
+		double newX1 = forceInBounds(x1,-xBnd1Std, xBnd1Std);
+		double newX2 = forceInBounds(x2,-xBnd1Std, xBnd1Std); 	
+		
+		//expMgr.dispMessage("myRandVarFunc", "integral_fStd", "New Integral Bounds : " + String.format("%3.8f", newX1) +","+ String.format("%3.8f", newX2) , true);
+		double resEval = integrals[fStdIntegIDX].apply(new Double[] {newX1, newX2});
+		//double res = quadSlvr.evalIntegral(funcs[fStdIDX], newX1, newX2).doubleValue(); 
+		//expMgr.dispMessage("myRandVarFunc", "integral_fStd", "End integral_fStd calc for vals : " + String.format("%3.8f", x1) +","+ String.format("%3.8f", x2)+ " : res = " +  String.format("%3.8f", quadSlvr.evalIntegral(funcs[fStdIDX], newX1, newX2).doubleValue()) + " Analytic eval : " +  String.format("%3.8f", resEval) , true);
+		return resEval;
+	}
+
+	@Override
+	//assmue we can modify value in similar way to transform by 1st 2 moments
+	public double processResValByMmnts(double val) {	return summary.normToGaussTransform(val);}//public abstract double processResValByMmnts(double val);
+
+}//myCosFunc
+
+/**
+ * this function will build a pdf/cdf model based on working backward from samples - building cdf from sample data, fitting sin-based CDF function to data, then differentiating to find pdf
+ * @author john
+ */
+class myCosFuncFromCDF extends myRandVarFunc{
+
+
+	public myCosFuncFromCDF(BaseProbExpMgr _expMgr, myIntegrator _quadSlvr, myProbSummary _summaryObj) {
+		super(_expMgr, _quadSlvr, _summaryObj, "Cosine PDF");
+	}//ctor
+
+	@Override
+	protected void rebuildFuncs_Indiv() {
+		//get CDF map of data
+		TreeMap<Double,Double> CDFMap = summary.getCDFOfData();
+		//build CDF function via CDFMap using fitting - access values via CDFMap.ceilingKey((rand val))
+		
+	}//rebuildFuncs_Indiv
+
+	@Override
+	protected void buildFuncs() {
+		double mu = summary.mean();//, var = summary.var();
+		//form should be freq/2pi * (1 + (cos(freq(x - mu)))); 
+		//want to find appropriate freq so that area under curve [0,std] == 0.3413447460685429 		
+		//actual functions
+//		funcs[fIDX] 		= x ->  {return (halfAmpl * (1 +  Math.cos(freqMult * (x - mu))));};
+//		funcs[fInvIDX] 		= xinv -> {return  (Math.acos(  (xinv/halfAmpl) - 1.0) + (freqMult*mu))/freqMult; };
+////		//zigurat functions -> want 0 mean 1 std distribution
+//		funcs[fStdIDX]		= x -> {return (halfAmpl1Std * (1 +  Math.cos(freq1StdMult * x)));};
+//		funcs[fInvStdIDX]	= xinv -> {return  (Math.acos(  (xinv/halfAmpl1Std) - 1.0))/freq1StdMult; };
+////		//analytical derivatives
+//		funcs[fDerivIDX]	= x -> {return (halfAmpl * (- freqMult * Math.sin(freqMult * x)));};    
+//		funcs[fStdDeriveIDX] = x -> {return (halfAmpl1Std * (- freq1StdMult * Math.sin(freq1StdMult * x)));};                                                         ;
+//		//integrals - solve analytically
+//		integrals[fIntegIDX] = x -> {return (halfAmpl * ((x[1]-x[0]) +  (Math.sin(freqMult * (x[1] - mu)) - Math.sin(freqMult * (x[0] - mu)))/freqMult));};
+//		integrals[fStdIntegIDX] = x -> {return (halfAmpl1Std * ((x[1]-x[0]) +  (Math.sin(freq1StdMult * x[1]) - Math.sin(freq1StdMult * x[0]))/freq1StdMult));};
+	}//
+	
+	@Override
+	//for plotting - return min and max vals to plot between
+	public double[] getPlotValBounds() {
+		double mu = summary.mean(), std = summary.std();
+		// TODO Auto-generated method stub
+		return new double[] {mu-(3.5*std), mu+(3.5*std)};
+	}//getPlotValBounds
+	
+
+
+	//find CDF value of x; x must be within bounds mu-xBnd to mu+xBnd
+	//CDF is integral from -inf to x of pdf - can be solved analytically 
+	@Override
+	public double CDF(double x) {
+		//expMgr.dispMessage("myRandVarFunc", "CDF", "Begin CDF calc for val : " + String.format("%3.8f", x) , true);
+		double res = 0;//integral_f(actLBnd, x);		 
+		//expMgr.dispMessage("myRandVarFunc", "CDF", "End CDF calc for val : " + String.format("%3.8f", x) , true);
+		return res;
+	}//CDF
+	
+	//find inverse STD value -> x value such that CDF(X<= x) == p
+	public double calcInvCDF(double p, double a, double freq, double lbnd, double mu) {
+		double xVal = 0, calcPVal = 0, diff;
+		double lBndVal = a*(lbnd + Math.sin(freq*lbnd)/freq);
+		boolean done = false;
+		int i = 0;
+		while ((!done) && (i < 1000)){
+			calcPVal = a*(xVal + Math.sin(freq*(xVal-mu))/freq) - lBndVal;//solve for std value - ignore mu
+			diff = p - calcPVal;
+			//System.out.println("iter " + i + " diff : " + String.format("%3.8f", diff) + "\t tar prob :"+ String.format("%3.8f", p) + " xVal : " + String.format("%3.8f", xVal) + " sinFreqS : "+ String.format("%3.8f", calcPVal));
+			if(Math.abs(diff) < convLim) {				done=true;			}
+			xVal += .2*diff;
+			++i;
+		}//
+		//System.out.println("Final InvCDF val : iters " + i + "\t tar prob :"+ String.format("%3.8f", p) + " xVal : " + String.format("%3.8f", xVal) + " prob(xVal) : " +  String.format("%3.8f", calcPVal)+ " lbnd : " +  String.format("%3.8f", lBndVal));
+		return xVal;
+	}//calcInvCDF
+	
+	//given probability p find value x such that CDF(X<= x) == p
+	@Override
+	public double CDF_inv(double p) {
+		//expMgr.dispMessage("myCosFunc", "CDF_inv", "Begin CDF_inv calc for prob : " + String.format("%3.8f", p), true);
+		//double res = calcInvCDF(p, halfAmpl1Std, freq1StdMult,  -xBnd1Std, 0);
+		//double res = calcInvCDF(p, halfAmpl, freqMult,  actLBnd, summary.mean());
+		//expMgr.dispMessage("myCosFunc", "CDF_inv", "Finish CDF_inv calc for prob : " + String.format("%3.8f", p) + "\t stdzd res : " + String.format("%3.8f",res)+ "\t low xBnd1Std : " + String.format("%3.8f", -xBnd1Std), true);			
+		return 0;//processResValByMmnts(res);
+		//return res;//processResValByMmnts(res);
+	}//CDF_inv
+	
+	//private boolean checkInBnds(Double x, double mu) {return ((x>= mu - xBnd) && (x<= mu + xBnd));}
+	
+	private Double forceInBounds(Double x, double lBnd, double uBnd, boolean forceToBnd) {		
+		if(forceToBnd) {
+			return (x < lBnd ? lBnd : x > uBnd ? uBnd : x);
+		} else {
+			double pd =  uBnd - lBnd;//period is 2x bound
+			if(x < lBnd) {				do {	x += pd;} while (x < lBnd);	} 
+			else if(x > uBnd) {			do {	x -= pd;} while (x > uBnd);	} 
+			return x;	
+		}
+	}//forceInBounds
+	private Double forceInBounds(Double x, double lBnd, double uBnd) {return forceInBounds(x, lBnd, uBnd, true);}
+	@Override
+	protected double integral_f(Double x1, Double x2) {
+//		//expMgr.dispMessage("myRandVarFunc", "integral_f", "Begin integral_f calc for vals : " + String.format("%3.8f", x1) +","+ String.format("%3.8f", x2) , true);
+//		if(x1 == Double.NEGATIVE_INFINITY) {x1 = actLBnd;}
+//		if(x2 == Double.POSITIVE_INFINITY) {x2 = actUBnd;}
+//		
+//		double newX1 = forceInBounds(x1,actLBnd, actUBnd);
+//		double newX2 = forceInBounds(x2,actLBnd, actUBnd); 
+//		
+//		double  resEval = integrals[fIntegIDX].apply(new Double[] {newX1, newX2});
+//		//double res = quadSlvr.evalIntegral(funcs[fIDX], newX1, newX2).doubleValue();
+		//expMgr.dispMessage("myRandVarFunc", "integral_f", "End integral_f calc for vals : " + String.format("%3.8f", x1) +","+ String.format("%3.8f", x2)+ " : res = " +  String.format("%3.8f", quadSlvr.evalIntegral(funcs[fIDX], newX1, newX2).doubleValue()) + " Analytic eval : " +  String.format("%3.8f", resEval) , true);
+		return 0;//resEval;
+	}
+
+	@Override
+	protected double integral_fStd(Double x1, Double x2) {
+//		//expMgr.dispMessage("myRandVarFunc", "integral_fStd", "Begin integral_fStd calc for vals : " + String.format("%3.8f", x1) +","+ String.format("%3.8f", x2) , true);
+//		if(x1 == Double.NEGATIVE_INFINITY) {x1 = -xBnd1Std;}
+//		if(x2 == Double.POSITIVE_INFINITY) {x2 = xBnd1Std;}
+//		//must only use 
+//		
+//		double newX1 = forceInBounds(x1,-xBnd1Std, xBnd1Std);
+//		double newX2 = forceInBounds(x2,-xBnd1Std, xBnd1Std); 
+//		
+//		
+//		//expMgr.dispMessage("myRandVarFunc", "integral_fStd", "New Integral Bounds : " + String.format("%3.8f", newX1) +","+ String.format("%3.8f", newX2) , true);
+//		double resEval = integrals[fStdIntegIDX].apply(new Double[] {newX1, newX2});
+//		//double res = quadSlvr.evalIntegral(funcs[fStdIDX], newX1, newX2).doubleValue(); 
+		//expMgr.dispMessage("myRandVarFunc", "integral_fStd", "End integral_fStd calc for vals : " + String.format("%3.8f", x1) +","+ String.format("%3.8f", x2)+ " : res = " +  String.format("%3.8f", quadSlvr.evalIntegral(funcs[fStdIDX], newX1, newX2).doubleValue()) + " Analytic eval : " +  String.format("%3.8f", resEval) , true);
+		return 0;//resEval;
+	}
+
+	@Override
+	//assmue we can modify value in similar way to transform by 1st 2 moments
+	public double processResValByMmnts(double val) {	return summary.normToGaussTransform(val);}//public abstract double processResValByMmnts(double val);
+
+		
+}//myCosFunc
 
 
 //class holding ziggurat pre-calced values (in tabular form) for a particular prob function and # of rectangles
@@ -671,7 +1039,7 @@ class zigConstVals{
 	
 	//function described in zig paper to find appropriate r value - need to find r to make this funct == 0 
 	private double[] z_R(double rVal) {
-		//expMgr.dispMessage("myGaussianFunc", "z_R", "Start : rVal : " + rVal + " nRect " + nRect);
+		//func.expMgr.dispMessage("myGaussianFunc", "z_R", "Starting z_R with: rVal : " + rVal,true);
 		//this gives the volume at the tail - rectangle @ r + tail from r to end		
 		double funcAtR = func.fStd(rVal);  							
 		//vol = rF(r) + integral(r->+inf) (f_zig(x))
@@ -705,7 +1073,7 @@ class zigConstVals{
 	//x coordinate of final rectangle, such that v_each == r(f(r)) + integral(r->inf) f(x) dx
 	protected double[] calcRValAndVol() {
 		//find an r that will make z_r function == 0
-		double rValGuess = 20.0;
+		double rValGuess = 20;
 		boolean done = false;
 		int iter = 0;
 		double [] zValAra = new double[] {-100,0};

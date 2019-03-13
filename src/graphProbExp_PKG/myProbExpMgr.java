@@ -19,7 +19,6 @@ public class myProbExpMgr extends BaseProbExpMgr{
 	
 	public myProbExpMgr(myDispWindow _win) {
 		super(_win);
-		initExp();
 	}//ctor
 
 	//build solvers specific to this experiment - called after base class solver init
@@ -28,12 +27,11 @@ public class myProbExpMgr extends BaseProbExpMgr{
 
 	}//buildSolvers
 	
-
 	//called at end of ctor and whenever experiment needs to be re-instanced
 	@Override
 	public final void initExp() {		
-		nrmlGen = buildAndInitRandGen(ziggRandGen, new myProbSummary(new double[] {0,1,0,0},2));	
-		gaussGen = buildAndInitRandGen(ziggRandGen, new myProbSummary(new double[] {3,25.9,0,0},2));	
+		nrmlGen = buildAndInitRandGen(ziggRandGen, normRandVarIDX, new myProbSummary(new double[] {0,1,0,0},2));	
+		gaussGen = buildAndInitRandGen(ziggRandGen, gaussRandVarIDX, new myProbSummary(new double[] {3,25.9,0,0},2));	
 	}//initExp
 	
 	//this is called whenever screen width is changed - used to modify visualizations if necessary
@@ -58,6 +56,13 @@ public class myProbExpMgr extends BaseProbExpMgr{
 	@Override	
 	public void setMouseReleaseInExp2D() {	
 	}
+	
+	@Override
+	public void drawExp() {
+		// TODO Auto-generated method stub
+		
+	}
+
 
 	public void testRandGen(int numVals) {
 		dispMessage("myProbExpMgr","testRandGen","Start test of random normal gen of " +numVals + " vals from rand gen with momments : " + nrmlGen.getFuncDataStr(),true);
@@ -92,8 +97,6 @@ public class myProbExpMgr extends BaseProbExpMgr{
 	@Override
 	protected void initFlags(){stFlags = new int[1 + numFlags/32]; for(int i = 0; i<numFlags; ++i){setFlag(i,false);}}
 	@Override
-	public void setAllFlags(int[] idxs, boolean val) {for (int idx : idxs) {setFlag(idx, val);}}
-	@Override
 	public void setFlag(int idx, boolean val){
 		int flIDX = idx/32, mask = 1<<(idx%32);
 		stFlags[flIDX] = (val ?  stFlags[flIDX] | mask : stFlags[flIDX] & ~mask);
@@ -101,9 +104,6 @@ public class myProbExpMgr extends BaseProbExpMgr{
 			case debugIDX : {break;}				
 		}
 	}//setFlag		
-	@Override
-	public boolean getFlag(int idx){int bitLoc = 1<<(idx%32);return (stFlags[idx/32] & bitLoc) == bitLoc;}
-
 
 }//class myProbExpMgr
 
