@@ -79,17 +79,7 @@ public class myProbExpMgr extends BaseProbExpMgr{
 	}//testRandGen
 	
 	
-	//test method for calculating r for rand var function
-	public void testRCalc() {
-		dispMessage("myProbExpMgr","testRCalc","Start test of r var calc",true);
-		myRandVarFunc randVar = new myNormalFunc(this, quadSlvrs[GL_QuadSlvrIDX]);
-		myProbSummary analysis = new myProbSummary( new double[] {2.0, 3.0}, 2);
-		myRandVarFunc randGaussVar = new myGaussianFunc(this, quadSlvrs[GL_QuadSlvrIDX], analysis);
-		randVar.dbgTestCalcRVal(256);
-		
-		dispMessage("myProbExpMgr","testRCalc","End test of r var calc",true);
-		
-	}//testRCalc
+
 	
 	
 	/////////////////////////////

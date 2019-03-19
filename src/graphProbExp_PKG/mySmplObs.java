@@ -33,8 +33,8 @@ public class mySmplObs{
 	//clip to be within 0->1 - should always be within this range
 	protected void setClippedValue(String _type, double _val, double _min, double _max) {
 		//_type present for dbg messages only - add any debugging display code here if desired
-		if(_val >= _max) {			value = _max;} 
-		else if (_val <= _min ) {	value = _min;}
+		if(_val >= _max) {			_val = _max;} 
+		else if (_val <= _min ) {	_val = _min;}
 		value = _val;
 	}//clipVal
 	

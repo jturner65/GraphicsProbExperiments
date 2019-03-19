@@ -154,6 +154,28 @@ public abstract class myRandVarFunc {
 	//calculate inverse cdf of passed value 0->1
 	public abstract double CDF_inv(double x);	
 	
+	//find inverse  value -> x value such that CDF(X<= x) == p
+	//Lower bound should either be neg inf or the lower bound of the pdf, if it is bounded
+	public double calcInvCDF(double p, Function<Double[], Double> integralFunc, Double lbnd) {
+		double xVal = 0, calcPVal = 0, diff;
+		Double[] args = new Double[] {lbnd, 0.0};
+		//double lBndVal = a*(lbnd + Math.sin(freq*lbnd)/freq);
+		boolean done = false;
+		int i = 0;
+		while ((!done) && (i < 1000)){
+			//calcPVal = a*(xVal + Math.sin(freq*(xVal-mu))/freq) - lBndVal;//solve for std value - ignore mu
+			args[1]=xVal;
+			calcPVal = integralFunc.apply(args);//solve for std value - ignore mu
+			diff = p - calcPVal;
+			//System.out.println("iter " + i + " diff : " + String.format("%3.8f", diff) + "\t tar prob :"+ String.format("%3.8f", p) + " xVal : " + String.format("%3.8f", xVal) + " sinFreqS : "+ String.format("%3.8f", calcPVal));
+			if(Math.abs(diff) < convLim) {				done=true;			}
+			xVal += .2*diff;
+			++i;
+		}//
+		//System.out.println("Final InvCDF val : iters " + i + "\t tar prob :"+ String.format("%3.8f", p) + " xVal : " + String.format("%3.8f", xVal) + " prob(xVal) : " +  String.format("%3.8f", calcPVal)+ " lbnd : " +  String.format("%3.8f", lBndVal));
+		return xVal;
+	}//calcInvCDF
+	
 	//calculate integral of f between x1 and x2.  Use to calculate cumulative distribution by making x1==-inf, and x2 definite; qfunc by setting x1 to a value and x2 == +inf
 	protected abstract double integral_f(Double x1, Double x2);	
 	//calculate integral of normalized f (for ziggurat calc) between x1 and x2.  Use to calculate cumulative distribution by making x1==-inf, and x2 definite; qfunc by setting x1 to a value and x2 == +inf
@@ -176,6 +198,15 @@ public abstract class myRandVarFunc {
 		zigVals = new zigConstVals(this,numZigRects);
 		setFlag(useZigAlgIDX, true);
 	}//setZigVals
+	
+	//test if newton iteration is done
+	protected boolean isNewtonDone(DoubleMatrix f) {
+		for(double x : f.data) {
+			if(Math.abs(x) > convLim) {return false;}
+		}		
+		return true;
+	}//isNewtonDone
+	
 	
 	//temp testing function - returns R and Vol
 	public double[] dbgTestCalcRVal(int nRect) {
@@ -517,13 +548,7 @@ class myFleishFunc_Uni extends myRandVarFunc{
         	{df2db, df2dc, df2dd},
             {df3db, df3dc, df3dd}});
 	}//flDeriv
-	
-	private boolean isNewtonDone(DoubleMatrix f) {
-		for(double x : f.data) {
-			if(Math.abs(x) > convLim) {return false;}
-		}		
-		return true;
-	}//isNewtonDone
+
 	
 	//simple newton method solver
 	private double[] newton(double a,double b,double c,double skew,double exKurtosis) {
@@ -550,21 +575,21 @@ class myFleishFunc_Uni extends myRandVarFunc{
 	//find functional inverse - given specific y value, find x such that y = func(x) -> x = func^-1(y)
 	//i.e. find x value that will give f(x)==y - note y should not be shifted by mean and std
 	public double calcInvF(double y) {
-		double res = -10, diff, diffSq, fRes = 0, dfRes = 0;
-		boolean done = false;
+		double res = y-10, diff, diffSq, fRes = 0, dfRes = 0;
 		double convLimSq = convLim*convLim;
 		//use newton method to find value
 		int i = 0;
-		for (i=0; i<maxIter; ++i) {
+		int maxInvIter = 100;
+		for (i=0; i<maxInvIter; ++i) {
 			fRes = f(res);
 			//dfRes = fDeriv(res);
 			diff = (fRes - y);
 			diffSq = diff * diff;
 			if (diffSq < convLimSq) {          break;   }
-			System.out.println("iter " + i + " diff : " + String.format("%3.8f", diff) + "\t y :"+ y + " res : " + String.format("%3.8f", res) + " f(res) : "+ String.format("%3.8f", fRes) );//+ "\t f'(res) : " + String.format("%3.8f", dfRes));
-			res += .1f *diff;
+			//System.out.println("iter " + i + " diff : " + String.format("%3.8f", diff) + "\t y :"+ y + " res : " + String.format("%3.8f", res) + " f(res) : "+ String.format("%3.8f", fRes) );//+ "\t f'(res) : " + String.format("%3.8f", dfRes));
+			res += .2f *diff;
 		}	
-		System.out.println("newton iters to find inverse : " + i + " result : " + res + " y : " + y + " f(res) : "+ fRes);
+		System.out.println("myFleishFunc_Uni::calcInvF : iters to find inverse : " + i + " result : " + res + " y : " + y + " f(res) : "+ fRes);
 		return res;
 		
 	}//calcInvF
@@ -604,7 +629,9 @@ class myFleishFunc_Uni extends myRandVarFunc{
 
 	@Override
 	public double CDF_inv(double prob) {
+		//t is value of underlying normal that has given probability (p(x<=t) == prob)
 		double t = normFunc.CDF_inv(prob);
+		//this will be
 		return f(t);
 	}
 	
@@ -657,7 +684,7 @@ class myCosFunc extends myRandVarFunc{
 	//area under pdf corresponding to x val @ 0,1,2,3 std from mean - used to determine appropriate frequency values
 	private static final double[] stdAreaAra = new double[] {0.0,0.3413447460685429485852 ,0.4772498680518207927997 , 0.4986501019683699054734};
 	//don't set this to 0!
-	private static final int stdFreqMultToUse = 1;
+	private static final int stdFreqMultToUse = 3;
 	
 	//frequency == 1/period; needs to be calculated so that stdArea is under curve from mean -> x @ 1 std - cos(x) has freq 1/2pi, so this value is actually 2pi*freq
 	//xBnds == x value where function == 0 -> corresponds to +Pi for freq = 1
@@ -679,25 +706,23 @@ class myCosFunc extends myRandVarFunc{
 	
 	//this will calculate the freq val for a given std iteratively - calculates volume to be vol
 	public double calcFreq(double std) {
-		//qStd is std @ 
+		//qStd is std @ stdFreqMultToUse
 		double stdArea = stdAreaAra[stdFreqMultToUse], twoPiStdArea = stdArea* twoPi;
 		double res = std,sinFreqS,diff, qStd = stdFreqMultToUse * std ;
 		boolean done = false;
 		int i = 0;
 		while ((!done) && (i < 1000)){
 			sinFreqS = Math.sin(res * qStd);//solve CDF for std value - ignore mu
-			diff = res - ((twoPiStdArea - sinFreqS)/std); 
+			diff = res - ((twoPiStdArea - sinFreqS)/qStd); 
 			//System.out.println("iter " + i + " diff : " + String.format("%3.8f", diff) + "\t std :"+ String.format("%3.8f", std) + " res : " + String.format("%3.8f", res) + " sinFreqS : "+ String.format("%3.8f", sinFreqS));
 			if(Math.abs(diff) < convLim) {				done=true;			}
 			res -= .2*diff;
 			++i;
 		}//
 		//System.out.println("Final freq val : iters " + i + "\t std :"+ String.format("%3.8f", std) + " freq res : " + String.format("%3.8f", res));
-		
 		return res;
 	}//calcFreq
 	
-
 	@Override
 	protected void rebuildFuncs_Indiv() {
 		double mu = summary.mean(), std = summary.std();//, var = summary.var();
@@ -711,8 +736,7 @@ class myCosFunc extends myRandVarFunc{
 		xBnd = Math.PI/freqMult;		//values need to be between mu - xBnd and mu + xBnd
 		actLBnd = mu - xBnd;
 		actUBnd = mu + xBnd;
-		halfAmpl = freqMult/twoPi;
-		
+		halfAmpl = freqMult/twoPi;		
 	}//rebuildFuncs_Indiv
 	
 	@Override
@@ -749,35 +773,21 @@ class myCosFunc extends myRandVarFunc{
 	@Override
 	public double CDF(double x) {
 		//expMgr.dispMessage("myRandVarFunc", "CDF", "Begin CDF calc for val : " + String.format("%3.8f", x) , true);
-		double res = integral_f(actLBnd, x);		 
+		double newX = forceInBounds(x,actLBnd, actUBnd);
+		
+		double  res = integrals[fIntegIDX].apply(new Double[] {actLBnd, newX});
+		//double res = integral_f(actLBnd, x);		 
 		//expMgr.dispMessage("myRandVarFunc", "CDF", "End CDF calc for val : " + String.format("%3.8f", x) , true);
 		return res;
 	}//CDF
-	
-	//find inverse STD value -> x value such that CDF(X<= x) == p
-	public double calcInvCDF(double p, double a, double freq, double lbnd, double mu) {
-		double xVal = 0, calcPVal = 0, diff;
-		double lBndVal = a*(lbnd + Math.sin(freq*lbnd)/freq);
-		boolean done = false;
-		int i = 0;
-		while ((!done) && (i < 1000)){
-			calcPVal = a*(xVal + Math.sin(freq*(xVal-mu))/freq) - lBndVal;//solve for std value - ignore mu
-			diff = p - calcPVal;
-			//System.out.println("iter " + i + " diff : " + String.format("%3.8f", diff) + "\t tar prob :"+ String.format("%3.8f", p) + " xVal : " + String.format("%3.8f", xVal) + " sinFreqS : "+ String.format("%3.8f", calcPVal));
-			if(Math.abs(diff) < convLim) {				done=true;			}
-			xVal += .2*diff;
-			++i;
-		}//
-		//System.out.println("Final InvCDF val : iters " + i + "\t tar prob :"+ String.format("%3.8f", p) + " xVal : " + String.format("%3.8f", xVal) + " prob(xVal) : " +  String.format("%3.8f", calcPVal)+ " lbnd : " +  String.format("%3.8f", lBndVal));
-		return xVal;
-	}//calcInvCDF
+
 	
 	//given probability p find value x such that CDF(X<= x) == p
 	@Override
 	public double CDF_inv(double p) {
 		//expMgr.dispMessage("myCosFunc", "CDF_inv", "Begin CDF_inv calc for prob : " + String.format("%3.8f", p), true);
-		double res = calcInvCDF(p, halfAmpl1Std, freq1StdMult,  -xBnd1Std, 0);
-		//double res = calcInvCDF(p, halfAmpl, freqMult,  actLBnd, summary.mean());
+		double res = calcInvCDF(p, integrals[fStdIntegIDX],  -xBnd1Std);		//iteratively finds inverse
+		//double res = calcInvCDF(p, integrals[fIntegIDX],  actLBnd);
 		//expMgr.dispMessage("myCosFunc", "CDF_inv", "Finish CDF_inv calc for prob : " + String.format("%3.8f", p) + "\t stdzd res : " + String.format("%3.8f",res)+ "\t low xBnd1Std : " + String.format("%3.8f", -xBnd1Std), true);			
 		return processResValByMmnts(res);
 		//return res;//processResValByMmnts(res);
@@ -843,11 +853,115 @@ class myCosFuncFromCDF extends myRandVarFunc{
 		super(_expMgr, _quadSlvr, _summaryObj, "Cosine PDF");
 	}//ctor
 
+	
+	private double calcF_Theta(DoubleMatrix Theta, double x) {
+		return Theta.get(0) * (Math.sin(Theta.get(1) * x + Theta.get(2))) + Theta.get(3);
+	}
+	
+	private DoubleMatrix calcRVal(DoubleMatrix yVals, DoubleMatrix xVals, DoubleMatrix Theta) {
+		DoubleMatrix fXVals =DoubleMatrix.zeros(xVals.getRows(), 1);
+		for (int i=0;i<xVals.getRows();++i) {	fXVals.put(i, calcF_Theta(Theta,xVals.get(i)));	}		
+		return yVals.sub(fXVals);
+	}
+	
+	//get deriv of func (sin) w/respect to each element of theta
+	private DoubleMatrix getDerivTheta(double x, DoubleMatrix Theta) {
+		double bXplusC = Theta.get(1) * x + Theta.get(2),
+		A = Theta.get(0),
+		cosVal = Math.cos(bXplusC),
+		dA = Math.sin(bXplusC),  //sin(B * val + C)
+		dB = A*x * cosVal, //A * val * cos(B * val + C) 
+		dC = A * cosVal, //A * cos(B * val + C)
+		dD = 1;
+		//System.out.println("x : " + x +" | dA : " + dA + " dB : " + dB +" dC : " + dC + " dD :"+ dD);
+		return new DoubleMatrix(new double[] { dA, dB, dC, dD});
+	}//getDerivTheta
+	
+	private DoubleMatrix calcJacobian(DoubleMatrix xVals, DoubleMatrix Theta) {
+		DoubleMatrix J = new DoubleMatrix(xVals.length, Theta.length);
+		//System.out.println("xVals.getRows() : " +xVals.getRows());
+		for (int i=0;i<xVals.getRows();++i) {		J.putRow(i, getDerivTheta(xVals.get(i),Theta));	}
+
+		return J;
+	}
+	
+	private void printXYVals(DoubleMatrix xVals) {		System.out.println("xVals : " + xVals);	}
+	
 	@Override
 	protected void rebuildFuncs_Indiv() {
-		//get CDF map of data
-		TreeMap<Double,Double> CDFMap = summary.getCDFOfData();
-		//build CDF function via CDFMap using fitting - access values via CDFMap.ceilingKey((rand val))
+		int numIters = 100;
+		//get CDF map of data  where key is p(X<=x) and value is x
+		TreeMap<Double,Double> CDFMap = new TreeMap<Double,Double>();
+		try {
+			CDFMap = summary.getCDFOfData();
+			if(CDFMap.size() < 2) {
+				System.out.println("CDFMap.size() < 2 : " +CDFMap.size());
+				throw new Exception();
+			}
+
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return;
+		}
+		
+//		This is getting called with only 1 variable point from : 
+//		at graphProbExp_PKG.myCosFuncFromCDF.rebuildFuncs_Indiv(myRandVarFunc.java:899)
+//		at graphProbExp_PKG.myRandVarFunc.rebuildFuncs(myRandVarFunc.java:91)
+//		at graphProbExp_PKG.myRandGen.setFuncSummary(myRandGen.java:54)
+//		at graphProbExp_PKG.myFinalGradeRoster.calcTotalGrades(mySampleSet.java:427)
+//		at graphProbExp_PKG.myClassRoster.updateFinalGrades(mySampleSet.java:217)
+//		at graphProbExp_PKG.myClassRoster.transformStudentFromRawToUni(mySampleSet.java:205)
+//		at graphProbExp_PKG.myClassRoster.transformStudentGradesToUniform(mySampleSet.java:187)
+//		at graphProbExp_PKG.ClassGradeExperiment.setRandGensAndTransformGrades(ClassGradeExperiment.java:186)
+//		at graphProbExp_PKG.ClassGradeExperiment.buildClassGradeExperiment(ClassGradeExperiment.java:138)
+//		at graphProbExp_PKG.Grade2DWindow.setGradeExp(Grade2DWindow.java:120)
+//		at graphProbExp_PKG.Grade2DWindow.setUIWinVals(Grade2DWindow.java:289)
+//		at graphProbExp_PKG.myDispWindow.handleMouseRelease(myDispWindow.java:1111)
+//		at graphProbExp_PKG.GraphProbExpMain.mouseReleased(GraphProbExpMain.java:289)
+//		at processing.core.PApplet.mouseReleased(PApplet.java:2780)		
+		//catch (Exception e) {			return;		}
+		double alpha = .01;//learning rate
+		DoubleMatrix rVals = new DoubleMatrix(CDFMap.size(), 1),rSqVals = new DoubleMatrix(CDFMap.size(), 1), yVals= new DoubleMatrix(CDFMap.size(), 1), xVals= new DoubleMatrix(CDFMap.size(), 1);
+		DoubleMatrix Theta = new DoubleMatrix(new double[] {.5,.5,.5,.5}), dTheta, oldDTheta = new DoubleMatrix(new double[] {1,1,1,1});
+		int row = 0;
+		for(Double key : CDFMap.keySet()) {
+			yVals.put(row, key);
+			xVals.put(row, CDFMap.get(key));
+			
+			++row;
+		}
+		//printXYVals(xVals);
+		//Theta == [A,B,C,D]^T
+		//dTheta == [J^T * J]^-1 * J^T * r
+		//newTheta = Theta + alpha * dTheta
+		//r vals
+		//jacobian
+		boolean done = false;
+		int iter = 0;
+		while ((!done) && (iter < numIters)){
+			//calc R Value - yVal - f(theta,xVal)
+			rVals = calcRVal(yVals, xVals, Theta);
+			//calculate Jacobians for each point
+			DoubleMatrix J = calcJacobian(xVals, Theta);
+			DoubleMatrix tmpVal = J.transpose().mmul(J);
+			DoubleMatrix tmpVal2 = Solve.pinv(tmpVal).mmul(J.transpose());
+			//System.out.println("iter : " + iter + " rVals : " +rVals.toString() +" rows : " + rVals.getRows()+ " J numrows : " + J.getRows() + " | J : " +J.toString() +" \ntmpVal : " +tmpVal.toString() +" \n tmpVal2 : " +tmpVal2.toString() +" \n tmpVal2 rows : " +tmpVal2.getRows()+ " \n ");
+			//printXYVals(xVals);
+			
+			dTheta = tmpVal2.mmul(rVals);
+			if (isNewtonDone(dTheta.sub(oldDTheta))) {
+				done = true;
+			}
+			oldDTheta = dTheta;
+			Theta.addi(dTheta.mul(alpha));
+			//modify Theta
+			//System.out.println("Final Iters :  " + iter + " Theta values : A : " + Theta.get(0) + " |B : " + Theta.get(1) + " |C : " + Theta.get(2) + " |D : " + Theta.get(3)+ "\t| dTheta values : A : " + dTheta.get(0) + " |B : " + dTheta.get(1) + " |C : " + dTheta.get(2) + " |D : " + dTheta.get(3) );
+			
+			++iter;
+		}//iterative loop
+		System.out.println("# vals : " +CDFMap.size() +" | Final Iters :  " + iter + " Theta values : A : " + Theta.get(0) + " |B : " + Theta.get(1) + " |C : " + Theta.get(2) + " |D : " + Theta.get(3) );
+		
 		
 	}//rebuildFuncs_Indiv
 

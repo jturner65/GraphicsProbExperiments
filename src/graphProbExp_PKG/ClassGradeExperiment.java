@@ -17,6 +17,9 @@ public class ClassGradeExperiment extends BaseProbExpMgr{
 	public HashMap<Integer,myStudent> students;
 	public int numStudents;
 	
+	//initial grade distribution moments-  for gaussian
+	private final double[] initGradeMoments = new double[] {0.5,.25,0,0};
+	
 	//structure holding grades for a particular class read in from a file, or otherwise synthesized from some unknown distribution.  is keyed by class name and then by student ID
 	public HashMap<String,HashMap<Integer, Double>> perClassStudentGrades;
 	//summary objects for each class, based on loaded grades
@@ -33,6 +36,10 @@ public class ClassGradeExperiment extends BaseProbExpMgr{
 	//final grade class is class representing the final grade (not a real class)
 	private myFinalGradeRoster finalGradeClass;
 	
+	//type of experiment to conduct
+	public static final String[] expType = new String[] {"Gaussian","Linear", "Uniform Spaced","Fleishman Poly","Cosine Mmnts derived","Cosine CDF derived"};
+	//type of plots to show
+	public static final String[] plotType = new String[] {"PDF", "Histogram","CDF (integral)","Inverse CDF"};
 	
 	//experiment-specific state flag idxs - bits in array holding relevant process info
 	public static final int
@@ -68,7 +75,6 @@ public class ClassGradeExperiment extends BaseProbExpMgr{
 		
 		finalGradeClass = buildFinalGradeRoster(getPlotHeight());
 		
-
 		//gradeInvMapGen = buildAndInitRandGen(ziggRandGen, new myProbSummary(new double[] {0.0,0.1,0,0},2));
 		//build fleishman with data set ultimately
 		//gradeSourceDistGen = buildAndInitRandGen(fleishRandGen_UniVar, new myProbSummary(new double[] {0,1,1,4},4));	
@@ -91,94 +97,79 @@ public class ClassGradeExperiment extends BaseProbExpMgr{
 		myRandGen tmpFinalRandGen = buildAndInitRandGen(_type, _randVarType, perClassSummaryObjMap.get(finalGradeClass.name));
 		finalGradeClass.setBaseDistModel(tmpFinalRandGen);
 	}//buildNewDesiredFinalGradeRandGen
-		
 	
-	//perform affine linear transformation of grades so that they span 0->1
-	public void linearTransformExperiment(int _numStudents, int _numClasses) {
-		dispMessage("ClassGradeExperiment","linearTransformExperiment","Start building " + _numStudents +" students and " + _numClasses+" classes for LinearTransform EXP",true);
+	/**
+	 * conduct an experiment with passed values of specified type
+	 * @param _numStudents
+	 * @param _numClasses
+	 * @param expTypeIDX : index of experimental list we are using
+	 */
+	public void buildClassGradeExperiment(int _numStudents, int _numClasses, int _expTypeIDX, boolean _gradesAreRandom, String[] _fileNamesOfGrades) {		
+		if((_expTypeIDX < 0) || (_expTypeIDX >= expType.length)){			dispMessage("ClassGradeExperiment","buildClassGradeExperiment","Attemptint to build " + _numStudents +" students and " + _numClasses+" classes for unknown model type IDX : " + _expTypeIDX + ". Aborting.",true);return;}
+		dispMessage("ClassGradeExperiment","buildClassGradeExperiment","Start building " + _numStudents +" students and " + _numClasses+" classes for "+ expType[_expTypeIDX]+" model of grades distribution.",true);
 		//rebuild all student and class objs, and final roster object
-		buildStudentsAndClasses(buildRandStudentNameList(_numStudents), _numClasses);
-		//generate random/load specified student grades, assign to students
-		buildAndSetStudentGrades(true, null);
-		//build randGen mapper
-		setRandGensAndTransformGrades(linearTransformMap,-1);
+		buildStudentsAndClasses(buildRandStudentNameList(_numStudents), _numClasses, _gradesAreRandom, _fileNamesOfGrades);
+		//buildAndSetStudentGrades(true, null);
+		//expTypeIDX is idx in expType list
+		// expType = new String[] {"Linear", "Uniform Spaced","Gaussian","Fleishman Poly","Cosine Mmnts derived","Cosine CDF derived"};		
+		switch(_expTypeIDX) {
+			case 0 : { 		//gaussian model - inverse CDF to map to uniform space
+				//build and assign all randGen transforms to each class and final roster, and transform grades
+				setRandGensAndTransformGrades(ziggRandGen, gaussRandVarIDX);		
+				break;}
+			case 1 : {		//linear mapping to uniform space
+				//build randGen mapper
+				setRandGensAndTransformGrades(linearTransformMap,-1);
+				break;}
+			case 2 : { 		//uniformly spaced into buckets
+				//build randGen mapper
+				setRandGensAndTransformGrades(uniformTransformMap,-1);
+				break;}
+			case 3 : { 		//Fleishman polynomial model - inverse CDF to map to uniform space
+				//build randGen mapper
+				setRandGensAndTransformGrades(fleishRandGen_UniVar,-1);
+				break;}
+			case 4 : { 		//cosine model with eq built from momments - inverse CDF to map to uniform space
+				//build randGen mapper
+				setRandGensAndTransformGrades(boundedRandGen, cosRandVarIDX);	
+				break;}
+			case 5 : { 		//cosine model with eq built CDF of given data
+				//build randGen mapper
+				setRandGensAndTransformGrades(boundedRandGen, cosCDFRandVarIDX);	//TODO this needs to be changed from cosRandVarIDX to cosCDFRandVarIDX
+				break;}
+			default : {}		//unknown type
+		}//switch
 		refreshBuildStateFlags();
-		dispMessage("ClassGradeExperiment","linearTransformExperiment","Finished building " + students.size() +" students and " + classRosters.size()+" classes for LinearTransform EXP",true);		
-	}//linearTransformExperiment
+		dispMessage("ClassGradeExperiment","buildClassGradeExperiment","Finished building " + _numStudents +" students and " + _numClasses+" classes for "+ expType[_expTypeIDX]+" model of grades distribution.",true);
+	}//buildClassGradeExperiment
+
 	
-	//perform uniform transform of grades so that the actual value is lost but the grades are just ranked #/n where # is sorted order of grade and n is total # of grades
-	public void uniformTransformExperiment(int _numStudents, int _numClasses) {
-		dispMessage("ClassGradeExperiment","uniformTransformExperiment","Start building " + _numStudents +" students and " + _numClasses+" classes for Uniform Mapping EXP",true);
-		//rebuild all student and class objs, and final roster object
-		buildStudentsAndClasses(buildRandStudentNameList(_numStudents), _numClasses);
-		//generate random/load specified student grades, assign to students
-		buildAndSetStudentGrades(true, null);
-		//build randGen mapper
-		setRandGensAndTransformGrades(uniformTransformMap,-1);
-		refreshBuildStateFlags();
-		dispMessage("ClassGradeExperiment","uniformTransformExperiment","Finished building " + students.size() +" students and " + classRosters.size()+" classes for Uniform Mapping EXP",true);		
-	}//uniformTransformExperiment
-	
-	//fleishman model of distribution
-	public void fleishModelExperiment(int _numStudents, int _numClasses) {
-		dispMessage("ClassGradeExperiment","fleishModelExperiment","Start building " + _numStudents +" students and " + _numClasses+" classes for Fleishman model of grades EXP",true);
-		//rebuild all student and class objs, and final roster object
-		buildStudentsAndClasses(buildRandStudentNameList(_numStudents), _numClasses);
-		//generate random/load specified student grades, assign to students
-		buildAndSetStudentGrades(true, null);
-		//build randGen mapper
-		setRandGensAndTransformGrades(fleishRandGen_UniVar,-1);
-		refreshBuildStateFlags();
-		dispMessage("ClassGradeExperiment","fleishModelExperiment","Finished building " + students.size() +" students and " + classRosters.size()+" classes for Fleishman model of grades EXP",true);		
-	}//uniformTransformExperiment
-	
-	public void cosineModelExperiment(int _numStudents, int _numClasses) {
-		dispMessage("ClassGradeExperiment","cosineModelExperiment","Start building " + _numStudents +" students and " + _numClasses+" classes for Cosine model of grades PDF",true);
-		//rebuild all student and class objs, and final roster object
-		buildStudentsAndClasses(buildRandStudentNameList(_numStudents), _numClasses);
-		//generate random/load specified student grades, assign to students
-		buildAndSetStudentGrades(true, null);
-		//build randGen mapper
-		setRandGensAndTransformGrades(ziggRandGen, cosRandVarIDX);	
-		refreshBuildStateFlags();
-		dispMessage("ClassGradeExperiment","cosineModelExperiment","Finished building " + students.size() +" students and " + classRosters.size()+" classes for Cosine model of grades PDF",true);		
-	}
 	
 	//build list of students with randomly assigned names - to be replaced by file loading all student names
 	public String[] buildRandStudentNameList(int _numStudents) {
-		String[] res = new String[_numStudents];
-		for (int i=0;i<numStudents;++i) {			res[i]="Student : " +i;	}
+		numStudents = _numStudents;
+		String[] res = new String[numStudents];
+		for (int i=0;i<res.length;++i) {			res[i]="Student : " +i;	}
 		return res;
 	}//buildStudentList_Random
-
-	//this will build _numStudents random students, _numClasses classes, a final class roster and setup random grades and grade mappings
-	public void buildStudentsClassesRandGrades(int _numStudents, int _numClasses) {
-		//rebuild all student and class objs, and final roster object
-		buildStudentsAndClasses( buildRandStudentNameList(_numStudents), _numClasses);			
-		//generate random/load specified student grades, assign to students
-		buildAndSetStudentGrades(true, null);
-		//build and assign all randGen transforms to each class and final roster, and transform grades
-		setRandGensAndTransformGrades(ziggRandGen, gaussRandVarIDX);		
-		//setRandGensAndTransformGrades(ziggRandGen, cosRandVarIDX);		
-	}//buildStudentsClassesRandGrades clearAllTransformedStudentGrades()
-	
-	//call this to build student grades - if is random file name is ignored, otherwise will load grades for classes specified in file name
-	public void buildAndSetStudentGrades(boolean isRandom, String[] fileNames) {
-		dispMessage("ClassGradeExperiment","buildAndSetStudentGrades","Start loading/generating and assigning student grades, and building and assigning randGens of sample dists for each class",true);
-		//build random grades for each class, or load random grades for each class, including summary objects
-		if (isRandom) {			buildRandomStudentGrades();		} 
-		else {				
-			perClassStudentGrades = new HashMap<String,HashMap<Integer, Double>>();
-			perClassSummaryObjMap = new HashMap<String, myProbSummary>();
-			for(String fileName : fileNames) {			loadSpecifiedStudentGrades(fileName);			}
-		}
-		
-		//perClassStudentGrades and perClassSummaryObjMap should be populated by here	
-		//set grades for each student, in each class
-		for (myClassRoster _cls : classRosters) {				_cls.setAllStudentRawGrades(perClassStudentGrades.get(_cls.name));	}
-
-		dispMessage("ClassGradeExperiment","buildAndSetStudentGrades","Finished loading/generating and assigning student grades, and building and assigning randGens of sample dists for each class",true);
-	}//buildAndSetStudentGrades
+//	
+//	//call this to build student grades - if is random file name is ignored, otherwise will load grades for classes specified in file name
+//	private void buildAndSetStudentGrades(boolean isRandom, String[] fileNames) {
+//		dispMessage("ClassGradeExperiment","buildAndSetStudentGrades","Start loading/generating and assigning student grades, and building and assigning randGens of sample dists for each class",true);
+//		//build random grades for each class, or load random grades for each class, including summary objects
+//		if (isRandom) {			buildRandomStudentGrades();		} 
+//		else {				
+//			perClassStudentGrades = new HashMap<String,HashMap<Integer, Double>>();
+//			perClassSummaryObjMap = new HashMap<String, myProbSummary>();
+//			for(String fileName : fileNames) {			loadSpecifiedStudentGrades(fileName);			}
+//		}
+//		
+//		//perClassStudentGrades and perClassSummaryObjMap should be populated by here	
+//		//set grades for each student, in each class
+//		for (myClassRoster _cls : classRosters) {				_cls.setAllStudentRawGrades(perClassStudentGrades.get(_cls.name));	}
+//
+//		dispMessage("ClassGradeExperiment","buildAndSetStudentGrades","Finished loading/generating and assigning student grades, and building and assigning randGens of sample dists for each class",true);
+//	}//buildAndSetStudentGrades
 	
 	//use passed randGenType to build modeling distributions of loaded/random grades - model will be of this type; possible models are specified in 
 	//BaseProbExpMgr at tag "types of random number generators implemented/supported so far"
@@ -196,29 +187,6 @@ public class ClassGradeExperiment extends BaseProbExpMgr{
 		}
 	}//setAllRosterTransforms
 	
-	public void clearAllPlotEval() {
-		for (myClassRoster _cls : classRosters) {			_cls.clearPlotEval();	}
-		finalGradeClass.clearPlotEval();	
-		setShowPlots(false);
-	}//clearAllPlotEval
-	
-	//derive and show plots of different distributions behind each class calc
-	public void evalPlotClassDists(boolean isHist, int funcType, int numVals, int numBuckets, double low, double high) {
-		if(isHist) {
-			for (myClassRoster _cls : classRosters) {			_cls.evalAndPlotHistRes(numVals, numBuckets);	}
-			finalGradeClass.evalAndPlotHistRes(numVals, numBuckets);	
-			
-		} else {
-			for (myClassRoster _cls : classRosters) {			_cls.evalAndPlotFuncRes(numVals, low, high, funcType);	}
-			finalGradeClass.evalAndPlotFuncRes(numVals, low, high, funcType);
-		}
-		setShowPlots(true);
-	}//evalPlotClassDists
-	
-	
-	//whether or not to show plots for all specified distributions
-	public void setShowPlots(boolean val) {setFlag(this.showPlotsIDX,val);	}	
-	
 	//derive random student grades for each class, build prob summary objs of sample dists per class, and define and set final grade dist prob summary
 	private void buildRandomStudentGrades() {
 		dispMessage("ClassGradeExperiment","buildRandomStudentGrades","Start sampling "  +students.size() + " random student grades for " + classRosters.size() +" classes",true);
@@ -226,10 +194,11 @@ public class ClassGradeExperiment extends BaseProbExpMgr{
 		perClassSummaryObjMap = new HashMap<String, myProbSummary>();
 		
 		//tmp dist for use with generating raw grades - since raw grades are rejected outside the range 0-1 the final dist will be somewhat different
-		myProbSummary tmp = new myProbSummary(new double[] {0.5,.15,0,0},2);
+		myProbSummary tmp = new myProbSummary(initGradeMoments,2);
 		int _randVarType = gaussRandVarIDX;
 		tmp.setMinMax(0.0, 1.0);
-		myRandGen tmpRandGen = buildAndInitRandGen(ziggRandGen, _randVarType,  tmp);
+		myRandGen tmpRandGen = buildAndInitRandGen(ziggRandGen, _randVarType,  tmp);		
+		
 		for (myClassRoster _cls : classRosters) {
 			HashMap<Integer, Double> classGrades = perClassStudentGrades.get(_cls.name);
 			if (null == classGrades) {classGrades = new HashMap<Integer, Double>(); perClassStudentGrades.put(_cls.name, classGrades);}
@@ -253,7 +222,7 @@ public class ClassGradeExperiment extends BaseProbExpMgr{
 			dispMessage("ClassGradeExperiment","loadStudentGrades","Built Summary object with following stats : " + summaryObj.getMinNumMmnts(),true);
 			perClassSummaryObjMap.put(_cls.name, summaryObj);
 		}
-		//set desired final mapping
+		//set desired final mapping - 
 		setDesiredFinalGradeSummaryObj(new double[] {0.75,.2,0,0}, new double[] {0.0,1.0}, 2);
 		dispMessage("ClassGradeExperiment","buildRandomStudentGrades","Finished sampling "  +students.size() + " random student grades for " + classRosters.size() +" classes",true);
 	}//buildRandomStudentGrades
@@ -278,7 +247,7 @@ public class ClassGradeExperiment extends BaseProbExpMgr{
 	}//buildFinalGradeRoster
 	
 	//rebuild all students, classes and final grades class roster
-	private void buildStudentsAndClasses(String[] _studentNames, int _numClasses) {
+	private void buildStudentsAndClasses(String[] _studentNames, int _numClasses, boolean _gradesAreRandom, String[] _fileNamesOfGrades) {
 		dispMessage("ClassGradeExperiment","buildStudentsAndClasses","Start building " + _studentNames.length +" students and " + _numClasses+" classes",true);		
 		numStudents = _studentNames.length;
 		students.clear();
@@ -309,10 +278,22 @@ public class ClassGradeExperiment extends BaseProbExpMgr{
 			transBarLocSt[1] += distBtwnAdjBars;
 			plotRectLocSt[1] += heightOfPlots;
 		}//for numClasses
-		dispMessage("ClassGradeExperiment","buildStudentsAndClasses","Finished building " + students.size() +" students and " + classRosters.size()+" classes",true);		
+		String dispRandGrdStr = (_gradesAreRandom ? " Random" : "File-based");
+		dispMessage("ClassGradeExperiment","buildStudentsAndClasses","Finished building " + students.size() +" students and " + classRosters.size()+" classes | Start loading " + dispRandGrdStr + " Grades for all students.",true);		
+		
+		//generate random/load specified student grades, assign to students		
+		if (_gradesAreRandom) {			buildRandomStudentGrades();		} 
+		else {				
+			perClassStudentGrades = new HashMap<String,HashMap<Integer, Double>>();
+			perClassSummaryObjMap = new HashMap<String, myProbSummary>();
+			for(String fileName : _fileNamesOfGrades) {			loadSpecifiedStudentGrades(fileName);			}
+		}		
+		//perClassStudentGrades and perClassSummaryObjMap should be populated by here	
+		//set grades for each student, in each class
+		for (myClassRoster _cls : classRosters) {				_cls.setAllStudentRawGrades(perClassStudentGrades.get(_cls.name));	}	
+		dispMessage("ClassGradeExperiment","buildStudentsAndClasses","Finished loading " + dispRandGrdStr + " Grades for all students.",true);		
+		
 	}//buildStudentsAndClasses
-	
-	
 	
 	//test efficacy of fleishman polynomial transform
 	public void testFleishTransform() {
@@ -412,7 +393,7 @@ public class ClassGradeExperiment extends BaseProbExpMgr{
 	@Override	
 	public boolean checkMouseDragMoveInExp2D(int msx, int msy, int btn) {		
 		for (myClassRoster cls : classRosters) {if ((cls.mseDragCheck(msx,msy, btn)) && (btn > -1)){		return true;		}}
-		
+		//if here then not in any class roster
 		return ((finalGradeClass.mseDragCheck(msx,msy, btn)) && (btn > -1));
 	}
 
@@ -424,6 +405,31 @@ public class ClassGradeExperiment extends BaseProbExpMgr{
 	@Override
 	protected void buildSolvers_indiv() {	//any solvers that are custom should be built here		
 	}//buildSolvers_indiv	
+	
+	//////////////////////////
+	// plots
+	
+	public void clearAllPlotEval() {
+		for (myClassRoster _cls : classRosters) {			_cls.clearPlotEval();	}
+		finalGradeClass.clearPlotEval();	
+		setShowPlots(false);
+	}//clearAllPlotEval
+	
+	//derive and show plots of different distributions behind each class calc
+	public void evalPlotClassDists(boolean isHist, int funcType, int numVals, int numBuckets, double low, double high) {
+		if(isHist) {
+			for (myClassRoster _cls : classRosters) {			_cls.evalAndPlotHistRes(numVals, numBuckets);	}
+			finalGradeClass.evalAndPlotHistRes(numVals, numBuckets);				
+		} else {
+			for (myClassRoster _cls : classRosters) {			_cls.evalAndPlotFuncRes(numVals, low, high, funcType);	}
+			finalGradeClass.evalAndPlotFuncRes(numVals, low, high, funcType);
+		}
+		setShowPlots(true);
+	}//evalPlotClassDists
+	
+	
+	//whether or not to show plots for all specified distributions
+	public void setShowPlots(boolean val) {setFlag(showPlotsIDX,val);	}
 
 	/////////////////////////////	
 	//draw routines
@@ -488,9 +494,8 @@ public class ClassGradeExperiment extends BaseProbExpMgr{
 					
 				} else {
 					
-				}
-				
-			break;}
+				}				
+				break;}
 		}
 	}//setFlag		
 

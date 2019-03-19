@@ -1419,7 +1419,7 @@ class mySideBarMenu extends myDispWindow{
 		new boolean[]{false,false,false,false},         						//display specific windows - multi-select/ always on if sel
 		new boolean[]{false,false,false,false,false},                   //functionality - momentary
 		new boolean[]{false,false,false,false,false},                   //functionality - momentary
-		new boolean[]{false,false,false,false,false},                   		//debug - momentary
+		new boolean[]{true,true,true,true,true},                   		//debug - momentary
 		new boolean[]{true,true},			              			//load an existing score, save an existing score - momentary	
 	};		
 	//whether buttons are waiting for processing to complete (for non-momentary buttons)

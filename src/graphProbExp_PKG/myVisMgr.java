@@ -45,8 +45,8 @@ public abstract class myVisMgr {
 		if(!getFlag(isVisibleIDX)) {return false;}
 		//transform to top left corner of box region
 		int msXLoc = (int) (msx - startRect[0]), mxYLoc = (int) (msy - startRect[1]);
-		boolean inClassLineRegion = (msXLoc >= 0) && (mxYLoc >= 0) && (msXLoc <= startRect[2]) && (mxYLoc <= startRect[3]);
-		if (!inClassLineRegion) {mouseRelease();return false;}
+		boolean inClickRegion = (msXLoc >= 0) && (mxYLoc >= 0) && (msXLoc <= startRect[2]) && (mxYLoc <= startRect[3]);
+		if (!inClickRegion) {mouseRelease();return false;}
 		//handle individual mouse click in the bounds of this object
 		return _mouseClickIndiv(msXLoc, mxYLoc, btn);
 	}//checkMouseClick
@@ -57,9 +57,10 @@ public abstract class myVisMgr {
 		if(!getFlag(isVisibleIDX)) {return false;}
 		//transform to top left corner of box region
 		int msXLoc = (int) (msx - startRect[0]), mxYLoc = (int) (msy - startRect[1]);
-		//System.out.println("ID : " + ObjID + " | Relative x : " + msXLoc + " | y : " + mxYLoc + " | orig x : " + msx + " | y : " + msy + " | Rect : ["+ startRect[0]+","+ startRect[1]+","+ startRect[2]+","+ startRect[3]+"] | mseBtn : " + btn);
-		boolean inClassLineRegion = (msXLoc >= 0) && (mxYLoc >= 0) && (msXLoc <= startRect[2]) && (mxYLoc <= startRect[3]);
-		if (!inClassLineRegion) { mouseRelease(); return false;}
+		//exists in clickable region
+		boolean inClickRegion = (msXLoc >= 0) && (mxYLoc >= 0) && (msXLoc <= startRect[2]) && (mxYLoc <= startRect[3]);
+		//System.out.println("checkMouseMoveDrag ID : " + ObjID + " inClickRegion : " + inClickRegion + " | Relative x : " + msXLoc + " | y : " + mxYLoc + " | orig x : " + msx + " | y : " + msy + " | Rect : ["+ startRect[0]+","+ startRect[1]+","+ startRect[2]+","+ startRect[3]+"] | mseBtn : " + btn);
+		if (!inClickRegion) { mouseRelease(); return false;}
 		//if btn < 0 then mouse over within the bounds of this object
 		if (btn < 0 ) {return _mouseOverIndiv(msXLoc, mxYLoc);}
 		//if btn >= 0 then mouse drag in bounds of this object
@@ -133,7 +134,7 @@ class gradeBar extends myVisMgr {
 	//% of visible width the class bars' width should be
 	private static final float barWidthMult = .95f;	
 	
-	//click box x,y,w,h dims, relative to upper left corner TODO
+	//click box x,y,w,h dims, relative to upper left corner 
 	private static float[] _clkBox;
 	//this bar's color
 	private final int[] barColor;
@@ -159,16 +160,17 @@ class gradeBar extends myVisMgr {
 		barColor = _barColor;// getRndClr2 should be brighter colors
 		owningClass = _owningClass;
 	}//ctor
-	//random color ctor - used by classes
-		
+	//random color ctor - used by classes		
 	
 	@Override
 	public boolean _mouseClickIndiv(int msXLoc, int mxYLoc, int btn) {
 		//clicked in enable/disable box
-		if((msXLoc <= _clkBox[2]) && (mxYLoc >= _clkBox[1]) 
-				&& (mxYLoc <= (_clkBox[1]+_clkBox[3]))) {	enabled = !enabled;	owningClass.setGradeBarEnabled(enabled, gradeType);	return true;	} 	//clicked box - toggle state
-		//clicked near student bar - grab a student and attempt to move
-		else if(msXLoc >= _barStX) {
+		if((msXLoc <= _clkBox[2]) && (mxYLoc >= _clkBox[1]) && (mxYLoc <= (_clkBox[1]+_clkBox[3]))) {	//clicked box - toggle state
+			enabled = !enabled;	
+			owningClass.setGradeBarEnabled(enabled, gradeType);	
+			return true;	
+		} else if(msXLoc >= _barStX) {		//clicked near student bar - grab a student and attempt to move
+			//find nearest student
 			float clickScale = ((msXLoc-_barStX)/barWidth);
 			//see if student grade location is being clicked on
 			_modStudent = owningClass.findClosestStudent(clickScale, gradeType);
@@ -176,13 +178,15 @@ class gradeBar extends myVisMgr {
 			return true;
 		}		
 		return false;
-	}
+	}//_mouseClickIndiv
+	
 	@Override
 	public boolean _mouseDragIndiv(int msXLoc, int mxYLoc, int btn) {
 		//x location of click
 		float clickScale = ((msXLoc-_barStX)/barWidth);
 		//if moving a student, update grade
 		if(_modStudent != null) {
+			//System.out.println("_mouseDragIndiv for bar : " + ObjID + " clickScale : " + clickScale);
 			_modStudent.setTransformedGrade(gradeType, owningClass,clickScale);
 			return true;
 		}

@@ -114,6 +114,7 @@ public abstract class myRandGen implements Comparable<myRandGen> {
 			minY = (minY > funcVals[i][1] ? funcVals[i][1] : minY);
 			maxY = (maxY < funcVals[i][1] ? funcVals[i][1] : maxY);
 		}
+		minY = (minY > 0 ? 0 : minY);
 		ydiff = maxY - minY;
 		//distVisObj.setValuesFunc(funcVals, new double[][]{{low, high, xdiff}, {minY, maxY, ydiff}});
 		double minVal = (minMaxVals[0] < low ? minMaxVals[0] : low),
@@ -348,8 +349,7 @@ class myZigRandGen extends myRandGen{
 		// bits * zigVals.invBitMask in [-1,1], using 32 bits, i.e. with 2^-31 granularity.
 		return rareCase(index, bits * zigVals.invBitMask);
 	}//_getFuncValFromLong
-	
-	
+		
     /**
      * @return A normal gaussian number.
      */
@@ -367,7 +367,6 @@ class myZigRandGen extends myRandGen{
     /**
      * @return A normal gaussian number with 32 bit granularity
      */
-	static int minVal = 1000000,maxVal = -10000000;
     private double nextNormal32() {
     	int val;
     	double x;
@@ -404,12 +403,12 @@ class myZigRandGen extends myRandGen{
 
 
 /**
- * rand gen class for cosine function - cannot use ziggurat alg because algorithm is predicated on having unbounded x - instead use inverse function
+ * rand gen class for bounded pdfs (like cosine) - perhaps use variant of zigguarat instead of iterative convergence method to find inv-CDF?
  */
 
-class myCosVarRandGen extends myRandGen{
+class myBoundedRandGen extends myRandGen{
 
-	public myCosVarRandGen(myRandVarFunc _func, String _name) {
+	public myBoundedRandGen(myRandVarFunc _func, String _name) {
 		super(_func, _name);
 	}
 
@@ -424,11 +423,11 @@ class myCosVarRandGen extends myRandGen{
 			int idx = 0;
 			double smpl;
 			while (idx <= num){
-				smpl=func.processResValByMmnts(nextRandCosVal());
+				smpl=nextRandCosVal();
 				if (summary.checkInBnds(smpl)){					res[idx++]=smpl;			}
 			}//while			
 		} else {
-			for(int i=0;i<res.length;++i) {	res[i]=func.processResValByMmnts(nextRandCosVal());}
+			for(int i=0;i<res.length;++i) {	res[i]=nextRandCosVal();}
 		}
 		return res;
 	}//getNumSamples
@@ -442,10 +441,10 @@ class myCosVarRandGen extends myRandGen{
 		double res;
 		if(summary.doClipAllSamples()) {
 			do {		
-				res = func.processResValByMmnts(nextRandCosVal());
+				res = nextRandCosVal();
 			} while (!summary.checkInBnds(res));
 		} else {
-			res = func.processResValByMmnts(nextRandCosVal());
+			res = nextRandCosVal();
 		}
 		return res;
 	}//getGaussian
@@ -539,6 +538,7 @@ class myFleishUniVarRandGen extends myRandGen{
 			minY = (minY > funcVals[i][1] ? funcVals[i][1] : minY);
 			maxY = (maxY < funcVals[i][1] ? funcVals[i][1] : maxY);
 		}
+		minY = (minY > 0 ? 0 : minY);
 		ydiff = maxY - minY;
 		//distVisObj.setValuesFunc(funcVals, new double[][]{{minMaxVals[0], minMaxVals[1], xdiff}, {minY, maxY, ydiff}});
 		double minVal = (minMaxVals[0] < low ? minMaxVals[0] : low),
@@ -546,7 +546,6 @@ class myFleishUniVarRandGen extends myRandGen{
 		distVisObj.setValuesFunc(funcVals, new double[][]{{minVal, maxVal, (maxVal-minVal)}, {minY, maxY, ydiff}});
 
 	}//calcFValsForDisp
-	
 	
 	@Override
 	public double[] getMultiSamples(int num) {

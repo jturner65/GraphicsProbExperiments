@@ -28,23 +28,23 @@ public abstract class BaseProbExpMgr {
     
 	////////////////////////////////////////
     // random var generators - take uniform input and return desired distribution
-    //structure holding random number generators used in this experiment
-    //public TreeMap<
 	
 	//types of random number generators implemented/supported so far
 	public static final int 
-		ziggRandGen 			= 0,	//ziggurat method to generate distribution
-		fleishRandGen_UniVar	= 1,	//uses fleishman algorithm for univariate - needs first 4 moments
-		linearTransformMap		= 2,	//just performs linear transformation mapping - does not actually represent a random function
-		uniformTransformMap		= 3;	//just performs an order-based transformation from original grade to #/n where # is order in rank (from lowest to highest) and n is total # of grades
-    public static final String[] randGenAlgNames = new String[] {"Ziggurat Algorithm", "Fleishman Univariate Polynomial Algorithm", "Linear Transformation Mapping", "Uniform Transformation Mapping"};
+		boundedRandGen			= 0,	//uses bounded pdf function (i.e. cosine)
+		ziggRandGen 			= 1,	//ziggurat method to generate distribution
+		fleishRandGen_UniVar	= 2,	//uses fleishman algorithm for univariate - needs first 4 moments
+		linearTransformMap		= 3,	//just performs linear transformation mapping - does not actually represent a random function
+		uniformTransformMap		= 4;	//just performs an order-based transformation from original grade to #/n where # is order in rank (from lowest to highest) and n is total # of grades
+    public static final String[] randGenAlgNames = new String[] {"Bounded PDF Algorithm", "Ziggurat Algorithm", "Fleishman Univariate Polynomial Algorithm", "Linear Transformation Mapping", "Uniform Transformation Mapping"};
 	
     //type of random variable function to use with ziggurat algorithm
     public static final int
     	normRandVarIDX			= 0,
     	gaussRandVarIDX			= 1,
-    	cosRandVarIDX			= 2;
-    public static final String[] randVarFuncNames = new String[] {"Normal Distribution", "Gaussian Distribution", "Cosine-PDF Distribution"};
+    	cosRandVarIDX			= 2,
+		cosCDFRandVarIDX 		= 3;
+    public static final String[] randVarFuncNames = new String[] {"Normal Distribution", "Gaussian Distribution", "Cosine-PDF Distribution", "Cosine-PDF via sample-derived CDF"};
     	
     
 	////////////////////////////////////////
@@ -108,10 +108,12 @@ public abstract class BaseProbExpMgr {
 	
 	
 	public myRandVarFunc buildRandVarType (int _pdfType,  int _quadSlvrIdx, myProbSummary _summaryObj) {
+		System.out.println("buildRandVarType : " + _pdfType);
 		switch (_pdfType) {		
 		   	case normRandVarIDX		: { return new myNormalFunc(this, quadSlvrs[_quadSlvrIdx]);}
 	    	case gaussRandVarIDX	: { return new myGaussianFunc(this, quadSlvrs[_quadSlvrIdx], _summaryObj);}
 	    	case cosRandVarIDX		: { return new myCosFunc(this, quadSlvrs[_quadSlvrIdx], _summaryObj);}			
+	    	case cosCDFRandVarIDX		: { return new myCosFuncFromCDF(this, quadSlvrs[_quadSlvrIdx], _summaryObj);}			
 			default : {return null;}		
 		}
 	}//myRandVarFunc
@@ -122,17 +124,16 @@ public abstract class BaseProbExpMgr {
 	public myRandGen buildAndInitRandGen(int _type, int _pdfType, int _quadSlvrIdx, int _numZigRects, myProbSummary _summaryObj) {
 
 		switch (_type) {
+			case boundedRandGen : {
+				//need to build a random variable generator function
+				myRandVarFunc func = buildRandVarType(_pdfType, _quadSlvrIdx, _summaryObj);
+				
+				return new myBoundedRandGen(func, randGenAlgNames[_type]);}
 			case ziggRandGen : {//ziggurat alg solver - will use zigg algorithm to generate a gaussian of passed momments using a uniform source of RVs
 				//need to build a random variable generator function
-				myRandVarFunc func = buildRandVarType(_pdfType, _quadSlvrIdx, _summaryObj);// new myGaussianFunc(this, quadSlvrs[_quadSlvrIdx], _summaryObj);
-				myRandGen res;
-				if (cosRandVarIDX == _pdfType) {
-					res = new myCosVarRandGen(func, "Bounded Cosine PDF");
-				} else {
-					res = new myZigRandGen(func, _numZigRects, randGenAlgNames[_type]);
-				}
+				myRandVarFunc func = buildRandVarType(_pdfType, _quadSlvrIdx, _summaryObj);				
 				//_numZigRects must be pwr of 2 - is forced to be if is not.  Should be 256
-				return res;}
+				return new myZigRandGen(func, _numZigRects, randGenAlgNames[_type]);}
 			
 			case fleishRandGen_UniVar : {
 				//specify fleishman rand function with either moments or data - if only moments given, then need to provide hull as well
@@ -223,6 +224,19 @@ public abstract class BaseProbExpMgr {
 		myProbSummary analysis = new myProbSummary(genVals);
 		dispMessage("BaseProbExpMgr","testRandGen","Analysis res of " + gen.name + " : " + analysis.getMomentsVals(), true);
 	}//testGen
+	
+	
+	//test method for calculating r for rand var function (used in ziggurat algorithm)
+	public void testRCalc() {
+		dispMessage("BaseProbExpMgr","testRCalc","Start test of r var calc",true);
+		myRandVarFunc randVar = new myNormalFunc(this, quadSlvrs[GL_QuadSlvrIDX]);
+		myProbSummary analysis = new myProbSummary( new double[] {2.0, 3.0}, 2);
+		myRandVarFunc randGaussVar = new myGaussianFunc(this, quadSlvrs[GL_QuadSlvrIDX], analysis);
+		randVar.dbgTestCalcRVal(256);
+		
+		dispMessage("BaseProbExpMgr","testRCalc","End test of r var calc",true);
+		
+	}//testRCalc
 	
 	//////////////////////////////
 	// drawing

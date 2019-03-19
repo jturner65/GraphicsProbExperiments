@@ -2,6 +2,11 @@ package graphProbExp_PKG;
 
 import java.util.*;
 
+/**
+ * class to hold 2-D ray tracer experiment - bunch of circles, shoot rays and plot their traversal
+ * @author john
+ *
+ */
 
 public class RayTracer2DWin extends myDispWindow {
 	

@@ -31,8 +31,6 @@ public abstract class mySampleSet implements Comparable<mySampleSet> {
 	
 	//instance class specific functionality for setting base distribution model
 	protected abstract void setBaseDistModel_Indiv();
-
-	
 	
 	////////////////////////////////////////
 	// underlying distribution evaluation and plotting functions
@@ -243,22 +241,28 @@ class myClassRoster extends mySampleSet{
 	}//mseClickCheck
 	
 	public boolean mseDragCheck(int msx, int msy, int btn) {
-		boolean res = false;
-		for(int barIDX=0;barIDX<gradeBars.length;++barIDX) {
-			res = gradeBars[barIDX].checkMouseMoveDrag(msx, msy, btn);
-			if (res) {//mouse move caused value to change
-				if (btn <  0) {//mouse over behavior - no button has been clicked
-					
-				} else {//drag
+		boolean res;
+		//check every bar if moved or dragged
+		if (btn <  0) {//mouse over behavior - no mouse button has been clicked
+//			for(int barIDX=0;barIDX<gradeBars.length;++barIDX) {
+//				res = gradeBars[barIDX].checkMouseMoveDrag(msx, msy, btn);
+//				if (res) {//manage mouse over
+//					return true;
+//				}				
+//			}//for every bar			
+		} else {//drag			
+			for(int barIDX=0;barIDX<gradeBars.length;++barIDX) {
+				res = gradeBars[barIDX].checkMouseMoveDrag(msx, msy, btn);
+				if (res) {//mouse drag in this object caused value to change
 					if((getFlag(classRawIsTransformedIDX)) && (gradeBars[barIDX]._modStudent != null)) {
 						//if allow grade to modify distribution
 						updateDistributionAndGrades(barIDX);
 					}
 					return true;
 				}
-			}
-		}
-		return res;
+			}//for every bar
+		}		
+		return false;
 	}//mseClickCheck
 	
 	//moving around a raw grade should update the underlying distribution

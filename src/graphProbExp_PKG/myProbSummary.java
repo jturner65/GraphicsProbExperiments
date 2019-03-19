@@ -239,6 +239,7 @@ public class myProbSummary{
 	public double[] getDataVals() {return vals;}
 	
 	//return CDF map of data, where key is p(X<=x) and value is x
+	//
 	public TreeMap<Double,Double> getCDFOfData(){
 		//keyed by cum prob, value is sample value
 		TreeMap<Double, Double> valsCDF = new TreeMap<Double, Double>();
