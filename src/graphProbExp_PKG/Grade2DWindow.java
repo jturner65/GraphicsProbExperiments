@@ -15,11 +15,16 @@ public class Grade2DWindow extends myDispWindow {
 	//eval func IDX
 	private int funcEvalType = 0, funcEvalNumVals = 10000, funcEvalNumBuckets = 100;
 	//lower and upper bound for functional evaluation 
-	private float funcEvalLow = -.1f, funcEvalHigh = 1;
+	private double funcEvalLow = -.1f, funcEvalHigh = 1;
 	//index in list of experiments that we are using - 0 corresponds to gaussian, default value
 	private int expTypeIDX = 0;
 	//index in list of experiments that we are using - 0 corresponds to gaussian, default value
 	private int plotTypeIDX = 0;
+	//final grade values - cannot be any function that derives pdf from samples 
+	private int finalGradeNumMmnts = 2;	//if 2 then uses mean and var, zigg alg; if >2 then uses fleish
+	//moments of final grade target
+	private double[] finalGradeMmtns = new double[] {0.75,.2,0,0};
+	
 	//idxs - need one per object
 	public final static int
 		gIDX_NumStudents		= 0,
@@ -29,9 +34,15 @@ public class Grade2DWindow extends myDispWindow {
 		gIDX_FuncEvalLower		= 4,
 		gIDX_FuncEvalHigher		= 5, 
 		gIDX_FuncEvalNumVals	= 6,
-		gIDX_FuncEvalNumBkts	= 7;
+		gIDX_FuncEvalNumBkts	= 7,
+		gIDX_FinalGradeNumMmnts = 8,			//# of moments to use to descibe final grade, at least 2, no more than 4
+		gIDX_FinalGradeMean		= 9,
+		gIDX_FinalGradeSTD		= 10,
+		gIDX_FinalGradeSkew		= 11,
+		gIDX_FinalGradeExKurt	= 12;
+		
 	//initial values - need one per object
-	public float[] uiVals = new float[]{
+	public double[] uiVals = new double[]{
 			numStudents,
 			numClasses,
 			expTypeIDX,
@@ -39,7 +50,12 @@ public class Grade2DWindow extends myDispWindow {
 			funcEvalLow,
 			funcEvalHigh,
 			funcEvalNumVals,
-			funcEvalNumBuckets
+			funcEvalNumBuckets,
+			finalGradeNumMmnts,
+			finalGradeMmtns[0],
+			finalGradeMmtns[1],
+			finalGradeMmtns[2],
+			finalGradeMmtns[3]
 	};			//values of 8 ui-controlled quantities
 	public final int numGUIObjs = uiVals.length;	
 	/////////
@@ -57,13 +73,15 @@ public class Grade2DWindow extends myDispWindow {
 	//use getPrivFlags(idx) and setPrivFlags(idx,val) to consume
 	//put idx-specific code in case statement in setPrivFlags
 	public static final int 
-			reCalcRandGradeSpread 		= 0,					//recalculate random grades given specified class and student # parameters			
-			useZScore					= 1,					//whether or not to use the z score calc to transform the uniform final grades
-			rebuildDistOnMove			= 2,					//rebuild class distribution when value is moved
+			reCalcRandGradeSpread 		= 0,					//recalculate random grades given specified class and student # parameters	
+			reBuildFinalGradeDist		= 1,
+			setCurrGrades				= 2,					//use the current grades as the global grades, so they are preserved when the type of transformation is changed
+			useZScore					= 3,					//whether or not to use the z score calc to transform the uniform final grades
+			rebuildDistOnMove			= 4,					//rebuild class distribution when value is moved
 			//drawing functions
-			drawFuncEval				= 3,					//draw results of function evaluation
-			drawHistEval				= 4;					//draw results of histogram evaluation
-	public static final int numPrivFlags = 5;
+			drawFuncEval				= 5,					//draw results of function evaluation
+			drawHistEval				= 6;					//draw results of histogram evaluation
+	public static final int numPrivFlags = 7;
 
 	/////////
 	//custom debug/function ui button names -empty will do nothing
@@ -98,7 +116,7 @@ public class Grade2DWindow extends myDispWindow {
 		
 		//grade experiments
 		gradeAvgExperiment = new ClassGradeExperiment(this);
-		setGradeExp();
+		setGradeExp(true,true,true, false);
 		//set visibility width and send to experiments - experiment must be built first
 		setVisScreenDimsPriv();			
 		//set offset to use for custom menu objects
@@ -111,23 +129,14 @@ public class Grade2DWindow extends myDispWindow {
 	
 	}//
 	
-	//set values and generate grade-based experiments - need to specify whether random or using grade files with pre-set grades (TODO:)
-	private void setGradeExp() {
-		//TODO need to set up mechanism for loading files of grades per class
-		boolean useRandomGrades = true;
-		String[] classGradeFileNames = new String[] {""};
-		//(int _numStudents, int _numClasses, int _expTypeIDX, boolean _gradesAreRandom, String[] _fileNamesOfGrades)		
-		gradeAvgExperiment.buildClassGradeExperiment(numStudents, numClasses, expTypeIDX, useRandomGrades, classGradeFileNames);
-	}//setGradeExp
-	
-	
-	
 	//initialize all UI buttons here
 	@Override
 	public void initAllPrivBtns() {
 		//give true labels, false labels and specify the indexes of the booleans that should be tied to UI buttons
 		truePrivFlagNames = new String[]{			//needs to be in order of privModFlgIdxs
 				"Rebuilding/reloading Grades",
+				"Rebuilding Final Grade Dist",
+				"Setting Current Grades as Glbl",
 				"Rebuild Class dist on move",
 				"ZScore for final grades",
 				"Eval/Draw Func on Bounds",
@@ -135,6 +144,8 @@ public class Grade2DWindow extends myDispWindow {
 		};
 		falsePrivFlagNames = new String[]{			//needs to be in order of flags
 				"Rebuild/reload Grades",
+				"Rebuild Final Grade Dist",
+				"Set Current Grades as Glbl",
 				"Don't rebuild class dist on move",
 				"Specific Dist for final grades",
 				"Eval/Draw Func on Bounds",
@@ -142,6 +153,8 @@ public class Grade2DWindow extends myDispWindow {
 		};
 		privModFlgIdxs = new int[]{					//idxs of buttons that are able to be interacted with
 				reCalcRandGradeSpread,
+				reBuildFinalGradeDist,
+				setCurrGrades,
 				rebuildDistOnMove,
 				useZScore,
 				drawFuncEval,
@@ -161,7 +174,7 @@ public class Grade2DWindow extends myDispWindow {
 		switch(idx){
 			case reCalcRandGradeSpread : {//build new grade distribution
 				if (val) {
-					setGradeExp();
+					setGradeExp(false, false, true, false);
 					addPrivBtnToClear(reCalcRandGradeSpread);
 					setPrivFlags(drawHistEval, false);
 					setPrivFlags(drawFuncEval, false);
@@ -170,6 +183,14 @@ public class Grade2DWindow extends myDispWindow {
 			case rebuildDistOnMove : {
 				gradeAvgExperiment.setRebuildDistOnGradeMod(val);
 				break;}
+			
+			case reBuildFinalGradeDist :{		//rebuild final grade dist and mappings using current ui values
+				if(val) {
+					setFinalGradeVals();
+					addPrivBtnToClear(reBuildFinalGradeDist);
+				}
+				break;}			
+			
 			case useZScore : {
 				gradeAvgExperiment.setUseZScore(val);
 				break;}
@@ -201,9 +222,15 @@ public class Grade2DWindow extends myDispWindow {
 						gradeAvgExperiment.setShowPlots(false);
 					}
 				}
-				break;}			
-		}
-	}
+				break;}				
+			case setCurrGrades : {
+				if(val) {
+					gradeAvgExperiment.updateGlblGrades();
+					addPrivBtnToClear(setCurrGrades);
+				}
+				break;}
+		}//switch
+	}//setPrivFlags
 	
 	//initialize structure to hold modifiable menu regions
 	@Override
@@ -217,30 +244,45 @@ public class Grade2DWindow extends myDispWindow {
 			{-10.0, 10.0,.01},				//gIDX_FuncEvalLower
 			{-10.0, 10.0,.01},				//gIDX_FuncEvalHigher
 			{10000,1000000,1000},           // gIDX_FuncEvalNumVals 
-			{10,1000,1}                     // gIDX_FuncEvalNumBkts 
-			
+			{10,1000,1},                    // gIDX_FuncEvalNumBkts 			
+			{2, 4, .1},						//gIDX_FinalGradeNumMmnts 	= 8,			//# of moments to use to descibe final grade, at least 2, no more than 4
+			{0.0, 1.0,.01},					//gIDX_FinalGradeMean		= 9,
+			{0.0, 1.0,.01},					//gIDX_FinalGradeSTD		= 10,
+			{-5.0,5.0,.01},					//gIDX_FinalGradeSkew		= 11,
+			{0.0, 5.0,.01}					//gIDX_FinalGradeExKurt		= 12;					
 		};		//min max modify values for each modifiable UI comp	
 
 		guiStVals = new double[]{
-				uiVals[gIDX_NumStudents],		//# students
-				uiVals[gIDX_NumClasses],		//# classes
-				uiVals[gIDX_ExpDistType],		//gIDX_ExpDistType
-				uiVals[gIDX_FuncTypeEval],		//gIDX_FuncTypeEval	
-				uiVals[gIDX_FuncEvalLower],		//gIDX_FuncEvalLower
-				uiVals[gIDX_FuncEvalHigher],	//gIDX_FuncEvalHigher				
-				uiVals[gIDX_FuncEvalNumVals],    // gIDX_FuncEvalNumVals
-				uiVals[gIDX_FuncEvalNumBkts],    // gIDX_FuncEvalNumBkts
+				uiVals[gIDX_NumStudents],			//# students
+				uiVals[gIDX_NumClasses],			//# classes
+				uiVals[gIDX_ExpDistType],			//gIDX_ExpDistType
+				uiVals[gIDX_FuncTypeEval],			//gIDX_FuncTypeEval	
+				uiVals[gIDX_FuncEvalLower],			//gIDX_FuncEvalLower
+				uiVals[gIDX_FuncEvalHigher],		//gIDX_FuncEvalHigher				
+				uiVals[gIDX_FuncEvalNumVals],    	// gIDX_FuncEvalNumVals
+				uiVals[gIDX_FuncEvalNumBkts],    	// gIDX_FuncEvalNumBkts				
+				uiVals[gIDX_FinalGradeNumMmnts],	// gIDX_FinalGradeNumMmnts
+				uiVals[gIDX_FinalGradeMean],    	// gIDX_FinalGradeMean	
+				uiVals[gIDX_FinalGradeSTD],    		// gIDX_FinalGradeSTD	
+				uiVals[gIDX_FinalGradeSkew],    	// gIDX_FinalGradeSkew	
+				uiVals[gIDX_FinalGradeExKurt],    	// gIDX_FinalGradeExKurt	
 		};								//starting value
 		
 		guiObjNames = new String[]{
 				"Number of Students : ",
 				"Number of Classes : ",
-				"Exp Mapping Type : ",		//gIDX_ExpDistType
-				"Plot Eval Func Type : ",		//gIDX_FuncTypeEval	
+				"Exp Mapping Type : ",				//gIDX_ExpDistType
+				"Plot Eval Func Type : ",			//gIDX_FuncTypeEval	
 				"Plot Eval Func Low : ",			//gIDX_FuncEvalLower
-				"Plot Eval Func High : ",		//gIDX_FuncEvalHigher
-				"Plot Eval Func # Vals : ", 			// gIDX_FuncEvalNumVals        
-				"Plot Eval Func # Bkts (dist) : ",	// gIDX_FuncEvalNumBkts     			
+				"Plot Eval Func High : ",			//gIDX_FuncEvalHigher
+				"Plot Eval Func # Vals : ", 		// gIDX_FuncEvalNumVals        
+				"Plot Eval Func # Bkts (dist) : ",	// gIDX_FuncEvalNumBkts   
+				"Final Grade # Momments (2-4) : ",  // gIDX_FinalGradeNumMmnts  
+				"Final Grade Mean : ",              // gIDX_FinalGradeMean	    
+				"Final Grade Std Dev : ",           // gIDX_FinalGradeSTD	    
+				"Final Grade Skew : ",              // gIDX_FinalGradeSkew	    
+				"Final Grade Ex Kurt : ",          // gIDX_FinalGradeExKurt	    
+				
 		};								//name/label of component	
 		
 		//idx 0 is treat as int, idx 1 is obj has list vals, idx 2 is object gets sent to windows
@@ -252,7 +294,12 @@ public class Grade2DWindow extends myDispWindow {
 			{false, false, true},	//gIDX_FuncEvalLower
 			{false, false, true},	//gIDX_FuncEvalHigher
 			{true, false, true}, 	// gIDX_FuncEvalNumVals        
-			{true, false, true}, 	// gIDX_FuncEvalNumBkts        
+			{true, false, true}, 	// gIDX_FuncEvalNumBkts      
+			{true, false, true},    // gIDX_FinalGradeNumMmnts  
+			{false,false,true},     // gIDX_FinalGradeMean	    
+			{false,false,true},     // gIDX_FinalGradeSTD	    
+			{false,false,true},     // gIDX_FinalGradeSkew	    
+			{false,false,true},     // gIDX_FinalGradeExKurt	    
 			
 		};						//per-object  list of boolean flags
 		
@@ -267,8 +314,8 @@ public class Grade2DWindow extends myDispWindow {
 	//all ui objects should have an entry here to show how they should interact
 	@Override
 	protected void setUIWinVals(int UIidx) {
-		float val = (float)guiObjs[UIidx].getVal();
-		float oldVal = uiVals[UIidx];
+		double val = (float)guiObjs[UIidx].getVal();
+		double oldVal = (float)uiVals[UIidx];
 		int ival = (int)val;
 		if(val != uiVals[UIidx]){//if value has changed...
 			uiVals[UIidx] = val;
@@ -276,17 +323,18 @@ public class Grade2DWindow extends myDispWindow {
 			case gIDX_NumStudents 			:{
 				if(ival != numStudents){
 					numStudents = ival;
-					setGradeExp();
+					//(boolean rebuildStudents, boolean rebuildClasses,  boolean rebuildGrades, boolean loadFromRosters)
+					setGradeExp(true, false, false, false);
 				}	break;}			
 			case gIDX_NumClasses 			:{
 				if(ival != numClasses){
 					numClasses = ival;
-					setGradeExp();
+					setGradeExp(false, true, false, false);
 				}	break;}
 			case gIDX_ExpDistType : {
 				if (ival != expTypeIDX) {				
 					expTypeIDX = ival;
-					setGradeExp();
+					setGradeExp(false, false, false, false);
 				}	break;}	
 			case gIDX_FuncTypeEval : 	{
 				if (ival != funcEvalType) {				funcEvalType = ival;}		
@@ -303,10 +351,73 @@ public class Grade2DWindow extends myDispWindow {
 				break;	}
 			case gIDX_FuncEvalNumBkts : 	{						
 				if (ival != funcEvalNumBuckets) {		funcEvalNumBuckets = ival;	}				
-				break;	}
+				break;	}			
+			case gIDX_FinalGradeNumMmnts  : 	{
+				if(ival != finalGradeNumMmnts) {		finalGradeNumMmnts = ival;			}
+				break;}
+			case gIDX_FinalGradeMean	  : 	{
+				if (val !=finalGradeMmtns[0]) {			finalGradeMmtns[0] = val;	setFinalGradeVals();		}
+				break;}    
+			case gIDX_FinalGradeSTD	      : 	{
+				if (val !=finalGradeMmtns[1]) {			finalGradeMmtns[1] = val;	setFinalGradeVals();		}				
+				break;}
+			case gIDX_FinalGradeSkew	  : 	{
+				if (val !=finalGradeMmtns[2]) {			
+					finalGradeMmtns[2] = val;	
+					double skewSQ = finalGradeMmtns[2] * finalGradeMmtns[2], bound = -1.2264489 + 1.6410373*skewSQ; 
+					guiObjs[gIDX_FinalGradeExKurt].setNewMin((bound > 0 ? bound : 0));
+					guiObjs[gIDX_FinalGradeExKurt].setNewMax((guiObjs[gIDX_FinalGradeExKurt].getMinVal()+1)*10);
+				}				
+				break;}   
+			case gIDX_FinalGradeExKurt	  : 	{		//Exkurtosis is  skewness vals for fleishman polynomial
+				if (val !=finalGradeMmtns[3]) {	
+					//verify legitimate kurt for fleishman dist
+					double skewSQ = finalGradeMmtns[2] * finalGradeMmtns[2], bound = -1.2264489 + 1.6410373*skewSQ; 
+					finalGradeMmtns[3] = (val < bound ? bound : val) ;
+					guiObjs[UIidx].setVal(finalGradeMmtns[3]);
+				}
+				break;}
 			}
 		}//if val is different
 	}//setUIWinVals
+	
+	
+	//called when only final grade mapping changes
+	private void setFinalGradeVals() {
+		//System.out.println("Rebuilding final grade values");
+		double[][] _finalGradeMappings = new double[2][];
+		int [] _finalGradeDescs = new int[3];
+		_buildFinalGradeArrays(_finalGradeMappings,_finalGradeDescs);	
+		gradeAvgExperiment.rebuildDesFinalGradeMapping(_finalGradeMappings,_finalGradeDescs);			
+	}//setFinalGradeVals()
+	//build array that describes desired final grade mapping - pre-inited arrays
+	//_mmntsAndMinMax : idx 0 : up to first 4 moments of final grade target mapping; idx 1 : min/max of target mapping
+	//_descVals : idx 0 : # of moments final grade mapping dist should use, idx 1 : type of myRandGen ; idx 2 : type of myRandFunc to use
+	private void _buildFinalGradeArrays(double [][] _mmntsAndMinMax, int[] _descVals) {
+		_descVals[0]= finalGradeNumMmnts; 
+		_descVals[1]= (finalGradeNumMmnts == 2 ? BaseProbExpMgr.ziggRandGen : BaseProbExpMgr.fleishRandGen_UniVar);		
+		_descVals[2]= (finalGradeNumMmnts == 2 ? BaseProbExpMgr.gaussRandVarIDX : BaseProbExpMgr.fleishRandVarIDX);
+		_mmntsAndMinMax[0] = new double[] {finalGradeMmtns[0],finalGradeMmtns[1],finalGradeMmtns[2],finalGradeMmtns[3]};
+		_mmntsAndMinMax[1] = new double[] {0.0,1.0};
+	}//buildFinalGradeArrays
+	
+	//set values and generate grade-based experiments - need to specify whether random or using grade files with pre-set grades
+	//whether or not to load from rosters or 
+	private void setGradeExp(boolean rebuildStudents, boolean rebuildClasses,  boolean rebuildGrades, boolean loadFromRosters) {
+		double[][] _finalGradeMappings = new double[2][];
+		int [] _finalGradeDescs = new int[] {0,0,0};
+		_buildFinalGradeArrays(_finalGradeMappings,_finalGradeDescs);
+		if(loadFromRosters) {//rebuild all for this
+			//TODO need to manage this
+			String _fileNameOfStudents = "";
+			String[] _fileNamesOfGrades = new String[] {""};
+			gradeAvgExperiment.buildFileBasedGradeExp(_fileNameOfStudents, _fileNamesOfGrades, expTypeIDX,_finalGradeMappings,_finalGradeDescs);
+		} else {				
+			boolean[] flags = new boolean[] {rebuildStudents, rebuildClasses, rebuildGrades};
+			int[] vals = new int[] {numStudents, numClasses};			
+			gradeAvgExperiment.buildRandGradeExp(flags, vals, expTypeIDX,_finalGradeMappings,_finalGradeDescs);
+		}
+	}//setGradeExp
 	
 	//handle list ui components - return display value for list-based UI object
 	@Override

@@ -178,6 +178,8 @@ class myStudent implements Comparable<mySmplObs>{
 		classValsForType.put(_class,clsSample);
 	}//setTransformedGrade
 	
+	public double getRawGrade(mySampleSet _class) {	return getTransformedGrade(myClassRoster.transTypes[myClassRoster.GB_rawGradeTypeIDX], _class);}
+	
 	public double getTransformedGrade(String _type,mySampleSet _class) {
 		HashMap<mySampleSet, mySmplObs> classValsForType = grades.get(_type);
 		if (classValsForType==null) {			return 0.0;	}// no values for this type for any classes set yet  - return 0		

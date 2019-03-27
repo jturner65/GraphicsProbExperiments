@@ -22,6 +22,7 @@ public class myProbSummary{
 	//state flags - bits in array holding relevant info about this random variable function
 	private int[] stFlags;						
 	public static final int 
+	//these idxs need to correspond to idxs in mmnts array of each value
 		meanIDX				= 0, 
 		stdIDX				= 1, 
 		skewIDX				= 2,
@@ -36,15 +37,15 @@ public class myProbSummary{
 		clipAllSmplsIDX		= 8;				//all samples should be clipped to given min/max values
 	//# of boolean flags
 	public static final int numFlags = 9;
-	//# of moments being tracked, excluding variance and excess kurtosis and other duped moments
-	public static final int numMmnts = 6;
 	//# of samples, if sample size set
 	private int sampleSize;
 	//# of moments actually specified, not counting derived moments
 	public int numMmntsGiven;
-	
+	//label describing every moment
 	public static final String[] mmntLabels = new String[] {"Mean","STD","Skew","Kurtosis", "Variance","Excess Kurtosis"};
-	
+	//# of moments being tracked, including duped moments - idx doesn't correspond necessarily to moment order
+	public static final int numTrackedMmnts = mmntLabels.length;
+
 	//dataset is passed
 	public myProbSummary(double[] _data) {
 		updateVals(_data);		
@@ -71,15 +72,15 @@ public class myProbSummary{
 	public void setClipAllSamples(boolean val) {setFlag(clipAllSmplsIDX, val);}
 	
 	//using Kahan summation to minimize errors from large differences in value magnitude
-	public void setValsAndAnalyse(double[] _vals) {
+	private void setValsAndAnalyse(double[] _vals) {
 		setFlag(setByDataIDX, true);
 		numVals = _vals.length;
-		mmnts = new double[numMmnts];  
-		popToSmplMmntMults = new double[numMmnts];
+		mmnts = new double[numTrackedMmnts];  
+		popToSmplMmntMults = new double[mmnts.length];
 		//array of values
 		vals = _vals;
 		
-		for(int i=0;i<numMmnts;++i) {mmnts[i]=0.0;}
+		for(int i=0;i<mmnts.length;++i) {mmnts[i]=0.0;}
 		
 		
 		if(numVals ==0 ) {return;}
@@ -101,9 +102,9 @@ public class myProbSummary{
 		double tDiff, tDiffSq;
 		//initialize for Kahan summation method
 		double valMMean = (_vals[0] - mmnts[meanIDX]);
-		double [] sumAndCSq = new double[] {valMMean*valMMean, 0.0};
-		double [] sumAndCCu = new double[] {(sumAndCSq[0])*valMMean, 0.0};
-		double [] sumAndCQu = new double[] {(sumAndCSq[0])*(sumAndCSq[0]), 0.0};
+		double [] sumAndCSq = new double[] {valMMean*valMMean, 0.0},
+				sumAndCCu = new double[] {(sumAndCSq[0])*valMMean, 0.0},
+				sumAndCQu = new double[] {(sumAndCSq[0])*(sumAndCSq[0]), 0.0};
 		//kahan summation to address magnitude issues in adding 2 values of largely different magnitudes
 		for(int i=1;i<numVals;++i) {
 			tDiff = _vals[i] - mmnts[meanIDX];
@@ -118,19 +119,19 @@ public class myProbSummary{
 		mmnts[kurtIDX] = (sumAndCQu[0] / numVals)/(mmnts[varIDX]*mmnts[varIDX]);
 		mmnts[excKurtIDX] = mmnts[kurtIDX]-3.0;
 		
-		for(int i=0;i<numMmnts;++i) {
+		for(int i=0;i<mmnts.length;++i) {
 			setFlag(i,true);
 		}
 		numMmntsGiven = 4;	
 		//System.out.println("Data vals :  " + numVals + " var : " + mmnts[varIDX] + " std : " + mmnts[stdIDX] + " min : " + min + " | Max : " + max);
 		calcSmpleMomentsForSampleSize(numVals,new double[] {min,max});
 	}//setVals
-	
+	//convenience for kahan
 	private void calcSumAndC(double[] sumAndC, double y) {
 		double t = sumAndC[0] + y;
 		sumAndC[1] = (t-sumAndC[0]) - y;
 		sumAndC[0] = t;
-	}
+	}//calcSumAndC
 	
 	//build buckets of equally space buckets and counts in buckets
 	//returns array of numBuckets, 2, where idx 0 is lower xVal of bucket, and idx 1 is count in bucket - last element has idx0 == max bucket limit, count 0 (none above max)
@@ -168,12 +169,12 @@ public class myProbSummary{
 		
 	//take passed moments (only canonical - no separate variance and ex kurtosis values) and set the internal moments of this analysis object
 	//moments given are assumed to be of population, so sample multiplier is dependent on size of sample
-	public void setMoments(double[] _mmnts, int _numMmntsGiven, boolean isExKurt) {
+	private void setMoments(double[] _mmnts, int _numMmntsGiven, boolean isExKurt) {
 		vals = new double[0];
 		setFlag(setByDataIDX, false);
-		mmnts = new double[numMmnts];  
+		mmnts = new double[numTrackedMmnts];  
 		setMinMax(Double.NEGATIVE_INFINITY,Double.POSITIVE_INFINITY);		
-		popToSmplMmntMults = new double[numMmnts];
+		popToSmplMmntMults = new double[mmnts.length];
 		numMmntsGiven = _numMmntsGiven;
 		mmnts[meanIDX] = _mmnts[meanIDX];
 		setFlag(meanIDX, true);
@@ -208,10 +209,10 @@ public class myProbSummary{
 	public void setMinMax(double[] _minMax) {	minMax = _minMax;}
 	
 	public void calcSmpleMomentsForSampleSize(){calcSmpleMomentsForSampleSize(numVals, minMax);}
-	//assuming calculated moments are population moments, modify popToSmpleMmntMults values so they can be used to calculate sample moments
+	//assuming calculated moments are population moments, modify popToSmpleMmntMults values so they can be used to calculate sample moments from pop momments
 	public void calcSmpleMomentsForSampleSize(int _smpleSize, double[] _minMax) {
 		sampleSize = _smpleSize;
-		popToSmplMmntMults = new double[numMmnts];
+		popToSmplMmntMults = new double[numTrackedMmnts];
 		setMinMax(_minMax[0],_minMax[1]);			
 		popToSmplMmntMults[meanIDX] = 1.0;
 		if(sampleSize <= 1) {return;}

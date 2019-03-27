@@ -2,6 +2,7 @@ package graphProbExp_PKG;
 
 import java.util.HashMap;
 
+
 /**
  * a sample of multiple observations from a distribution
  * @author john
@@ -36,11 +37,11 @@ public abstract class mySampleSet implements Comparable<mySampleSet> {
 	// underlying distribution evaluation and plotting functions
 	
 	public void evalAndPlotFuncRes(int numVals, double low, double high, int funcType ) {
-		if(baseDistModel == null) {			this.probExp.dispMessage("myClassRoster", "evalAndPlotFuncRes", "baseDistModel has not been set/is null.  Aborting", true);		}
+		if(baseDistModel == null) {			probExp.dispMessage("myClassRoster", "evalAndPlotFuncRes", "baseDistModel has not been set/is null.  Aborting",MsgCodes.warning1, true);		}
 		baseDistModel.calcFuncValsForDisp(numVals, low, high, funcType);		
 	}
 	public void evalAndPlotHistRes(int numVals, int numBuckets) {
-		if(baseDistModel == null) {			this.probExp.dispMessage("myClassRoster", "evalAndPlotHistRes", "baseDistModel has not been set/is null.  Aborting", true);		}		
+		if(baseDistModel == null) {			probExp.dispMessage("myClassRoster", "evalAndPlotHistRes", "baseDistModel has not been set/is null.  Aborting",MsgCodes.warning1, true);		}		
 		baseDistModel.calcDistValsForDisp(numVals, numBuckets);
 	}
 	
@@ -155,7 +156,7 @@ class myClassRoster extends mySampleSet{
 		
 	}//updateName
 	
-	//remove all students from class
+	//remove all students from class 
 	public void clearClass() {	students.clear();}
 	
 	//clear all transformed student grades for this class, retaining raw grades
@@ -171,7 +172,7 @@ class myClassRoster extends mySampleSet{
 			Integer SID = s.ObjID;
 			Double grade = classGrades.get(SID);
 			if(null==grade) {//no grade for student - this is an error
-				probExp.dispMessage("myClassRoster","setAllStudentRawGrades","In class : " +name + "| No grade found for student ID :"+SID +" | Name : " +s.name+" | Defaulting grade to 0",true);
+				probExp.dispMessage("myClassRoster","setAllStudentRawGrades","In class : " +name + "| No grade found for student ID :"+SID +" | Name : " +s.name+" | Defaulting grade to 0", MsgCodes.info1);
 				grade=0.0;
 			}
 			s.setTransformedGrade(transTypes[GB_rawGradeTypeIDX], this, grade);
@@ -310,7 +311,6 @@ class myClassRoster extends mySampleSet{
 		}	
 		return closest;
 	}//findClosestStudent
-	
 		
 	public void mseRelease() {
 		for(int i=0;i<gradeBars.length;++i) {gradeBars[i].mouseRelease();}
@@ -407,7 +407,6 @@ class myFinalGradeRoster extends myClassRoster {
 		useZScore = false;
 	}//ctor
 	
-	
 	//take result of per class totals, determine the inverse mapping based on desired output distribution
 	public void calcTotalGrades() {
 		for (myStudent s : students.values()) {		s.calcTotalGrade(this);	}
@@ -423,8 +422,8 @@ class myFinalGradeRoster extends myClassRoster {
 				s.setTransformedGrade(transTypes[GB_rawGradeTypeIDX],this, _newGrade);
 			}			
 		} else {
-			if(null==baseDistModel) {return;}
-			baseDistModel.setFuncSummary(tmpSummary);
+			if(null==baseDistModel) {	probExp.dispMessage("myFinalGradeRoster","calcTotalGrades","baseDistModel == null", MsgCodes.info1);	return;}
+			//baseDistModel.setFuncSummary(tmpSummary);
 			updateName();
 			for (myStudent s : students.values()) {
 				//now need to transform all uniform student grades for this class roster back to "raw", which in this case will be the final grade
@@ -490,7 +489,6 @@ class myFinalGradeRoster extends myClassRoster {
 	}//transformStudentToRaw
 
 	public void setUseZScore(boolean _val) {
-		System.out.println("use z score : " + _val);
 		useZScore=_val;
 		calcTotalGrades();
 	}
@@ -501,7 +499,7 @@ class myFinalGradeRoster extends myClassRoster {
 	//this is not used to set grades
 	@Override
 	public void setAllStudentRawGrades(HashMap<Integer, Double> classGrades) {
-		this.probExp.dispMessage("myFinalGradeRoster", "setAllStudentRawGrades", "Final Grades for students are not set via setAllStudentRawGrades method.  Final Grades must be calculated" , true);
+		this.probExp.dispMessage("myFinalGradeRoster", "setAllStudentRawGrades", "Final Grades for students are not set via setAllStudentRawGrades method.  Final Grades must be calculated" ,MsgCodes.error2, true);
 	}
 }//class myFinalGradeRoster
 

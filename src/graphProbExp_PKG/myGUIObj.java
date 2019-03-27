@@ -67,6 +67,8 @@ public class myGUIObj {
 	}//setFlag	
 	
 	public double getVal(){return val;}	
+	public double getMinVal() {return minVal;}
+	public double getMaxVal() {return maxVal;}
 	public void setNewMax(double _newval){	maxVal = _newval;val = ((val >= minVal)&&(val<=maxVal)) ? val : (val < minVal) ? minVal : maxVal;		}
 	public void setNewMin(double _newval){	minVal = _newval;val = ((val >= minVal)&&(val<=maxVal)) ? val : (val < minVal) ? minVal : maxVal;		}
 	

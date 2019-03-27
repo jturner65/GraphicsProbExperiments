@@ -85,11 +85,11 @@ public abstract class myVisMgr {
 	}//setDispWidth
 	
 	//instance class-specific functionality
-	public abstract boolean _mouseClickIndiv(int msXLoc, int mxYLoc, int btn);
-	public abstract boolean _mouseDragIndiv(int msXLoc, int mxYLoc, int btn);
-	public abstract boolean _mouseOverIndiv(int msXLoc, int mxYLoc);
-	public abstract void _mouseReleaseIndiv();
-	public abstract void _setDispWidthIndiv(float dispWidth);
+	protected abstract boolean _mouseClickIndiv(int msXLoc, int mxYLoc, int btn);
+	protected abstract boolean _mouseDragIndiv(int msXLoc, int mxYLoc, int btn);
+	protected abstract boolean _mouseOverIndiv(int msXLoc, int mxYLoc);
+	protected abstract void _mouseReleaseIndiv();
+	protected abstract void _setDispWidthIndiv(float dispWidth);
 	
 	public void drawVis(GraphProbExpMain pa) {
 		if(!getFlag(isVisibleIDX)) {return;}
@@ -163,7 +163,7 @@ class gradeBar extends myVisMgr {
 	//random color ctor - used by classes		
 	
 	@Override
-	public boolean _mouseClickIndiv(int msXLoc, int mxYLoc, int btn) {
+	protected boolean _mouseClickIndiv(int msXLoc, int mxYLoc, int btn) {
 		//clicked in enable/disable box
 		if((msXLoc <= _clkBox[2]) && (mxYLoc >= _clkBox[1]) && (mxYLoc <= (_clkBox[1]+_clkBox[3]))) {	//clicked box - toggle state
 			enabled = !enabled;	
@@ -181,7 +181,7 @@ class gradeBar extends myVisMgr {
 	}//_mouseClickIndiv
 	
 	@Override
-	public boolean _mouseDragIndiv(int msXLoc, int mxYLoc, int btn) {
+	protected boolean _mouseDragIndiv(int msXLoc, int mxYLoc, int btn) {
 		//x location of click
 		float clickScale = ((msXLoc-_barStX)/barWidth);
 		//if moving a student, update grade
@@ -195,13 +195,13 @@ class gradeBar extends myVisMgr {
 	
 	//if mouse over this bar - if near student, show student's name at mouse loc?
 	@Override
-	public boolean _mouseOverIndiv(int msXLoc, int msYLoc) {
+	protected boolean _mouseOverIndiv(int msXLoc, int msYLoc) {
 		return false;
 	}//_mouseDragIndiv
 	
 	//release student being dragged
 	@Override
-	public void _mouseReleaseIndiv() {		_modStudent = null;}//
+	protected void _mouseReleaseIndiv() {		_modStudent = null;}//
 	
 	public float getAbsYLoc() {return startRect[1]+_barStY;}
 	
@@ -236,7 +236,7 @@ class gradeBar extends myVisMgr {
 	
 	//set bar width for bar display
 	@Override
-	public void _setDispWidthIndiv(float dispWidth) {
+	protected void _setDispWidthIndiv(float dispWidth) {
 		barWidth = (dispWidth - _barStX) * barWidthMult;		
 	}
 	
@@ -363,26 +363,26 @@ class myDistVis extends myVisMgr {
 	}//clearVals
 	
 	@Override
-	public boolean _mouseClickIndiv(int msXLoc, int mxYLoc, int btn) {
+	protected boolean _mouseClickIndiv(int msXLoc, int mxYLoc, int btn) {
 		return false;
 	}//_mouseClickIndiv
 
 	@Override
-	public boolean _mouseDragIndiv(int msXLoc, int mxYLoc, int btn) {
+	protected boolean _mouseDragIndiv(int msXLoc, int mxYLoc, int btn) {
 		return false;
 	}//_mouseDragIndiv
 
 	@Override
-	public boolean _mouseOverIndiv(int msXLoc, int mxYLoc) {
+	protected boolean _mouseOverIndiv(int msXLoc, int mxYLoc) {
 		return false;
 	}//_mouseOverIndiv
 
 	@Override
-	public void _mouseReleaseIndiv() {		
+	protected void _mouseReleaseIndiv() {		
 	}//_mouseReleaseIndiv
 
 	@Override
-	public void _setDispWidthIndiv(float dispWidth) {	
+	protected void _setDispWidthIndiv(float dispWidth) {	
 		//resize frame
 		setGraphFrameDims();
 		//rescale any values 

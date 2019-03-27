@@ -130,7 +130,7 @@ public abstract class myRandVarFunc {
 		case queryIntegIDX : {
 			return integral_f(x1,x2);}		
 		default : {
-			expMgr.dispMessage("myRandVarFunc", "getFuncVal", "Attempting to evaluate unknown func type : " + funcType +" on value(s) : [" + x1 + ", "+ x2 + "] Aborting." , true);
+			expMgr.dispMessage("myRandVarFunc", "getFuncVal", "Attempting to evaluate unknown func type : " + funcType +" on value(s) : [" + x1 + ", "+ x2 + "] Aborting.",MsgCodes.warning1 , true);
 			return x1;}
 		}
 	}//getFuncVal
@@ -187,12 +187,12 @@ public abstract class myRandVarFunc {
 	//if this rand var is going to be accessed via the ziggurat algorithm, this needs to be called w/# of rectangles to use
 	//this must be called after an Quad solver has been set, since finding R and Vol for passed # of ziggurats requires such a solver
 	public void setZigVals(int _nRect) {
-		if (!getFlag(quadSlvrSetIDX)) {	expMgr.dispMessage("myRandVarFunc", "setZigVals", "No quadrature solver has been set, so cannot set ziggurat values for "+_nRect+" rectangles (incl tail).",true); return;}
+		if (!getFlag(quadSlvrSetIDX)) {	expMgr.dispMessage("myRandVarFunc", "setZigVals", "No quadrature solver has been set, so cannot set ziggurat values for "+_nRect+" rectangles (incl tail).",MsgCodes.warning1,true); return;}
 		double checkRect = Math.log(_nRect)/ln2;
 		int nRectCalc = (int)Math.pow(2.0, checkRect);//int drops all decimal values
 		if (_nRect != nRectCalc) {	
 			int numRectToUse = (int)Math.pow(2.0, (int)(checkRect) + 1);
-			expMgr.dispMessage("myRandVarFunc", "setZigVals", "Number of ziggurat rectangles requested " + _nRect + " : " + nRectCalc + " must be an integral power of 2, so forcing requested " + _nRect + " to be " + numRectToUse,true);
+			expMgr.dispMessage("myRandVarFunc", "setZigVals", "Number of ziggurat rectangles requested " + _nRect + " : " + nRectCalc + " must be an integral power of 2, so forcing requested " + _nRect + " to be " + numRectToUse,MsgCodes.warning1,true);
 			numZigRects = numRectToUse;
 		}		
 		zigVals = new zigConstVals(this,numZigRects);
@@ -320,7 +320,7 @@ class myGaussianFunc extends myRandVarFunc{
 	@Override
 	public double integral_f(Double x1, Double x2) {
 		double res = 0;
-		if (!getFlag(quadSlvrSetIDX)) {	expMgr.dispMessage("myGaussianFunc", "integral_f", "No quadrature solver has been set, so cannot integrate f",true);return res;}
+		if (!getFlag(quadSlvrSetIDX)) {	expMgr.dispMessage("myGaussianFunc", "integral_f", "No quadrature solver has been set, so cannot integrate f",MsgCodes.warning1,true);return res;}
 		//expMgr.dispMessage("myGaussianFunc", "integral_f", "Integrating for : x1 : "+x1 + " and  x2 : " + x2);
 		
 		//if x1 is -inf... gauss-legendre quad - use error function via gaussian quad - calculating cdf
@@ -347,7 +347,7 @@ class myGaussianFunc extends myRandVarFunc{
 	@Override
 	public double integral_fStd(Double x1, Double x2) {
 		double res = 0;
-		if (!getFlag(quadSlvrSetIDX)) {	expMgr.dispMessage("myGaussianFunc", "integral_fStd", "No quadrature solver has been set, so cannot integrate f",true);return res;}
+		if (!getFlag(quadSlvrSetIDX)) {	expMgr.dispMessage("myGaussianFunc", "integral_fStd", "No quadrature solver has been set, so cannot integrate f",MsgCodes.warning1,true);return res;}
 		//expMgr.dispMessage("myGaussianFunc", "integral_f", "Integrating for : x1 : "+x1 + " and  x2 : " + x2);		
 		//if x1 is -inf... gauss-legendre quad - use error function via gaussian quad - calculating cdf
 		if(x1==Double.NEGATIVE_INFINITY) {				//cdf of x2 == .5 + .5 * error function x2/sqrt(2) 
@@ -503,7 +503,7 @@ class myFleishFunc_Uni extends myRandVarFunc{
         //bound = -1.13168 + 1.58837 * skew**2
         double bound = -1.2264489 + 1.6410373*skewSQ;
         if (exKurt < bound) { 
-        	expMgr.dispMessage("myFleishFunc_Uni", "calcCoeffs", "!!!! Coefficient error : ex kurt : " + String.format("%3.8f",exKurt)+ " is not feasible with skew :" + String.format("%3.8f",skew) +" | forcing exKurt to lower bound @ skew "+String.format("%3.8f",bound)+" DANGER this is not going to reflect the sample quantities",true);
+        	expMgr.dispMessage("myFleishFunc_Uni", "calcCoeffs", "!!!! Coefficient error : ex kurt : " + String.format("%3.8f",exKurt)+ " is not feasible with skew :" + String.format("%3.8f",skew) +" | forcing exKurt to lower bound @ skew "+String.format("%3.8f",bound)+" DANGER this is not going to reflect the sample quantities",MsgCodes.error1,true);
         	summary.forceExKurt(bound);
         	exKurt = summary.exKurt();
         }
@@ -517,7 +517,7 @@ class myFleishFunc_Uni extends myRandVarFunc{
         //solve with newton-raphson
         double[] tmpC = newton(c1, c2, c3, skew, exKurt);
 		coeffs = new double[] {-tmpC[1], tmpC[0],tmpC[1],tmpC[2]};
-		expMgr.dispMessage("myFleishFunc_Uni", "calcCoeffs", "Coeffs calculated :  ["+ String.format("%3.8f",coeffs[0])+","+ String.format("%3.8f",coeffs[1])+","+ String.format("%3.8f",coeffs[2])+","+ String.format("%3.8f",coeffs[3])+"]",true);		
+		expMgr.dispMessage("myFleishFunc_Uni", "calcCoeffs", "Coeffs calculated :  ["+ String.format("%3.8f",coeffs[0])+","+ String.format("%3.8f",coeffs[1])+","+ String.format("%3.8f",coeffs[2])+","+ String.format("%3.8f",coeffs[3])+"]",MsgCodes.info1,true);		
 		return coeffs;
 	}//calcCoeffs
 	
@@ -681,7 +681,7 @@ class myFleishFunc_Uni extends myRandVarFunc{
 //mean is phase, std is function of frequency
 class myCosFunc extends myRandVarFunc{
 	//constants to modify cosine so that we represent desired moment behavior
-	//area under pdf corresponding to x val @ 0,1,2,3 std from mean - used to determine appropriate frequency values
+	//area under pdf from mean-> x*std corresponding to x val @ 0,1,2,3 - used to determine appropriate frequency values 
 	private static final double[] stdAreaAra = new double[] {0.0,0.3413447460685429485852 ,0.4772498680518207927997 , 0.4986501019683699054734};
 	//don't set this to 0!
 	private static final int stdFreqMultToUse = 3;
@@ -705,7 +705,7 @@ class myCosFunc extends myRandVarFunc{
 	}
 	
 	//this will calculate the freq val for a given std iteratively - calculates volume to be vol
-	public double calcFreq(double std) {
+	protected double calcFreq(double std) {
 		//qStd is std @ stdFreqMultToUse
 		double stdArea = stdAreaAra[stdFreqMultToUse], twoPiStdArea = stdArea* twoPi;
 		double res = std,sinFreqS,diff, qStd = stdFreqMultToUse * std ;
@@ -904,6 +904,7 @@ class myCosFuncFromCDF extends myRandVarFunc{
 			e.printStackTrace();
 			return;
 		}
+		//this is triggered always from final grades - summary object has no samples?
 		
 //		This is getting called with only 1 variable point from : 
 //		at graphProbExp_PKG.myCosFuncFromCDF.rebuildFuncs_Indiv(myRandVarFunc.java:899)
@@ -1160,7 +1161,7 @@ class zigConstVals{
 		double integralRes = func.integral_fStd(rVal, Double.POSITIVE_INFINITY);
 		double vol = rVal* funcAtR + integralRes;//Q func == 1 - CDF
 		if (vol < 0) {
-			func.expMgr.dispMessage("zigConstVals", "z_R", func.getShortDesc()+ "| Initial Ziggurat R val chosen to be too high, causing integration to yield a negative volume due to error",true);
+			func.expMgr.dispMessage("zigConstVals", "z_R", func.getShortDesc()+ "| Initial Ziggurat R val chosen to be too high, causing integration to yield a negative volume due to error",MsgCodes.error1,true);
 			return new double[] {-rVal*9, 0};
 		}
 		//x values and functional eval of x vals

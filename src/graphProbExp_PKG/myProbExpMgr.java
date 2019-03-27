@@ -65,17 +65,17 @@ public class myProbExpMgr extends BaseProbExpMgr{
 
 
 	public void testRandGen(int numVals) {
-		dispMessage("myProbExpMgr","testRandGen","Start test of random normal gen of " +numVals + " vals from rand gen with momments : " + nrmlGen.getFuncDataStr(),true);
+		dispMessage("myProbExpMgr","testRandGen","Start test of random normal gen of " +numVals + " vals from rand gen with momments : " + nrmlGen.getFuncDataStr(),MsgCodes.info1,true);
 		smplTestRandNumGen(nrmlGen, numVals);
 		smplTestRandNumGen(gaussGen, numVals);
-		dispMessage("myProbExpMgr","testRandGen","Start test of ThreadLocalRandom random gaussian gen of " +numVals + " vals.",true);
+		dispMessage("myProbExpMgr","testRandGen","Start test of ThreadLocalRandom random gaussian gen of " +numVals + " vals.",MsgCodes.info1,true);
 		double[] genVals = new double[numVals];
 		//now test standard distribution of same # of values
 		double mean = gaussGen.func.getMean(), std = gaussGen.func.getStd();
 		for(int i=0;i<genVals.length;++i) {	genVals[i] = mean + (std*ThreadLocalRandom.current().nextGaussian());		}
-		dispMessage("myProbExpMgr","testRandGen","Finished synthesizing " + numVals +" gaussian vals ~ N(" + mean + ","+std +") using ThreadLocalRandom random gaussian",true);
+		dispMessage("myProbExpMgr","testRandGen","Finished synthesizing " + numVals +" gaussian vals ~ N(" + mean + ","+std +") using ThreadLocalRandom random gaussian",MsgCodes.info1,true);
 		myProbSummary analysis = new myProbSummary(genVals);
-		dispMessage("myProbExpMgr","testRandGen","Analysis res of TLR.nextGauss : " + analysis.getMomentsVals(),true);
+		dispMessage("myProbExpMgr","testRandGen","Analysis res of TLR.nextGauss : " + analysis.getMomentsVals(),MsgCodes.info1,true);
 	}//testRandGen
 	
 	

@@ -7,6 +7,9 @@ public abstract class BaseProbExpMgr {
 	protected myDispWindow win;
 	//papplet for visualization
 	public static GraphProbExpMain pa;
+	//whether current OS supports ansi terminal color settings
+	public static boolean supportsANSITerm = false;
+
 	////////////////////////////////////////
 	// gauss quadrature solver structures	
 	//integral solvers for gaussian quadrature method used by this experiment
@@ -38,15 +41,21 @@ public abstract class BaseProbExpMgr {
 		uniformTransformMap		= 4;	//just performs an order-based transformation from original grade to #/n where # is order in rank (from lowest to highest) and n is total # of grades
     public static final String[] randGenAlgNames = new String[] {"Bounded PDF Algorithm", "Ziggurat Algorithm", "Fleishman Univariate Polynomial Algorithm", "Linear Transformation Mapping", "Uniform Transformation Mapping"};
 	
-    //type of random variable function to use with ziggurat algorithm
+    //type of random variable function to use with zig or bounded rand gen algorithm
     public static final int
     	normRandVarIDX			= 0,
     	gaussRandVarIDX			= 1,
     	cosRandVarIDX			= 2,
-		cosCDFRandVarIDX 		= 3;
-    public static final String[] randVarFuncNames = new String[] {"Normal Distribution", "Gaussian Distribution", "Cosine-PDF Distribution", "Cosine-PDF via sample-derived CDF"};
+		cosCDFRandVarIDX 		= 3,
+		fleishRandVarIDX		= 4;
+    //public static final String[] zigRandVarFuncNames = new String[] {"Normal Distribution", "Gaussian Distribution", "Cosine-PDF Distribution", "Cosine-PDF via sample-derived CDF"};
     	
-    
+	//type of experiment to conduct
+	public static final String[] expType = new String[] {"Gaussian","Linear", "Uniform Spaced","Fleishman Poly","Cosine Mmnts derived","Cosine CDF derived"};
+	//type of plots to show
+	public static final String[] plotType = new String[] {"PDF", "Histogram","CDF (integral)","Inverse CDF"};
+	
+  
 	////////////////////////////////////////
 	// internal functionality
 	
@@ -74,6 +83,8 @@ public abstract class BaseProbExpMgr {
 	public BaseProbExpMgr(myDispWindow _win) {
 		win = _win;
 		pa=win.pa;
+		//whether this system supports an ansi terminal or not
+		supportsANSITerm = (System.console() != null && System.getenv().get("TERM") != null);	
 		setVisibleScreenWidth();
 		//base class-specific flags, isolated to within this code only
 		initBaseFlags();
@@ -108,12 +119,13 @@ public abstract class BaseProbExpMgr {
 	
 	
 	public myRandVarFunc buildRandVarType (int _pdfType,  int _quadSlvrIdx, myProbSummary _summaryObj) {
-		System.out.println("buildRandVarType : " + _pdfType);
+		//System.out.println("buildRandVarType : " + _pdfType);
 		switch (_pdfType) {		
 		   	case normRandVarIDX		: { return new myNormalFunc(this, quadSlvrs[_quadSlvrIdx]);}
 	    	case gaussRandVarIDX	: { return new myGaussianFunc(this, quadSlvrs[_quadSlvrIdx], _summaryObj);}
 	    	case cosRandVarIDX		: { return new myCosFunc(this, quadSlvrs[_quadSlvrIdx], _summaryObj);}			
-	    	case cosCDFRandVarIDX		: { return new myCosFuncFromCDF(this, quadSlvrs[_quadSlvrIdx], _summaryObj);}			
+	    	case cosCDFRandVarIDX	: { return new myCosFuncFromCDF(this, quadSlvrs[_quadSlvrIdx], _summaryObj);}
+	    	case fleishRandVarIDX	: { return new myFleishFunc_Uni(this, quadSlvrs[_quadSlvrIdx], _summaryObj, randGenAlgNames[fleishRandGen_UniVar]);}
 			default : {return null;}		
 		}
 	}//myRandVarFunc
@@ -121,25 +133,25 @@ public abstract class BaseProbExpMgr {
 	//using default GaussLengendre and 256 zig's for ziggurat alg
 	public myRandGen buildAndInitRandGen(int _type, int _pdfType, myProbSummary _summaryObj) {return buildAndInitRandGen(_type, _pdfType, GL_QuadSlvrIDX, 256, _summaryObj);}
 	//must build rand gen through this method
-	public myRandGen buildAndInitRandGen(int _type, int _pdfType, int _quadSlvrIdx, int _numZigRects, myProbSummary _summaryObj) {
+	public myRandGen buildAndInitRandGen(int _randGenType, int _pdfType, int _quadSlvrIdx, int _numZigRects, myProbSummary _summaryObj) {
 
-		switch (_type) {
+		switch (_randGenType) {
 			case boundedRandGen : {
 				//need to build a random variable generator function
-				myRandVarFunc func = buildRandVarType(_pdfType, _quadSlvrIdx, _summaryObj);
-				
-				return new myBoundedRandGen(func, randGenAlgNames[_type]);}
+				myRandVarFunc func = buildRandVarType(_pdfType, _quadSlvrIdx, _summaryObj);				
+				return new myBoundedRandGen(func, randGenAlgNames[_randGenType]);}
 			case ziggRandGen : {//ziggurat alg solver - will use zigg algorithm to generate a gaussian of passed momments using a uniform source of RVs
 				//need to build a random variable generator function
 				myRandVarFunc func = buildRandVarType(_pdfType, _quadSlvrIdx, _summaryObj);				
 				//_numZigRects must be pwr of 2 - is forced to be if is not.  Should be 256
-				return new myZigRandGen(func, _numZigRects, randGenAlgNames[_type]);}
+				return new myZigRandGen(func, _numZigRects, randGenAlgNames[_randGenType]);}
 			
 			case fleishRandGen_UniVar : {
 				//specify fleishman rand function with either moments or data - if only moments given, then need to provide hull as well
-				myRandVarFunc func = new myFleishFunc_Uni(this, quadSlvrs[_quadSlvrIdx], _summaryObj, randGenAlgNames[_type]);
-				return new myFleishUniVarRandGen(func,  randGenAlgNames[_type]);	}
-			
+				myRandVarFunc func = buildRandVarType(_pdfType, _quadSlvrIdx, _summaryObj);		
+				return new myFleishUniVarRandGen(func,  randGenAlgNames[_randGenType]);	}
+
+			//these are just transformations and are not described by an underlying pdf
 			case linearTransformMap : {	
 				//does not actually represent a random function generator, just represents a transformation, to be used by class rosters in ClassGradeExperiment				
 				return new linearTransform(_summaryObj);}
@@ -148,9 +160,8 @@ public abstract class BaseProbExpMgr {
 				//does not represent random func generator/model, just represents a mapping from grade to order-based 1/n..n/n equal partition of grade space
 				return new uniformCountTransform(_summaryObj);}
 			
-			
 			default	:	{		
-				dispMessage("BaseProbExpMgr","buildAndInitRandGen","Unknown random generator type : " + _type + ".  Aborting.", true);
+				dispMessage("BaseProbExpMgr","buildAndInitRandGen","Unknown random generator type : " + _randGenType + ".  Aborting.",MsgCodes.warning1, true);
 				return null;
 			}
 		}//switch
@@ -198,52 +209,50 @@ public abstract class BaseProbExpMgr {
 	//conduct a simple test on the passed random number generator - it will get a sample based on the pdf function given to generator
 	//uses 64 bit random uniform val
 	protected void smplTestRandNumGen(myRandGen gen, int numVals) {
-		dispMessage("BaseProbExpMgr","testRandGen","Start synthesizing " + numVals+ " values using Gen : \n\t" + gen.getFuncDataStr(), true);
+		dispMessage("BaseProbExpMgr","testRandGen","Start synthesizing " + numVals+ " values using Gen : \n\t" + gen.getFuncDataStr(),MsgCodes.info1, true);
 		double[] genVals = new double[numVals];
 		for(int i=0;i<genVals.length;++i) {	
 			//dispMessage("BaseProbExpMgr","testRandGen","Generating val : " + i);
 			genVals[i] = gen.getSample();	
 		}
 		//now calculate mean value and
-		dispMessage("BaseProbExpMgr","testRandGen","Finished synthesizing " + numVals+ " values using Gen : " + gen.name + " | Begin analysis of values.", true);
+		dispMessage("BaseProbExpMgr","testRandGen","Finished synthesizing " + numVals+ " values using Gen : " + gen.name + " | Begin analysis of values.",MsgCodes.info1, true);
 		myProbSummary analysis = new myProbSummary(genVals);
-		dispMessage("BaseProbExpMgr","testRandGen","Analysis res of " + gen.name + " : " + analysis.getMomentsVals(), true);
+		dispMessage("BaseProbExpMgr","testRandGen","Analysis res of " + gen.name + " : " + analysis.getMomentsVals(),MsgCodes.info1, true);
 	}//testGen
 	
 	//conduct a simple test on the passed random number generator - it will get a sample based on the pdf function given to generator
 	//uses the "fast" implementation - 32 bit random uniform value
 	protected void smplTestFastRandNumGen(myRandGen gen, int numVals) {
-		dispMessage("BaseProbExpMgr","testRandGen","Start synthesizing " + numVals+ " values using Gen : \n\t" + gen.getFuncDataStr(), true);
+		dispMessage("BaseProbExpMgr","testRandGen","Start synthesizing " + numVals+ " values using Gen : \n\t" + gen.getFuncDataStr(),MsgCodes.info1, true);
 		double[] genVals = new double[numVals];
 		for(int i=0;i<genVals.length;++i) {	
 			//dispMessage("BaseProbExpMgr","testRandGen","Generating val : " + i);
 			genVals[i] = gen.getSampleFast();	
 		}
 		//now calculate mean value and
-		dispMessage("BaseProbExpMgr","testRandGen","Finished synthesizing " + numVals+ " values using Gen : " + gen.name + " | Begin analysis of values.", true);
+		dispMessage("BaseProbExpMgr","testRandGen","Finished synthesizing " + numVals+ " values using Gen : " + gen.name + " | Begin analysis of values.",MsgCodes.info1, true);
 		myProbSummary analysis = new myProbSummary(genVals);
-		dispMessage("BaseProbExpMgr","testRandGen","Analysis res of " + gen.name + " : " + analysis.getMomentsVals(), true);
+		dispMessage("BaseProbExpMgr","testRandGen","Analysis res of " + gen.name + " : " + analysis.getMomentsVals(),MsgCodes.info1, true);
 	}//testGen
 	
 	
 	//test method for calculating r for rand var function (used in ziggurat algorithm)
 	public void testRCalc() {
-		dispMessage("BaseProbExpMgr","testRCalc","Start test of r var calc",true);
+		dispMessage("BaseProbExpMgr","testRCalc","Start test of r var calc",MsgCodes.info1, true);
 		myRandVarFunc randVar = new myNormalFunc(this, quadSlvrs[GL_QuadSlvrIDX]);
 		myProbSummary analysis = new myProbSummary( new double[] {2.0, 3.0}, 2);
 		myRandVarFunc randGaussVar = new myGaussianFunc(this, quadSlvrs[GL_QuadSlvrIDX], analysis);
 		randVar.dbgTestCalcRVal(256);
 		
-		dispMessage("BaseProbExpMgr","testRCalc","End test of r var calc",true);
+		dispMessage("BaseProbExpMgr","testRCalc","End test of r var calc",MsgCodes.info1,true);
 		
 	}//testRCalc
 	
 	//////////////////////////////
 	// drawing
 	
-	public abstract void drawExp();
-	
-	
+	public abstract void drawExp();	
 	
 	/////////////////////////////
 	// utility : time stamp; display messages; state flags
@@ -264,27 +273,58 @@ public abstract class BaseProbExpMgr {
 		return res;
 	}//getTimeStrFromPassedMillis	
 	
+	///////////////////////////
+	// start message display functionality
+	
+	private String buildClrStr(ConsoleCLR bk, ConsoleCLR clr, String str) {return bk.toString() + clr.toString() + str + ConsoleCLR.RESET.toString();	}
+	private String _processMsgCode(String src, MsgCodes useCode) {
+		if (!BaseProbExpMgr.supportsANSITerm) {return src;}
+		switch(useCode) {//add background + letter color for messages
+			//info messages
+			case info1 : {		return  buildClrStr(ConsoleCLR.BLACK_BACKGROUND, ConsoleCLR.WHITE, src);}				//basic informational printout
+			case info2 : {		return  buildClrStr(ConsoleCLR.BLACK_BACKGROUND, ConsoleCLR.CYAN, src);}
+			case info3 : {		return  buildClrStr(ConsoleCLR.BLACK_BACKGROUND, ConsoleCLR.YELLOW, src);}				//informational output from external source
+			case info4 : {		return  buildClrStr(ConsoleCLR.BLACK_BACKGROUND, ConsoleCLR.GREEN, src);}
+			case info5 : {		return  buildClrStr(ConsoleCLR.BLACK_BACKGROUND, ConsoleCLR.CYAN_BOLD, src);}			//beginning or ending of processing
+			//warning messages                                                 , 
+			case warning1 : {	return  buildClrStr(ConsoleCLR.WHITE_BACKGROUND, ConsoleCLR.BLACK_BOLD, src);}
+			case warning2 : {	return  buildClrStr(ConsoleCLR.WHITE_BACKGROUND, ConsoleCLR.BLUE_BOLD, src);}			//warning info re: ui does not exist
+			case warning3 : {	return  buildClrStr(ConsoleCLR.WHITE_BACKGROUND, ConsoleCLR.BLACK_UNDERLINED, src);}
+			case warning4 : {	return  buildClrStr(ConsoleCLR.WHITE_BACKGROUND, ConsoleCLR.BLUE_UNDERLINED, src);}		//info message about unexpected behavior
+			case warning5 : {	return  buildClrStr(ConsoleCLR.WHITE_BACKGROUND, ConsoleCLR.BLUE_BRIGHT, src);}
+			//error messages                                                   , 
+			case error1 : {		return  buildClrStr(ConsoleCLR.BLACK_BACKGROUND, ConsoleCLR.RED_UNDERLINED, src);}		//try/catch error
+			case error2 : {		return  buildClrStr(ConsoleCLR.BLACK_BACKGROUND, ConsoleCLR.RED_BOLD, src);}			//code-based error
+			case error3 : {		return  buildClrStr(ConsoleCLR.RED_BACKGROUND_BRIGHT, ConsoleCLR.BLACK_BOLD, src);}		//file load error
+			case error4 : {		return  buildClrStr(ConsoleCLR.WHITE_BACKGROUND_BRIGHT, ConsoleCLR.RED_BRIGHT, src);}	//error message thrown by external process
+			case error5 : {		return  buildClrStr(ConsoleCLR.BLACK_BACKGROUND, ConsoleCLR.RED_BOLD_BRIGHT, src);}
+		}
+		return src;
+	}//_processMsgCode	
+
+	public void dispMessageAra(String[] _sAra, String _callingClass, String _callingMethod, int _perLine, MsgCodes useCode) {dispMessageAra( _sAra,  _callingClass, _callingMethod, _perLine,  useCode, true);}
 	//show array of strings, either just to console or to applet window
-	public void dispMessageAra(String[] _sAra, String _callingClass, String _callingMethod, int _perLine, boolean onlyConsole) {
+	public void dispMessageAra(String[] _sAra, String _callingClass, String _callingMethod, int _perLine, MsgCodes useCode, boolean onlyConsole) {
 		String callingClassPrfx = getTimeStrFromProcStart() +"|" + _callingClass;		 
 		for(int i=0;i<_sAra.length; i+=_perLine){
 			String s = "";
 			for(int j=0; j<_perLine; ++j){	
 				if((i+j >= _sAra.length)) {continue;}
 				s+= _sAra[i+j]+ "\t";}
-			_dispMessage_base(callingClassPrfx,_callingMethod,s,onlyConsole);
+			_dispMessage_base(callingClassPrfx,_callingMethod,s, useCode,onlyConsole);
 		}
-	}//dispMessageAra	
-	public void dispMessage(String srcClass, String srcMethod, String msgText, boolean onlyConsole) {_dispMessage_base(getTimeStrFromProcStart() +"|" + srcClass,srcMethod,msgText,onlyConsole);	}	
-	private void _dispMessage_base(String srcClass, String srcMethod, String msgText, boolean onlyConsole) {
-		String msg = srcClass + "::" + srcMethod + " : " + msgText;
-		if(onlyConsole) {
-			System.out.println(msg);
-		} else {
-			win.pa.outStr2Scr(msg);
-		}
+	}//dispMessageAra
+
+	public void dispMessage(String srcClass, String srcMethod, String msgText, MsgCodes useCode){_dispMessage_base(getTimeStrFromProcStart() +"|" + srcClass,srcMethod,msgText, useCode,true);	}	
+	public void dispMessage(String srcClass, String srcMethod, String msgText, MsgCodes useCode, boolean onlyConsole) {_dispMessage_base(getTimeStrFromProcStart() +"|" + srcClass,srcMethod,msgText, useCode,onlyConsole);	}	
+	private void _dispMessage_base(String srcClass, String srcMethod, String msgText, MsgCodes useCode, boolean onlyConsole) {		
+		String msg = _processMsgCode(srcClass + "::" + srcMethod + " : " + msgText, useCode);
+		if((onlyConsole) || (pa == null)) {		System.out.println(msg);	} else {		pa.outStr2Scr(msg);	}
 	}//dispMessage
 	
+	///////////////////////////
+	// end message display functionality
+
 	/////////////////////////////
 	// state flags specific to each experiment
 	protected abstract void initFlags();
