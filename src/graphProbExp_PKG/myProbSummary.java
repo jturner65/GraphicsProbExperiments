@@ -240,11 +240,14 @@ public class myProbSummary{
 	public double[] getDataVals() {return vals;}
 	
 	//return CDF map of data, where key is p(X<=x) and value is x
-	//
-	public TreeMap<Double,Double> getCDFOfData(){
+	//idx 0 is biased; idx 1 is unbaised
+	public TreeMap<Double,Double>[] getCDFOfData(){
 		//keyed by cum prob, value is sample value
-		TreeMap<Double, Double> valsCDF = new TreeMap<Double, Double>();
-		if (vals != null) {
+		TreeMap<Double, Double>[] res = new TreeMap[2];
+		res[0] = new TreeMap<Double, Double>();
+		res[1] = new TreeMap<Double, Double>();
+		
+		if (vals != null) {			
 			//map of values and counts - use this to build CDF
 			TreeMap<Double, Integer> valsCount = new TreeMap<Double, Integer>();
 			Integer count;
@@ -253,15 +256,18 @@ public class myProbSummary{
 				if(null==count) {count=0;};
 				valsCount.put(vals[i], ++count);
 			}
-			Double cumProb = 0.0;
-			//now build result map based on prob for every value
+			Double cumProb = 0.0, cumProbP1 = 0.0, np = 1.0 * vals.length, np1 = np + 1.0;
+			Integer val;
+			//now build result map based on prob for every value - # of elements <= val/# of elements
 			for (Double key : valsCount.keySet()) {
-				Double prob = valsCount.get(key)/(1.0 * vals.length);
-				cumProb += prob;
-				valsCDF.put(cumProb, key);				
+				val = valsCount.get(key);
+				cumProb += val/np;
+				cumProbP1 += val/np1;
+				res[0].put(cumProb, key);				
+				res[1].put(cumProbP1, key);		
 			}			
 		}//if vals		
-		return valsCDF;
+		return res;
 	}//getCDFOfData
 	
 	

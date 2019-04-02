@@ -34,7 +34,8 @@ public abstract class mySampleSet implements Comparable<mySampleSet> {
 	protected abstract void setBaseDistModel_Indiv();
 	
 	////////////////////////////////////////
-	// underlying distribution evaluation and plotting functions
+	// underlying distribution config, evaluation and plotting functions
+	public void setRVFOptionFlags(int[][] _opts) {if(baseDistModel != null) {baseDistModel.setOptionFlags(_opts);}}
 	
 	public void evalAndPlotFuncRes(int numVals, double low, double high, int funcType ) {
 		if(baseDistModel == null) {			probExp.dispMessage("myClassRoster", "evalAndPlotFuncRes", "baseDistModel has not been set/is null.  Aborting",MsgCodes.warning1, true);		}
@@ -82,9 +83,6 @@ class myClassRoster extends mySampleSet{
 	
 	//distribution plot rectangle
 	protected float[] distPlotDimRect;
-	
-//	//types of transforms that have been calculated for this class
-//	protected int[] transPerformed;	
 	
 	//list of possible classifications of grades
 	protected static final String[] transTypes = new String[] {"raw","uniform","uni_scaled"};
@@ -266,6 +264,12 @@ class myClassRoster extends mySampleSet{
 		return false;
 	}//mseClickCheck
 	
+	public void updateAllDistsAndGrades() {
+		for(int barIDX=0;barIDX<gradeBars.length;++barIDX) {
+			updateDistributionAndGrades(barIDX);
+		}
+	}
+	
 	//moving around a raw grade should update the underlying distribution
 	public void updateDistributionAndGrades(int barIDX) {		
 		if (getFlag(rebuildDistWhenMoveIDX)) {
@@ -278,7 +282,7 @@ class myClassRoster extends mySampleSet{
 			} 		//using raw grade, transform student grade appropriately
 			else {		
 				//from transformed uniform to raw distribution
-				transformStudentFromUniToRaw(gradeBars[barIDX]._modStudent);
+				if(gradeBars[barIDX]._modStudent != null) {transformStudentFromUniToRaw(gradeBars[barIDX]._modStudent);}
 				//rebuild summary obj
 				myProbSummary newSummary = getCurGradeProbSummary(transTypes[GB_rawGradeTypeIDX]);
 				baseDistModel.setFuncSummary(newSummary);
@@ -286,13 +290,11 @@ class myClassRoster extends mySampleSet{
 				transformStudentGradesToUniform();			
 			}		//using transformed grade, re-calc raw grade appropriately
 		} else {
-			//else if we do notmodify distribution -  move individual grade without modifying underlying distribution
-			if(barIDX == 0) {	
-				transformStudentFromRawToUni(gradeBars[barIDX]._modStudent);	
-			} 		//using raw grade, transform student grade appropriately
-			else {						
-				transformStudentFromUniToRaw(gradeBars[barIDX]._modStudent);	
-			}		//using transformed grade, re-calc raw grade appropriately
+			if(gradeBars[barIDX]._modStudent != null) {
+				//else if we do notmodify distribution -  move individual grade without modifying underlying distribution
+				if(barIDX == 0) {					transformStudentFromRawToUni(gradeBars[barIDX]._modStudent);	} 		//using raw grade, transform student grade appropriately
+				else {								transformStudentFromUniToRaw(gradeBars[barIDX]._modStudent);	}		//using transformed grade, re-calc raw grade appropriately
+			}
 		}
 	}//updateDistribution
 	
@@ -441,9 +443,11 @@ class myFinalGradeRoster extends myClassRoster {
 	
 	//moving around a raw grade should update the underlying distribution
 	@Override
-	public void updateDistributionAndGrades(int barIDX) {				
-		if(barIDX == 0) {					transformStudentFromRawToUni(gradeBars[barIDX]._modStudent);			} 		//using raw grade, transform student grade appropriately - backward mapping to uniform
-		else {								transformStudentFromUniToRaw(gradeBars[barIDX]._modStudent);			}		//using transformed grade, re-calc raw grade appropriately			
+	public void updateDistributionAndGrades(int barIDX) {	
+		if(gradeBars[barIDX]._modStudent != null) {
+			if(barIDX == 0) {					transformStudentFromRawToUni(gradeBars[barIDX]._modStudent);			} 		//using raw grade, transform student grade appropriately - backward mapping to uniform
+			else {								transformStudentFromUniToRaw(gradeBars[barIDX]._modStudent);			}		//using transformed grade, re-calc raw grade appropriately			
+		}
 	}//updateDistribution	
 	
 	protected double getZScoreFromGrade(myProbSummary tmpSummary, double _transGrade) {	

@@ -76,12 +76,13 @@ public class Grade2DWindow extends myDispWindow {
 			reCalcRandGradeSpread 		= 0,					//recalculate random grades given specified class and student # parameters	
 			reBuildFinalGradeDist		= 1,
 			setCurrGrades				= 2,					//use the current grades as the global grades, so they are preserved when the type of transformation is changed
-			useZScore					= 3,					//whether or not to use the z score calc to transform the uniform final grades
-			rebuildDistOnMove			= 4,					//rebuild class distribution when value is moved
-			//drawing functions
-			drawFuncEval				= 5,					//draw results of function evaluation
-			drawHistEval				= 6;					//draw results of histogram evaluation
-	public static final int numPrivFlags = 7;
+			use1pSineCosCDF				= 3,					//whether to use 1 + sine x or x + sine x model for CosCDF distribution 
+			useZScore					= 4,					//whether or not to use the z score calc to transform the uniform final grades
+			rebuildDistOnMove			= 5,					//rebuild class distribution when value is moved
+			//drawing function
+			drawFuncEval				= 6,					//draw results of function evaluation
+			drawHistEval				= 7;					//draw results of histogram evaluation
+	public static final int numPrivFlags = 8;
 
 	/////////
 	//custom debug/function ui button names -empty will do nothing
@@ -117,12 +118,14 @@ public class Grade2DWindow extends myDispWindow {
 		//grade experiments
 		gradeAvgExperiment = new ClassGradeExperiment(this);
 		setGradeExp(true,true,true, false);
+		
 		//set visibility width and send to experiments - experiment must be built first
 		setVisScreenDimsPriv();			
 		//set offset to use for custom menu objects
 		custMenuOffset = uiClkCoords[3];	
 		//set this to default to moving distribution
 		setPrivFlags(rebuildDistOnMove, true);
+		setPrivFlags(use1pSineCosCDF, true);
 		
 		//moved from mapMgr ctor, to remove dependence on papplet in that object
 		pa.setAllMenuBtnNames(menuBtnNames);	
@@ -134,31 +137,19 @@ public class Grade2DWindow extends myDispWindow {
 	public void initAllPrivBtns() {
 		//give true labels, false labels and specify the indexes of the booleans that should be tied to UI buttons
 		truePrivFlagNames = new String[]{			//needs to be in order of privModFlgIdxs
-				"Rebuilding/reloading Grades",
-				"Rebuilding Final Grade Dist",
-				"Setting Current Grades as Glbl",
-				"Rebuild Class dist on move",
-				"ZScore for final grades",
-				"Eval/Draw Func on Bounds",
-				"Eval/Draw  Distribution"
+				"Rebuilding/reloading Grades","Rebuilding Final Grade Dist","Setting Current Grades as Glbl",
+				"CosCDF 1 + sine x","Rebuild Class dist on move","ZScore for final grades",
+				"Eval/Draw Func on Bounds","Eval/Draw Distribution"
 		};
 		falsePrivFlagNames = new String[]{			//needs to be in order of flags
-				"Rebuild/reload Grades",
-				"Rebuild Final Grade Dist",
-				"Set Current Grades as Glbl",
-				"Don't rebuild class dist on move",
-				"Specific Dist for final grades",
-				"Eval/Draw Func on Bounds",
-				"Eval/Draw Distribution"				
+				"Rebuild/reload Grades","Rebuild Final Grade Dist","Set Current Grades as Glbl",
+				"CosCDF x + sine x","Don't rebuild class dist on move","Specific Dist for final grades",
+				"Eval/Draw Func on Bounds","Eval/Draw Distribution"				
 		};
 		privModFlgIdxs = new int[]{					//idxs of buttons that are able to be interacted with
-				reCalcRandGradeSpread,
-				reBuildFinalGradeDist,
-				setCurrGrades,
-				rebuildDistOnMove,
-				useZScore,
-				drawFuncEval,
-				drawHistEval
+				reCalcRandGradeSpread,reBuildFinalGradeDist,setCurrGrades,
+				use1pSineCosCDF, rebuildDistOnMove,useZScore,
+				drawFuncEval,drawHistEval
 		};
 		numClickBools = privModFlgIdxs.length;	
 		initPrivBtnRects(0,numClickBools);
@@ -189,7 +180,11 @@ public class Grade2DWindow extends myDispWindow {
 					setFinalGradeVals();
 					addPrivBtnToClear(reBuildFinalGradeDist);
 				}
-				break;}			
+				break;}		
+			
+			case use1pSineCosCDF : {
+				gradeAvgExperiment.setCosCDF_RVFOpts(0,(val ? 0 : 1));// 0==1 + sine; 1 == x + sine 
+				break;}
 			
 			case useZScore : {
 				gradeAvgExperiment.setUseZScore(val);
@@ -499,8 +494,6 @@ public class Grade2DWindow extends myDispWindow {
 	protected void closeMe() {
 		//things to do when swapping this window out for another window - release objects that take up a lot of memory, for example.
 	}
-	
-	
 	//modify menu buttons to display whether using CSV or SQL to access raw data
 	private void setCustMenuBtnNames() {
 		//menuBtnNames[mySideBarMenu.btnAuxFunc1Idx][loadRawBtnIDX]=menuLdRawFuncBtnNames[(rawDataSource % menuLdRawFuncBtnNames.length) ];

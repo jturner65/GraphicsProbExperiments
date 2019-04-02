@@ -40,18 +40,20 @@ public abstract class BaseProbExpMgr {
 		linearTransformMap		= 3,	//just performs linear transformation mapping - does not actually represent a random function
 		uniformTransformMap		= 4;	//just performs an order-based transformation from original grade to #/n where # is order in rank (from lowest to highest) and n is total # of grades
     public static final String[] randGenAlgNames = new String[] {"Bounded PDF Algorithm", "Ziggurat Algorithm", "Fleishman Univariate Polynomial Algorithm", "Linear Transformation Mapping", "Uniform Transformation Mapping"};
-	
+	//per algorithm type settings
+    protected int[][] randAlgOptSettings;
+    
     //type of random variable function to use with zig or bounded rand gen algorithm
     public static final int
     	normRandVarIDX			= 0,
     	gaussRandVarIDX			= 1,
-    	cosRandVarIDX			= 2,
+    	raisedCosRandVarIDX		= 2,
 		cosCDFRandVarIDX 		= 3,
 		fleishRandVarIDX		= 4;
     //public static final String[] zigRandVarFuncNames = new String[] {"Normal Distribution", "Gaussian Distribution", "Cosine-PDF Distribution", "Cosine-PDF via sample-derived CDF"};
     	
 	//type of experiment to conduct
-	public static final String[] expType = new String[] {"Gaussian","Linear", "Uniform Spaced","Fleishman Poly","Cosine Mmnts derived","Cosine CDF derived"};
+	public static final String[] expType = new String[] {"Gaussian","Linear", "Uniform Spaced","Fleishman Poly","Raised Cosine PDF","Cosine CDF derived"};
 	//type of plots to show
 	public static final String[] plotType = new String[] {"PDF", "Histogram","CDF (integral)","Inverse CDF"};
 	
@@ -64,8 +66,7 @@ public abstract class BaseProbExpMgr {
 	//time mapMgr built, in millis - used as offset for instant to provide smaller values for timestamp
 	protected final long expMgrBuiltTime;	
 	//state flags used by instancing experiments
-	protected int[] stFlags;					
-	
+	protected int[] stFlags;	
 	
 	//internal to base class state flags - bits in array holding relevant process info restricted to base class
 	private int[] _baseStFlags;						
@@ -90,6 +91,9 @@ public abstract class BaseProbExpMgr {
 		initBaseFlags();
 		//init experiment-specific flags
 		initFlags();
+		//initialize structure to hold settings and options for random variable functions
+		randAlgOptSettings = new int[randGenAlgNames.length][];
+		for(int i=0;i<randAlgOptSettings.length;++i) {			randAlgOptSettings[i]=new int[] {0};		}//will change settings based on individual random variable functions and UI input
 	
 		//for display of time since experiment was built 
 		Instant now = Instant.now();
@@ -103,6 +107,13 @@ public abstract class BaseProbExpMgr {
 	
 	//(re)init this experiment - specific functionality for each instance class
 	public abstract void initExp();
+	//update randGen variables with appropriate values, including RVF Opts
+	protected abstract void updateAllRandGens_Priv();
+	protected void updateAllRandGens() {		
+		updateAllRandGens_Priv();
+		
+	}//
+	
 	
 	//build various quadrature solvers to experiment with different formulations
 	private final void buildSolvers() {
@@ -114,27 +125,57 @@ public abstract class BaseProbExpMgr {
 		buildSolvers_indiv();
 	}//buildSolvers
 	
-	//experiment instance-specific solver building funcitionality
-	protected abstract void buildSolvers_indiv();
+	//set individual random variable function options from UI - resize array if necessary
+	//_randVarFuncIDX corresponds to static int idxs normRandVarIDX, gaussRandVarIDX, etc specified above
+	private void _setRandVarFuncOpts(int _randVarFuncIDX, int _settingIDX, int _settingVal) {
+		if(_settingIDX >= randAlgOptSettings[_randVarFuncIDX].length) {
+			int[] newArray =  new int[_settingIDX+1];//large enough to hold new idx being set
+			for(int i=0;i<randAlgOptSettings[_randVarFuncIDX].length;++i) {		newArray[i]=randAlgOptSettings[_randVarFuncIDX][i];		}
+			randAlgOptSettings[_randVarFuncIDX] = newArray;			
+		}
+		if(randAlgOptSettings[_randVarFuncIDX][_settingIDX] == _settingVal) {return;}//don't update if same value
+		randAlgOptSettings[_randVarFuncIDX][_settingIDX] = _settingVal;	
+		//instance-class specific control to update all rvfs
+		updateAllRandGens();
+	}//setRandVarFuncOpts
 	
+	//public facing, should have one of these for each random variable function type supported
+	public void setNorm_RVFOpts(int _settingIDX, int _settingVal) {_setRandVarFuncOpts(normRandVarIDX, _settingIDX, _settingVal);}
+	public void setGauss_RVFOpts(int _settingIDX, int _settingVal) {_setRandVarFuncOpts(gaussRandVarIDX, _settingIDX, _settingVal);}
+	public void setRaisedCos_RVFOpts(int _settingIDX, int _settingVal) {_setRandVarFuncOpts(raisedCosRandVarIDX, _settingIDX, _settingVal);}
+	public void setCosCDF_RVFOpts(int _settingIDX, int _settingVal) {_setRandVarFuncOpts(cosCDFRandVarIDX, _settingIDX, _settingVal);}
+	public void setFleish_RVFOpts(int _settingIDX, int _settingVal) {_setRandVarFuncOpts(fleishRandVarIDX, _settingIDX, _settingVal);}
+
+	
+	//this will build the appropriate rand variable function option flags to be used when constructing or modifying the random variables based on UI input
+	//different random variable functions will have different options (if any)
+	private int[] getRandVarFuncOpts(int _randVarFuncType) {
+		if(_randVarFuncType == -1) {return new int[] {0};}
+		int[] res = new int[randAlgOptSettings[_randVarFuncType].length];
+		System.arraycopy(randAlgOptSettings[_randVarFuncType], 0, res, 0, randAlgOptSettings[_randVarFuncType].length);		
+		return res;
+	}//buildRandVarFuncOpts
 	
 	public myRandVarFunc buildRandVarType (int _pdfType,  int _quadSlvrIdx, myProbSummary _summaryObj) {
 		//System.out.println("buildRandVarType : " + _pdfType);
+		myRandVarFunc rvf;
 		switch (_pdfType) {		
-		   	case normRandVarIDX		: { return new myNormalFunc(this, quadSlvrs[_quadSlvrIdx]);}
-	    	case gaussRandVarIDX	: { return new myGaussianFunc(this, quadSlvrs[_quadSlvrIdx], _summaryObj);}
-	    	case cosRandVarIDX		: { return new myCosFunc(this, quadSlvrs[_quadSlvrIdx], _summaryObj);}			
-	    	case cosCDFRandVarIDX	: { return new myCosFuncFromCDF(this, quadSlvrs[_quadSlvrIdx], _summaryObj);}
-	    	case fleishRandVarIDX	: { return new myFleishFunc_Uni(this, quadSlvrs[_quadSlvrIdx], _summaryObj, randGenAlgNames[fleishRandGen_UniVar]);}
+		   	case normRandVarIDX			: { rvf = new myNormalFunc(this, quadSlvrs[_quadSlvrIdx]); 		   									break;}
+	    	case gaussRandVarIDX		: { rvf = new myGaussianFunc(this, quadSlvrs[_quadSlvrIdx], _summaryObj);	    					break;}
+	    	case raisedCosRandVarIDX	: { rvf = new myCosFunc(this, quadSlvrs[_quadSlvrIdx], _summaryObj);	    						break;}			
+	    	case cosCDFRandVarIDX		: { rvf = new myCosFuncFromCDF(this, quadSlvrs[_quadSlvrIdx], _summaryObj);	    					break;}
+	    	case fleishRandVarIDX		: { rvf = new myFleishFunc_Uni(this, quadSlvrs[_quadSlvrIdx], _summaryObj, randGenAlgNames[fleishRandGen_UniVar]);	    		break;}
 			default : {return null;}		
 		}
+		rvf.setOptionFlags(getRandVarFuncOpts(_pdfType));
+		return rvf;
 	}//myRandVarFunc
 	
 	//using default GaussLengendre and 256 zig's for ziggurat alg
 	public myRandGen buildAndInitRandGen(int _type, int _pdfType, myProbSummary _summaryObj) {return buildAndInitRandGen(_type, _pdfType, GL_QuadSlvrIDX, 256, _summaryObj);}
 	//must build rand gen through this method
 	public myRandGen buildAndInitRandGen(int _randGenType, int _pdfType, int _quadSlvrIdx, int _numZigRects, myProbSummary _summaryObj) {
-
+		
 		switch (_randGenType) {
 			case boundedRandGen : {
 				//need to build a random variable generator function
@@ -167,7 +208,6 @@ public abstract class BaseProbExpMgr {
 		}//switch
 		
 	}//buildAndInitRandGen
-
 	
 	//set values specific to solver
 	public void setSolverVals(int _numPoints, double _tol, int _BDScale) {
@@ -188,15 +228,15 @@ public abstract class BaseProbExpMgr {
 	
 	//set the experiment-specific quantities dependent on visible width of the display area - use this to shrink visualizations if necessary
 	protected abstract void setVisWidth_Priv();
-
 	//check mouse over/click in 2d experiment; if btn == -1 then mouse over
 	public abstract boolean checkMouseClickInExp2D(int msx, int msy, int btn);
-
 	//check mouse over/click in 2d experiment; if btn == -1 then mouse over
 	public abstract boolean checkMouseDragMoveInExp2D(int msx, int msy, int btn);
-
 	//notify all exps that mouse has been released
 	public abstract void setMouseReleaseInExp2D();
+	//experiment instance-specific solver building funcitionality
+	protected abstract void buildSolvers_indiv();
+
 
 	//sets which solver will be used for integration for this experiment
 	public void setCurSolver(int idx) {

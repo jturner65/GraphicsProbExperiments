@@ -29,11 +29,18 @@ public class myProbExpMgr extends BaseProbExpMgr{
 	
 	//called at end of ctor and whenever experiment needs to be re-instanced
 	@Override
-	public final void initExp() {		
+	public final void initExp() {
 		nrmlGen = buildAndInitRandGen(ziggRandGen, normRandVarIDX, new myProbSummary(new double[] {0,1,0,0},2));	
 		gaussGen = buildAndInitRandGen(ziggRandGen, gaussRandVarIDX, new myProbSummary(new double[] {3,25.9,0,0},2));	
 	}//initExp
 	
+	//update all rand gen objects for this function, including updating rand var funcs
+	@Override
+	protected void updateAllRandGens_Priv() {
+		// TODO Auto-generated method stub
+		
+	}
+
 	//this is called whenever screen width is changed - used to modify visualizations if necessary
 	@Override
 	protected void setVisWidth_Priv() {

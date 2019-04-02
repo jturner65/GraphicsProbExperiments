@@ -55,6 +55,13 @@ public abstract class myRandGen implements Comparable<myRandGen> {
 		 _setFuncSummaryIndiv();
 	}//setFuncSummary
 	
+	//when new options are specified, rebuild functions as if new summary was specified
+	public void setOptionFlags(int[][] _opts) {
+		func.setOptionFlags( _opts[func.getRVFType()]);
+		func.rebuildFuncs(summary);
+		 _setFuncSummaryIndiv();
+	}
+	
 	//called whenever summary object is set/reset
 	public abstract void _setFuncSummaryIndiv();	
 	
@@ -92,7 +99,7 @@ public abstract class myRandGen implements Comparable<myRandGen> {
 //		} 
 //		else if(low > high) {	double s = low;		low = high;		high = s;		}  //swap if necessary
 		//get min/max values based on mean +/- 3.5 stds
-		double[] minMaxVals = func.getPlotValBounds();
+		double[] minMaxVals = func.getPlotValBounds(funcType);
 
 		double[][] funcVals = new double[numVals][2];
 		double xdiff = minMaxVals[1]-minMaxVals[0];//high-low;
@@ -513,7 +520,7 @@ class myFleishUniVarRandGen extends myRandGen{
 //			return;			
 //		} 
 //		else if(low > high) {	double s = low;		low = high;		high = s;		}  //swap if necessary
-		double[] minMaxVals = func.getPlotValBounds();
+		double[] minMaxVals = func.getPlotValBounds(funcType);
 
 		double[][] funcVals = new double[numVals][2];
 		double xdiff = minMaxVals[1]-minMaxVals[0];//high-low;

@@ -22,7 +22,12 @@ public class RayTracerExperiment extends BaseProbExpMgr {
 		// TODO Auto-generated method stub
 
 	}
-
+	//update all rand gen objects for this function, including updating rand var funcs
+	@Override
+	protected void updateAllRandGens_Priv() {
+		// TODO Auto-generated method stub
+		
+	}
 	@Override
 	protected void setVisWidth_Priv() {
 		// TODO Auto-generated method stub
@@ -68,5 +73,6 @@ public class RayTracerExperiment extends BaseProbExpMgr {
 			
 		}//switch
 	}//setFlag
+
 
 }
