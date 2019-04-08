@@ -61,8 +61,7 @@ public abstract class myDispWindow {
 	public float[][] privFlagBtns;									//clickable dimensions for these buttons
 	public int numClickBools;
 	//array of priv buttons to be cleared next frame - should always be empty except when buttons need to be cleared
-	protected ArrayList<Integer> privBtnsToClear;
-	
+	protected ArrayList<Integer> privBtnsToClear;	
 	
 	//edit circle quantities for visual cues when grab and smoothen
 	public static final int[] editCrcFillClrs = new int[] {GraphProbExpMain.gui_FaintMagenta, GraphProbExpMain.gui_FaintGreen};			
@@ -75,6 +74,7 @@ public abstract class myDispWindow {
 	//GUI Objects
 	public myGUIObj[] guiObjs;	
 	public int msClkObj, msOvrObj;												//myGUIObj object that was clicked on  - for modification, object mouse moved over
+	public int msBtnClcked;														//mouse button clicked
 	public float[] uiClkCoords;												//subregion of window where UI objects may be found
 	public static final double uiWidthMult = 9;							//multipler of size of label for width of UI components, when aligning components horizontally
 	
@@ -197,8 +197,6 @@ public abstract class myDispWindow {
 	private void initClrDims(int[] fc,  int[] sc, float[] rd, float[] rdClosed) {
 		fillClr = new int[4];rtSideUIFillClr= new int[4]; rtSideUIStrkClr= new int[4]; strkClr = new int[4];	 
 		rectDim = new float[4];	rectDimClosed = new float[4]; closeBox = new float[4]; uiClkCoords = new float[4];
-		UIRtSideRectBox = new float[4];
-		
 		for(int i =0;i<4;++i){
 			fillClr[i] = fc[i];strkClr[i]=sc[i];
 			rtSideUIFillClr[i] = fc[i];rtSideUIStrkClr[i]=sc[i];			
@@ -368,7 +366,7 @@ public abstract class myDispWindow {
 	//set a list of indexes in private flags array to be a specific value
 	public void setAllPrivFlags(int[] idxs, boolean val) { for(int idx =0;idx<idxs.length;++idx) {setPrivFlags(idxs[idx],val);}}
 
-	//for adding/deleting a screen programatically (loading a song) TODO
+	//for adding/deleting a screen programatically TODO
 	//rebuild arrays of start locs whenever trajectory maps/arrays have changed - passed key is value modded in drwnTrajMap, 
 	//modVal is if this is a deleted screen's map(0), a new map (new screen) at this location (1), or a modified map (added or deleted trajectory) (2)
 	protected void rbldTrnsprtAras(int modScrKey, int modVal){
@@ -565,6 +563,8 @@ public abstract class myDispWindow {
 		for(int i=0;i<guiObjs.length;++i){	res.add(getStrFromUIObj(i));}		
 		//bound for custom components
 		res.add(name + "_custUIComps");
+		//add blank space
+		res.add("");
 		return res;
 	}//
 	
@@ -1039,13 +1039,15 @@ public abstract class myDispWindow {
 		boolean mod = false;
 		if((getFlags(showIDX))&& (msePtInUIRect(mouseX, mouseY))){//in clickable region for UI interaction
 			for(int j=0; j<guiObjs.length; ++j){
-				if(guiObjs[j].checkIn(mouseX, mouseY)){	
-					if(pa.flags[pa.shiftKeyPressed]){//allows for click-mod
-						float mult = mseBtn * -2.0f + 1;	//+1 for left, -1 for right btn	
+				if(guiObjs[j].checkIn(mouseX, mouseY)){						
+					msBtnClcked = mseBtn;
+					if(pa.isClickModUIVal()){//allows for click-mod
+						setUIObjValFromClickAlone(j);
+						//float mult = msBtnClcked * -2.0f + 1;	//+1 for left, -1 for right btn	
 						//pa.outStr2Scr("Mult : " + (mult *pa.clickValModMult()));
-						guiObjs[j].clkModVal(mult * pa.clickValModMult());
+						//guiObjs[j].modVal(mult * pa.clickValModMult());
 						setFlags(uiObjMod,true);
-					} //else {										//has drag mod
+					} //else {										//has drag mod					
 					msClkObj=j;
 					//}
 					return true;	
@@ -1105,13 +1107,28 @@ public abstract class myDispWindow {
 		return mod;
 	}//handleMouseDrag
 	
+	//set all window values for UI objects
+	private void setAllUIWinVals() {for(int i=0;i<guiObjs.length;++i){if(guiObjs[i].getFlags(myGUIObj.usedByWinsIDX)){setUIWinVals(i);}}}
+	//set UI value for object based on non-drag modification such as click - either at initial click or when click is released
+	private void setUIObjValFromClickAlone(int j) {
+		float mult = msBtnClcked * -2.0f + 1;	//+1 for left, -1 for right btn	
+		//pa.outStr2Scr("Mult : " + (mult *pa.clickValModMult()));
+		guiObjs[j].modVal(mult * pa.clickValModMult());
+	}//setUIObjValFromClickAlone
+	
 	public void handleMouseRelease(){
 		if(!getFlags(showIDX)){return;}
 		if(getFlags(uiObjMod)){
-			for(int i=0;i<guiObjs.length;++i){if(guiObjs[i].getFlags(myGUIObj.usedByWinsIDX)){setUIWinVals(i);}}
+			setAllUIWinVals();
 			setFlags(uiObjMod, false);
 			msClkObj = -1;	
 		}//some object was clicked - pass the values out to all windows
+		else if(msClkObj != -1) {//means object was clicked in but not drag modified through drag or shift-clic - use this to modify by clicking
+			setUIObjValFromClickAlone(msClkObj);
+			setAllUIWinVals();
+			setFlags(uiObjMod, false);
+			msClkObj = -1;	
+		}
 		if (getFlags(editingTraj)){    this.tmpDrawnTraj.endEditObj();}    //this process assigns tmpDrawnTraj to owning window's traj array
 		if (getFlags(drawingTraj)){	this.tmpDrawnTraj.endDrawObj(getMsePoint(pa.Mouse()));}	//drawing curve
 		msClkObj = -1;	
