@@ -13,7 +13,7 @@ public class Grade2DWindow extends myDispWindow {
 	// # of classes to build final grade
 	private int numClasses = 3;
 	//eval func IDX
-	private int funcEvalType = 0, funcEvalNumVals = 10000, funcEvalNumBuckets = 100;
+	private int funcEvalType = 1, funcEvalNumVals = 10000, funcEvalNumBuckets = 200;
 	//lower and upper bound for functional evaluation 
 	private double funcEvalLow = -.1f, funcEvalHigh = 1;
 	//index in list of experiments that we are using - 0 corresponds to gaussian, default value
@@ -81,8 +81,11 @@ public class Grade2DWindow extends myDispWindow {
 			rebuildDistOnMove			= 5,					//rebuild class distribution when value is moved
 			//drawing function
 			drawFuncEval				= 6,					//draw results of function evaluation
-			drawHistEval				= 7;					//draw results of histogram evaluation
-	public static final int numPrivFlags = 8;
+			drawHistEval				= 7,					//draw results of histogram evaluation
+			drawMultiEval				= 8;					//draw overlay of multiple results 
+	public static final int numPrivFlags = 9;
+	//idxs of all plots
+	private static final int[] showPlotIDXs = new int[] {drawFuncEval, drawHistEval, drawMultiEval};
 
 	/////////
 	//custom debug/function ui button names -empty will do nothing
@@ -90,7 +93,7 @@ public class Grade2DWindow extends myDispWindow {
 		{},
 		{"Func 01", "Func 02","Func 03"},				//row 1
 		{"Test Inv Fl", "Test Fleish", "Tst Fl Range", "Test COS"},	//row 2
-		{"DBG 1","DBG 2","DBG 3","DBG 4","DBG 5"}	
+		{"Test Zig Seq","DBG 2","DBG 3","DBG 4","DBG 5"}	
 	};
 
 	//class experiment
@@ -139,17 +142,17 @@ public class Grade2DWindow extends myDispWindow {
 		truePrivFlagNames = new String[]{			//needs to be in order of privModFlgIdxs
 				"Rebuilding/reloading Grades","Rebuilding Final Grade Dist","Setting Current Grades as Glbl",
 				"CosCDF 1 + sine x","Rebuild Class dist on move","ZScore for final grades",
-				"Eval/Draw Func on Bounds","Eval/Draw Distribution"
+				"Eval/Draw Func on Bounds","Eval/Draw Distribution","Showing Cos To Gauss Dist"
 		};
 		falsePrivFlagNames = new String[]{			//needs to be in order of flags
 				"Rebuild/reload Grades","Rebuild Final Grade Dist","Set Current Grades as Glbl",
 				"CosCDF x + sine x","Don't rebuild class dist on move","Specific Dist for final grades",
-				"Eval/Draw Func on Bounds","Eval/Draw Distribution"				
+				"Eval/Draw Func on Bounds","Eval/Draw Distribution"	,"Compare Cos To Gauss Dist"			
 		};
 		privModFlgIdxs = new int[]{					//idxs of buttons that are able to be interacted with
 				reCalcRandGradeSpread,reBuildFinalGradeDist,setCurrGrades,
 				use1pSineCosCDF, rebuildDistOnMove,useZScore,
-				drawFuncEval,drawHistEval
+				drawFuncEval,drawHistEval,drawMultiEval
 		};
 		numClickBools = privModFlgIdxs.length;	
 		initPrivBtnRects(0,numClickBools);
@@ -193,31 +196,32 @@ public class Grade2DWindow extends myDispWindow {
 			case drawFuncEval : {
 				//System.out.println("drawFuncEval : " + val + " getPrivFlags(drawHistEval) : " + getPrivFlags(drawHistEval)+ " getPrivFlags(drawFuncEval) : " + getPrivFlags(drawFuncEval));
 				if (val) {
-					setPrivFlags(drawHistEval, false);
-					//first clear existing results					
-					gradeAvgExperiment.clearAllPlotEval();
+					clearAllPlotsButMe(drawFuncEval);
 					//now evaluate new results
-					gradeAvgExperiment.evalPlotClassDists(false, funcEvalType, funcEvalNumVals,funcEvalNumBuckets,funcEvalLow, funcEvalHigh);
+					gradeAvgExperiment.evalPlotClassFuncs(funcEvalType, funcEvalNumVals, funcEvalLow, funcEvalHigh);
 				} else {//turning off
-					if(!getPrivFlags(drawHistEval)) {//if both off then set class experiment draw evals to off
-						gradeAvgExperiment.setShowPlots(false);
-					}
+					if(!isShowingPlots()) {gradeAvgExperiment.setShowPlots(false);}
 				}
 				break;}
 			case drawHistEval : {
 				//System.out.println("drawHistEval : " + val + " getPrivFlags(drawHistEval) : " + getPrivFlags(drawHistEval)+ " getPrivFlags(drawFuncEval) : " + getPrivFlags(drawFuncEval));
 				if (val) {
-					setPrivFlags(drawFuncEval, false);	
-					//first clear existing results					
-					gradeAvgExperiment.clearAllPlotEval();
+					clearAllPlotsButMe(drawHistEval);
 					//now evaluate new results
-					gradeAvgExperiment.evalPlotClassDists(true, funcEvalType, funcEvalNumVals,funcEvalNumBuckets,funcEvalLow, funcEvalHigh);					
+					gradeAvgExperiment.evalPlotClassHists(funcEvalNumVals,funcEvalNumBuckets,funcEvalLow, funcEvalHigh);					
 				} else {//turning off					
-					if(!getPrivFlags(drawFuncEval)) {//if both off then set class experiment draw evals to off
-						gradeAvgExperiment.setShowPlots(false);
-					}
-				}
-				break;}				
+					if(!isShowingPlots()) {gradeAvgExperiment.setShowPlots(false);}				}
+				break;}		
+			
+			case drawMultiEval : {
+				if (val) {
+					clearAllPlotsButMe(drawMultiEval);
+					//now evaluate new results for selected options
+					gradeAvgExperiment.evalCosAndNormWithHist(funcEvalNumVals,funcEvalNumBuckets,funcEvalLow, funcEvalHigh);			
+				} else {//turning off					
+					if(!isShowingPlots()) {gradeAvgExperiment.setShowPlots(false);}				}
+				break;}		
+				
 			case setCurrGrades : {
 				if(val) {
 					gradeAvgExperiment.updateGlblGrades();
@@ -226,6 +230,9 @@ public class Grade2DWindow extends myDispWindow {
 				break;}
 		}//switch
 	}//setPrivFlags
+	
+	private void clearAllPlotsButMe(int meIDX) {for(int idx : showPlotIDXs) {if(idx==meIDX) continue;setPrivFlags(idx, false);}}//clearAllPlotsButMe		
+	private boolean isShowingPlots() {for(int idx : showPlotIDXs) {if(getPrivFlags(idx)) return true;}	return false;}//isShowingPlots
 	
 	//initialize structure to hold modifiable menu regions
 	@Override
@@ -567,6 +574,8 @@ public class Grade2DWindow extends myDispWindow {
 			pa.outStr2Scr("Clicked Btn row : Debug | Btn : " + btn);
 			switch(btn){
 				case 0 : {	
+					//test sequential ziggurat values
+					gradeAvgExperiment.testSeqZigGen();
 					resetButtonState();
 					break;}
 				case 1 : {	

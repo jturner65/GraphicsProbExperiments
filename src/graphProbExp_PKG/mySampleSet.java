@@ -1,6 +1,6 @@
 package graphProbExp_PKG;
 
-import java.util.HashMap;
+import java.util.*;
 
 
 /**
@@ -17,39 +17,64 @@ public abstract class mySampleSet implements Comparable<mySampleSet> {
 	//sample set name
 	public final String name;
 	//rand gen used to model underlying grade distribution for this class
-	protected myRandGen baseDistModel;
+	protected HashMap<String, myRandGen> baseDistModels;
+	//currently used dist model
+	protected String curDistModel;
 
 	public mySampleSet(GraphProbExpMain _pa, BaseProbExpMgr _probExp, String _name) {
 		pa =_pa;probExp=_probExp;
-		ObjID = IDCnt++;  name=_name;		
+		ObjID = IDCnt++;  name=_name;	
+		curDistModel = "";
+		baseDistModels = new HashMap<String, myRandGen>();
 	}//ctor
 	
 	//when new transform added, need to clear out existing transformed grades
-	public void setBaseDistModel(myRandGen _randGen) {		
-		baseDistModel = _randGen;
+	public void setBaseDistModel(myRandGen _randGen) {
+		curDistModel = _randGen.name;
+		baseDistModels.put(curDistModel, _randGen);
 		setBaseDistModel_Indiv();
-	}//setRandGenAndType	
+	}//setRandGenAndType
 	
+	public void setCurDistModel(String desMdlName) {
+		if(null==baseDistModels.get(desMdlName)) {
+			probExp.dispMessage("myClassRoster", "setCurDistModel", "Desired base dist model : " + desMdlName+" has not been set/is null.  Aborting",MsgCodes.warning1, true);	return;
+		}
+		curDistModel = desMdlName;
+	}
+	public String getCurDistModel() {return curDistModel;}
 	//instance class specific functionality for setting base distribution model
 	protected abstract void setBaseDistModel_Indiv();
 	
 	////////////////////////////////////////
 	// underlying distribution config, evaluation and plotting functions
-	public void setRVFOptionFlags(int[][] _opts) {if(baseDistModel != null) {baseDistModel.setOptionFlags(_opts);}}
+	public void setRVFOptionFlags(int[][] _opts) {
+		myRandGen baseDistModel = baseDistModels.get(curDistModel);
+		if(baseDistModel != null) {baseDistModel.setOptionFlags(_opts);}}
 	
-	public void evalAndPlotFuncRes(int numVals, double low, double high, int funcType ) {
-		if(baseDistModel == null) {			probExp.dispMessage("myClassRoster", "evalAndPlotFuncRes", "baseDistModel has not been set/is null.  Aborting",MsgCodes.warning1, true);		}
+	//this will evaluate the cosine and the gaussian functions against a histogram, showing the performance of these functions when built from a histogram data
+	public void evalCosAndNormWithHist(int numVals, int numBuckets, double low, double high) {
+		//we wish to build a histogram of current gaussian distribution, then we wish to superimpose the gaussian pdf curve over the histogram, and then superimpose the cosine pdf curve
+		myRandGen baseDistModel = baseDistModels.get(curDistModel);
+		myBoundedRandGen cosGen = (myBoundedRandGen) baseDistModels.get("Bounded PDF Algorithm");
+		baseDistModel.buildFuncHistCosPlot(numVals, numBuckets, low, high, cosGen);
+		
+	}//evalCosAndNormWithHist
+	
+	
+	public void evalAndPlotFuncRes(int numVals, double low, double high, int funcType) {
+		myRandGen baseDistModel = baseDistModels.get(curDistModel);
+		if(baseDistModel == null) {			probExp.dispMessage("myClassRoster", "evalAndPlotFuncRes", "curDistModel has not been set/is null.  Aborting",MsgCodes.warning1, true);	return;	}
 		baseDistModel.calcFuncValsForDisp(numVals, low, high, funcType);		
 	}
 	public void evalAndPlotHistRes(int numVals, int numBuckets) {
-		if(baseDistModel == null) {			probExp.dispMessage("myClassRoster", "evalAndPlotHistRes", "baseDistModel has not been set/is null.  Aborting",MsgCodes.warning1, true);		}		
-		baseDistModel.calcDistValsForDisp(numVals, numBuckets);
+		myRandGen baseDistModel = baseDistModels.get(curDistModel);
+		if(baseDistModel == null) {			probExp.dispMessage("myClassRoster", "evalAndPlotHistRes", "curDistModel has not been set/is null.  Aborting",MsgCodes.warning1, true);	return;	}		
+		baseDistModel.calcHistValsForDisp(numVals, numBuckets);
 	}
 	
-	public void clearPlotEval() {	baseDistModel.clearPlotEval();	}	
+	public void clearPlotEval() {baseDistModels.get(curDistModel).clearPlotEval();	}	
 	//draw plot results from functional histogram/evaluation of baseDistModel
-	public void drawPlotRes() {	baseDistModel.drawDist(pa);}
-	
+	public void drawPlotRes() {baseDistModels.get(curDistModel).drawDist(pa);}	
 	
 	//incase we wish to store class sample sets in sorted mechanism
 	@Override
@@ -112,7 +137,6 @@ class myClassRoster extends mySampleSet{
 	
 	public myClassRoster(GraphProbExpMain _pa, BaseProbExpMgr _gradeExp, String _name, float[][] _barLocs) {
 		super(_pa, _gradeExp, _name);
-
 		initFlags();
 		//visualization stuff
 		distPlotDimRect = new float[] {_barLocs[2][0], _barLocs[2][1],probExp.getVisibleSreenWidth(),ClassGradeExperiment.distBtwnAdjPlots};
@@ -134,18 +158,19 @@ class myClassRoster extends mySampleSet{
 	public void setDispWidth(float _dispWidth) {
 		for(int i=0;i<gradeBars.length;++i) {			gradeBars[i].setDispWidth(_dispWidth);		}
 		//also for plot res object
-		baseDistModel.dataVisSetDispWidth(_dispWidth);
+		baseDistModels.get(curDistModel).dataVisSetDispWidth(_dispWidth);
 	}//setBarWidth
 	
 	//when new transform added, need to clear out existing transformed grades
 	@Override
 	protected void setBaseDistModel_Indiv() {	
-		baseDistModel.buildDistVisObj(distPlotDimRect);
+		baseDistModels.get(curDistModel).buildDistVisObj(distPlotDimRect);
 		updateName();
 		setFlag(rawGradeDistMdlSetIDX, true);
 	}//setRandGenAndType	
 	
 	protected void updateName() {
+		myRandGen baseDistModel = baseDistModels.get(curDistModel);
 		for(int i=0;i<gradeBars.length;++i) {
 			String newVisName = "Vis of "+transTypes[i]+" grades for class :"+name+"|Dist Mdl :"+ baseDistModel.getDispTransName();
 			gradeBars[i].updateName(newVisName);
@@ -183,29 +208,31 @@ class myClassRoster extends mySampleSet{
 	
 	//transform all students in this class using passed rand gen's function to uniform from base distribution
 	public void transformStudentGradesToUniform() {
-		for (myStudent s : students.values()) { transformStudentFromRawToUni(s);}
+		myRandGen baseDistModel = baseDistModels.get(curDistModel);
+		for (myStudent s : students.values()) { transformStudentFromRawToUni(s,baseDistModel);}
 		setFlag(classRawIsTransformedIDX, true);
 		updateFinalGrades();
 	}//transformStudentGrades
 	
 	//transform all students in this class using passed rand gen's function to uniform from base distribution
 	public void transformStudentGradesFromUniform() {
-		for (myStudent s : students.values()) { transformStudentFromUniToRaw(s);}
+		myRandGen baseDistModel = baseDistModels.get(curDistModel);
+		for (myStudent s : students.values()) { transformStudentFromUniToRaw(s,baseDistModel);}
 		setFlag(classRawIsTransformedIDX, true);
 		updateFinalGrades();
 	}//transformStudentGrades
 	
 	//TODO need to retransform student when student is moved - need to set randGen and _type
-	public void transformStudentFromRawToUni(myStudent s) {
+	public void transformStudentFromRawToUni(myStudent s,myRandGen baseDistModel) {
 		double _rawGrade = s.getTransformedGrade(transTypes[GB_rawGradeTypeIDX], this);
-		//double _newGrade = randGen.inverseCDF(_rawGrade);
+		//double _newGrade = randGen.inverseCDF(_rawGrade);		
 		double _newGrade = baseDistModel.CDF(_rawGrade);
 		s.setTransformedGrade(transTypes[GB_uniTransGradeTypeIDX], this, _newGrade);
 		updateFinalGrades();
 	}//transformStudent
 	
 	//find appropriate value for raw student grade given transformed uniform grade
-	public void transformStudentFromUniToRaw(myStudent s) {
+	public void transformStudentFromUniToRaw(myStudent s,myRandGen baseDistModel) {
 		double _transGrade = s.getTransformedGrade(transTypes[GB_uniTransGradeTypeIDX], this);
 		//double _newGrade = randGen.CDF(_transGrade);
 		double _newGrade = baseDistModel.inverseCDF(_transGrade);
@@ -265,13 +292,12 @@ class myClassRoster extends mySampleSet{
 	}//mseClickCheck
 	
 	public void updateAllDistsAndGrades() {
-		for(int barIDX=0;barIDX<gradeBars.length;++barIDX) {
-			updateDistributionAndGrades(barIDX);
-		}
+		for(int barIDX=0;barIDX<gradeBars.length;++barIDX) {	updateDistributionAndGrades(barIDX);}
 	}
 	
 	//moving around a raw grade should update the underlying distribution
 	public void updateDistributionAndGrades(int barIDX) {		
+		myRandGen baseDistModel = baseDistModels.get(curDistModel);
 		if (getFlag(rebuildDistWhenMoveIDX)) {
 			//if we are modifying distribution
 			if(barIDX == 0) {				
@@ -282,7 +308,7 @@ class myClassRoster extends mySampleSet{
 			} 		//using raw grade, transform student grade appropriately
 			else {		
 				//from transformed uniform to raw distribution
-				if(gradeBars[barIDX]._modStudent != null) {transformStudentFromUniToRaw(gradeBars[barIDX]._modStudent);}
+				if(gradeBars[barIDX]._modStudent != null) {transformStudentFromUniToRaw(gradeBars[barIDX]._modStudent, baseDistModel);}
 				//rebuild summary obj
 				myProbSummary newSummary = getCurGradeProbSummary(transTypes[GB_rawGradeTypeIDX]);
 				baseDistModel.setFuncSummary(newSummary);
@@ -292,8 +318,8 @@ class myClassRoster extends mySampleSet{
 		} else {
 			if(gradeBars[barIDX]._modStudent != null) {
 				//else if we do notmodify distribution -  move individual grade without modifying underlying distribution
-				if(barIDX == 0) {					transformStudentFromRawToUni(gradeBars[barIDX]._modStudent);	} 		//using raw grade, transform student grade appropriately
-				else {								transformStudentFromUniToRaw(gradeBars[barIDX]._modStudent);	}		//using transformed grade, re-calc raw grade appropriately
+				if(barIDX == 0) {					transformStudentFromRawToUni(gradeBars[barIDX]._modStudent, baseDistModel);	} 		//using raw grade, transform student grade appropriately
+				else {								transformStudentFromUniToRaw(gradeBars[barIDX]._modStudent, baseDistModel);	}		//using transformed grade, re-calc raw grade appropriately
 			}
 		}
 	}//updateDistribution
@@ -424,6 +450,7 @@ class myFinalGradeRoster extends myClassRoster {
 				s.setTransformedGrade(transTypes[GB_rawGradeTypeIDX],this, _newGrade);
 			}			
 		} else {
+			myRandGen baseDistModel = baseDistModels.get(curDistModel);
 			if(null==baseDistModel) {	probExp.dispMessage("myFinalGradeRoster","calcTotalGrades","baseDistModel == null", MsgCodes.info1);	return;}
 			//baseDistModel.setFuncSummary(tmpSummary);
 			updateName();
@@ -444,9 +471,10 @@ class myFinalGradeRoster extends myClassRoster {
 	//moving around a raw grade should update the underlying distribution
 	@Override
 	public void updateDistributionAndGrades(int barIDX) {	
+		myRandGen baseDistModel = baseDistModels.get(curDistModel);
 		if(gradeBars[barIDX]._modStudent != null) {
-			if(barIDX == 0) {					transformStudentFromRawToUni(gradeBars[barIDX]._modStudent);			} 		//using raw grade, transform student grade appropriately - backward mapping to uniform
-			else {								transformStudentFromUniToRaw(gradeBars[barIDX]._modStudent);			}		//using transformed grade, re-calc raw grade appropriately			
+			if(barIDX == 0) {					transformStudentFromRawToUni(gradeBars[barIDX]._modStudent,baseDistModel);			} 		//using raw grade, transform student grade appropriately - backward mapping to uniform
+			else {								transformStudentFromUniToRaw(gradeBars[barIDX]._modStudent,baseDistModel);			}		//using transformed grade, re-calc raw grade appropriately			
 		}
 	}//updateDistribution	
 	
@@ -463,13 +491,13 @@ class myFinalGradeRoster extends myClassRoster {
 	}
 	
 	@Override
-	public void transformStudentFromRawToUni(myStudent s) {
+	public void transformStudentFromRawToUni(myStudent s, myRandGen baseDistModel) {
 		double _rawGrade = s.getTransformedGrade(transTypes[GB_rawGradeTypeIDX], this),_newGrade;
 		if (useZScore){
 			myProbSummary tmpSummary = getCurGradeProbSummary(transTypes[GB_uniTransGradeTypeIDX]);
 			_newGrade = getGradeFromZScore(tmpSummary, _rawGrade);
 		} else {
-			_newGrade = baseDistModel.CDF(_rawGrade);
+			_newGrade = baseDistModels.get(curDistModel).CDF(_rawGrade);
 		}
 		s.setTransformedGrade(transTypes[GB_uniTransGradeTypeIDX], this, _newGrade);
 		updateFinalGrades();
@@ -477,9 +505,8 @@ class myFinalGradeRoster extends myClassRoster {
 	
 	//find appropriate value for raw student grade given transformed uniform grade
 	@Override
-	public void transformStudentFromUniToRaw(myStudent s) {
+	public void transformStudentFromUniToRaw(myStudent s,myRandGen baseDistModel) {
 		//changes here should modify individual class uniform grades using s.disperseFromTotalGrade(this)
-		
 		double _transGrade = s.getTransformedGrade(transTypes[GB_uniTransGradeTypeIDX], this);
 		double _newGrade;
 		if (useZScore){

@@ -1,5 +1,7 @@
 package graphProbExp_PKG;
 
+import java.util.*;
+
 /**
  * this class will provide I/O functionality for graphical representations of distributions
  * ultimately an instancing object of this class should be able to be placed somewhere on a 2D screen
@@ -253,112 +255,103 @@ class gradeBar extends myVisMgr {
  * @author john
  *
  */
-class myDistVis extends myVisMgr {
-	//the func to draw
+class myDistFuncHistVis extends myVisMgr {
+	//the func to draw that owns this visMgr
 	private final myRandGen randGen;
 	//graph frame dims
-	private float[] frameDims = new float[4];
+	protected float[] frameDims = new float[4];
 	//bounds for graph box - left, top, right, bottom
-	private static final float[] frmBnds = new float[] {60.0f, 30.0f, 20.0f, 20.0f};
-	//x,y vals for calculation - n x 2 array, n points of x=0 idx, y=1 idx values; min, max, diff values of func eval (in x=idx 0 and in y = idx 1)
-	private double[][] funcVals, axisDispVals,minMaxDiffFuncVals;
-	//x,y vals for display - n x 2 array, n points of x=0 idx, y=1 idx values - x=0 -> dispWidth; y=0->dispHeight; axis values, to be displayed at equally space intervals along axis
-	private float[][] dispVals,  axisVals;
-	//y and x values for display of x and y "0" axes, respectively
-	private float[] zeroAxisVals;
-	//whether this is currently display function values or histogram values
-	private boolean showHist;
-	//format strings for x and y values to display on graphs
-	private final String fmtXStr = "%3.4f", fmtYStr = "%3.4f";
-	//axis tick dim on either side of axis
-	private static final float tic = 5.0f;
-	//whether or not to draw special axes (if shown in graph)
-	private boolean[] drawZeroAxes;
+	protected static final float[] frmBnds = new float[] {60.0f, 30.0f, 20.0f, 20.0f};
+		
+	//whether this is currently display function values or histogram values; show specific plots
+	private boolean showHist, showSpecifiedPlots;
+	//which plots to show
+	private String[] specifiedPlots;
+	//vis objects to render each function/histogram graph
+	private TreeMap<String, myBaseDistVisObj> distVisObjs;
+	//string keys representing current function and hist keys for plots to show
+	private String funcKey, histKey;
 	
-	
-	public myDistVis(float[] _dims, myRandGen _gen) {
+	public myDistFuncHistVis(float[] _dims, myRandGen _gen) {
 		super(new float[] {_dims[0],_dims[1],_dims[2], _dims[3]},"Vis of " + _gen.name);
+		initDistVisObjs();		
 		setGraphFrameDims();
 		randGen=_gen;
+		
 	}//ctor
+	
+	private void initDistVisObjs() {
+		distVisObjs = new TreeMap<String, myBaseDistVisObj>();
+		specifiedPlots = new String[0];
+	}//initDistVisObjs
 
 	private void setGraphFrameDims() {//start x, start y, width, height
-		frameDims = new float[] {frmBnds[0], frmBnds[1], startRect[2]-frmBnds[0]-frmBnds[2], startRect[3]-frmBnds[1]-frmBnds[3]};  		
+		frameDims = new float[] {frmBnds[0], frmBnds[1], startRect[2]-frmBnds[0]-frmBnds[2], startRect[3]-frmBnds[1]-frmBnds[3]}; 
+		if(distVisObjs!=null) {
+			for (String key : distVisObjs.keySet()) {distVisObjs.get(key).setFrameDims(frameDims);}
+		}
 	}
 	
-	//
+	//set the current strings to display for multi disp
+	public void setCurMultiDispVis(String[] _distStrList, double[][] _minMaxDiff) {
+		specifiedPlots = _distStrList;
+		if(_minMaxDiff != null) {
+			for(String key : specifiedPlots) {	
+				if(key.equals(histKey)) {continue;}
+				distVisObjs.get(key).setMinMaxDiffVals(_minMaxDiff);	
+				
+			}
+		}
+		showSpecifiedPlots = true;	
+	}//setCurDispVis
+	//clear out list of multi-dist plots to show, and turn off function
+	public void clearCurDispVis() {
+		specifiedPlots = new String[0];
+		showSpecifiedPlots = false;			
+	}//clearCurDispVis
+	
+//
 	//set function and display values from randGen; scale function values to properly display in frame
 	//_funcVals : x and y values of function to be plotted; 
 	//_minMaxDiffFuncVals : min, max, diff y values of function to be plotted, for scaling
-	public void setValuesFunc(double[][] _funcVals, double[][] _minMaxDiffFuncVals) {
-		funcVals = _funcVals;
-		minMaxDiffFuncVals = _minMaxDiffFuncVals;
-		
-		rescaleDispValues();
+	public void setValuesFunc(String _funcKey, int[][] dispClrs, double[][] _funcVals, double[][] _minMaxDiffFuncVals) {
+		funcKey = _funcKey;
+		myBaseDistVisObj funcObj = distVisObjs.get(funcKey);
+		if(funcObj == null) { 
+			funcObj = new myFuncVisObj(this, dispClrs);distVisObjs.put(funcKey,funcObj);
+		} 		
+		funcObj.setVals(_funcVals, _minMaxDiffFuncVals);
 		showHist = false;
+		showSpecifiedPlots = false;			
 		setIsVisible(true);
 	}//setValuesFunc
+	
+	public void setColorVals(String _functype,String _clrtype, int[] _clr) {
+		switch(_clrtype.toLowerCase()) {
+		case "fill":{		distVisObjs.get(_functype).setFillColor(_clr);		break;}
+		case "stroke":{		distVisObjs.get(_functype).setStrkColor(_clr);		break;}
+		}
+	}
 	
 	//set values to display a distribution result - display histogram
 	//_bucketVals : n buckets(1st idx); idx2 : idx 0 is lower x value of bucket, y value is count; last entry should always have 0 count
 	//_minMaxFuncVals : 1st array is x min,max, diff; 2nd array is y axis min, max, diff
-	public void setValuesHist(double[][] _bucketVals, double[][] _minMaxDiffFuncVals) {
-		funcVals = _bucketVals;		
-		minMaxDiffFuncVals = _minMaxDiffFuncVals;
-		
-		//each dispValue should be min x position along x axis for hist, and height of bar scaled to fit in frame
-		rescaleDispValues();
+	public void setValuesHist(String _histKey, int[][] dispClrs, double[][] _bucketVals, double[][] _minMaxDiffHistVals) {
+		histKey = _histKey;
+		myBaseDistVisObj histObj = distVisObjs.get(histKey);
+		if(histObj == null) { histObj = new myHistVisObj(this, dispClrs);distVisObjs.put(histKey,histObj);} 		
+		histObj.setVals(_bucketVals, _minMaxDiffHistVals);
 		showHist = true;
+		showSpecifiedPlots = false;			
 		setIsVisible(true);
 	}//setValuesHist
 	
-	//build axis values to display along axes
-	private void buildAxisVals() {
-		int numAxisVals = 21;
-		axisVals = new float[numAxisVals][2];
-		axisDispVals = new double[numAxisVals][2]; 
-		zeroAxisVals = new float[2];
-		
-		float[] denom = new float[] {frameDims[2]/(numAxisVals-1), -(frameDims[3]/(numAxisVals-1)*.95f)};
-		for(int i=0;i<axisVals.length;++i) {
-			float iterDenom = i/(1.0f*numAxisVals-1);
-			for (int j=0;j<2;++j) {
-				//location of tick line
-				axisVals[i][j] = i*denom[j];	//j == x,y
-				//value to display
-				axisDispVals[i][j] = minMaxDiffFuncVals[j][0] + (iterDenom *minMaxDiffFuncVals[j][2]);	
-			}	
-		}	
-		for(int i=0;i<2;++i) {
-			zeroAxisVals[(i+1)%2] = (float) ((-minMaxDiffFuncVals[i][0]/minMaxDiffFuncVals[i][2])*denom[i] * (numAxisVals-1));
-		}
-	}//buildAxisVals	
-	
-	private void rescaleDispValues() {	
-		dispVals = new float[funcVals.length][2];//x,y values for each point
-		drawZeroAxes = new boolean[2];
-		for(int i=0;i<dispVals.length;++i) {	
-			float scaleX = (float) ((funcVals[i][0] - minMaxDiffFuncVals[0][0])/minMaxDiffFuncVals[0][2]);
-			dispVals[i][0] = scaleX*frameDims[2];
-			//set y values to be negative so will display properly (up instead of down)
-			//how much to scale height
-			float scaleY = -(float) ((funcVals[i][1] - minMaxDiffFuncVals[1][0])/minMaxDiffFuncVals[1][2]);
-			dispVals[i][1] =  scaleY*frameDims[3]*.95f;		
-		}	
-		//check whether or not we will build display axes
-		for (int i=0;i<drawZeroAxes.length;++i) {		drawZeroAxes[(i+1)%2] = ((minMaxDiffFuncVals[i][0] < 0) && (minMaxDiffFuncVals[i][1] > 0));		}
-		
-		buildAxisVals();
-	}//rescaleDispValues
-	
 	//clear precalced values for visualization
 	public void clearEvalVals() {
-		funcVals = new double[0][0];
-		dispVals = new float[0][0];
-		axisVals = new float[0][0];
-		axisDispVals = new double[0][0]; 
-		minMaxDiffFuncVals = new double[2][3];
+		System.out.println("clearEvalVals called");
+		for (String key : distVisObjs.keySet()) {distVisObjs.get(key).clearEvalVals();}
 		showHist = false;
+		clearCurDispVis();
 		setIsVisible(false);
 	}//clearVals
 	
@@ -383,52 +376,175 @@ class myDistVis extends myVisMgr {
 
 	@Override
 	protected void _setDispWidthIndiv(float dispWidth) {	
-		//resize frame
-		setGraphFrameDims();
-		//rescale any values 
-		if(funcVals == null) {clearEvalVals();}
-		rescaleDispValues();		
+		//resize frame and pass on to disp objects
+		setGraphFrameDims();	
 	}//_setDispWidthIndiv
 	
+	public void setSpecificMinMaxDiff(String key, double[][] _minMaxDiff) {
+		myBaseDistVisObj obj = distVisObjs.get(key);
+		if(null==obj) {System.out.println("Error attempting to set minMaxDiff ara for vis obj key "+ key +" : Object doesn't exist.  Aborting"); return;}
+		obj.setMinMaxDiffVals(_minMaxDiff);
+	}
 	
-	//draw functional result
-	private void _drawFunc(GraphProbExpMain pa) {
+	public double[][] getSpecificMinMaxDiff(String key){
+		myBaseDistVisObj obj = distVisObjs.get(key);
+		if(null==obj) {System.out.println("Error attempting to get minMaxDiff ara for vis obj key "+ key +" : Object doesn't exist.  Aborting"); return new double[0][];}
+		return obj.getMinMaxDiffVals();
+	}
+		
+	@Override
+	public void _drawVisIndiv(GraphProbExpMain pa) {
 		pa.setFill(clr_black);
-		pa.point(dispVals[0][0], dispVals[0][1], 0);
-		for (int idx = 1; idx <dispVals.length;++idx) {	
-			//draw point 			
-			pa.point(dispVals[idx][0], dispVals[idx][1], 0);
-			//draw line between points
-			pa.line(dispVals[idx-1][0], dispVals[idx-1][1], 0, dispVals[idx][0], dispVals[idx][1], 0);
-		}			
-		drawAxes(pa);
-	}//_drawFunc
+		pa.setStroke(clr_white);
 	
-	//draw histogram of random value results
-	private void _drawHist(GraphProbExpMain pa) {
-		//draw all histogram values - x == bucket spans, y = count
-		pa.setFill(clr_red);
-		for (int idx = 0; idx <dispVals.length-1;++idx) {	
-			pa.rect(dispVals[idx][0], 0, (dispVals[idx+1][0]-dispVals[idx][0]), dispVals[idx][1]);			
+		//draw box around graph area
+		pa.rect(frameDims);
+		pa.pushMatrix();pa.pushStyle();
+		pa.translate(frameDims[0],frameDims[1]+frameDims[3], 0.0f);
+		//pa.sphere(3.0f);	
+		if(showSpecifiedPlots) {
+			for(String key : specifiedPlots) {			distVisObjs.get(key).drawMe(pa, true);		}
+//			float _yLocOfXZero = baseObj.zeroAxisVals[0], _xLocOfYZero = baseObj.zeroAxisVals[1];
+//			for(String key : specifiedPlots) {distVisObjs.get(key).drawMeAligned(pa, _yLocOfXZero, _xLocOfYZero);}
+			
+		} 
+		else if (showHist) {			distVisObjs.get(histKey).drawMe(pa, false);			} 
+		else {							distVisObjs.get(funcKey).drawMe(pa, false);		}
+
+		pa.popStyle();pa.popMatrix();
+	}//_drawVisIndiv
+	
+}//myDistFuncHistVis
+
+//manage the visualization of a single distribution evaluation, either a histogram or a functional evaluation
+abstract class myBaseDistVisObj{
+	protected myDistFuncHistVis owner;
+	//location of axis ticks
+	private float[][] axisVals;
+	//axis tick value to display
+	private double[][] axisDispVals;
+	//x,y vals for calculation - n x 2 array, n points of x=0 idx, y=1 idx values; min, max, diff values of func eval (in x=idx 0 and in y = idx 1)
+	private double[][] vals, minMaxDiffVals;
+	//x,y vals for display - n x 2 array, n points of x=0 idx, y=1 idx values - x=0 -> dispWidth; y=0->dispHeight; axis values, to be displayed at equally space intervals along axis
+	protected float[][] dispVals;
+	//y and x values for display of x and y "0" axes, respectively
+	protected float[] zeroAxisVals;	
+	//whether or not to draw special axes (if shown in graph)
+	private boolean[] drawZeroAxes;
+	//graph frame dims
+	private float[] frameDims = new float[4];
+	//format strings for x and y values to display on graphs
+	private final String fmtXStr = "%3.4f", fmtYStr = "%3.4f";
+	//axis tick dim on either side of axis
+	private static final float tic = 5.0f;
+	//# of values to display on axis
+	protected static final int numAxisVals = 21;
+	
+	//colors for display
+	protected int[] fillClr, strkClr;
+
+	
+	public myBaseDistVisObj(myDistFuncHistVis _owner, int[][] _clrs) {
+		owner=_owner;
+		clearEvalVals();
+		setFrameDims(owner.frameDims);
+		fillClr = _clrs[0];
+		strkClr = _clrs[1];
+	}//ctor
+
+	public void setFrameDims(float[] _fd) {frameDims = _fd;rescaleDispValues(minMaxDiffVals);}
+	
+	public void setVals(double[][] _Vals, double[][] _minMaxDiffVals) {
+		vals = _Vals;
+		minMaxDiffVals = _minMaxDiffVals;
+		rescaleDispValues(minMaxDiffVals);		
+	}
+	
+	public void setFillColor(int[] _clr) {fillClr =_clr;}
+	public void setStrkColor(int[] _clr) {strkClr =_clr;}
+	
+	private float _calcScale(double x, double min, double diff) {return	(float)((x-min)/diff);}
+	
+	public void clearEvalVals() {
+		vals = new double[0][0];
+		dispVals = new float[0][0];
+		axisVals = new float[0][0];
+		axisDispVals = new double[0][0]; 
+		minMaxDiffVals = new double[2][3];
+	}//clearVals
+	
+	public void rescaleDispValues(double[][] _minMaxDiffVals) {	
+		dispVals = new float[vals.length][2];//x,y values for each point
+		drawZeroAxes = new boolean[2];
+		for(int i=0;i<vals.length;++i) {	
+			//float scaleX = (float) ((funcVals[i][0] - minMaxDiffFuncVals[0][0])/minMaxDiffFuncVals[0][2]);
+			float scaleX = _calcScale(vals[i][0], _minMaxDiffVals[0][0],_minMaxDiffVals[0][2]);
+			dispVals[i][0] = scaleX*frameDims[2];
+			//set y values to be negative so will display properly (up instead of down)
+			//how much to scale height
+			//float scaleY = -(float) ((funcVals[i][1] - minMaxDiffFuncVals[1][0])/minMaxDiffFuncVals[1][2]);
+			float scaleY = -_calcScale(vals[i][1], _minMaxDiffVals[1][0],_minMaxDiffVals[1][2]);
+			dispVals[i][1] =  scaleY*frameDims[3]*.95f;		
+		}	
+		//check whether or not we will build display axes
+		for (int i=0;i<drawZeroAxes.length;++i) {		drawZeroAxes[(i+1)%2] = ((_minMaxDiffVals[i][0] < 0) && (_minMaxDiffVals[i][1] > 0));		}
+		//build values for axes display - location and value - now that 
+		buildAxisVals(_minMaxDiffVals);
+	}//rescaleDispValues
+	
+	//build axis values to display along axes - min/max/diff vals need to be built
+	private void buildAxisVals(double[][] _minMaxDiffVals) {
+		axisVals = new float[numAxisVals][2];
+		axisDispVals = new double[numAxisVals][2]; 
+		zeroAxisVals = new float[2];
+		float _denom = (1.0f*numAxisVals-1);
+		//width between ticks for x and y
+		float[] rawDimAra = new float[] {frameDims[2], -(frameDims[3]*.95f)};
+		float[] denomAra = new float[] {rawDimAra[0]/_denom, rawDimAra[1]/_denom};
+		for(int i=0;i<axisVals.length;++i) {
+			float iterDenom = i/_denom;
+			for (int j=0;j<2;++j) {//j == x=0,y=1 
+				//location of tick line
+				axisVals[i][j] = i*denomAra[j];	
+				//value to display
+				axisDispVals[i][j] = _minMaxDiffVals[j][0] + (iterDenom *_minMaxDiffVals[j][2]);	
+			}	
+		}	
+		for(int i=0;i<2;++i) {
+			//zeroAxisVals[(i+1)%2] = (float) ((-minMaxDiffFuncVals[i][0]/minMaxDiffFuncVals[i][2])*rawDimAra[i]);
+			zeroAxisVals[(i+1)%2] = _calcScale(0, _minMaxDiffVals[i][0],_minMaxDiffVals[i][2])*rawDimAra[i];
 		}
-		drawAxes(pa);
-	}//_drawFunc
+	}//buildAxisVals
 	
+	public double[][] getMinMaxDiffVals(){ return minMaxDiffVals;}	
+	public void setMinMaxDiffVals(double[][] _minMaxDiffVals) {
+		minMaxDiffVals = new double[_minMaxDiffVals.length][];
+		for(int i=0;i<minMaxDiffVals.length;++i) {
+			int len = _minMaxDiffVals[i].length;
+			minMaxDiffVals[i] = new double[len];
+			System.arraycopy(_minMaxDiffVals[i], 0, minMaxDiffVals[i], 0, len);
+		}
+		rescaleDispValues(minMaxDiffVals);	
+	}
+	
+	///////////////////
+	// drawing routines
+
 	//draw axis lines through 0,0 and give tags
-	private void _drawZeroY(GraphProbExpMain pa) {
+	private void _drawZeroLines(GraphProbExpMain pa) {
 		pa.pushMatrix();pa.pushStyle();
 		pa.strokeWeight(2.0f);
-		pa.setFill(clr_cyan);
+		pa.setFill(owner.clr_cyan);
 		if (drawZeroAxes[0]) {//draw x==0 axis
 			float yVal = zeroAxisVals[0];
 			//draw line @ y Val
-			pa.setStroke(clr_white);
+			pa.setStroke(owner.clr_white);
 			pa.line(-tic, yVal, 0, tic, yVal, 0);
 			//draw line to other side
-			pa.setStroke(clr_cyan);
+			pa.setStroke(owner.clr_cyan);
 			pa.line(-tic, yVal, 0, frameDims[2], yVal, 0);
 			//draw text for display
-			pa.setStroke(clr_white);
+			pa.setStroke(owner.clr_white);
 			pa.pushMatrix();pa.pushStyle();
 			pa.translate(-tic-10, yVal+5.0f,0);
 			pa.scale(1.4f);
@@ -439,35 +555,37 @@ class myDistVis extends myVisMgr {
 		if (drawZeroAxes[1]) {//draw y==0 axis
 			float xVal = zeroAxisVals[1];
 			//draw tick line @ x Val
-			pa.setStroke(clr_white);
+			pa.setStroke(owner.clr_white);
 			pa.line(xVal, -tic, 0, xVal, tic, 0);	
 			//draw line to other side
-			pa.setStroke(clr_cyan);
+			pa.setStroke(owner.clr_cyan);
 			pa.line(xVal, -frameDims[3], 0, xVal, tic, 0);	
 			//draw text for display
-			pa.setStroke(clr_white);
+			pa.setStroke(owner.clr_white);
 			pa.pushMatrix();pa.pushStyle();
 			pa.translate( xVal - 4.0f, tic+20.0f,0);
 			pa.scale(1.4f);
 			pa.text("0", 0,0);
 			pa.popStyle();pa.popMatrix();
-		}
-		
+		}		
 		pa.popStyle();pa.popMatrix();
 	}//
 	
 	//draw x and y axis values
-	private void drawAxes(GraphProbExpMain pa) {
+	//offset == 0 for axes on left, offset == frameDims[2] for offset on right
+	protected void drawAxes(GraphProbExpMain pa, float offset) {
 		pa.pushMatrix();pa.pushStyle();
-		pa.setFill(clr_white);
+		pa.setFill(owner.clr_white);
+		float yAxisTxtXOffset = offset -tic-owner.frmBnds[0]+10 ,
+				yAxisTxtYOffset = (offset == 0.0)? 5.0f : -4.0f;
 		for (int idx = 0; idx <axisVals.length;++idx) {
 			float xVal = axisVals[idx][0];
 			String dispX = String.format(fmtXStr, axisDispVals[idx][0]); 
 			//draw tick line @ x Val
-			pa.setStroke(clr_white);
+			pa.setStroke(owner.clr_white);
 			pa.line(xVal, -tic, 0, xVal, tic, 0);	
 			//draw line to other side
-			pa.setStroke(clr_clearWite);
+			pa.setStroke(owner.clr_clearWite);
 			pa.line(xVal, -frameDims[3], 0, xVal, tic, 0);	
 			//draw text for display
 			pa.text(dispX, xVal - 20.0f, tic+10.0f);
@@ -475,32 +593,62 @@ class myDistVis extends myVisMgr {
 				float yVal = axisVals[idx][1];
 				String dispY = String.format(fmtYStr, axisDispVals[idx][1]);
 				//draw line @ y Val
-				pa.setStroke(clr_white);
-				pa.line(-tic, yVal, 0, tic, yVal, 0);
+				pa.setStroke(owner.clr_white);
+				pa.line(-tic + offset, yVal, 0, tic + offset, yVal, 0);
 				//draw line to other side
-				pa.setStroke(clr_clearWite);
+				pa.setStroke(owner.clr_clearWite);
 				pa.line(-tic, yVal, 0, frameDims[2], yVal, 0);
 				//draw text for display
-				pa.text(dispY, -tic-frmBnds[0]+10, yVal+5.0f);
+				pa.text(dispY, yAxisTxtXOffset, yVal+yAxisTxtYOffset);
 			}
 		}
-		_drawZeroY(pa);
+		_drawZeroLines(pa);
 		pa.popStyle();pa.popMatrix();
 	}//drawAxes
 	
+	public final void drawMe(GraphProbExpMain pa, boolean isMulti) {
+		pa.setFill(fillClr);
+		pa.setStroke(strkClr);
+		_drawCurve(pa,isMulti ? frameDims[2] : 0);
+	}//drawMe
+
+	protected abstract void _drawCurve(GraphProbExpMain pa, float offset);
+	
+}//myBaseDistVisObj
+
+//visualize a functional object evaluation - draws a line
+class myFuncVisObj extends myBaseDistVisObj{
+	public myFuncVisObj(myDistFuncHistVis _owner, int[][] _clrs) {
+		super(_owner, _clrs);
+	}
+	
 	@Override
-	public void _drawVisIndiv(GraphProbExpMain pa) {
-		pa.setFill(clr_black);
-		pa.setStroke(clr_white);
+	protected void _drawCurve(GraphProbExpMain pa, float offset) {
+		pa.point(dispVals[0][0], dispVals[0][1], 0);
+		for (int idx = 1; idx <dispVals.length;++idx) {	
+			//draw point 			
+			pa.point(dispVals[idx][0], dispVals[idx][1], 0);
+			//draw line between points
+			pa.line(dispVals[idx-1][0], dispVals[idx-1][1], 0, dispVals[idx][0], dispVals[idx][1], 0);
+		}		
+		drawAxes(pa, 0);
+	}//_drawCurve
+
+}//myFuncVisObj
+
+//histogram evaluation of a pdf - draws buckets
+class myHistVisObj extends myBaseDistVisObj{
 	
-		//draw box around graph area
-		pa.rect(frameDims);
-		pa.pushMatrix();pa.pushStyle();
-		pa.translate(frameDims[0],frameDims[1]+frameDims[3], 0.0f);
-		pa.sphere(3.0f);
-		if (showHist) {			_drawHist(pa);		} 
-		else {					_drawFunc(pa);		}
-		pa.popStyle();pa.popMatrix();
-	}//_drawVisIndiv
+	public myHistVisObj(myDistFuncHistVis _owner, int[][] _clrs) {
+		super(_owner, _clrs);
+	}
 	
-}
+	protected void _drawCurve(GraphProbExpMain pa, float offset) {
+		for (int idx = 0; idx <dispVals.length-1;++idx) {	
+			pa.rect(dispVals[idx][0], 0, (dispVals[idx+1][0]-dispVals[idx][0]), dispVals[idx][1]);			
+		}		
+		drawAxes(pa, offset);
+	}//_drawCurve
+
+	
+}//myHistVisObj

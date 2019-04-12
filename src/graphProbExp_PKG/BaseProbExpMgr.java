@@ -1,6 +1,7 @@
 package graphProbExp_PKG;
 
 import java.time.Instant;
+import java.util.*;
 
 public abstract class BaseProbExpMgr {
 	//owning window for this experiment handler
@@ -282,12 +283,41 @@ public abstract class BaseProbExpMgr {
 		dispMessage("BaseProbExpMgr","testRCalc","Start test of r var calc",MsgCodes.info1, true);
 		myRandVarFunc randVar = new myNormalFunc(this, quadSlvrs[GL_QuadSlvrIDX]);
 		myProbSummary analysis = new myProbSummary( new double[] {2.0, 3.0}, 2);
-		myRandVarFunc randGaussVar = new myGaussianFunc(this, quadSlvrs[GL_QuadSlvrIDX], analysis);
+		//myRandVarFunc randGaussVar = new myGaussianFunc(this, quadSlvrs[GL_QuadSlvrIDX], analysis);
 		randVar.dbgTestCalcRVal(256);
 		
 		dispMessage("BaseProbExpMgr","testRCalc","End test of r var calc",MsgCodes.info1,true);
 		
 	}//testRCalc
+	
+	//this will test the zig function sweeping from 0->1 prob (treating as invCDF)
+	//we want to make sure that feeding a uniform value in order will generate increasing random variables
+	public void testSeqZigGen() {
+		double numVals = 200.0;
+		dispMessage("BaseProbExpMgr","testSeqZigGen","Start synthesizing " + numVals+ " sequential values to test zig gen.",MsgCodes.info1, true);
+		myZigRandGen ziggen = new myZigRandGen(new myNormalFunc(this, quadSlvrs[GL_QuadSlvrIDX]), "Ziggurat Algorithm");
+		
+		boolean done = false;
+		TreeMap<Long, Double> resMap = new TreeMap<Long, Double>();
+		for(int i=0;i<numVals;++i) {
+			done = false;
+			long val = 0L;
+			double prob = 0.0, res = 0.0;
+			while (!done) {
+				prob = (i/numVals) + 1e-10;
+				val = (long) (prob * Long.MAX_VALUE);
+				res = ziggen.getFuncValFromLong(val);
+				done = (res==res);
+				if(!done) {
+					dispMessage("BaseProbExpMgr","testSeqZigGen","i: " + i+ " possible error with : " + prob + " | in : " + val + " | rnd out : " + res +" returns not done." ,MsgCodes.info1, true);
+					System.exit(0);
+				}
+			}
+			dispMessage("BaseProbExpMgr","testSeqZigGen","i: " + i+ " ratio/prob : " + String.format("%.8f",prob) + " | in : " + val + " | rnd out : " + res ,MsgCodes.info1, true);
+			resMap.put(val,  res);
+		}
+		dispMessage("BaseProbExpMgr","testSeqZigGen","Finished synthesizing " + numVals+ " values using Gen : " + ziggen.name,MsgCodes.info1, true);
+	}//testZigGen
 	
 	//////////////////////////////
 	// drawing

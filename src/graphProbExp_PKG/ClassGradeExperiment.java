@@ -498,7 +498,7 @@ public class ClassGradeExperiment extends BaseProbExpMgr{
 	//test inverse fleishman calculation
 	public void testInvFleishCalc(double xDesired) {
 		myRandGen gradeSourceDistGen = buildAndInitRandGen(fleishRandGen_UniVar, fleishRandVarIDX, new myProbSummary(new double[] {0,1,1,4},4));
-		((myFleishUniVarRandGen)gradeSourceDistGen).calcInvFuncVal(xDesired);
+		double val = ((myFleishUniVarRandGen)gradeSourceDistGen).calcInvFuncVal(xDesired);
 
 	}//testInvFleishCalc
 	
@@ -514,16 +514,40 @@ public class ClassGradeExperiment extends BaseProbExpMgr{
 		finalGradeClass.clearPlotEval();	
 		setShowPlots(false);
 	}//clearAllPlotEval
+
+	//this will build and set a reduced cosine rand gen for the passed class and then restore current model type
+	private void _buildCosRandGenForTest(myClassRoster _cls) {
+		String curClsMdl = _cls.getCurDistModel();
+		myRandGen cosgen = buildAndInitRandGen(boundedRandGen, raisedCosRandVarIDX, perClassSummaryObjMap.get(_cls.name));
+		_cls.setBaseDistModel(cosgen);
+		_cls.setCurDistModel(curClsMdl);
+	}
+	
+	//this will evaluate data for specified plots and create an overlay
+	public void evalCosAndNormWithHist(int numVals, int numBuckets, double low, double high) {
+		for (myClassRoster _cls : classRosters) {		
+			//build cosine rand gen and assign to class but restore appropriate current rand gen
+			_buildCosRandGenForTest(_cls);	
+			_cls.evalCosAndNormWithHist(numVals, numBuckets, low, high);	
+		}
+		_buildCosRandGenForTest(finalGradeClass);
+		finalGradeClass.evalCosAndNormWithHist(numVals, numBuckets, low, high);	
+		setShowPlots(true);
+		
+	}//
+	
+
+	//derive and show plots of different distributions behind each class calc
+	public void evalPlotClassFuncs(int funcType, int numVals, double low, double high) {		
+		for (myClassRoster _cls : classRosters) {		_cls.evalAndPlotFuncRes(numVals, low, high, funcType);	}	
+		finalGradeClass.evalAndPlotFuncRes(numVals, low, high, funcType);	
+		setShowPlots(true);
+	}//evalPlotClassDists
 	
 	//derive and show plots of different distributions behind each class calc
-	public void evalPlotClassDists(boolean isHist, int funcType, int numVals, int numBuckets, double low, double high) {
-		if(isHist) {
-			for (myClassRoster _cls : classRosters) {			_cls.evalAndPlotHistRes(numVals, numBuckets);	}
-			finalGradeClass.evalAndPlotHistRes(numVals, numBuckets);				
-		} else {
-			for (myClassRoster _cls : classRosters) {			_cls.evalAndPlotFuncRes(numVals, low, high, funcType);	}
-			finalGradeClass.evalAndPlotFuncRes(numVals, low, high, funcType);
-		}
+	public void evalPlotClassHists(int numVals, int numBuckets, double low, double high) {
+		for (myClassRoster _cls : classRosters) {			_cls.evalAndPlotHistRes(numVals, numBuckets);	}
+		finalGradeClass.evalAndPlotHistRes(numVals, numBuckets);				
 		setShowPlots(true);
 	}//evalPlotClassDists
 	

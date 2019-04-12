@@ -22,7 +22,7 @@ public abstract class myRandVarFunc {
 	//object to hold descriptive values and statistics for this distribution, and any source data/samples, if they exist
 	protected myProbSummary summary;	
 	//convergence limit for iterative calcs
-	public final double convLim=1e-7;	
+	public final double convLim=1e-6;	
 	//state flags - bits in array holding relevant info about this random variable function
 	private int[] stFlags;						
 	public static final int
@@ -64,16 +64,18 @@ public abstract class myRandVarFunc {
 	protected static final double invSqrt2 = 1.0/Math.sqrt(2.0),
 							ln2 = Math.log(2.0),
 							halfPi =  Math.PI*.5, 
-							twoPi = Math.PI*2.0;
+							twoPi = Math.PI*2.0,
+							probitBnd = 1e-10;//so 0 or 1 probs are not used
 	
 	//types of functions to query
 	public static final int
 		queryFuncIDX = 0,
-		queryCDFIDX = 1,
-		queryInvCDFIDX = 2,
-		queryIntegIDX = 3;
+		queryPDFIDX = 1,
+		queryCDFIDX = 2,
+		queryInvCDFIDX = 3,
+		queryIntegIDX = 4;
 	
-	public static final String[] queryFuncTypes = new String[] {"Function Eval", "CDF Eval", "Inv CDF Eval","Integral Eval"};	
+	public static final String[] queryFuncTypes = new String[] {"Function Eval", "PDF Eval", "CDF Eval", "Inv CDF Eval","Integral Eval"};	
 	
 	public myRandVarFunc(BaseProbExpMgr _expMgr, myIntegrator _quadSlvr, myProbSummary _summaryObj, String _name) {
 		expMgr = _expMgr;name=_name;
@@ -117,24 +119,77 @@ public abstract class myRandVarFunc {
 	public double getSkew() {return summary.skew();}
 	public double getKurt() {return summary.kurt();}
 	//ignores x2 for all functions but integral
-	public final double getFuncVal(int funcType, double x1, double x2) {
+	private final double getDispFuncVal(int funcType, double x1, double x2) {
 		switch(funcType) {
-		case queryFuncIDX : {
-			return f(x1);}
-		case queryCDFIDX : {
-			return CDF(x1);	}
-		case queryInvCDFIDX: {
-			return CDF_inv(x1);}
-		case queryIntegIDX : {
-			return integral_f(x1,x2);}		
+		case queryFuncIDX : {			return f(x1);}
+		case queryPDFIDX : {			return PDF(x1);}
+		case queryCDFIDX : {			return CDF(x1);	}
+		case queryInvCDFIDX: {			return CDF_inv(x1);}
+		case queryIntegIDX : {			return integral_f(x1,x2);}		
 		default : {
 			expMgr.dispMessage("myRandVarFunc", "getFuncVal", "Attempting to evaluate unknown func type : " + funcType +" on value(s) : [" + x1 + ", "+ x2 + "] Aborting.",MsgCodes.warning1 , true);
 			return x1;}
 		}
 	}//getFuncVal
+	
+	public final String getDispFuncName(int funcType) {
+		switch(funcType) {
+		case queryFuncIDX : {			return name+ " Base Func";}
+		case queryPDFIDX : {			return name+ " PDF";}
+		case queryCDFIDX : {			return name+ " CDF";	}
+		case queryInvCDFIDX: {			return name+ " Inverse CDF";}
+		case queryIntegIDX : {			return name+ " Integral";}		
+		default : {
+			expMgr.dispMessage("myRandVarFunc", "getFuncVal", "Attempting to name unknown func type : " + funcType +". Aborting.",MsgCodes.warning1 , true);
+			return name+ " ERROR";}
+		}		
+	}//
+
 	//for plotting results - this returns bounds
 	public abstract double[] getPlotValBounds(int funcType);
 	
+	//for plotting results, derive all values for plot.  pass pre-built array references from rand gen
+	public void buildFuncPlotVals(int numVals, double low, double high,  int funcType, myDistFuncHistVis distVisObj ) {
+		if(numVals < 2) {		numVals = 2;		}//minimum 2 values
+//		if (low == high) {//ignore if same value
+//			System.out.println("myRandGen : "+name+" :: calcFValsForDisp : Low == High : " +low +" : "+ high +" : Ignored, no values set/changed.");
+//			return;			
+//		} 
+//		else if(low > high) {	double s = low;		low = high;		high = s;		}  //swap if necessary
+		//get min/max values based on mean +/- 3.5 stds
+		double[] minMaxVals = getPlotValBounds(funcType);
+		String funcName = getDispFuncName(funcType);
+
+		double[][] funcVals = new double[numVals][2];
+		double xdiff = minMaxVals[1]-minMaxVals[0];//high-low;
+		for(int i=0;i<funcVals.length;++i) {		
+			//funcVals[i][0] = low + (i * xdiff)/numVals;	
+			funcVals[i][0] = minMaxVals[0] + (i * xdiff)/numVals;	
+		}
+		//evaluate specified function on funcVals
+		double minY = Double.MAX_VALUE, maxY = -minY, ydiff;
+		for(int i=0;i<funcVals.length-1;++i) {		
+			funcVals[i][1] = getDispFuncVal(funcType,funcVals[i][0],funcVals[i+1][0]);
+			minY = (minY > funcVals[i][1] ? funcVals[i][1] : minY);
+			maxY = (maxY < funcVals[i][1] ? funcVals[i][1] : maxY);
+		}
+		//last argument is ignored except for integral calc 
+		int i=funcVals.length-1;
+		funcVals[i][1] = getDispFuncVal(funcType,funcVals[i][0],Double.POSITIVE_INFINITY);
+		if(Math.abs(funcVals[i][1]) <= 10000000* Math.abs(funcVals[i-1][1])) {//- don't count this last value for min/max in case of divergence 
+			minY = (minY > funcVals[i][1] ? funcVals[i][1] : minY);
+			maxY = (maxY < funcVals[i][1] ? funcVals[i][1] : maxY);
+		}
+		minY = (minY > 0 ? 0 : minY);
+		ydiff = maxY - minY;
+		//distVisObj.setValuesFunc(funcVals, new double[][]{{low, high, xdiff}, {minY, maxY, ydiff}});
+		double minVal = (minMaxVals[0] < low ? minMaxVals[0] : low),
+				maxVal = (minMaxVals[1] > high ? minMaxVals[1] : high);
+		double[][] minMaxDiffFuncVals = new double[][]{{minVal, maxVal, (maxVal-minVal)}, {minY, maxY, ydiff}};
+		
+		distVisObj.setValuesFunc(funcName, new int[][] {new int[] {0,0,0,255}, new int[] {255,255,255,255}}, funcVals, minMaxDiffFuncVals);
+		
+	}//buildPlotVals
 	
 	//calculate pdf function f
 	public final double f(double x) {return funcs[fIDX].apply(x);}
@@ -150,6 +205,8 @@ public abstract class myRandVarFunc {
 	//calculate the inverse of f
 	public final double fStdDeriv(double xInv){return funcs[fStdDeriveIDX].apply(xInv);}
 	
+	//calculate the PDF - usually this will just be the functional description
+	public abstract double PDF(double x);
 	//calculate the cdf
 	public abstract double CDF(double x);
 	//calculate inverse cdf of passed value 0->1
@@ -293,13 +350,11 @@ class myGaussianFunc extends myRandVarFunc{
 	@Override
 	//for plotting - return min and max vals to plot between
 	public double[] getPlotValBounds(int funcType) {
-		if(funcType==queryInvCDFIDX) {	return  new double[] {1e-10,1-(1e-10)};	}
+		if(funcType==queryInvCDFIDX) {	return  new double[] {probitBnd,1-probitBnd};	}
 		double mu = summary.mean(), std = summary.std();
 		// TODO Auto-generated method stub
 		return new double[] {mu-(3.5*std), mu+(3.5*std)};
 	}//getPlotValBounds
-	
-	
 	
 	@Override
 	protected void buildFuncs() {
@@ -420,8 +475,10 @@ class myGaussianFunc extends myRandVarFunc{
 	    }
         return mult * (((((c[0]*q + c[1])*q + c[2])*q + c[3])*q + c[4])*q + c[5]) / ((((d[0]*q + d[1])*q + d[2])*q + d[3])*q + 1);	    
 	}//calcProbitApprox
-	
-	
+	//pdf - described for this kind of rnd func by f
+	@Override
+	public double PDF(double x) {	return f(x);}
+
 	//get CDF of passed x value for this distribution - assume this value is from actual gaussian distribution (i.e. hasn't been normalized yet)
 	@Override
 	public double CDF(double x) {	return integral_f(Double.NEGATIVE_INFINITY, x);	}
@@ -433,9 +490,7 @@ class myGaussianFunc extends myRandVarFunc{
 		return summary.normToGaussTransform(normRes);
 	}//CDF_inv
 	@Override
-	public void setOptionFlags(int[] _opts) {
-		
-	}
+	public void setOptionFlags(int[] _opts) {}
 	@Override
 	public int getRVFType() {return BaseProbExpMgr.gaussRandVarIDX;}
 
@@ -454,9 +509,30 @@ class myNormalFunc extends myGaussianFunc{
 		super(_expMgr,_quadSlvr, new myProbSummary(new double[] {0.0, 1.0},2), "Normal");			
 	}//ctor	
 	
+	@Override
+	protected void buildFuncs() {
+		errorFunc =  (x ->  ErfCoef * Math.exp(-(x*x)));
+
+		//actual probablity functions
+		funcs[fIDX] 		= (x -> (normalSclFact  * Math.exp(-0.5 * (x*x))));
+		funcs[fInvIDX] 		= (xinv -> (Math.sqrt(-2.0 * Math.log(xinv/normalSclFact))) );
+		//zigurat uses standardized functions -> want pure normal distribution 
+		funcs[fStdIDX]		= (x -> Math.exp(-0.5 *(x*x)));
+		funcs[fInvStdIDX]	= (xinv -> (Math.sqrt(-2.0 * Math.log(xinv)))); 
+		
+		//derivative functions		
+		funcs[fDerivIDX]	= (x -> (-x * normalSclFact  * Math.exp(-0.5 * (x*x))));	
+		funcs[fStdDeriveIDX] = (x -> (-x * Math.exp(-0.5 *(x*x))));	
+		//integrals
+		integrals[fIntegIDX] = (x -> integral_f(x[0],x[1]));
+		integrals[fStdIntegIDX] = (x -> integral_fStd(x[0],x[1]));
+		
+	}//buildFuncs
+	
+	
 	//if this is a normal function, then these will not change
 	@Override
-	public double processResValByMmnts(double val) {	return val;}//public abstract double processResValByMmnts(double val);
+	public double processResValByMmnts(double val) {	return val;}
 	@Override
 	public double CDF_inv(double x) {	
 		double normRes = calcProbitApprox(x);
@@ -465,6 +541,8 @@ class myNormalFunc extends myGaussianFunc{
 	}//CDF_inv
 	@Override
 	public int getRVFType() {return BaseProbExpMgr.normRandVarIDX;}
+	@Override
+	public void setOptionFlags(int[] _opts) {}
 
 }//class myNormalFunc
 
@@ -479,39 +557,55 @@ class myNormalFunc extends myGaussianFunc{
 class myFleishFunc_Uni extends myRandVarFunc{
 	//polynomial coefficients
 	private double[] coeffs;
+	//quantities related to underlying cubic function
+	//derivative quadratic coefficients : b + 2*cx + 3*dx^2 - find roots of deriv to determine min/maxs
+	//[0][0] : lower x min/max, [0][1] : higher valued min/max
+	//[1][-] : 2nd deriv test for idx0 and idx1 pts (>0 == min, <0 == max, ==0 may indicate inflection point
+	//[2][-] : 3rd deriv test for sign
+	//[3][-] : func eval for idx0 and idx1 pts 
+	private double[][] minMax2ndDerivs;
 	//whether this is ready to use or not - all values have been set and calculated
 	private boolean ready;
 	//maximum iterations
-	private final int maxIter = 35;
-
-	//summary object/
+	private final int maxIter = 1000;
 
 	//normal distribution for inverse calc
-	private myNormalFunc normFunc;
+	private myZigRandGen zigNormGen;
+	
+	
 	public myFleishFunc_Uni(BaseProbExpMgr _expMgr, myIntegrator _quadSlvr, myProbSummary _summaryObj, String _name) {
 		super(_expMgr, _quadSlvr,_summaryObj, _name);		
 	}//ctor
 
 	@Override
 	protected void rebuildFuncs_Indiv() {
-		normFunc = new myNormalFunc(expMgr, quadSlvr);
+		//build internal normal used to generate input to fleishman polynomial
+		//normFunc = new myNormalFunc(expMgr, quadSlvr);
+		if(zigNormGen == null) {	zigNormGen = new myZigRandGen(new myNormalFunc(expMgr, quadSlvr), 256, "Ziggurat Algorithm");}	//don't rebuild if present
 		ready = false;
 		coeffs = calcCoeffs();
+		minMax2ndDerivs = calcQuadRoots();
+		
+		expMgr.dispMessage("myFleishFunc_Uni", "calcCoeffs", "Coeffs calculated :  ["+getCoeffsStr() +"]",MsgCodes.info1,true);		
+		
 		//set summary builds functions - need to specify required elements before it is called
 	}//rebuildFunc
 	
 	@Override
 	//for plotting - return min and max vals to plot between
 	public double[] getPlotValBounds(int funcType) {
-		if(funcType==queryInvCDFIDX) {	return  new double[] {1e-10,1-(1e-10)};	}
-		double mu = summary.mean(), std = summary.std();
+		if(funcType==queryInvCDFIDX) {	return  new double[] {probitBnd,1.0-probitBnd};	}
+		double mu = summary.mean();//, std = summary.std();
 		// TODO Auto-generated method stub
-		return new double[] {mu-(3.5*std), mu+(3.5*std)};
+		//return new double[] {mu-(3.5*std), mu+(3.5*std)};
+		//expMgr.dispMessage("myFleishFunc_Uni", "getPlotValBounds","Bounds eval @ -/+ 3.5 : [" + f(-3.5)+","+ f(3.5)+"]",MsgCodes.info1,true);		
+		return new double[] {mu-5.0, mu+5.0};//{f(-3.5), f(3.5)};
 	}//getPlotValBounds
 	
 	//calculate the coefficients for the fleishman polynomial considering the given skew and excess kurtosis specified in summary object
 	//will generate data with mean ==0 and std == 1; if ex kurtosis lies outside of feasible region will return all 0's for coefficients
 	private double[] calcCoeffs() {		
+		expMgr.dispMessage("myFleishFunc_Uni", "calcCoeffs","Start calc coefficients.",MsgCodes.info1,true);
 		double[] coeffs = new double[summary.numMmntsGiven];
 		double exKurt = summary.exKurt(), skew = summary.skew(), skewSQ = skew*skew;
         //first verify exkurt lies within feasible bound vs skew
@@ -524,20 +618,81 @@ class myFleishFunc_Uni extends myRandVarFunc{
         	exKurt = summary.exKurt();
         }
         double exKurtSq = exKurt * exKurt;
-        //add -coeff[1] as coeff[0]
         //initial coeff estimates
         double c1 = 0.95357 - (0.05679*skew) + (0.03520*skewSQ) + (0.00133*exKurtSq);
         double c2 = (0.10007*skew) + (0.00844*skewSQ*skew);
         double c3 = 0.30978 - (0.31655 * c1);
 
         //solve with newton-raphson
-        double[] tmpC = newton(c1, c2, c3, skew, exKurt);
+        double[] tmpC = newtonMethod(c1, c2, c3, skew, exKurt);
 		coeffs = new double[] {-tmpC[1], tmpC[0],tmpC[1],tmpC[2]};
-		expMgr.dispMessage("myFleishFunc_Uni", "calcCoeffs", "Coeffs calculated :  ["+ String.format("%3.8f",coeffs[0])+","+ String.format("%3.8f",coeffs[1])+","+ String.format("%3.8f",coeffs[2])+","+ String.format("%3.8f",coeffs[3])+"]",MsgCodes.info1,true);		
+		expMgr.dispMessage("myFleishFunc_Uni", "calcCoeffs","Finished calc coefficients.",MsgCodes.info1,true);
 		return coeffs;
 	}//calcCoeffs
 	
-	//Given the fleishman coefficients, and a target skew and kurtois
+	//for when func has not yet been specified
+	private double calcBaseEQ(double x) {return coeffs[0] + x *(coeffs[1] + x*(coeffs[2] + x *coeffs[3]));}
+	
+	//find roots described by ax^2 + bx + c ==0; if 2 roots are returned idx 0 is lowest root, idx 1 is max root
+	private double[][] calcQuadRoots() {
+		double a = coeffs[0], b=coeffs[1],c = coeffs[2],d=coeffs[3];
+		//find derivative to find min/max points
+		double derivC = b, derivB = 2*c, derivA = 3*d;
+		
+		double discr = derivB*derivB - 4 * derivA * derivC, ta = (2*derivA), axisOfSym = -derivB/ta;
+		if(discr < 0) {//means imaginary roots and no mins/maxs in underlying cubic
+			expMgr.dispMessage("myFleishFunc_Uni", "calcQuadRoots", "Cubic deriv (quadratic) has negative discriminant : " + String.format("%3.8f",discr) + " -> means no mins/maxs.",MsgCodes.info1,true);
+			return new double[][] {{},{},{},{}};
+		} else if(discr == 0) {//double root
+			expMgr.dispMessage("myFleishFunc_Uni", "calcQuadRoots", "Cubic deriv (quadratic) has 0 discriminant  : " + String.format("%3.8f",discr) + " -> means double root.",MsgCodes.info1,true);
+			double tderivTest = ta*axisOfSym + b;
+			double val = calcBaseEQ(axisOfSym);
+			return new double[][] {{axisOfSym},{tderivTest},{2*a},{val}};
+		}//else 2 real roots
+		expMgr.dispMessage("myFleishFunc_Uni", "calcQuadRoots", "Cubic deriv (quadratic) has positive discriminant  : " + String.format("%3.8f",discr) + " means 2 roots.",MsgCodes.info1,true);
+		double axisDist = Math.sqrt(discr)/ta;
+		double zp = axisOfSym + axisDist, zm = axisOfSym - axisDist;
+		double valZP = calcBaseEQ(zp),valZM = calcBaseEQ(zm);
+		double tdZP = ta*zp + derivB, tdZM = ta*zm + derivB;
+		return ((zp<zm) ? new double[][] {{zp, zm},{tdZP, tdZM},{ta,ta},{valZP, valZM}} : new double[][] {{zm, zp},{tdZM, tdZP},{ta,ta},{valZM, valZP}} );			
+	}//calcQuadRoots
+	
+	//calculate discriminant of cubic
+	private double[] calcAllRoots() {
+		double a = coeffs[0], b=coeffs[1], b3 = b*b*b,c = coeffs[2],d=coeffs[3],ad = a*d, bc = b*c, ad27 = 27*ad;
+		//descriminant of cubic
+		double discr = 18*ad*bc - 4*b3*d + bc*bc - 4*a*c*c*c - ad27*ad;
+		//precalc to find roots 
+		double del1 = 2 * b3 - 9*a*b*c + ad27*a, a27NegDiscr = -27*a*a*discr;
+		//minMax2ndDerivs : check min/max values in function - if sign changes, then there is a zero between them
+		//[0][0] : lower x min/max, [0][1] : higher valued min/max
+		//[1][-] : 2nd deriv test for idx0 and idx1 pts (>0 == min, <0 == max, ==0 may indicate inflection point
+		//[2][-] : 3rd deriv test for sign
+		//[3][-] : func eval for idx0 and idx1 pts - if this changes signs then cubic root lies between points, otherwise root lies 
+		//minMax2ndDerivs;
+		
+	
+		int numRoots = 0;
+		if(discr < 0) {//1 real, 2 non-real complex-conjugate roots
+			expMgr.dispMessage("myFleishFunc_Uni", "calcCoeffs", "discr : " + String.format("%3.8f",discr) + " -> means 1 real and 2 non-real cmplx roots.",MsgCodes.info1,true);
+			numRoots = 1;
+		} 
+		else if (discr > 0) {//has 3 distinct real roots
+			expMgr.dispMessage("myFleishFunc_Uni", "calcCoeffs", "discr : " + String.format("%3.8f",discr) + " -> means 3 distinct real roots.",MsgCodes.info1,true);
+			numRoots = 3;
+		} 
+		else {//discr == 0 - has a multiple root and all roots are real
+			expMgr.dispMessage("myFleishFunc_Uni", "calcCoeffs", "discr : " + String.format("%3.8f",discr) + " -> means multiple root and all roots are real.",MsgCodes.info1,true);
+			numRoots = 2;
+		}
+		double[] res = new double[numRoots];
+		
+		
+		
+		return res;
+	}//calcAllRoots
+	
+	//Given the fleishman coefficients, and a target skew and kurtois 
     //this function will have a root if the coefficients give the desired skew and kurtosis
     //F = -c + bZ + cZ^2 + dZ^3, where Z ~ N(0,1)
 	private DoubleMatrix flfunc(double b, double c, double d, double skew, double exKurt) {
@@ -551,19 +706,28 @@ class myFleishFunc_Uni extends myRandVarFunc{
 	//The deriviative of the flfunc above
     //returns jacobian
 	private DoubleMatrix flDeriv(double b, double c, double d) {
-		double b2 = b*b, c22 = 2*c*c, d2 = d*d, bd = b*d;
+		double b2 = b*b, c22 = 2.0*c*c, d2 = d*d, bd = b*d;
 		//matrix coeffs
-		double df1db = 2*b + 6*d, 
-				df1dc = 4*c, 
-				df1dd = 6*b + 30*d,
+		// _v = b2 + 6*bd + 2*c2 + 15*d2
+		double df1db = 2.0*b + 6.0*d, 
+				df1dc = 4.0*c, 
+				df1dd = 6.0*b + 30.0*d,
+		//_s = 2 * c * (b2 + t4bd + 105*d2 + 2);
+				df2db = df1dc * (b + 12.0*d),						//4bc + 48cd  
+				df2dc = 2.0 *b2 + 48.0*bd + 210.0*d2 + 4.0,			//
+				df2dd = df1dc * (12.0*b + 105*d),					//48bc + 420cd == 4c*(12b + 105d)
+		//t4bd + 24*(c2 * (1 + b2 + 28*bd) + d2 * (12 + 48*bd + 141*c2 + 225*d2))
+		//24(bd +   c^2 +   c^2b^2 +  28*bc^2d + 12d^2    + 48d^3b + 141c^2d^2 + 225d^4)
+		//deriv c :
+		//24 ( 2c + 2cb^2 + 56bcd + 282cd^2) == 48(c + cb^2 +28bd + 141d
+		//deriv d : 
+		//24(b   +   0    +  0    +    28bc^2   + 24d   +  144d^2b + 282c^2d +  900d^3)  
+		//24(b  		       14*b * 2c^2 + 24*d + 
+				df3db = 24.0 * (d + c22*(b + 14.0*d) + 48.0*d2*d),
+				df3dc = 48.0 * c * (1.0 + b2 + 28*bd + 141.0*d2),
+				df3dd = 24.0 * (b + 14.0*b *c22 + d*(24 + 144*bd + 141.0*c22 + 900*d2));
 				
-				df2db = df1dc * (b + 12*d), 
-				df2dc = 2 * (b2 + 24*bd + 105*d2 + 2),
-				df2dd = df1dc * (12*b + 105*d),
-				
-				df3db = 24 * (d + c22*(b + 14*d) + 48*d2*d),
-				df3dc = 48 * c * (1 + b2 + 28*bd + 141*d2),
-				df3dd = 24 * (b + 14*b * c22 + d*(24 + 96*bd + 141*c22 + 450*d2) + d2*(48*b + 450*d));
+			//	df3dd = 24.0 * (b + 14.0*b * c22 + d*(24.0 + 96.0*bd + 141.0*c22 + 450.0*d2) + d2*(48.0*b + 450.0*d));
 			//		df3db = 24 * (d + c2*(2*b + 28*d) + 48*d2*d),
 			//		df3dc = 48 * c * (1 + b2 + 28*bd + 141*d2),
 			//		//df3dd = 24 * (b + 28*b * c2 + 2*d*(12 + 48*bd + 141*c2 + 225*d2) + d2*(48*b + 450*d));
@@ -573,90 +737,168 @@ class myFleishFunc_Uni extends myRandVarFunc{
         	{df2db, df2dc, df2dd},
             {df3db, df3dc, df3dd}});
 	}//flDeriv
+	
+	
+//uses standardized moments - screwy equations	
+//	//Given the fleishman coefficients, and a target skew and kurtois - equations from thesis
+//    //this function will have a root if the coefficients give the desired skew and kurtosis
+//    //F = -c + bZ + cZ^2 + dZ^3, where Z ~ N(0,1)
+//	private DoubleMatrix flfunc_alt(double b, double c, double d, double skew, double exKurt) {
+//        double b2 = b*b, c2 = c*c, c3 = c2*c, d2 = d*d, bd = b*d, t4bd = 24*bd;
+//        //a2 + 2ac + b2 + 6bd + 3c4 + 15d2 = 1
+//        //c2 - 2c2 + b2 + 6bd + 3c4 + 15d2 = 1
+//        double _v = -c2 + 3*c2*c2 + b2 + 6*bd + 15*d2;
+//        //a3 + 3a2c + 3ab2 + 18abd + 9ac2 + 45ad2 + 9b2c + 90bcd + 15c3 + 315cd2 = skew
+//        //-c3 + 3c3 - 3cb2 - 18cbd - 9c3  - 45cd2 + 9b2c + 90bcd + 15c3 + 315cd2
+//        //8c3                                     + 6b2c + 72bcd        + 270cd2
+//        double _s = 8.0*c3 + 6.0*c*b2 + 72.0*c*bd + 270.0*c*d2;
+//        //a4 + 4a3c + 6a2b2 + 36a2bd + 18a2c2 + 90a2d2 + 36ab2c + 360abcd + 60ac3 + 1260acd2 + 3b4 + 60b3d + 90b2c2 + 630b2d2 + 1260bc2d + 3780bd3 + 105c4 + 5670c2d2 + 10395d4 = exKurt
+//        //c4 - 4c4  + 6c2b2 + 36c2bd + 18c4   + 90c2d2 - 36b2c2 - 360bc2d - 60c4  - 1260c2d2 + 3b4 + 60b3d + 90b2c2 + 630b2d2 + 1260bc2d + 3780bd3 + 105c4 + 5670c2d2 + 10395d4 = exKurt
+//        //60c4      +                                                                        + 3b4 + 60b3d + 60b2c2 + 630b2d2 + 926bc2d  + 3780bd3 +         4500c2d2 + 10395d4 = exKurt
+//         //
+//        double _k = 3.0*b2*b2 + 10395.0*d2*d2 + 60.0*c2*c2 + 60.0*b2*c2 + 926.0*c2*bd + 4500.0*c2*d2 + 60.0*b2*bd +  630.0*b2*d2 + 3780.0*bd*d2;
+//        return new DoubleMatrix(new double[] {_v - 1, _s - skew, _k - exKurt});		
+//	}//flfunc
+//
+//	
+//	//The deriviative of the flfunc above - from thesis
+//    //returns jacobian
+//	private DoubleMatrix flDeriv_alt(double b, double c, double d) {
+//		double b2 = b*b, b3=b*b2, c2 = c*c, c3 = c2*c, c22 = 2.0*c2, d2 = d*d, d3 = d*d2, bd = b*d, bc=b*c, cd=c*d;
+//		//matrix coeffs
+//		//_v = -c2 + 3*c2*c2 + b2 + 6*bd + 15*d2;
+//		double df1db = 2.0*b + 6.0*d, 
+//				df1dc = -1.0*c + 12.0*c3, 
+//				df1dd = 6.0*b + 30.0*d,
+//		// _s = 8.0*c3 + 6.0*c*b2 + 72.0*c*bd + 270.0*c*d2;
+//				df2db = 12.0*bc + 72.0*cd,								//12bc + 72cd 
+//				df2dc = 24.0*c2 + 6.0*b2 + 72.0*bd + 270.0*d2,		//24.0c2 + 6b2 + 72bd + 270d2
+//				df2dd = 72.0*bc + 540.0*cd,							//72cb + 540cd
+//		//_k = 3.0*b2*b2 + 10395.0*d2*d2 + 60.0*c2*c2 + 60.0*b2*c2 + 926.0*c2*bd + 4500.0*c2*d2 + 60.0*b2*bd +  630.0*b2*d2 + 3780.0*bd*d2;
+//		//deriv b : 12b3 + 120bc2 + 926c2d + 180b2d + 1260bd2 + 3780d3
+//				df3db = 12.0*b3 + 120.0*b*c2 + 926.0*c2*d + 180.0*b2*d + 1260.0*b*d2 + 3780.0*d3,
+//		//deriv c : 240*c3 + 120*b2c + 1852*bcd + 9000*c*d2 
+//				df3dc = 240*c3 + 120*b2*c + 1852*b*c*d + 9000*c*d2,
+//		//deriv d : 41580 * d3 + 926*c2 + 180*b2 + 2520*bd + 11340*d2
+//				df3dd = 41580.0*d3 + 926.0*c2 + 180.0*b2 + 2520.0*bd + 11340*d2;
+//	        return new DoubleMatrix(new double[][] {
+//        	{df1db, df1dc, df1dd},
+//        	{df2db, df2dc, df2dd},
+//            {df3db, df3dc, df3dd}});
+//	}//flDeriv
 
 	
 	//simple newton method solver
-	private double[] newton(double a,double b,double c,double skew,double exKurtosis) {
+	private double[] newtonMethod(double a,double b,double c,double skew,double exKurtosis) {
         //Implements newtons method to find a root of flfunc
 		DoubleMatrix f = flfunc(a, b, c, skew, exKurtosis), delta;
-        DoubleMatrix Jacob;
+        DoubleMatrix J;
         int i = 0;
         for (i=0; i<maxIter; ++i) {
             if (isNewtonDone(f)){          break;   }
             //get jacobian
-            Jacob = flDeriv(a, b, c);
+            J = flDeriv(a, b, c);
             //find delta amt
-            delta = (Solve.solve(Jacob, f));
+            delta = (Solve.solve(J, f));
             a -= delta.data[0];
             b -= delta.data[1];
             c -= delta.data[2];
             f = flfunc(a, b, c, skew, exKurtosis);
+            //expMgr.dispMessage("myFleishFunc_Uni", "newtonMethod", "Newton iters to find coeffs : " + i + " : final f : " +getNewtonFStr(f) ,MsgCodes.info1,true);
         }
-        System.out.println("newton iters to find coeffs : " + i);
-        return new double[] {a,b,c};
+        expMgr.dispMessage("myFleishFunc_Uni", "newtonMethod", "Newton iters to find coeffs : " + i + " : final f : " +getNewtonFStr(f) ,MsgCodes.info1,true);
+      return new double[] {a,b,c};
 	}//newton
 	
+	private String getCoeffsStr() {
+		if(coeffs==null) {return "";}
+		return String.format("%3.8f",coeffs[0])+","+ String.format("%3.8f",coeffs[1])+","+ String.format("%3.8f",coeffs[2])+","+ String.format("%3.8f",coeffs[3]);
+	}
+	
+	private String getNewtonFStr(DoubleMatrix f) {
+		String res = "[";
+		for(int i=0;i<f.data.length-1;++i) {			res+= String.format("%3.8f", f.data[i])+", " ;		}
+		res +=String.format("%3.8f", f.data[f.data.length-1])+"]" ;		
+		return res;
+	}
 	
 	//find functional inverse - given specific y value, find x such that y = func(x) -> x = func^-1(y)
 	//i.e. find x value that will give f(x)==y - note y should not be shifted by mean and std
-	public double calcInvF(double y) {
-		double res = y-10, diff, diffSq, fRes = 0, dfRes = 0;
-		double convLimSq = convLim*convLim;
+	public double calcInvF(double yRaw) {
+		double mu = summary.mean(), std = summary.std();
+		double y=(yRaw-mu)/std;
+		double res = (y-coeffs[0])/coeffs[1], diff, diffSq, fRes = 0, dfRes = 0;
+		//double convLimSq = convLim*convLim;
 		//use newton method to find value
 		int i = 0;
 		int maxInvIter = 100;
 		for (i=0; i<maxInvIter; ++i) {
-			fRes = f(res);
-			//dfRes = fDeriv(res);
+			fRes = funcs[fStdIDX].apply(res);
+			dfRes = funcs[fStdDeriveIDX].apply(res);
 			diff = (fRes - y);
 			diffSq = diff * diff;
-			if (diffSq < convLimSq) {          break;   }
-			//System.out.println("iter " + i + " diff : " + String.format("%3.8f", diff) + "\t y :"+ y + " res : " + String.format("%3.8f", res) + " f(res) : "+ String.format("%3.8f", fRes) );//+ "\t f'(res) : " + String.format("%3.8f", dfRes));
-			res += .2f *diff;
+			if(Math.abs(diff) < convLim) {break;}
+			//if(Math.abs(oldDiff) < Math.abs(diff)) {System.out.println("iter " + i + " DIVERGING! : diff : " + String.format("%3.8f", diff) + " | oldDiff : " + String.format("%3.8f", oldDiff));	}
+			//{System.out.println("iter " + i + " diff : " + String.format("%3.8f", diff) + "\ty :"+ y + " res : " + String.format("%3.8f", res) + " f(res) : "+ String.format("%3.8f", fRes)+ " dfRes : "+ String.format("%3.8f", dfRes) + "| coeffs :["+getCoeffsStr()+"]" );}//+ "\t f'(res) : " + String.format("%3.8f", dfRes));}
+			res -= (fRes-y)/dfRes;
+
 		}	
-		System.out.println("myFleishFunc_Uni::calcInvF : iters to find inverse : " + i + " result : " + res + " y : " + y + " f(res) : "+ fRes);
+		//System.out.println("myFleishFunc_Uni::calcInvF : iters to find inverse : " + i + " result : " + res + " y : " + y + " f(res) : "+ fRes + "| coeffs :["+getCoeffsStr()+"]" );//+ "\t f'(res) : " + String.format("%3.8f", dfRes));
 		return res;
 		
 	}//calcInvF
 	
-	//this takes a normal input, not a uniform input - TODO change this to take uniform input (?)
+	//this takes a normal input, not a uniform input - TODO change this to take uniform input (??)
 	@Override
 	protected void buildFuncs() {
 		double mu = summary.mean(), std = summary.std();//, var = summary.var();
 		//actual functions
-		funcs[fIDX] 		= x ->  {return ((coeffs[0] + x*(coeffs[1] +x*(coeffs[2]+ x*coeffs[3])))*std +  mu);};
-		//TODO find inverse of polynomial?  inverse of this function may not exist
-		funcs[fInvIDX] 		= (xinv -> xinv);
+		funcs[fIDX] 		= x ->  {return ((coeffs[0] + x*(coeffs[1] +x*(coeffs[2]+ x*coeffs[3])))*std +  mu);		}; 
+		//TODO find inverse of polynomial?  inverse of this function may not exist - need to use optimization process 
+		funcs[fInvIDX] 		= (xinv -> null);
 		//zigurat functions -> want pure normal distribution
-		funcs[fStdIDX]		= x -> {return (coeffs[0] + x*(coeffs[1] +x*(coeffs[2]+ x*coeffs[3])));};
-		funcs[fInvStdIDX]	= (xinv -> xinv);
+		funcs[fStdIDX]		= x -> {return (coeffs[0] + x*(coeffs[1] +x*(coeffs[2]+ x*coeffs[3])));		};
+		funcs[fInvStdIDX]	= (xinv -> null);
 		//analytical derivatives
-		funcs[fDerivIDX]	= x -> {return ((coeffs[1] +x*(coeffs[2]+ x*coeffs[3]))*std +  mu);};
-		funcs[fStdDeriveIDX] = x -> {return (coeffs[1] +x*(coeffs[2]+ x*coeffs[3]));};                                                                   ;
+		funcs[fDerivIDX]	= x -> {return ((coeffs[1] +x*(2*coeffs[2]+ x*3*coeffs[3]))*std );}; //b + 2cx + 3dx^2 == b + x * (2c + 3dx)
+		funcs[fStdDeriveIDX] = x -> {return (coeffs[1] +x*(2*coeffs[2]+ x*3*coeffs[3]));};                                                                   ;
 		//integrals
 		integrals[fIntegIDX] = (x -> integral_f(x[0],x[1]));
-		integrals[fStdIntegIDX] = (x -> integral_fStd(x[0],x[1]));
-		
+		integrals[fStdIntegIDX] = (x -> integral_fStd(x[0],x[1]));		
 	}//buildFuncs
 	
-	//find cumulative value 
+	//pdf - for fleishman distribution, this is not described by function
+	@Override
+	public double PDF(double x) {	
+		double mu = summary.mean(), std = summary.std();
+		//first find normal draw result x' that yielded x when fed to polynomial : fl(xprime) == x -> fl_inv(x) == xprime - inverting via newton method
+		double xPrime = calcInvF(x);
+		//now evaluate std derivative @ xPrime
+		double derivVal = funcs[fStdDeriveIDX].apply(xPrime);
+		
+		return ((zigNormGen.func.fStd(xPrime)*std + mu)/derivVal);
+	}//PDF
+	
+	//fleish has multi-step process.  first generate normal value (x'), then feed to polynomial to yield final value (x).  
+	//in this case, we want to find find cumulative prob value p(X<=x) for fleishman. 
+	//first must find x' value that, when fed to underlying normal distribution, yields x
 	@Override
 	public double CDF(double x) {	
-		//must find underlying normal draw x' that yielded x once fed into fleishman polynomial
-		
-		//must find t @ f(t) where f is normal fed to poly, and f(t)==x.  in other words, need to know what t will give f(t) == x
+		//first find normal draw result x' that yielded x when fed to polynomial : fl(xprime) == x -> fl_inv(x) == xprime
 		double xPrime = calcInvF(x);
+		
 		//find polynomial 
 		//now we can find the CDF of transformed x by finding normFunc cdf of t and transforming it
-		return normFunc.CDF(xPrime);
+		return zigNormGen.func.CDF(xPrime);
 		
 	}	//need to find most negative value of function corresponding to 0 probability => coeffs[0] 
 
 	@Override
 	public double CDF_inv(double prob) {
+		if(prob == 0) {prob+=probitBnd;} else if(prob == 1.0) {prob -= probitBnd;}
 		//t is value of underlying normal that has given probability (p(x<=t) == prob)
-		double t = normFunc.CDF_inv(prob);
-		//this will be
+		double t = zigNormGen.inverseCDF(prob);
+		//this will be transformed value
 		return f(t);
 	}
 	
@@ -703,7 +945,6 @@ class myFleishFunc_Uni extends myRandVarFunc{
 	@Override
 	public void setOptionFlags(int[] _opts) {
 		// TODO Auto-generated method stub
-		
 	}
 
 	@Override
@@ -719,7 +960,7 @@ class myCosFunc extends myRandVarFunc{
 	//area under pdf from mean-> x*std corresponding to x val @ 0,1,2,3 - used to determine appropriate frequency values 
 	private static final double[] stdAreaAra = new double[] {0.0,0.3413447460685429485852 ,0.4772498680518207927997 , 0.4986501019683699054734};
 	//don't set this to 0!
-	private static final int stdFreqMultToUse = 3;
+	private static final int stdFreqMultToUse = 1;
 	
 	//frequency == 1/period; needs to be calculated so that stdArea is under curve from mean -> x @ 1 std - cos(x) has freq 1/2pi, so this value is actually 2pi*freq
 	//xBnds == x value where function == 0 -> corresponds to +Pi for freq = 1
@@ -739,15 +980,16 @@ class myCosFunc extends myRandVarFunc{
 		}
 	}
 	
-	//this will calculate the freq val for a given std iteratively - calculates volume to be vol
+	//this will calculate the freq val for a given std iteratively 
 	protected double calcFreq(double std) {
 		//qStd is std @ stdFreqMultToUse
 		double stdArea = stdAreaAra[stdFreqMultToUse], twoPiStdArea = stdArea* twoPi;
-		double res = std,sinFreqS,diff, qStd = stdFreqMultToUse * std ;
+		double res = std,sinFreqS,diff, qStd = stdFreqMultToUse * std  ,cosFreqS ;
 		boolean done = false;
 		int i = 0;
 		while ((!done) && (i < 1000)){
 			sinFreqS = Math.sin(res * qStd);//solve CDF for std value - ignore mu
+			//cosFreqS = Math.cos(res * qStd);//solve CDF for std value - ignore mu
 			diff = res - ((twoPiStdArea - sinFreqS)/qStd); 
 			//System.out.println("iter " + i + " diff : " + String.format("%3.8f", diff) + "\t std :"+ String.format("%3.8f", std) + " res : " + String.format("%3.8f", res) + " sinFreqS : "+ String.format("%3.8f", sinFreqS));
 			if(Math.abs(diff) < convLim) {				done=true;			}
@@ -767,6 +1009,8 @@ class myCosFunc extends myRandVarFunc{
 			freqMult = 1.0;//temp placeholder - NOT CORRECT
 		} else {
 			freqMult = calcFreq(std);	//solve based on std	
+			double freqMult2 = Math.PI/std;
+			expMgr.dispMessage("myCosFuncFromCDF","rebuildFuncs_Indiv","Calced freqMult : " + String.format("%3.8f",freqMult) + " | pi/s : " + String.format("%3.8f",freqMult2) + " | s :"+String.format("%3.8f",std) + " | calc ov pi/s : " + String.format("%3.8f",freqMult/freqMult2),MsgCodes.info1,true);
 		}
 		xBnd = Math.PI/freqMult;		//values need to be between mu - xBnd and mu + xBnd
 		actLBnd = mu - xBnd;
@@ -802,6 +1046,9 @@ class myCosFunc extends myRandVarFunc{
 		integrals[fStdIntegIDX] = x -> {return (halfAmpl1Std * ((x[1]-x[0]) +  (Math.sin(freq1StdMult * x[1]) - Math.sin(freq1StdMult * x[0]))/freq1StdMult));};
 	}//
 
+	//pdf - described for this kind of rnd func by f
+	@Override
+	public double PDF(double x) {	return f(x);}
 	//find CDF value of x; x must be within bounds mu-xBnd to mu+xBnd
 	//CDF is integral from -inf to x of pdf - can be solved analytically 
 	@Override
@@ -1139,6 +1386,9 @@ class myCosFuncFromCDF extends myRandVarFunc{
 		// TODO Auto-generated method stub
 		return new double[] {actLBnd, actUBnd};
 	}//getPlotValBounds
+	//pdf - described for this kind of rnd func by f
+	@Override
+	public double PDF(double x) {	return f(x);}
 	
 	//find CDF value of x; x must be within bounds mu-xBnd to mu+xBnd
 	//CDF is integral from -inf to x of pdf - can be solved analytically 

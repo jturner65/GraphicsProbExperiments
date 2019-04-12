@@ -11,18 +11,14 @@ public abstract class myRandGen implements Comparable<myRandGen> {
 	private static int IDCnt = 0;
 	//original data and analysis of it - fl polynomial needs to be built from a sample distribution or from a set of moments
 	protected myProbSummary summary;
-
     //random generator to use to generate uniform data - threadsafe
-	public final String name;
-	
+	public final String name;	
 	//descriptor of this random generator
-	public RandGenDesc desc;	
-	
+	public RandGenDesc desc;		
 	//function this rand gen uses
-	protected myRandVarFunc func;
-	
+	protected myRandVarFunc func;	
 	//visualization tool for this random generator
-	protected myDistVis distVisObj; 
+	protected myDistFuncHistVis distVisObj; 
 		
 	//state flags - bits in array holding relevant info about this random variable function
 	private int[] stFlags;						
@@ -65,7 +61,7 @@ public abstract class myRandGen implements Comparable<myRandGen> {
 	//called whenever summary object is set/reset
 	public abstract void _setFuncSummaryIndiv();	
 	
-	public void buildDistVisObj(float[] _startRect) {		distVisObj = new myDistVis(_startRect, this);	}
+	public void buildDistVisObj(float[] _startRect) {		distVisObj = new myDistFuncHistVis(_startRect, this);	}
     //thread-safe queries for uniform values
     protected long getNextLong() {return ThreadLocalRandom.current().nextLong();}  
     protected int getNextInt() {return ThreadLocalRandom.current().nextInt();  }
@@ -90,53 +86,49 @@ public abstract class myRandGen implements Comparable<myRandGen> {
 	@Override
 	public int compareTo(myRandGen othr) {return desc.compareTo(othr.desc);}
 	
+	
+	private final String[] dispMultiStrs = new String[] {"PDF hist",};
+	//build dist and hist and also take passed cosine randgen and superimpose the values for its pdf
+	public void buildFuncHistCosPlot(int numVals, int numBuckets, double low, double high, myBoundedRandGen cosGen) {
+		//first build histogram
+		calcHistValsForDisp(numVals, numBuckets);
+		//build and set pdf function values
+		func.buildFuncPlotVals(numVals, low, high, myRandVarFunc.queryPDFIDX, distVisObj);
+		//now use passed cosGen but populate it into this object's distVisObj
+		cosGen.func.buildFuncPlotVals(numVals, low, high, myRandVarFunc.queryPDFIDX, distVisObj);
+		
+		String histName = func.name+" PDF hist",
+				gaussName = func.getDispFuncName(myRandVarFunc.queryPDFIDX),
+				cosName = cosGen.func.getDispFuncName(myRandVarFunc.queryPDFIDX);
+		
+		//get min and max histogram values and get min/max/diff y values for larger of two dists, either cosine or gauss
+		double[][] minMaxDiffHist = distVisObj.getSpecificMinMaxDiff(func.name+" PDF hist"),//use this for x values		
+				minMaxDiffCos = distVisObj.getSpecificMinMaxDiff(cosName),
+				minMaxDiffGauss = distVisObj.getSpecificMinMaxDiff(gaussName);
+		double[][] minMaxDiff = new double[2][];
+		minMaxDiff[0] = minMaxDiffHist[0];
+		minMaxDiff[1] = new double[3];
+		minMaxDiff[1][0] = (minMaxDiffCos[1][0] < minMaxDiffGauss[1][0]) ? minMaxDiffCos[1][0] : minMaxDiffGauss[1][0];
+		minMaxDiff[1][1] = (minMaxDiffCos[1][1] > minMaxDiffGauss[1][1]) ? minMaxDiffCos[1][1] : minMaxDiffGauss[1][1];
+		minMaxDiff[1][2] = minMaxDiff[1][1] - minMaxDiff[1][0];
+		String[] dispMultiStrs = new String[] {func.name+" PDF hist", gaussName, cosName};
+		distVisObj.setCurMultiDispVis(dispMultiStrs,minMaxDiff);
+		distVisObj.setColorVals(cosName,"stroke", new int[] {255,255,0,255});
+	}//buildFuncHistCosPlot
+	
+	
 	//synthesize numVals values from low to high to display 
 	public void calcFuncValsForDisp(int numVals,double low, double high,  int funcType ) {
-		if(numVals < 2) {		numVals = 2;		}//minimum 2 values
-//		if (low == high) {//ignore if same value
-//			System.out.println("myRandGen : "+name+" :: calcFValsForDisp : Low == High : " +low +" : "+ high +" : Ignored, no values set/changed.");
-//			return;			
-//		} 
-//		else if(low > high) {	double s = low;		low = high;		high = s;		}  //swap if necessary
-		//get min/max values based on mean +/- 3.5 stds
-		double[] minMaxVals = func.getPlotValBounds(funcType);
-
-		double[][] funcVals = new double[numVals][2];
-		double xdiff = minMaxVals[1]-minMaxVals[0];//high-low;
-		for(int i=0;i<funcVals.length;++i) {		
-			//funcVals[i][0] = low + (i * xdiff)/numVals;	
-			funcVals[i][0] = minMaxVals[0] + (i * xdiff)/numVals;	
-		}
-		//evaluate specified function on funcVals
-		double minY = Double.MAX_VALUE, maxY = -minY, ydiff;
-		for(int i=0;i<funcVals.length-1;++i) {		
-			funcVals[i][1] = func.getFuncVal(funcType,funcVals[i][0],funcVals[i+1][0]);
-			minY = (minY > funcVals[i][1] ? funcVals[i][1] : minY);
-			maxY = (maxY < funcVals[i][1] ? funcVals[i][1] : maxY);
-		}
-		//last argument is ignored except for integral calc 
-		int i=funcVals.length-1;
-		funcVals[i][1] = func.getFuncVal(funcType,funcVals[i][0],Double.POSITIVE_INFINITY);
-		if(Math.abs(funcVals[i][1]) <= 10000000* Math.abs(funcVals[i-1][1])) {//- don't count this last value for min/max in case of divergence 
-			minY = (minY > funcVals[i][1] ? funcVals[i][1] : minY);
-			maxY = (maxY < funcVals[i][1] ? funcVals[i][1] : maxY);
-		}
-		minY = (minY > 0 ? 0 : minY);
-		ydiff = maxY - minY;
-		//distVisObj.setValuesFunc(funcVals, new double[][]{{low, high, xdiff}, {minY, maxY, ydiff}});
-		double minVal = (minMaxVals[0] < low ? minMaxVals[0] : low),
-				maxVal = (minMaxVals[1] > high ? minMaxVals[1] : high);
-		distVisObj.setValuesFunc(funcVals, new double[][]{{minVal, maxVal, (maxVal-minVal)}, {minY, maxY, ydiff}});
+		func.buildFuncPlotVals(numVals, low, high, funcType, distVisObj);
 	}//calcFValsForDisp
-	
-	
-	//build display function for distribution
-	//Num buckets should be << numVals
-	public void calcDistValsForDisp(int numVals, int numBuckets) {
-		//x val is distribution/max bucket value, y val is count
-		double [] distVals = getMultiSamples(numVals);		
 		
-		myProbSummary summary = new myProbSummary(distVals);
+	//build display function for histogram
+	//Num buckets should be << numVals
+	public void calcHistValsForDisp(int numVals, int numBuckets) {
+		//x val is distribution/max bucket value, y val is count
+		double [] histVals = getMultiSamples(numVals);		
+		
+		myProbSummary summary = new myProbSummary(histVals);
 		//build buckets : numBuckets+1 x 2 array; 2nd idxs : idx 0 is lower x value of bucket, y value is count; last entry should always have 0 count
 		double[][] distBuckets = summary.calcBucketVals(numBuckets);
 		
@@ -145,7 +137,7 @@ public abstract class myRandGen implements Comparable<myRandGen> {
 		minMaxDiffXVals[0][0] = summary.getMin();
 		minMaxDiffXVals[0][1] = summary.getMax();
 		minMaxDiffXVals[0][2] = minMaxDiffXVals[0][1] - minMaxDiffXVals[0][0];
-		//bucket min max diff
+		//bucket count min max diff - y axis
 		minMaxDiffXVals[1][0] = 100000;
 		minMaxDiffXVals[1][1] = -100000;
 		for(int i=0;i<distBuckets.length;++i) {
@@ -154,7 +146,7 @@ public abstract class myRandGen implements Comparable<myRandGen> {
 		}		
 		minMaxDiffXVals[1][2] = minMaxDiffXVals[1][1] - minMaxDiffXVals[1][0];
 		
-		distVisObj.setValuesHist(distBuckets, minMaxDiffXVals);
+		distVisObj.setValuesHist(func.name+" PDF hist", new int[][] {new int[] {255,0,0,255}, new int[] {255,255,255,255}}, distBuckets, minMaxDiffXVals);
 	}//calcDistValsForDisp
 	
 	//clear out any existing plot evaluations
@@ -242,12 +234,21 @@ class myZigRandGen extends myRandGen{
 	//reference to ziggurat values used by this random variable generator
 	private zigConstVals zigVals;
 	//# of rects used for zig
-	private final int numZigRects;
+	private final int numZigRects, numZigIDXMask;
 	
 	//pass RV generating function
 	public myZigRandGen(myRandVarFunc _func, int _numZigRects, String _name) {
 		super(_func, _name);
 		numZigRects=_numZigRects;
+		numZigIDXMask = numZigRects-1;
+		func.setZigVals(numZigRects);			
+		zigVals = func.zigVals;
+	}//ctor
+	
+	public myZigRandGen(myRandVarFunc _func, String _name) {
+		super(_func, _name);
+		numZigRects=256;		//if not specified use 256
+		numZigIDXMask = numZigRects-1;
 		func.setZigVals(numZigRects);			
 		zigVals = func.zigVals;
 	}//ctor
@@ -296,12 +297,8 @@ class myZigRandGen extends myRandGen{
 	public double getSample() {
 		double res;
 		if(summary.doClipAllSamples()) {
-			do {		
-				res = func.processResValByMmnts(nextNormal53());
-			} while (!summary.checkInBnds(res));
-		} else {
-			res = func.processResValByMmnts(nextNormal53());
-		}
+			do {			res = func.processResValByMmnts(nextNormal53());} while (!summary.checkInBnds(res));
+		} else {			res = func.processResValByMmnts(nextNormal53());}
 		return res;
 	}//getGaussian
 	
@@ -310,12 +307,8 @@ class myZigRandGen extends myRandGen{
 	public double getSampleFast() {
 		double res;
 		if(summary.doClipAllSamples()) {
-			do {		
-				res = func.processResValByMmnts(nextNormal32());
-			} while (!summary.checkInBnds(res));
-		} else {
-			res = func.processResValByMmnts(nextNormal32());
-		}
+			do {			res = func.processResValByMmnts(nextNormal32());} while (!summary.checkInBnds(res));
+		} else {			res = func.processResValByMmnts(nextNormal32());}
 		return res;
 //		double res = nextNormal32();		
 //		return func.processResValByMmnts(res);
@@ -334,40 +327,40 @@ class myZigRandGen extends myRandGen{
 		return func.CDF(_val);		
 	}//CDF
 	
-	//takes sequential long value "bits", uses most sig bit as sign, next 8 sig bits as index, and last 54 bits as actual random value
-	public double _getFuncValFromLong(long val) {
-		//uLong is using 54 least Sig Bits (and 1st Most Sig Bits as sign bit).
-		long uLong = ((long)(val<<10))>>10;
-		//Using 9 least sig Bits as index and sign.
-		int index = ((int)val>>55) & 0xFF;
+	public double getFuncValFromLong(long val) {
+		//uLong is using 54 least Sig Bits (and 1st Most Sig Bits as sign bit). - >> preserves sign
+		//this method is closest to using magnitude of val as CDF-ish mapping, although not consistent
+		long uLong = (val>>10); 
+		int index = (int)(val & numZigIDXMask);
+//alternate method - does not preserve order of val
+//		long uLong = ((long)(val<<10))>>10;
+//		int index = (int)((val>>55) & numZigIDXMask);		
 		if (Math.abs(uLong) < zigVals.eqAreaZigRatio_NNorm[index]) {   	return uLong * zigVals.eqAreaZigX_NNorm[index]; }       
-		//if(index == 0) { 										return bottomCase((bits<<55) < 0);   }// Using 9th LSBit to decide +/-
-		if(index == 0) { 										return bottomCase(val < 0);   }// Using 1st MSSBit to decide +/-
+		if(index == 0) { 										return bottomCase((val<<55) < 0);   }// Using 9th LSBit to decide +/-
+		//if(index == 0) { 										return bottomCase(val < 0);   }//alt method : Using 1st MSSBit to decide +/-
 		// uLong * zigVals.invLBitMask in [-1,1], using 54 L Sig Bits, i.e. with 2^-53 granularity.
-		return rareCase(index, uLong * zigVals.invLBitMask);
+		return rareCase(index, uLong * zigConstVals.invLBitMask);
 	}//_getFuncValFromLong
 	
 	//takes sequential int value val, uses most sig bit as sign, next 8 sig bits as index, and entire value as rand val
-	public double _getFuncValFromInt(int val) {
-		int bits = val;
-		int index = ((val>>16) & 0xFF);
-		if (-Math.abs(bits) >= zigVals.eqAreaZigRatio_NNormFast[index]) { 	return bits * zigVals.eqAreaZigX_NNormFast[index]; }
-		if(index == 0) { 											return bottomCase(bits < 0);   }//use most sig bit for +/-
+	public double getFuncValFromInt(int val) {
+		int index = ((val>>16) & numZigIDXMask);
+		if (-Math.abs(val) >= zigVals.eqAreaZigRatio_NNormFast[index]) { 	return val * zigVals.eqAreaZigX_NNormFast[index]; }
+		if(index == 0) { 											return bottomCase(val < 0);   }//use most sig bit for +/-
 		// bits * zigVals.invBitMask in [-1,1], using 32 bits, i.e. with 2^-31 granularity.
-		return rareCase(index, bits * zigVals.invBitMask);
+		return rareCase(index, val * zigConstVals.invBitMask);
 	}//_getFuncValFromLong
 		
     /**
      * @return A normal gaussian number.
      */
+	private int numNanRes = 0;
 	private double nextNormal53() {
-    	long longVal;
     	double x;
     	while (true) {
-			//single random 64 bit value
-    		longVal = getNextLong();
-			x = _getFuncValFromLong(longVal);
+			x = getFuncValFromLong(getNextLong());
 			if (x==x) {return x;    }		//Nan test -> NaN != NaN
+			//else {System.out.println("Nan res : " + numNanRes++);}
     	}
     }//nextNormal
 
@@ -375,33 +368,31 @@ class myZigRandGen extends myRandGen{
      * @return A normal gaussian number with 32 bit granularity
      */
     private double nextNormal32() {
-    	int val;
     	double x;
     	while (true) {
-    		val = getNextInt();
-    		x = _getFuncValFromInt(val);
+    		x = getFuncValFromInt(getNextInt());
 			if (x==x) {return x;    }		//Nan test -> NaN != NaN
+			//else {System.out.println("Nan res : " + numNanRes++);}
     	}
     }//nextNormalFast
 
     /**
-     * u and negSide are used exclusively, so it doesn't hurt
-     * randomness if same random bits were used to compute both.
-     * 
+     * u and negSide are used exclusively, so it doesn't hurt randomness if same random bits were used to compute both.
      * @return Value to return, or nan if needing to retry
      */
     private double rareCase(int idx, double u) {
         double x = u * zigVals.eqAreaZigX[idx];
         //verify under curve
         if (zigVals.rareCaseEqAreaX[idx+1] + (zigVals.rareCaseEqAreaX[idx] - zigVals.rareCaseEqAreaX[idx+1]) * getNextDouble() < func.fStd(x)) {          return x;    }
+        //overflowing when outside to cause re-samnple
         return Double.NaN;
     }
     
     private double bottomCase(boolean negSide) {        
         double x = -1.0, y = 0.0;
         while (-(y + y) < x * x) {
-            x = Math.log(getNextDouble()+zigVals.invLBitMask) * zigVals.inv_R_last;
-            y = Math.log(getNextDouble()+zigVals.invLBitMask);
+            x = Math.log(getNextDouble()+zigConstVals.invLBitMask) * zigVals.inv_R_last;//adding zigConstVals.invLBitMask to avoid log of 0 - getNextDouble might possibly return a 0
+            y = Math.log(getNextDouble()+zigConstVals.invLBitMask);
         } 
         return negSide ? x - zigVals.R_last : zigVals.R_last - x;
     }
@@ -410,84 +401,133 @@ class myZigRandGen extends myRandGen{
 
 
 /**
- * rand gen class for bounded pdfs (like cosine) - perhaps use variant of zigguarat instead of iterative convergence method to find inv-CDF?
- */
-
-class myBoundedRandGen extends myRandGen{
-
-	public myBoundedRandGen(myRandVarFunc _func, String _name) {
-		super(_func, _name);
-	}
-
-	@Override
-	public void _setFuncSummaryIndiv() {//no extra settings required		
-	}
-
-	@Override
-	public double[] getMultiSamples(int num) {
-		double[] res = new double[num];
-		if(summary.doClipAllSamples()) {
-			int idx = 0;
-			double smpl;
-			while (idx <= num){
-				smpl=nextRandCosVal();
-				if (summary.checkInBnds(smpl)){					res[idx++]=smpl;			}
-			}//while			
-		} else {
-			for(int i=0;i<res.length;++i) {	res[i]=nextRandCosVal();}
-		}
-		return res;
-	}//getNumSamples
-
-	@Override
-	public double[] getMultiFastSamples(int num) {return getMultiSamples(num);}//getNumFastSamples
-	
-    
-	@Override
-	public double getSample() {
-		double res;
-		if(summary.doClipAllSamples()) {
-			do {		
-				res = nextRandCosVal();
-			} while (!summary.checkInBnds(res));
-		} else {
-			res = nextRandCosVal();
-		}
-		return res;
-	}//getGaussian
-	
-	//get a random value based on cosine pdf
-	private double nextRandCosVal() {
-		double res = func.CDF_inv(getNextDouble());
-		return res;		
-	}
-	
-	//int value
-	@Override
-	public double getSampleFast() {
-
-		return getSample();
-//		double res = nextNormal32();		
-//		return func.processResValByMmnts(res);
-	}//getGaussian
-
-	@Override
-	public double inverseCDF(double _val) {
-		//probit value
-		return func.CDF_inv(_val);
-	}
-	//find the cdf value of the passed val -> prob (x<= _val)
-	@Override
-	public double CDF(double _val) {
-		return func.CDF(_val);		
-	}//CDF
-	
-}//class myCosVarRandGen
-
-/**
  * class that will model a distribution using first 4 moments via a polynomial transformation
  * @author john *
  */
+//class myFleishUniVarRandGen_new extends myRandGen{
+//	
+//	//min and max of synthesized
+//	public myFleishUniVarRandGen_new(myRandVarFunc _func, String _name) {
+//		super(_func, _name);
+//	}//ctor
+//	
+//	//if summary object is changed, new fleishman polynomial values need to be synthesized - this is done already in calling function 
+//	//when func.rebuildFuncs is called	
+//	@Override
+//	public void _setFuncSummaryIndiv() {	}
+//	//test function to test iterative method to derive fl inverse
+//	public double calcInvFuncVal(double y) {	return ((myFleishFunc_Uni)func).calcInvF(y);}
+//	
+//	@Override
+//	//synthesize numVals values from low to high to display 
+//	//overridden to get apprpriate values - feed low->high into zi
+//	public void calcFuncValsForDisp(int numVals,double low, double high,  int funcType ) {
+//		if(numVals < 2) {		numVals = 2;		}//minimum 2 values
+////		if (low == high) {//ignore if same value
+////			System.out.println("myRandGen : "+name+" :: calcFValsForDisp : Low == High : " +low +" : "+ high +" : Ignored, no values set/changed.");
+////			return;			
+////		} 
+////		else if(low > high) {	double s = low;		low = high;		high = s;		}  //swap if necessary
+//		double[] minMaxVals = func.getPlotValBounds(funcType);
+//
+//		double[][] funcVals = new double[numVals][2];
+//		double xdiff = minMaxVals[1]-minMaxVals[0];//high-low;
+//		for(int i=0;i<funcVals.length;++i) {		
+//			//funcVals[i][0] = low + (i * xdiff)/numVals;	
+//			funcVals[i][0] = minMaxVals[0] + (i * xdiff)/numVals;	
+//		}
+//		
+//		//evaluate specified function on funcVals
+//		double minY = Double.MAX_VALUE, maxY = -minY, ydiff;
+//		for(int i=0;i<funcVals.length-1;++i) {	
+//			double lowVal = zigNormGen.func.f(funcVals[i][0]), highVal = zigNormGen.func.f(funcVals[i+1][0]);
+//			funcVals[i][1] = func.getFuncVal(funcType,lowVal,highVal);
+//			minY = (minY > funcVals[i][1] ? funcVals[i][1] : minY);
+//			maxY = (maxY < funcVals[i][1] ? funcVals[i][1] : maxY);
+//		}
+//		//last argument is ignored except for integral calc 
+//		int i=funcVals.length-1;
+//		double lowVal = zigNormGen.func.f(funcVals[i][0]);
+//		funcVals[i][1] = func.getFuncVal(funcType,lowVal,Double.POSITIVE_INFINITY);
+//		if(Math.abs(funcVals[i][1]) <= 10000000* Math.abs(funcVals[i-1][1])) {//- don't count this last value for min/max in case of divergence 
+//			minY = (minY > funcVals[i][1] ? funcVals[i][1] : minY);
+//			maxY = (maxY < funcVals[i][1] ? funcVals[i][1] : maxY);
+//		}
+//		minY = (minY > 0 ? 0 : minY);
+//		ydiff = maxY - minY;
+//		//distVisObj.setValuesFunc(funcVals, new double[][]{{minMaxVals[0], minMaxVals[1], xdiff}, {minY, maxY, ydiff}});
+//		double minVal = (minMaxVals[0] < low ? minMaxVals[0] : low),
+//				maxVal = (minMaxVals[1] > high ? minMaxVals[1] : high);
+//		
+//		double[][] minMaxDiffFuncVals = new double[][]{{minVal, maxVal, (maxVal-minVal)}, {minY, maxY, ydiff}};
+//		
+//		
+//		distVisObj.setValuesFunc(funcVals, minMaxDiffFuncVals);
+//	}//calcFValsForDisp
+//	
+//	@Override
+//	public double[] getMultiSamples(int num) {
+//		double[] res = new double[num];
+//		double val;
+//		boolean clipRes = summary.doClipAllSamples();
+//		//transformation via mean and std already performed as part of f function
+//		if (clipRes){
+//			int idx = 0;
+//			while (idx < num) {		val = func.f(zigNormGen.getSample());		if(summary.checkInBnds(val)) {				res[idx++]=val;	}}
+//		} else {					for(int i =0;i<res.length;++i) {		res[i]=func.f(zigNormGen.getSample());			}		}
+//		return res;
+//	}//getMultiSamples
+//
+//	@Override
+//	public double[] getMultiFastSamples(int num) {
+//		double[] res = new double[num];
+//		boolean clipRes = summary.doClipAllSamples();
+//		//transformation via mean and std already performed as part of f function
+//		if (clipRes){
+//			int idx = 0;
+//			while (idx < num) {			double val = func.f(zigNormGen.getSampleFast());	if(summary.checkInBnds(val)) {				res[idx++]=val;	}}
+//		} else {						for(int i =0;i<res.length;++i) {	res[i]=func.f(zigNormGen.getSampleFast());			}		}
+//		return res;
+//	}//getMultiFastSamples
+//	
+//	@Override
+//	public double getSample() {
+//		double res;
+//		if(summary.doClipAllSamples()) {
+//			do {				res = func.f(zigNormGen.getSample());			} while (!summary.checkInBnds(res));
+//		} else {				res = func.f(zigNormGen.getSample());			}
+//		return res;
+//
+//	}//getSample
+//
+//	@Override
+//	public double getSampleFast() {
+//		double res;
+//		if(func.summary.doClipAllSamples()) {
+//			do {				res = func.f(zigNormGen.getSampleFast());		} while (!summary.checkInBnds(res));
+//		} else {				res = func.f(zigNormGen.getSampleFast());		}
+//		return res;
+//		
+////		double res = func.f(zigNormGen.getSampleFast());
+////		return res;
+//	}//getSampleFast
+//	
+//	//find inverse CDF value for passed val - val must be between 0->1; value for which prob(x<=value) is _pval
+//	//this is mapping from 0->1 to probability based on the random variable function definition
+//	@Override
+//	public double inverseCDF(double _pval) {
+//		return func.CDF_inv(_pval);
+//	}
+//	//find the cdf value of the passed val == returns prob (x<= _val)
+//	//for fleishman polynomial, these use the opposite mapping from the normal distrubtion - 
+//	//so for CDF, we want normal dist's inverse cdf of passed value passed to fleish CDF calc
+//	@Override
+//	public double CDF(double _val) {
+//		return func.CDF(_val);	
+//	}//CDF
+//	
+//}//class myFleishRandGen
+
 class myFleishUniVarRandGen extends myRandGen{
 	
 	//generator to manage synthesizing normals to feed fleishman
@@ -506,53 +546,10 @@ class myFleishUniVarRandGen extends myRandGen{
 	@Override
 	public void _setFuncSummaryIndiv() {	}
 	//test function to test iterative method to derive fl inverse
-	public void calcInvFuncVal(double y) {
-		double x = ((myFleishFunc_Uni)func).calcInvF(y);
+	public double calcInvFuncVal(double y) {
+		return ((myFleishFunc_Uni)func).calcInvF(y);
 	}
 	
-	@Override
-	//synthesize numVals values from low to high to display 
-	//overridden to get apprpriate values - feed low->high into zi
-	public void calcFuncValsForDisp(int numVals,double low, double high,  int funcType ) {
-		if(numVals < 2) {		numVals = 2;		}//minimum 2 values
-//		if (low == high) {//ignore if same value
-//			System.out.println("myRandGen : "+name+" :: calcFValsForDisp : Low == High : " +low +" : "+ high +" : Ignored, no values set/changed.");
-//			return;			
-//		} 
-//		else if(low > high) {	double s = low;		low = high;		high = s;		}  //swap if necessary
-		double[] minMaxVals = func.getPlotValBounds(funcType);
-
-		double[][] funcVals = new double[numVals][2];
-		double xdiff = minMaxVals[1]-minMaxVals[0];//high-low;
-		for(int i=0;i<funcVals.length;++i) {		
-			//funcVals[i][0] = low + (i * xdiff)/numVals;	
-			funcVals[i][0] = minMaxVals[0] + (i * xdiff)/numVals;	
-		}
-		
-		//evaluate specified function on funcVals
-		double minY = Double.MAX_VALUE, maxY = -minY, ydiff;
-		for(int i=0;i<funcVals.length-1;++i) {	
-			double lowVal = zigNormGen.func.f(funcVals[i][0]), highVal = zigNormGen.func.f(funcVals[i+1][0]);
-			funcVals[i][1] = func.getFuncVal(funcType,lowVal,highVal);
-			minY = (minY > funcVals[i][1] ? funcVals[i][1] : minY);
-			maxY = (maxY < funcVals[i][1] ? funcVals[i][1] : maxY);
-		}
-		//last argument is ignored except for integral calc 
-		int i=funcVals.length-1;
-		double lowVal = zigNormGen.func.f(funcVals[i][0]);
-		funcVals[i][1] = func.getFuncVal(funcType,lowVal,Double.POSITIVE_INFINITY);
-		if(Math.abs(funcVals[i][1]) <= 10000000* Math.abs(funcVals[i-1][1])) {//- don't count this last value for min/max in case of divergence 
-			minY = (minY > funcVals[i][1] ? funcVals[i][1] : minY);
-			maxY = (maxY < funcVals[i][1] ? funcVals[i][1] : maxY);
-		}
-		minY = (minY > 0 ? 0 : minY);
-		ydiff = maxY - minY;
-		//distVisObj.setValuesFunc(funcVals, new double[][]{{minMaxVals[0], minMaxVals[1], xdiff}, {minY, maxY, ydiff}});
-		double minVal = (minMaxVals[0] < low ? minMaxVals[0] : low),
-				maxVal = (minMaxVals[1] > high ? minMaxVals[1] : high);
-		distVisObj.setValuesFunc(funcVals, new double[][]{{minVal, maxVal, (maxVal-minVal)}, {minY, maxY, ydiff}});
-
-	}//calcFValsForDisp
 	
 	@Override
 	public double[] getMultiSamples(int num) {
@@ -605,17 +602,92 @@ class myFleishUniVarRandGen extends myRandGen{
 	//this is mapping from 0->1 to probability based on the random variable function definition
 	@Override
 	public double inverseCDF(double _pval) {
-		return func.f(zigNormGen.inverseCDF(_pval));
+		return func.CDF_inv(_pval);
 	}
 	//find the cdf value of the passed val == returns prob (x<= _val)
 	//for fleishman polynomial, these use the opposite mapping from the normal distrubtion - 
 	//so for CDF, we want normal dist's inverse cdf of passed value passed to fleish CDF calc
 	@Override
 	public double CDF(double _val) {
-		return func.f(zigNormGen.CDF(_val));		
+		return func.CDF(_val);		
 	}//CDF
 	
-}//class myFleishRandGen
+}//class myFleishRandGen_old (used external zigNormGen
+
+
+
+/**
+ * rand gen class for bounded pdfs (like cosine) - perhaps use variant of zigguarat instead of iterative convergence method to find inv-CDF?
+ */
+
+class myBoundedRandGen extends myRandGen{
+
+	public myBoundedRandGen(myRandVarFunc _func, String _name) {
+		super(_func, _name);
+	}
+
+	@Override
+	public void _setFuncSummaryIndiv() {//no extra settings required		
+	}
+
+	@Override
+	public double[] getMultiSamples(int num) {
+		double[] res = new double[num];
+		if(summary.doClipAllSamples()) {
+			int idx = 0;
+			double smpl;
+			while (idx <= num){
+				smpl=nextRandCosVal();
+				if (summary.checkInBnds(smpl)){					res[idx++]=smpl;			}
+			}//while			
+		} else {
+			for(int i=0;i<res.length;++i) {	res[i]=nextRandCosVal();}
+		}
+		return res;
+	}//getNumSamples
+
+	@Override
+	public double[] getMultiFastSamples(int num) {return getMultiSamples(num);}//getNumFastSamples
+	
+    
+	@Override
+	public double getSample() {
+		double res;
+		if(summary.doClipAllSamples()) {
+			do {		res = nextRandCosVal();	} while (!summary.checkInBnds(res));
+		} else {
+			res = nextRandCosVal();
+		}
+		return res;
+	}//getGaussian
+	
+	//get a random value based on cosine pdf
+	private double nextRandCosVal() {
+		double res = func.CDF_inv(getNextDouble());
+		return res;		
+	}
+	
+	//int value
+	@Override
+	public double getSampleFast() {
+
+		return getSample();
+//		double res = nextNormal32();		
+//		return func.processResValByMmnts(res);
+	}//getGaussian
+
+	@Override
+	public double inverseCDF(double _val) {
+		//probit value
+		return func.CDF_inv(_val);
+	}
+	//find the cdf value of the passed val -> prob (x<= _val)
+	@Override
+	public double CDF(double _val) {
+		return func.CDF(_val);		
+	}//CDF
+	
+}//class myCosVarRandGen
 
 //////////////////////////////////
 // linear and uniform transformation classes
