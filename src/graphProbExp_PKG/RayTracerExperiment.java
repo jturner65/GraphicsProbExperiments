@@ -58,7 +58,6 @@ public class RayTracerExperiment extends BaseProbExpMgr {
 		
 	}
 
-
 	/////////////////////////////
 	//init and manage state flags
 	@Override
@@ -75,4 +74,4 @@ public class RayTracerExperiment extends BaseProbExpMgr {
 	}//setFlag
 
 
-}
+}//class RayTracerExperiment

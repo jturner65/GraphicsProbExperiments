@@ -795,6 +795,7 @@ class uniformCountTransform extends transform{
 		sortedGrades = new TreeMap<Double, Integer>();
 		rankedGrades = new TreeMap<Integer, Double>();
 		double [] vals = summary.getDataVals();
+		//System.out.println("Vals size : " + vals.length);
 		//place in grade map
 		for (double val : vals) {			sortedGrades.put(val, 0);		}
 		//find count

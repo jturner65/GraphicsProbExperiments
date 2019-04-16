@@ -64,7 +64,7 @@ public abstract class BaseProbExpMgr {
 	
 	//time of current process start, from initial construction of mapmgr - TODO use this to monitor specific process time elapsed.  set to 0 at beginning of a particular process, then measure time elapsed in process
 	protected long curProcStartTime;
-	//time mapMgr built, in millis - used as offset for instant to provide smaller values for timestamp
+	//time BaseProbExpMgr built, in millis - used as offset for instant to provide smaller values for timestamp
 	protected final long expMgrBuiltTime;	
 	//state flags used by instancing experiments
 	protected int[] stFlags;	
