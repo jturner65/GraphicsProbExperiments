@@ -1,0 +1,15 @@
+# one red sphere
+
+fov 60
+
+background 0 0 .1
+#background texture nightSky.png 100 0 -1 -50
+
+point_light 8 0 0 1 1 1
+
+shiny   0 0 0   0 0 0   0 0 0   1  .9 0 0 0 0 0  
+texture top checkersphere.jpg
+sphere  1  0 0 -4
+
+
+write t0.png

@@ -1,0 +1,22 @@
+# one white triangle, shifted using translation
+
+fov 60
+
+point_light 0 0 0 1 1 1
+background 0.3 0.3 0.7
+
+diffuse   0.8 0.8 0.8   0 0 0
+
+push
+
+translate 0.5 0.5 0
+
+begin
+vertex  0 -1 -2
+vertex  -1 1 -2
+vertex   1 1 -2
+end
+
+pop
+
+write old_t03c.png

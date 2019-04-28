@@ -1,0 +1,23 @@
+# several spheres in perspective
+
+fov 60
+#ortho 6 6
+point_light 0 0 0  0.2 0.2 0.2
+point_light 4 4 0    1 1 1
+background 0.3 0.3 0.7
+
+# central sphere
+diffuse   0.8 0.8 0.8   0 0 0
+sphere  1   0  0 -6
+
+# four surrounding spheres
+diffuse   0.4 0.4 0.8   0 0 0
+sphere  1   2  0 -6
+diffuse   0.8 0.4 0.4   0 0 0
+sphere  1  -2  0 -5
+diffuse   0.4 0.8 0.4   0 0 0
+sphere  1   0  2 -8
+diffuse   0.8 0.4 0.8   0 0 0
+sphere  1   0 -2 -12
+
+write old_t06.png

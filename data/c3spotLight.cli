@@ -1,0 +1,38 @@
+# colored lights
+
+fov 60
+
+# blue background
+
+background 0.2 0.2 1
+
+# three spotlight sources (red, green, blue)
+#spotlight x y z dx dy dz angle_inner angle_outer r g b
+#spotlight  3 4  0 -1 -1 0 30 60 .8 .2 .2 
+#spotlight -3 4  0  1 -1 0 30 60 .2 .8 .2
+#spotlight  0 4 -5  0 -1 1 30 60 .2 .2 .8
+spotlight  0 8 -3  0 -1 0 10 30 .8 .8 .8
+
+# these two triangles acts as a ground plane
+
+diffuse  .8 .8 .8  .2 .2 .2  
+
+begin
+vertex -100 -1 -100
+vertex  100 -1 -100
+vertex  100 -1  100
+end
+
+begin
+vertex  100 -1  100
+vertex -100 -1  100
+vertex -100 -1 -100
+end
+
+# shadow-casting sphere
+
+diffuse  .8 .8 .8  .2 .2 .2 
+sphere  .5  0 0.5 -3
+
+write c3spotLight.png
+

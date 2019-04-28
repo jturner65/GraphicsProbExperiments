@@ -154,11 +154,11 @@ public class ClassGradeExperiment extends BaseProbExpMgr{
 	//		}//for each student assign a random grade and add them to class roster			
 			//build summary object from vals
 			myProbSummary summaryObj = new myProbSummary(vals);
-			dispMessage("ClassGradeExperiment","loadStudentGrades","Built Summary object with following stats : " + summaryObj.getMinNumMmnts(),MsgCodes.info1,true);
+			dispMessage("ClassGradeExperiment","loadAllClassData","Built Summary object with following stats : " + summaryObj.getMinNumMmntsDesc(),MsgCodes.info1,true);
 			perClassSummaryObjMap.put(className, summaryObj);
-			dispMessage("ClassGradeExperiment","loadSpecifiedStudentGrades","Finished loading grades for class from " + clsFileName,MsgCodes.info1,true);
+			dispMessage("ClassGradeExperiment","loadAllClassData","Finished loading grades for class from " + clsFileName,MsgCodes.info1,true);
 		}
-		dispMessage("ClassGradeExperiment","loadSpecifiedStudentGrades","Finished loading grades from all  " + _classRosterFileNames.length + " classes.",MsgCodes.info1,true);
+		dispMessage("ClassGradeExperiment","loadAllClassData","Finished loading grades from all  " + _classRosterFileNames.length + " classes.",MsgCodes.info1,true);
 	}//loadSpecifiedStudentGrades
 	
 	private String[] loadSpecifiedStudents(String _studentFileName) {
@@ -192,7 +192,7 @@ public class ClassGradeExperiment extends BaseProbExpMgr{
 			}//for each student assign a random grade and add them to class roster			
 			//build summary object from vals
 			myProbSummary summaryObj = new myProbSummary(vals);
-			dispMessage("ClassGradeExperiment","loadStudentGrades","Built Summary object for class : " + _cls.name+ " with following stats : " + summaryObj.getMinNumMmnts(),MsgCodes.info1,true);
+			dispMessage("ClassGradeExperiment","updateGlblGrades","Built Summary object for class : " + _cls.name+ " with following stats  : " + summaryObj.getMinNumMmntsDesc(),MsgCodes.info1,true);
 			perClassSummaryObjMap.put(_cls.name, summaryObj);
 		}
 	}//updateGlblGrades
@@ -282,7 +282,7 @@ public class ClassGradeExperiment extends BaseProbExpMgr{
 			}//for each student assign a random grade and add them to class roster			
 			//build summary object from vals
 			myProbSummary summaryObj = new myProbSummary(vals);
-			dispMessage("ClassGradeExperiment","loadStudentGrades","Built Summary object for class : " + _cls.name+ " with following stats : " + summaryObj.getMinNumMmnts(),MsgCodes.info1,true);
+			dispMessage("ClassGradeExperiment","buildRandomStudentGrades","Built Summary object for class : " + _cls.name+ " with following stats : " + summaryObj.getMinNumMmntsDesc(),MsgCodes.info1,true);
 			perClassSummaryObjMap.put(_cls.name, summaryObj);
 		}
 		setStntClassRebuildFlags();			//students have not received current grade distribution;classes have not had students assigned; grades need to be rebuilt <- last one we counteract

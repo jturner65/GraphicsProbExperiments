@@ -1,0 +1,57 @@
+# testing different lenses, with long line of spheres
+# this test uses a fisheye lens
+
+fisheye 180
+point_light 0 0 0  0.2 0.2 0.2
+point_light 4 4 0    1 1 1
+background 0.3 0.3 0.7
+
+# lots of spheres in a line
+
+diffuse   0.8 0.8 0.8   0 0 0
+
+sphere  1   0  0 -6
+
+sphere  1   2  0 -6
+sphere  1   4  0 -6
+sphere  1   6  0 -6
+sphere  1   8  0 -6
+sphere  1   10  0 -6
+sphere  1   12  0 -6
+sphere  1   14  0 -6
+sphere  1   16  0 -6
+sphere  1   18  0 -6
+sphere  1   20  0 -6
+sphere  1   22  0 -6
+sphere  1   24  0 -6
+sphere  1   26  0 -6
+
+sphere  1   -2  0 -6
+sphere  1   -4  0 -6
+sphere  1   -6  0 -6
+sphere  1   -8  0 -6
+sphere  1   -10  0 -6
+sphere  1   -12  0 -6
+sphere  1   -14  0 -6
+sphere  1   -16  0 -6
+sphere  1   -18  0 -6
+sphere  1   -20  0 -6
+sphere  1   -22  0 -6
+sphere  1   -24  0 -6
+sphere  1   -26  0 -6
+
+# ground plane
+
+begin
+vertex  -80 -1 -80
+vertex  -80 -1  80
+vertex   80 -1 -80
+end
+
+begin
+vertex   80 -1 -80
+vertex   80 -1  80
+vertex  -80 -1  80
+end
+
+write old_t10.png

@@ -1,0 +1,24 @@
+# four reflective spheres
+
+fov 60
+
+# blue background
+
+background 0.2 0.2 1
+
+# one light source
+
+point_light .4 0 0 .5 .5 .5
+
+# four reflective spheres
+
+shiny  .7 .7 .7  0 0 0  0 0 0  20 0.7 0 0
+sphere 1.41421356   0 0 -5
+shiny  .9 .4 .4  0 0 0  0 0 0  20 0.7 0 0
+sphere 1.41421356   0 0 5
+shiny  .4 .9 .4  0 0 0  0 0 0  20 0.7 0 0
+sphere 1.41421356   5 0 0 
+shiny  .4 .4 .9  0 0 0  0 0 0  20 0.7 0 0
+sphere 1.41421356  -5 0 0
+
+write c6.png

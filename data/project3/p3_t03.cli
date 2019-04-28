@@ -1,0 +1,60 @@
+# non-uniform scaling of several sphere instances
+
+fov 60
+point_light 5 5 5 1 1 1
+
+diffuse   0.8 0 0  0.2 0 0   
+sphere 1  0 0 0
+named_object  red_sphere
+
+diffuse   0 0.8 0  0 0.2 0   
+sphere 1  0 0 0
+named_object  green_sphere
+
+diffuse   0 0 0.8  0 0 0.2  
+sphere 1  0 0 0
+named_object  blue_sphere
+
+push
+translate -1.2 0 -4
+
+push
+scale 0.3 1 0.3
+instance red_sphere
+pop
+
+push
+scale 1 0.3 0.3
+instance green_sphere
+pop
+
+push
+scale 0.3 0.3 1
+instance blue_sphere
+pop
+
+pop
+
+
+push
+translate 1.2 0 -4
+
+push
+scale 0.2 1 1
+instance red_sphere
+pop
+
+push
+scale 1 0.2 1
+instance green_sphere
+pop
+
+push
+scale 1 1 0.2
+instance blue_sphere
+pop
+
+pop
+
+
+write t03.png

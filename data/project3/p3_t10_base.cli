@@ -1,0 +1,47 @@
+# MY Bunny Scene! using bunnies
+
+fov 60
+#refine on
+#rays_per_pixel 5
+
+background texture nightSky.png 2000 0 -1 -1000
+
+# light sources 
+
+point_light  3 4  0  .8 .8 .8
+point_light -3 4  0  .4 .4 .4
+
+#floor
+#surface  0 0 0  .01 .01 .01  0 0 0  1  0.5
+diffuse 1 1 1 0 0 0
+begin quad
+vertex -200 -1 -200
+vertex  200 -1 -200
+vertex  200 -1 200
+vertex  -200 -1 200
+end
+
+#close blue bunny
+push
+translate  0 0 -3.5
+rotate 10 0 1 0
+surface  0.01 0.01 0.1 0.01 0.01 0.01  1 1 1  160 .1 1.5 .9 .1 .5 .9
+begin_list
+read bun69k.cli
+end_accel
+pop
+
+#further red bunny
+push
+translate 1.5 0 -6.5
+rotate 100 0 1 0
+surface  0.1 0 0 0.1 0 0  1 1 1  160 .1 1.5 .9 .9 .5 .3
+begin_list
+read bun69k.cli
+end_accel
+pop
+
+reset_timer
+write t10.png
+print_timer
+

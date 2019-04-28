@@ -1,0 +1,46 @@
+# big bunny, in acceleration structure
+
+fov 60
+
+# blue background
+
+background 0.2 0.2 1
+
+# light sources 
+
+point_light  3 4  0  .8 .8 .8
+point_light -3 4  0  .2 .2 .2
+
+# these two triangles acts as a ground plane
+
+diffuse  .8 .8 .8  .2 .2 .2
+
+begin
+vertex -100 -1 -100
+vertex  100 -1 -100
+vertex  100 -1  100
+end
+
+begin
+vertex  100 -1  100
+vertex -100 -1  100
+vertex -100 -1 -100
+end
+
+# the bunny
+
+translate 0 0 -3
+
+surface  0.9 0.9 0.9 0 0 0  1 1 1  40 .01 
+#<typ> <noise scale> <numOctaves> <turbMult> <pdMult x y z> <multByPI 1/0 1/0 1/0> <useFwdTransform 0/1> <rndomize colors colorScale - if present then true> <color mult> <num overlays - if present, otherwise 1>
+wood 1.0 16 0.4 5.0 25.1 17.7 0 0 0 1.0 12.0 .2 1
+#<noise_color spec tag> (<'named'> <clr name>) or (<color r g b>)  <?wt> <-specify once for each color
+
+begin_list
+read bun69k.cli
+end_accel
+
+reset_timer
+write t09p3.png
+print_timer
+

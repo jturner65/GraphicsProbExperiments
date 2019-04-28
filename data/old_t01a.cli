@@ -1,0 +1,9 @@
+# one red sphere
+
+fov 60
+point_light 8 0 0 1 1 1
+
+diffuse   0.5 0 0   0.2 0 0
+sphere  1  0 0 -4
+
+write old_t01a.png

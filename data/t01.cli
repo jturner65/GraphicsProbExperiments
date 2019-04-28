@@ -1,0 +1,12 @@
+# two spheres, both diffuse
+
+fov 60
+point_light 1 5 5 1 1 1
+
+diffuse   0.5 0 0  0.2 0 0
+sphere 1  0 0 -4
+
+diffuse   0 0.5 0   0 0.2 0   
+sphere .3  0.8 0.6 -2.7
+
+write t01.png

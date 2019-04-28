@@ -1,8 +1,8 @@
 package base_Utils_Objects;
 
 public class myMatStack {
-	myMatrix[] s;
-	int top;
+	public myMatrix[] s;
+	public int top;
 	 
 	public myMatStack(int matStackMaxHeight){
 		s = new myMatrix[matStackMaxHeight];

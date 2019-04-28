@@ -1,0 +1,48 @@
+# MY Bunny Scene! using bunnies
+
+fov 30
+
+
+background texture nightSky.png 2000 0 -1 -1000
+
+# light sources 
+
+point_light  2 4  0  .8 .8 .8
+point_light -2 4  0  .2 .2 .2
+
+# these two triangles acts as a ground plane
+
+diffuse  .8 .8 .8  .2 .2 .2
+
+#begin
+#vertex -100 -1 -100
+#vertex  100 -1 -100
+#vertex  100 -1  100
+#end
+
+#begin
+#vertex  100 -1  100
+#vertex -100 -1  100
+#vertex -100 -1 -100
+#end
+
+
+begin_list
+read bun69k.cli
+end_accel
+named_object  bun69k
+
+
+#close blue bunny
+push
+translate  0 -.5 -13.5
+#surface  0.01 0.01 0.1 0.01 0.01 0.01  1 1 1  160 .1 1.5 .9 .1 .5 .9
+#sierpinksi tetrahedron - instance, depth, scale, shdr->use a custom shader for each level of instance if value present here
+sierpinski bun69k 8 .65 shdr
+pop
+
+
+reset_timer
+write sierpBunnies1.png
+print_timer
+

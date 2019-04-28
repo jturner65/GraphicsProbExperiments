@@ -1,0 +1,28 @@
+# one red sphere
+
+fov 90
+point_light 8 0 0 1 1 1
+
+diffuse   0.5 0 0   0.2 0 0
+push
+rotate 5 0 0 1
+translate 0 0 -15
+sphere 1     0    0   0
+pop
+
+diffuse   0 0.5 0   0 0.2 0
+
+push
+rotate 5 0 1 0
+translate 0 0 -15
+sphere 1     0    0 0
+pop
+
+diffuse   0 0 0.5   0 0 0.2
+push
+rotate 5 1 0 0
+translate 0 0 -15
+sphere 1     0    0 0
+pop
+
+write t0Rotate.png

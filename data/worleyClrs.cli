@@ -1,0 +1,11 @@
+#<noise_color spec tag> (<'named'> <clr name>) or (<color r g b>)  <?wt> <-specify once for each color
+noise_color named clr_mortar2
+noise_color named clr_white
+noise_color named clr_blue
+noise_color named clr_darkblue
+noise_color named clr_green
+noise_color named clr_darkgreen
+noise_color named clr_purple
+noise_color named clr_darkpurple
+noise_color named clr_dkwood1
+noise_color named clr_ltwood2

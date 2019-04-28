@@ -1,0 +1,56 @@
+# several reflective spheres
+
+fov 60
+
+# background texture
+
+background texture nightSky.png 2000 0 -1 -1000
+#background texture sky_offworld2a.jpg 2000 0 -1 -1000
+
+
+# point_light sources
+
+point_light 12 8 -3  1 1 1
+point_light 5 0 10 1 1 1 
+
+# square ground plane
+
+surface  0 0 0  .01 .01 .01  0 0 0  1  0.5
+
+begin quad
+vertex -200 -1 -200
+vertex  -200 -1 200
+vertex  200 -1 200
+vertex  200 -1 -200
+end
+
+
+# reflective spheres
+
+surface   0 0 0   0 0 0   .2 .2 .2   5  0
+texture top earthmap1k.jpg
+sphere 1     2    0   -4
+texture top venusmap.jpg
+sphere .5    3   -0.5 -3
+texture top mars_1k_color.jpg
+sphere 0.5  -1.7 -0.5 -3
+texture top jupitermap.jpg
+sphere 3    -2    2   -9
+
+surface  0 0 0 0.01 0.01 0.01  1 1 1  160 0.9
+sphere 1    -5    0   -7
+sphere 1    -4    0   -5
+sphere 1     4    0   -2
+sphere 0.3   0   -0.7 -1
+sphere 0.4   1   -0.6 -2
+sphere 0.5  -0.7 -0.5 -2
+sphere 0.3   4   -0.7 -3
+sphere 0.4   2   -0.6 -4
+sphere 0.5  -5.7 -0.5 -5
+surface  .1 0 0 0 .2 0 .1 0 .2  120 0.8
+sphere 20    0    19   -37
+
+
+
+write planets.png
+

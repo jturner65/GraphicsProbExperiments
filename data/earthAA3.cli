@@ -1,0 +1,12 @@
+# one sphere - uses earth texture
+
+fov 90
+point_light 8 0 0 1 1 1
+
+antialias 3 3 
+
+diffuse   0 0 0   0 0 0 
+texture top earthmap1k.jpg
+sphere  2.5  0 0 -6
+
+write earthAA3.png

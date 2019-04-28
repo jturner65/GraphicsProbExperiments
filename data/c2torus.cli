@@ -1,0 +1,22 @@
+# colored lights
+
+fov 60
+
+# blue background
+
+background .2 .2 .2
+
+# one point_light
+
+point_light 4 4 8  .7 .7 .7
+
+# sphere
+
+surface  .8 .2 .2  .3 .1 .1  0 0 0  1  0
+
+#torus
+
+torus 5 .5 200 0 0 -12
+
+write c2torus.png
+

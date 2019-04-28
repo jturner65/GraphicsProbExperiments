@@ -1,0 +1,89 @@
+# several reflective spheres
+
+fov 60
+
+# black background
+
+background 0.1 0.1 0.1
+#foreground 0.7 0.7 0.9
+
+# 14 point_light sources
+
+point_light 0 1 -20 .5 .5 .5
+point_light 0 8 3  .5 .5 .5
+point_light 0 -.5 1  .5 .5 .5
+point_light -4 2 0  .5 .5 .5
+point_light 4 2 0  .5 .5 .5
+
+point_light 8 8 3  .5 0 0
+point_light 0 8 3  0 .5 0
+point_light 0 12 3  0 .5 0
+point_light -4 2 0  .5 0 0 
+point_light -8 8 3  0 0 .5
+point_light 4 2 0  0 0 .5
+
+# these two triangles acts as a ground plane
+
+shiny  .2 .2 .2  .01 .01 .01  0 0 0  1  0.5 0 0
+
+begin
+vertex -100 -1 -100
+vertex  100 -1  100
+vertex  100 -1 -100
+end
+
+begin
+vertex  100 -1  100
+vertex -100 -1 -100
+vertex -100 -1  100
+end
+
+# this rectangle will serve as a white foreground behind camera for reflections
+diffuse .4 .4 .4 0 0 0 
+
+begin quad
+vertex -100 -1 100
+vertex -100 100 100
+vertex  100 100 100
+vertex 100 -100 100
+end
+
+
+# reflective spheres
+
+diffuse   0 0 0   0 0 0   
+texture jupitermap.jpg
+sphere 1     1    0   -5
+
+diffuse   0 0 0   0 0 0   
+texture mars_1k_color.jpg
+sphere 1    -2    0   -7
+
+shiny  0 0 0 0.01 0.01 0.01  1 1 1  160 0.9 0 0
+sphere 0.3   0   -0.7 -2
+sphere 0.4   1   -0.6 -3
+sphere 0.5  -0.7 -0.5 -3
+
+diffuse   0 0 0   0 0 0   
+texture earthmap1k.jpg
+sphere 1     3    0   -6
+
+diffuse   0 0 0   0 0 0   
+texture moonmap4k.jpg
+sphere 1    -4    0   -9
+
+shiny  0 0 0 0.01 0.01 0.01  1 1 1  160 0.9 0 0
+sphere 0.3   4   -0.7 -5
+sphere 0.4   2   -0.6 -6
+sphere 0.5  -5.7 -0.5 -7
+# snowman behind viewer
+sphere 3     0    0    4
+sphere 2     0    2.5  4
+sphere 1     0    5    4
+sphere 1     0    7    4
+#giant sphere in background
+sphere 20    0    19   -35
+
+
+write c4InSphere.png
+

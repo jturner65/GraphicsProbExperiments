@@ -1,0 +1,50 @@
+# four overlapping boxes of different colors (shrunk to be small)
+# this uses a list, so it should run faster than t05.clil
+
+fov 60
+point_light 0 0 0 1 1 1
+background 0.6 0.6 0.9
+
+begin_list
+
+push
+
+translate 0 0 -5
+rotate 20 1 0 0
+rotate -20 0 1 0
+scale 0.2 0.2 0.2
+
+diffuse 0.8 0.8 0.8  0.2 0.2 0.2
+push
+read box.cli
+pop
+
+diffuse 0.8 0.2 0.2  0.2 0.2 0.2
+push
+scale 0.99 0.99 0.99
+rotate 45 0 0 1
+read box.cli
+pop
+
+diffuse 0.2 0.8 0.2  0.2 0.2 0.2
+push
+scale 0.99 0.99 0.99
+rotate 45 0 1 0
+read box.cli
+pop
+
+diffuse 0.2 0.2 0.8  0.2 0.2 0.2
+push
+scale 0.99 0.99 0.99
+rotate 45 1 0 0
+read box.cli
+pop
+
+pop
+
+end_list
+
+reset_timer
+write t06.png
+print_timer
+

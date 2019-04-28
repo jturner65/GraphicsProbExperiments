@@ -1,0 +1,35 @@
+# one clear sphere
+
+fishEye 60
+
+#background 
+background texture nightSky.png 100 0 -1 -50
+
+point_light 8 0 0 1 1 1
+#dif(r,g,b)  amb(r,g,b)  spec(r,g,b) PhExp  Krefl  Ktrans  Index perm(r,g,b)
+shiny   .9 .9 .9   0 0 0   1 1 1  120 .1 1.5 1 .5 1.0 1.0
+
+#phong   120  
+#krefl .1
+#ktrans 1.5  
+#perm 1 .5 1.0 1.0
+sphere  1  0 0 -4
+
+diffuse   0 0 0.8   0 0 0   
+
+begin
+vertex   -20 -20 -80
+vertex   20  20 -80
+vertex  -20  20 -80
+end
+
+diffuse   0.8 0 0   0 0 0   
+
+begin
+vertex   1 -2 6
+vertex   -1  2 6
+vertex   3  2 6
+end
+
+
+write trTransFish.png

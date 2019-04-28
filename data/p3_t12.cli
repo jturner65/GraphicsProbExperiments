@@ -1,0 +1,86 @@
+# MY Bunny Scene! using bunnies
+
+fov 60
+
+# blue background
+
+background 0.2 0.2 1
+
+# light sources 
+
+point_light  3 4  0  .8 .8 .8
+point_light -3 4  0  .2 .2 .2
+
+# these two triangles acts as a ground plane
+
+diffuse  .8 .8 .8  .2 .2 .2
+
+begin
+vertex -100 -1 -100
+vertex  100 -1 -100
+vertex  100 -1  100
+end
+
+begin
+vertex  100 -1  100
+vertex -100 -1  100
+vertex -100 -1 -100
+end
+
+# bunny instance - accel list
+begin_list
+
+push
+
+rotate 20 1 0 0
+rotate -20 0 1 0
+scale 0.2 0.2 0.2
+
+diffuse 0.8 0.8 0.8  0.2 0.2 0.2
+push
+read box.cli
+pop
+
+diffuse 0.8 0.2 0.2  0.2 0.2 0.2
+push
+scale 0.99 0.99 0.99
+rotate 45 0 0 1
+read box.cli
+pop
+
+diffuse 0.2 0.8 0.2  0.2 0.2 0.2
+push
+scale 0.99 0.99 0.99
+rotate 45 0 1 0
+read box.cli
+pop
+
+diffuse 0.2 0.2 0.8  0.2 0.2 0.2
+push
+scale 0.99 0.99 0.99
+rotate 45 1 0 0
+read box.cli
+pop
+
+pop
+
+end_list
+named_object twistyBoxAccel
+
+push
+translate -.5 0 -2
+rotate 90 0 1 0
+diffuse  0 0 .8  .1 .1 .2 
+instance twistyBoxAccel shdr
+pop
+
+push
+translate .5 0 -2
+rotate 90 0 1 0
+diffuse  .8 0 0  .2 .1 .1 
+instance twistyBoxAccel shdr
+pop
+reset_timer
+write t11.png
+print_timer
+

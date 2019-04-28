@@ -1,0 +1,37 @@
+# box with light at top
+
+fov 60
+
+# black background
+
+background 0 0 0
+
+# light sources 
+
+point_light  0 .98 -2.5  .5 .5 .5
+
+# global diffuse photons
+
+#diffuse_photons  9000  1 0.02
+#diffuse_photons  90000  5 0.1
+diffuse_photons  900000  200 0.1
+
+# box
+
+diffuse  .8 .8 .8  .2 .2 .2
+
+push
+translate 0 0 -2.5
+read cube.cli
+pop
+
+# reflective sphere (perfect mirror)
+
+reflective  0 0 0  0 0 0  0.95
+
+sphere 0.3  -0.5 -0.7 -2.7
+
+reset_timer
+write t10.png
+print_timer
+

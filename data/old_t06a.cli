@@ -1,0 +1,21 @@
+# reflective spheres
+
+fov 60
+point_light 5 5 5 1 1 1
+background 0.6 0.6 0.9
+
+# four reflective spheres
+
+shiny  0.1 0 0  0 0 0  .7 .7 .7  20  0.7  0 1
+sphere 0.6   1 0 -4
+
+shiny  0.1 0 0  0 0 0  .7 .7 .7  20  0.7  0 1
+sphere 0.6  0 1 -4
+
+shiny  0.1 0 0  0 0 0  .7 .7 .7  20  0.7  0 1
+sphere 0.6  -1 0 -4
+
+shiny  0.1 0 0  0 0 0  .7 .7 .7  20  0.7  0 1
+sphere 0.6  0 -1 -4
+
+write old_t06a.png

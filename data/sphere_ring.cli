@@ -1,0 +1,185 @@
+# a ring of spheres
+
+push
+
+diffuse  0.8 0.4 0.4  .2 .2 .2
+
+rotate 10  0 1 0
+sphere  0.2  2 0 0
+
+diffuse  0.8 0.8 0.4  .2 .2 .2
+
+rotate 10  0 1 0
+sphere  0.2  2 0 0
+
+diffuse  0.4 0.8 0.4  .2 .2 .2
+
+rotate 10  0 1 0
+sphere  0.2  2 0 0
+
+diffuse  0.4 0.8 0.8  .2 .2 .2
+
+rotate 10  0 1 0
+sphere  0.2  2 0 0
+
+diffuse  0.4 0.4 0.8  .2 .2 .2
+
+rotate 10  0 1 0
+sphere  0.2  2 0 0
+
+diffuse  0.8 0.4 0.8  .2 .2 .2
+
+rotate 10  0 1 0
+sphere  0.2  2 0 0
+
+diffuse  0.8 0.4 0.4  .2 .2 .2
+
+rotate 10  0 1 0
+sphere  0.2  2 0 0
+
+diffuse  0.8 0.8 0.4  .2 .2 .2
+
+rotate 10  0 1 0
+sphere  0.2  2 0 0
+
+diffuse  0.4 0.8 0.4  .2 .2 .2
+
+rotate 10  0 1 0
+sphere  0.2  2 0 0
+
+diffuse  0.4 0.8 0.8  .2 .2 .2
+
+rotate 10  0 1 0
+sphere  0.2  2 0 0
+
+diffuse  0.4 0.4 0.8  .2 .2 .2
+
+rotate 10  0 1 0
+sphere  0.2  2 0 0
+
+diffuse  0.8 0.4 0.8  .2 .2 .2
+
+rotate 10  0 1 0
+sphere  0.2  2 0 0
+
+diffuse  0.8 0.4 0.4  .2 .2 .2
+
+rotate 10  0 1 0
+sphere  0.2  2 0 0
+
+diffuse  0.8 0.8 0.4  .2 .2 .2
+
+rotate 10  0 1 0
+sphere  0.2  2 0 0
+
+diffuse  0.4 0.8 0.4  .2 .2 .2
+
+rotate 10  0 1 0
+sphere  0.2  2 0 0
+
+diffuse  0.4 0.8 0.8  .2 .2 .2
+
+rotate 10  0 1 0
+sphere  0.2  2 0 0
+
+diffuse  0.4 0.4 0.8  .2 .2 .2
+
+rotate 10  0 1 0
+sphere  0.2  2 0 0
+
+diffuse  0.8 0.4 0.8  .2 .2 .2
+
+rotate 10  0 1 0
+sphere  0.2  2 0 0
+
+diffuse  0.8 0.4 0.4  .2 .2 .2
+
+rotate 10  0 1 0
+sphere  0.2  2 0 0
+
+diffuse  0.8 0.8 0.4  .2 .2 .2
+
+rotate 10  0 1 0
+sphere  0.2  2 0 0
+
+diffuse  0.4 0.8 0.4  .2 .2 .2
+
+rotate 10  0 1 0
+sphere  0.2  2 0 0
+
+diffuse  0.4 0.8 0.8  .2 .2 .2
+
+rotate 10  0 1 0
+sphere  0.2  2 0 0
+
+diffuse  0.4 0.4 0.8  .2 .2 .2
+
+rotate 10  0 1 0
+sphere  0.2  2 0 0
+
+diffuse  0.8 0.4 0.8  .2 .2 .2
+
+rotate 10  0 1 0
+sphere  0.2  2 0 0
+
+diffuse  0.8 0.4 0.4  .2 .2 .2
+
+rotate 10  0 1 0
+sphere  0.2  2 0 0
+
+diffuse  0.8 0.8 0.4  .2 .2 .2
+
+rotate 10  0 1 0
+sphere  0.2  2 0 0
+
+diffuse  0.4 0.8 0.4  .2 .2 .2
+
+rotate 10  0 1 0
+sphere  0.2  2 0 0
+
+diffuse  0.4 0.8 0.8  .2 .2 .2
+
+rotate 10  0 1 0
+sphere  0.2  2 0 0
+
+diffuse  0.4 0.4 0.8  .2 .2 .2
+
+rotate 10  0 1 0
+sphere  0.2  2 0 0
+
+diffuse  0.8 0.4 0.8  .2 .2 .2
+
+rotate 10  0 1 0
+sphere  0.2  2 0 0
+
+diffuse  0.8 0.4 0.4  .2 .2 .2
+
+rotate 10  0 1 0
+sphere  0.2  2 0 0
+
+diffuse  0.8 0.8 0.4  .2 .2 .2
+
+rotate 10  0 1 0
+sphere  0.2  2 0 0
+
+diffuse  0.4 0.8 0.4  .2 .2 .2
+
+rotate 10  0 1 0
+sphere  0.2  2 0 0
+
+diffuse  0.4 0.8 0.8  .2 .2 .2
+
+rotate 10  0 1 0
+sphere  0.2  2 0 0
+
+diffuse  0.4 0.4 0.8  .2 .2 .2
+
+rotate 10  0 1 0
+sphere  0.2  2 0 0
+
+diffuse  0.8 0.4 0.8  .2 .2 .2
+
+rotate 10  0 1 0
+sphere  0.2  2 0 0
+
+pop

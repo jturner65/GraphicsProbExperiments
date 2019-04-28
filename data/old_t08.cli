@@ -1,0 +1,14 @@
+# a sphere sitting on an infinite plane
+
+fov 60
+point_light 0 0 0  0.2 0.2 0.2
+point_light 4 4 0   1 1 1
+background 0.3 0.3 0.7
+
+diffuse   0.8 0.8 0.8   0 0 0
+
+sphere  1  0 0 -4
+
+plane  0 1 0  1
+
+write old_t08.png

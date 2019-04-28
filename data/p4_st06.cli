@@ -1,0 +1,22 @@
+fov 60
+#background 
+background texture nightSky.png 100 0 -1 -50
+
+# light sources 
+
+point_light  3 4  0  .8 .8 .8
+point_light -3 4  0  .2 .2 .2
+
+diffuse   0.8 0.8 0.8   0 0 0
+texture checkerboard_small.png
+read sm2TriFloor.cli
+
+surface  0.9 0.9 0.9 0 0 0  1 1 1  90 .01 
+#<typ> <noise scale> <distfunction 0=man/1=euc> <roiFunc 0=linSum/1=altLinSum/2+=...><num pts for dist func - should be even> <avg # pts per cell> <mortar threshold 0.0-1.0> <useFwdTransform 0/1> <?rndomize colors colorScale - if present then true> <color mult> <num overlays - if present, otherwise 1>
+stone 10.0 1 7 8 8.0 0.004 1.0 8.0 .1 1
+read worleyClrs.cli
+
+sphere 1  0 0 -4
+
+write sphereTexture6.png
+

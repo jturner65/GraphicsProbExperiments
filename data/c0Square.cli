@@ -1,0 +1,16 @@
+# one white square
+
+fov 60
+point_light 0 0 0 1 1 1
+background 0.3 0.3 0.7
+
+diffuse   0.8 0.8 0.8   0 0 0
+
+begin quad
+vertex  -1 -1 -4
+vertex  -1 1 -4
+vertex  1 1 -4
+vertex  1 -1 -4
+end
+
+write c0Square.png

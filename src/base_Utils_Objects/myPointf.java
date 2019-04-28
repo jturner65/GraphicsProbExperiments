@@ -57,7 +57,9 @@ public class myPointf {
 	
 	public float[] asArray(){return new float[]{x,y,z};}
 	public double[] asDblArray(){return new double[]{x,y,z};}
-	
+	public float[] asHAraPt(){return new float[]{this.x, this.y, this.z,1};}
+	public float[] asHAraVec(){return new float[]{this.x, this.y, this.z,0};}
+
 	public boolean clickIn(myPointf p, float eps) { return(_dist(p) < eps);}
 	/**
 	 * returns if this pttor is equal to passed pttor

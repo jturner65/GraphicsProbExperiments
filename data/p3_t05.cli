@@ -1,0 +1,44 @@
+# four overlapping boxes of different colors
+
+fov 60
+point_light 0 0 0 1 1 1
+background 0.6 0.6 0.9
+
+push
+
+translate 0 0 -5
+rotate 20 1 0 0
+rotate -20 0 1 0
+
+diffuse 0.8 0.8 0.8  0.2 0.2 0.2
+push
+read box.cli
+pop
+
+diffuse 0.8 0.2 0.2  0.2 0.2 0.2
+push
+scale 0.99 0.99 0.99
+rotate 45 0 0 1
+read box.cli
+pop
+
+diffuse 0.2 0.8 0.2  0.2 0.2 0.2
+push
+scale 0.99 0.99 0.99
+rotate 45 0 1 0
+read box.cli
+pop
+
+diffuse 0.2 0.2 0.8  0.2 0.2 0.2
+push
+scale 0.99 0.99 0.99
+rotate 45 1 0 0
+read box.cli
+pop
+
+pop
+
+reset_timer
+write t05.png
+print_timer
+

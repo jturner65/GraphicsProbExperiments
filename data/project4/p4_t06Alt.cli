@@ -1,0 +1,45 @@
+# one textured sphere
+
+rays_per_pixel 1
+
+fov 60
+background .4 .4 .7
+point_light -3 5 5  .5 .5 .5
+point_light 5 3 3   1 1 1
+
+surface  0.4 0.4 0.4 0 0 0  1 1 1  100 .01 
+#<typ> <noise scale> <numOctaves> <turbMult> <pdMult x y z> <multByPI 1/0 1/0 1/0> <useFwdTransform 0/1> <rndomize colors colorScale - if present then true> <color mult> <num overlays - if present, otherwise 1>
+marble2 2.0 24 13.4 13.0 25.1 17.7 0 0 0 1.0 12.0 .2 1
+
+sphere 1  0 0 -4
+
+diffuse   0.8 0.8 0.8   .2 .2 .2
+
+push
+
+translate 0 -1 -4
+scale 6 6 6
+rotate 90  1 0 0
+translate -0.5 -0.5 0
+
+begin
+texture_coord 0 0
+vertex  0 0 0
+texture_coord 0 1
+vertex  0 1 0
+texture_coord 1 0
+vertex   1 0 0
+end
+
+begin
+texture_coord 1 0
+vertex  1 0 0
+texture_coord 1 1
+vertex  1 1 0
+texture_coord 0 1
+vertex  0 1 0
+end
+
+pop
+
+write t03.png

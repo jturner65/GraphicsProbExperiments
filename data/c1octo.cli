@@ -1,0 +1,66 @@
+# colored lights
+
+fov 60
+
+# blue background
+
+background 0.2 0.2 1
+
+# one point_light
+
+point_light 4 4 8  .7 .7 .7
+
+# octahedron
+
+diffuse  .8 .8 .8  .2 .2 .2 
+
+begin
+vertex 0 0 -5
+vertex 1 0 -4 
+vertex 0 1 -4
+end
+
+begin
+vertex 1 0 -4 
+vertex 0 0 -3
+vertex 0 1 -4
+end
+
+begin
+vertex 0 0 -3
+vertex -1 0 -4
+vertex 0 1 -4
+end
+
+begin
+vertex -1 0 -4
+vertex 0 0 -5
+vertex 0 1 -4
+end
+
+begin
+vertex  1 0 -4
+vertex 0 0 -5
+vertex 0 -1 -4
+end
+
+begin
+vertex 0 0 -3
+vertex  1 0 -4
+vertex 0 -1 -4
+end
+
+begin
+vertex -1 0 -4
+vertex 0 0 -3
+vertex 0 -1 -4
+end
+
+begin
+vertex 0 0 -5
+vertex -1 0 -4
+vertex 0 -1 -4
+end
+
+
+write c1.png

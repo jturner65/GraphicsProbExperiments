@@ -1,0 +1,39 @@
+# testing soft shadows, multiple rays per pixel
+
+rays_per_pixel 100
+
+fov 60
+
+# blue background
+
+background 0.2 0.2 1
+
+# light sources 
+
+disk_light  2 5 -4  0.9  1 0 0  .8 .8 .8
+point_light -3 4 0  .2 .2 .2
+
+# these two triangles acts as a ground plane
+
+diffuse  .8 .8 .8  .2 .2 .2
+
+begin
+vertex -100 -1 -100
+vertex  100 -1 -100
+vertex  100 -1  100
+end
+
+begin
+vertex  100 -1  100
+vertex -100 -1  100
+vertex -100 -1 -100
+end
+
+# sphere resting on ground
+
+diffuse  .8 .8 .8  .2 .2 .2 
+
+sphere  1  0 0 -4
+
+write t06.png
+

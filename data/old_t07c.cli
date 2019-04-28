@@ -1,0 +1,57 @@
+# lots of spheres
+
+fov 60
+background 0.2 0.2 1
+point_light  3 4  0  1 1 1
+
+# these two triangles acts as a ground plane
+
+diffuse  .8 .8 .8  .2 .2 .2
+
+begin
+vertex -100 -1 -100
+vertex  100 -1 -100
+vertex  100 -1  100
+end
+
+begin
+vertex  100 -1  100
+vertex -100 -1  100
+vertex -100 -1 -100
+end
+
+# here come the rings of spheres, stacked on one another
+
+push
+
+translate 0 -0.8 -6
+read sphere_ring.cli
+
+translate 0 0.3 0
+rotate 5 0 1 0
+read sphere_ring.cli
+
+translate 0 0.3 0
+rotate 5 0 1 0
+read sphere_ring.cli
+
+translate 0 0.3 0
+rotate 5 0 1 0
+read sphere_ring.cli
+
+translate 0 0.3 0
+rotate 5 0 1 0
+read sphere_ring.cli
+
+translate 0 0.3 0
+rotate 5 0 1 0
+read sphere_ring.cli
+
+translate 0 0.3 0
+rotate 5 0 1 0
+read sphere_ring.cli
+
+pop
+
+write old_t07c.png
+

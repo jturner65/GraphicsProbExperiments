@@ -1,0 +1,21 @@
+# colored lights
+
+fov 60
+
+# blue background
+
+background 0.2 0.2 1
+
+# three light sources (red, green, blue)
+
+point_light  3 4  0  .8 .2 .2
+point_light -3 4  0  .2 .8 .2
+point_light  0 -4 0  .2 .2 .8
+
+# sphere
+
+diffuse  .8 .8 .8  .2 .2 .2 
+sphere  1  0 0 -3
+
+write old_t03a.png
+

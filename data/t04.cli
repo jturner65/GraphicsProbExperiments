@@ -1,0 +1,65 @@
+# square mirror, low number of caustic photons
+
+fov 60
+
+# blue background
+
+background 0.2 0.2 1
+
+# light source
+
+point_light  1 1 -0.7  .8 .8 .8
+
+# low number of caustic photons
+caustic_photons  80000  1 0.05
+
+# these two triangles acts as a ground plane
+
+diffuse  .8 .8 .8  .2 .2 .2
+
+begin
+vertex -100 -1 -100
+vertex  100 -1 -100
+vertex  100 -1  100
+end
+
+begin
+vertex  100 -1  100
+vertex -100 -1  100
+vertex -100 -1 -100
+end
+
+# a sphere on the ground
+
+diffuse  0 .6 0   0 .2 0
+sphere 0.25  0.5 -0.75 -2.5
+
+# these two triangles form a mirrored square
+
+reflective  .5 .5 .5   .2 .2 .2  0.9
+
+push
+
+translate 0 0 -2.5
+rotate 45  1 0 0
+
+begin
+vertex -1 -1 0
+vertex  1 -1 0
+vertex  1  1 0
+end
+
+begin
+vertex  1  1 0
+vertex -1  1 0
+vertex -1 -1 0
+end
+
+pop
+
+# ring
+
+reset_timer
+write t04.png
+print_timer
+

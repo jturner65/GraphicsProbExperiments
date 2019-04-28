@@ -1,0 +1,31 @@
+# several cylinders
+
+fov 60
+background .4 .4 .7
+
+point_light -3 5 5  .5 .5 .5
+point_light 5 3 3   1 1 1
+
+diffuse   0.8 0.8 0.8   0.2 0.2 0.2
+
+# large cylinder that acts as a floor
+cylinder 20.0  0 0  -4 -1
+
+# smaller cylinders sitting on floor
+
+diffuse  0.8 0.4 0.4  0.2 0.2 0.2
+cylinder  0.3   -2  -5  -1 0
+
+diffuse  0.4 0.8 0.4  0.2 0.2 0.2
+cylinder  0.3   -1  -5  -1 0.5
+
+diffuse  0.4 0.4 0.8  0.2 0.2 0.2
+cylinder  0.3    0  -5  -1 1
+
+diffuse  0.8 0.4 0.8  0.2 0.2 0.2
+cylinder  0.3    1  -5  -1 1.5
+
+diffuse  0.8 0.8 0.8  0.2 0.2 0.2
+cylinder  0.3    2  -5  -1 2
+
+write old_t05a.png

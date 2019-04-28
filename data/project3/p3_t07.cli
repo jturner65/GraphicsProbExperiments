@@ -1,0 +1,43 @@
+# small bunny, in list
+
+fov 60
+
+# blue background
+
+background 0.2 0.2 1
+
+# light sources 
+
+point_light  3 4  0  .8 .8 .8
+point_light -3 4  0  .2 .2 .2
+
+# these two triangles acts as a ground plane
+
+diffuse  .8 .8 .8  .2 .2 .2
+
+begin
+vertex -100 -1 -100
+vertex  100 -1 -100
+vertex  100 -1  100
+end
+
+begin
+vertex  100 -1  100
+vertex -100 -1  100
+vertex -100 -1 -100
+end
+
+# the bunny
+
+translate 0 0 -3
+
+diffuse  .8 .8 .8  .2 .2 .2 
+
+begin_list
+read bun500.cli
+end_list
+
+reset_timer
+write t07.png
+print_timer
+

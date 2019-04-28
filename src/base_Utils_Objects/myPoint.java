@@ -55,6 +55,10 @@ public class myPoint {
 	
 	public double[] asArray(){return new double[]{x,y,z};}
 	
+	public double[] asHAraPt(){return new double[]{this.x, this.y, this.z,1};}
+	public double[] asHAraVec(){return new double[]{this.x, this.y, this.z,0};}
+
+	
 	public float[] asFltArray(){return new float[]{(float)x,(float)y,(float)z};}
 	
 	public boolean clickIn(myPoint p, double eps) { return(_dist(p) < eps);}

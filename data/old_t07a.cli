@@ -1,0 +1,26 @@
+# refractive spheres
+
+fov 60
+point_light 0 5 5 1 1 1
+backgroun 0 0 0
+
+# diffuse sphere in background
+
+diffuse   0.3 0.3 0.8   0.1 0.1 0.2
+sphere 1.5  0 0 -7
+
+# four refractive spheres in front (different refractive indices)
+
+shiny  0.1 0 0  0 0 0  .7 .7 .7  20  0  0.8 1.0
+sphere 0.6   1 0 -4
+
+shiny  0.1 0 0  0 0 0  .7 .7 .7  20  0  0.8 1.05
+sphere 0.6  0 1 -4
+
+shiny  0.1 0 0  0 0 0  .7 .7 .7  20  0  0.8 1.2
+sphere 0.6  -1 0 -4
+
+shiny  0.1 0 0  0 0 0  .7 .7 .7  20  0  0.8 1.6
+sphere 0.6  0 -1 -4
+
+write old_t07a.png

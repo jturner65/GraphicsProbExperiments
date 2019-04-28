@@ -1,0 +1,29 @@
+# non-uniform scaling of a sphere instance
+
+fov 60
+point_light 8 0 5 .9 .5 .2
+point_light -2 0 5 .2 .5 .9
+
+diffuse   0.7 0.7 0.7  0 0 0   
+sphere 1  0 0 0
+
+named_object  one_sphere
+
+push
+translate  0 -.5 -7.5
+sierpinski one_sphere 5 .55 shdr
+pop
+
+push
+translate 0 0 -20
+scale 10 10 1
+diffuse .8 .8 .8 0 0 0
+begin
+vertex  0 -1 0
+vertex  -1 1 0
+vertex   1 1 0
+end
+#instance one_sphere shdr
+pop
+
+write t02_sierp.png

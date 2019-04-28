@@ -1,0 +1,38 @@
+# diffuse ring
+
+fov 60
+
+# blue background
+
+background 0.2 0.2 1
+
+# light sources 
+
+point_light  1 1 -0.7  .8 .8 .8
+
+# these two triangles acts as a ground plane
+
+diffuse  .8 .8 .8  .2 .2 .2
+
+begin
+vertex -100 -1 -100
+vertex  100 -1 -100
+vertex  100 -1  100
+end
+
+begin
+vertex  100 -1  100
+vertex -100 -1  100
+vertex -100 -1 -100
+end
+
+# ring
+
+diffuse  .6 .3 .3   .2 .1 .1
+
+hollow_cylinder 1 0.0 -2.6 -1.0 -0.6
+
+reset_timer
+write t06.png
+print_timer
+
