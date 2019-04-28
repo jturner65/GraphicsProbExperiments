@@ -3,11 +3,14 @@ package graphProbExp_PKG;
 import java.time.Instant;
 import java.util.*;
 
+import base_UI_Objects.*;
+import base_Utils_Objects.*;
+
 public abstract class BaseProbExpMgr {
 	//owning window for this experiment handler
 	protected myDispWindow win;
 	//papplet for visualization
-	public static GraphProbExpMain pa;
+	public static my_procApplet pa;
 	//whether current OS supports ansi terminal color settings
 	public static boolean supportsANSITerm = false;
 

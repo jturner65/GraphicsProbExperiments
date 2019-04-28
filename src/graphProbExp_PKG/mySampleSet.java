@@ -1,7 +1,8 @@
 package graphProbExp_PKG;
 
 import java.util.*;
-
+import base_UI_Objects.*;
+import base_Utils_Objects.*;
 
 /**
  * a sample of multiple observations from a distribution
@@ -9,7 +10,7 @@ import java.util.*;
  *
  */
 public abstract class mySampleSet implements Comparable<mySampleSet> {
-	public static GraphProbExpMain pa;
+	public static my_procApplet pa;
 	//experiment owning/using this sample set
 	public BaseProbExpMgr probExp;
 	public final int ObjID;
@@ -21,7 +22,7 @@ public abstract class mySampleSet implements Comparable<mySampleSet> {
 	//currently used dist model
 	protected String curDistModel;
 
-	public mySampleSet(GraphProbExpMain _pa, BaseProbExpMgr _probExp, String _name) {
+	public mySampleSet(my_procApplet _pa, BaseProbExpMgr _probExp, String _name) {
 		pa =_pa;probExp=_probExp;
 		ObjID = IDCnt++;  name=_name;	
 		curDistModel = "";
@@ -135,7 +136,7 @@ class myClassRoster extends mySampleSet{
 	
 	private myFinalGradeRoster _finalGrades;			//ref to final grade roster
 	
-	public myClassRoster(GraphProbExpMain _pa, BaseProbExpMgr _gradeExp, String _name, float[][] _barLocs) {
+	public myClassRoster(my_procApplet _pa, BaseProbExpMgr _gradeExp, String _name, float[][] _barLocs) {
 		super(_pa, _gradeExp, _name);
 		initFlags();
 		//visualization stuff
@@ -430,7 +431,7 @@ class myFinalGradeRoster extends myClassRoster {
 	//whether or not to use zscore calc for final grades
 	private boolean useZScore;
 	
-	public myFinalGradeRoster(GraphProbExpMain _pa, ClassGradeExperiment _gradeExp, String _name, float[][] _barLocs) {
+	public myFinalGradeRoster(my_procApplet _pa, ClassGradeExperiment _gradeExp, String _name, float[][] _barLocs) {
 		super(_pa, _gradeExp, _name, _barLocs);
 		useZScore = false;
 	}//ctor
@@ -537,7 +538,7 @@ class myFinalGradeRoster extends myClassRoster {
 ////special class for uniform mapping just to manage requirement to have all data values set - won't use any transform
 //class myUniformCountFinalGradeRoster extends myFinalGradeRoster {
 //
-//	public myUniformCountFinalGradeRoster(GraphProbExpMain _pa, ClassGradeExperiment _gradeExp, String _name,float[][] _barLocs) {
+//	public myUniformCountFinalGradeRoster(my_procApplet _pa, ClassGradeExperiment _gradeExp, String _name,float[][] _barLocs) {
 //		super(_pa, _gradeExp, _name, _barLocs);
 //	}
 //	//this is not used to set grades

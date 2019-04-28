@@ -2,7 +2,8 @@ package graphProbExp_PKG;
 
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
-
+import base_UI_Objects.*;
+import base_Utils_Objects.*;
 /**
  * this class is a specialized type fo probability experiment manager, specifically for the class grades project
  * @author john
@@ -206,7 +207,7 @@ public class ClassGradeExperiment extends BaseProbExpMgr{
 	//_finalGradeVals : idx 0 : up to first 4 moments of final grade target mapping; idx 1 : min/max of target mapping
 	//_finalGradeDescs : idx 0 : # of moments final grade mapping dist should use, idx 1 : type of myRandGen ; idx 2 : type of myRandFunc to use
 	public void buildRandGradeExp(boolean[] flags, int[] counts, int expType, double[][] _finalGradeVals, int[] _finalGradeDescs) {
-		String dispMessage = (flags[0] ? "rebuild "+ counts[0] + " random students" : "map "+ numStudents + " current students to ") + (flags[1] ? ""+ counts[1] + "rebuilt classes" : numClasses+ " current classes ") + " using "+ (flags[2] ? "new random generated grades" : "existing grades") ;
+		String dispMessage = (flags[0] ? "rebuild "+ counts[0] + " random students" : "map "+ numStudents + " current students to ") + (flags[1] ? ""+ counts[1] + "rebuilt classes" : numClasses+ " current classes") + " using "+ (flags[2] ? "new random generated grades" : "existing grades") ;
 		dispMessage("ClassGradeExperiment","buildRandGradeExp","Start " + dispMessage,MsgCodes.info1,true);		
 		//idx 0 == students rebuilt
 		if(flags[0]) {											buildNewRandomStudents(counts[0]);}//new students
@@ -527,6 +528,7 @@ public class ClassGradeExperiment extends BaseProbExpMgr{
 	public void evalCosAndNormWithHist(int numVals, int numBuckets, double low, double high) {
 		for (myClassRoster _cls : classRosters) {		
 			//build cosine rand gen and assign to class but restore appropriate current rand gen
+			dispMessage("ClassGradeExperiment", "evalCosAndNormWithHist", "Class : " + _cls.name,MsgCodes.info1,true);
 			_buildCosRandGenForTest(_cls);	
 			_cls.evalCosAndNormWithHist(numVals, numBuckets, low, high);	
 		}
@@ -535,7 +537,17 @@ public class ClassGradeExperiment extends BaseProbExpMgr{
 		setShowPlots(true);
 		
 	}//
-	
+	public void dbgTestStuff() {
+		dispMessage("ClassGradeExperiment", "dbgTestStuff", "Start test",MsgCodes.info1,true);
+		//myRandGen gen = buildAndInitRandGen(linearTransformMap, -1, new myProbSummary(new double[] {0,1,1,4},2));		
+		myRandGen gen = buildAndInitRandGen(uniformTransformMap, -1, new myProbSummary(new double[] {0,1,1,4},2));
+		double[] vals = gen.getMultiFastSamples(100000);
+		
+		myProbSummary tmpSummary = new myProbSummary(vals); 
+		
+		
+		dispMessage("ClassGradeExperiment", "dbgTestStuff", "Finish test : summary : "+ tmpSummary.toString(),MsgCodes.info1,true);
+	}
 
 	//derive and show plots of different distributions behind each class calc
 	public void evalPlotClassFuncs(int funcType, int numVals, double low, double high) {		

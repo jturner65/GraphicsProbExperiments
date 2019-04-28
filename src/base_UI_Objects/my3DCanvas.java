@@ -1,30 +1,32 @@
-package graphProbExp_PKG;
-import java.nio.*;
+package base_UI_Objects;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.nio.FloatBuffer;
 
-import processing.core.PConstants;
-import processing.core.PMatrix3D;
+import base_Utils_Objects.*;
+import processing.core.*;
 import processing.opengl.PGL;
 import processing.opengl.PGraphics3D;
 
 public class my3DCanvas {
-	public GraphProbExpMain p;
+	public my_procApplet p;
 	
 	public myPoint drawEyeLoc,													//rx,ry,dz coords where eye was when drawing - set when first drawing and return eye to this location whenever trying to draw again - rx,ry,dz
 		scrCtrInWorld,mseLoc, eyeInWorld, oldMseLoc, distMsePt;//mseIn3DBox;
 	private myPoint dfCtr;											//mouse location projected onto current drawing canvas
 
-	public edge camEdge;												//denotes line perp to cam eye, to use for intersections for mouse selection
-	public final float canvasDim = 15000; 									//canvas dimension for "virtual" 3d		
+	private myEdge camEdge;												//denotes line perp to cam eye, to use for intersections for mouse selection
+	private final float canvasDim = 15000; 									//canvas dimension for "virtual" 3d		
 	private myPoint[] canvas3D;											//3d plane, normal to camera eye, to be used for drawing - need to be in "view space" not in "world space", so that if camera moves they don't change
-	public myVector eyeToMse,											//eye to 2d mouse location 
+	private myVector eyeToMse,											//eye to 2d mouse location 
 					eyeToCtr,													//vector from eye to center of cube, to be used to determine which panels of bounding box to show or hide
 					eyeTodfCtr,
 					drawSNorm;													//current normal of viewport/screen
 		
-	public int viewDimW, viewDimH, viewDimW2, viewDimH2;
-	public float curDepth;
+	private int viewDimW, viewDimH, viewDimW2, viewDimH2;
+	private float curDepth;
 	public final float TQTR_PI;
-	public my3DCanvas(GraphProbExpMain _p) {
+	public my3DCanvas(my_procApplet _p) {
 		p = _p;
 		viewDimW = p.width; viewDimH = p.height;
 		curDepth = -1;
@@ -32,7 +34,7 @@ public class my3DCanvas {
 		initCanvas();
 	}
 	
-	public void initCanvas(){
+	private void initCanvas(){
 		canvas3D = new myPoint[4];		//3 points to define canvas
 		canvas3D[0]=new myPoint();canvas3D[1]=new myPoint();canvas3D[2]=new myPoint();canvas3D[3]=new myPoint();
 		drawEyeLoc = new myPoint(-1, -1, -1000);
@@ -43,7 +45,7 @@ public class my3DCanvas {
 		oldMseLoc  = new myPoint();
 		distMsePt = new myPoint();
 		dfCtr = new myPoint();											//mouse location projected onto current drawing canvas
-		camEdge = new edge(p);	
+		camEdge = new myEdge(p);	
 		eyeToMse = new myVector();		
 		eyeToCtr = new myVector();	
 		eyeTodfCtr = new myVector();
@@ -84,6 +86,10 @@ public class my3DCanvas {
 		distMsePt = p.P(dfCtr,myVector._mult(drawSNorm, -1000));
 
 	}//buildCanvas()
+	
+	public myVector getDrawSNorm() {return drawSNorm;}
+	public int getViewDimW() {return viewDimW;}
+	public int getViewDimH() {return viewDimH;}
 	
 	//return a unit vector from the screen location of the mouse pointer in the world to the reticle location in the world - for ray casting onto objects the mouse is over
 	public myVector getMse2DtoMse3DinWorld(myPoint glbTrans){	return p.U(pick(p.mouseX, p.mouseY,-.00001f),getMseLoc(glbTrans) );	}
@@ -182,7 +188,7 @@ public class my3DCanvas {
 			camEdge.drawMe();
 			p.translate((float)dfCtr.x, (float)dfCtr.y, (float)dfCtr.z);
 			//project mouse point on bounding box walls
-			if(((p.curFocusWin == -1) || (p.dispWinIs3D[p.curFocusWin]))){p.drawProjOnBox(dfCtr);}
+			if(((p.curFocusWin == -1) || (p.curDispWinIs3D()))){p.drawProjOnBox(dfCtr);}
 			p.drawAxes(10000,1f, myPoint.ZEROPT, 100, true);//
 			//draw intercept with box
 			p.stroke(0,0,0,255);
@@ -193,20 +199,4 @@ public class my3DCanvas {
 			p.popStyle();
 			p.popMatrix();		
 	}//drawMseEdge		
-}
-//line bounded by verts - from a to b new myPoint(x,y,z); 
-class edge{ 
-	public GraphProbExpMain p;
-	public myPoint a, b;
-	public edge (GraphProbExpMain _p){this(_p,new myPoint(0,0,0),new myPoint(0,0,0));}
-	public edge (GraphProbExpMain _p, myPoint _a, myPoint _b){p = _p;a=new myPoint(_a); b=new myPoint(_b);}
-	public void set(float d, myVector dir, myPoint _p){	set( myPoint._add(_p,-d,new myVector(dir)), myPoint._add(_p,d,new myVector(dir)));} 
-	public void set(myPoint _a, myPoint _b){a=new myPoint(_a); b=new myPoint(_b);}
-	public myVector v(){return new myVector(b.x-a.x, b.y-a.y, b.z-a.z);}			//vector from a to b
-	public myVector dir(){return v()._normalize();}
-	public double len(){return  myPoint._dist(a,b);}
-	public double distFromPt(myPoint P) {return myVector._det3(dir(),new myVector(a,P)); };
-	public void drawMe(){//p.show(a, 4);p.show(b, 4);
-		p.line(a.x,a.y,a.z,b.x,b.y,b.z); }
-    public String toString(){return "a:"+a+" to b:"+b+" len:"+len();}
 }
