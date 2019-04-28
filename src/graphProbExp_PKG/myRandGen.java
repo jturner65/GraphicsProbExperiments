@@ -3,6 +3,8 @@ package graphProbExp_PKG;
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 
+import base_UI_Objects.*;
+
 /**
  * Provides generation of random variables from prob distributions given a uniform distribution
  */
@@ -13,10 +15,12 @@ public abstract class myRandGen implements Comparable<myRandGen> {
 	protected myProbSummary summary;
     //random generator to use to generate uniform data - threadsafe
 	public final String name;	
+	//function name for this randgen
+	protected String funcName;
 	//descriptor of this random generator
 	public RandGenDesc desc;		
 	//function this rand gen uses
-	protected myRandVarFunc func;	
+	protected final myRandVarFunc func;	
 	//visualization tool for this random generator
 	protected myDistFuncHistVis distVisObj; 
 		
@@ -34,10 +38,11 @@ public abstract class myRandGen implements Comparable<myRandGen> {
 		func = _func;
 		initRandGen();
     }//ctor
-	
-	public void initRandGen() {
+	//overriden by transforms
+	protected void initRandGen() {
 		setFlag(funcSetIDX, true);
-		desc = new RandGenDesc(func.getQuadSolverName(), func.name, this);
+		funcName= func.name; 
+		desc = new RandGenDesc(func.getQuadSolverName(), funcName, this);
 		//func built with summary data - allow for quick access
 		summary = func.summary;	
 		 _setFuncSummaryIndiv();
@@ -66,6 +71,14 @@ public abstract class myRandGen implements Comparable<myRandGen> {
     protected long getNextLong() {return ThreadLocalRandom.current().nextLong();}  
     protected int getNextInt() {return ThreadLocalRandom.current().nextInt();  }
     protected double getNextDouble() {return ThreadLocalRandom.current().nextDouble();}
+    protected double getUniform01() {
+    	long val = ThreadLocalRandom.current().nextLong();
+    	return .5+ .5 * val/Long.MAX_VALUE;
+    }
+    //uniformly between [min,max)
+    protected int getUniInt(int min, int max) {    	
+    	return ThreadLocalRandom.current().nextInt(min,max);
+    }
 	
     public abstract double[] getMultiSamples(int num);
     public abstract double[] getMultiFastSamples(int num);
@@ -97,12 +110,12 @@ public abstract class myRandGen implements Comparable<myRandGen> {
 		//now use passed cosGen but populate it into this object's distVisObj
 		cosGen.func.buildFuncPlotVals(numVals, low, high, myRandVarFunc.queryPDFIDX, distVisObj);
 		
-		String histName = func.name+" PDF hist",
+		String histName = funcName+" PDF hist",
 				gaussName = func.getDispFuncName(myRandVarFunc.queryPDFIDX),
 				cosName = cosGen.func.getDispFuncName(myRandVarFunc.queryPDFIDX);
 		
 		//get min and max histogram values and get min/max/diff y values for larger of two dists, either cosine or gauss
-		double[][] minMaxDiffHist = distVisObj.getSpecificMinMaxDiff(func.name+" PDF hist"),//use this for x values		
+		double[][] minMaxDiffHist = distVisObj.getSpecificMinMaxDiff(histName),//use this for x values		
 				minMaxDiffCos = distVisObj.getSpecificMinMaxDiff(cosName),
 				minMaxDiffGauss = distVisObj.getSpecificMinMaxDiff(gaussName);
 		double[][] minMaxDiff = new double[2][];
@@ -111,7 +124,7 @@ public abstract class myRandGen implements Comparable<myRandGen> {
 		minMaxDiff[1][0] = (minMaxDiffCos[1][0] < minMaxDiffGauss[1][0]) ? minMaxDiffCos[1][0] : minMaxDiffGauss[1][0];
 		minMaxDiff[1][1] = (minMaxDiffCos[1][1] > minMaxDiffGauss[1][1]) ? minMaxDiffCos[1][1] : minMaxDiffGauss[1][1];
 		minMaxDiff[1][2] = minMaxDiff[1][1] - minMaxDiff[1][0];
-		String[] dispMultiStrs = new String[] {func.name+" PDF hist", gaussName, cosName};
+		String[] dispMultiStrs = new String[] {histName, gaussName, cosName};
 		distVisObj.setCurMultiDispVis(dispMultiStrs,minMaxDiff);
 		distVisObj.setColorVals(cosName,"stroke", new int[] {255,255,0,255});
 	}//buildFuncHistCosPlot
@@ -127,10 +140,10 @@ public abstract class myRandGen implements Comparable<myRandGen> {
 	public void calcHistValsForDisp(int numVals, int numBuckets) {
 		//x val is distribution/max bucket value, y val is count
 		double [] histVals = getMultiSamples(numVals);		
-		
 		myProbSummary summary = new myProbSummary(histVals);
 		//build buckets : numBuckets+1 x 2 array; 2nd idxs : idx 0 is lower x value of bucket, y value is count; last entry should always have 0 count
 		double[][] distBuckets = summary.calcBucketVals(numBuckets);
+		System.out.println("calcHistValsForDisp : numVals : " + numVals + " | size of histVals :"+histVals.length + " | size of distBuckets : "+ distBuckets.length + " | distVisObj is null :  "+ (null==distVisObj));
 		
 		//min, max and diff values for x axis (rand val) and y axis (counts)
 		double[][] minMaxDiffXVals = new double[2][3];
@@ -146,7 +159,7 @@ public abstract class myRandGen implements Comparable<myRandGen> {
 		}		
 		minMaxDiffXVals[1][2] = minMaxDiffXVals[1][1] - minMaxDiffXVals[1][0];
 		
-		distVisObj.setValuesHist(func.name+" PDF hist", new int[][] {new int[] {255,0,0,255}, new int[] {255,255,255,255}}, distBuckets, minMaxDiffXVals);
+		distVisObj.setValuesHist(funcName+" PDF hist", new int[][] {new int[] {255,0,0,255}, new int[] {255,255,255,255}}, distBuckets, minMaxDiffXVals);
 	}//calcDistValsForDisp
 	
 	//clear out any existing plot evaluations
@@ -157,7 +170,7 @@ public abstract class myRandGen implements Comparable<myRandGen> {
 	public void updateVisName(String _newName) {distVisObj.updateName(_newName);}	
 	
 	//draw a represntation of this distribution
-	public void drawDist(GraphProbExpMain pa) {
+	public void drawDist(my_procApplet pa) {
 		if(distVisObj == null) {			System.out.println("NO Vis Obj");		return;}
 		distVisObj.drawVis(pa);
 	}//drawDist
@@ -404,129 +417,6 @@ class myZigRandGen extends myRandGen{
  * class that will model a distribution using first 4 moments via a polynomial transformation
  * @author john *
  */
-//class myFleishUniVarRandGen_new extends myRandGen{
-//	
-//	//min and max of synthesized
-//	public myFleishUniVarRandGen_new(myRandVarFunc _func, String _name) {
-//		super(_func, _name);
-//	}//ctor
-//	
-//	//if summary object is changed, new fleishman polynomial values need to be synthesized - this is done already in calling function 
-//	//when func.rebuildFuncs is called	
-//	@Override
-//	public void _setFuncSummaryIndiv() {	}
-//	//test function to test iterative method to derive fl inverse
-//	public double calcInvFuncVal(double y) {	return ((myFleishFunc_Uni)func).calcInvF(y);}
-//	
-//	@Override
-//	//synthesize numVals values from low to high to display 
-//	//overridden to get apprpriate values - feed low->high into zi
-//	public void calcFuncValsForDisp(int numVals,double low, double high,  int funcType ) {
-//		if(numVals < 2) {		numVals = 2;		}//minimum 2 values
-////		if (low == high) {//ignore if same value
-////			System.out.println("myRandGen : "+name+" :: calcFValsForDisp : Low == High : " +low +" : "+ high +" : Ignored, no values set/changed.");
-////			return;			
-////		} 
-////		else if(low > high) {	double s = low;		low = high;		high = s;		}  //swap if necessary
-//		double[] minMaxVals = func.getPlotValBounds(funcType);
-//
-//		double[][] funcVals = new double[numVals][2];
-//		double xdiff = minMaxVals[1]-minMaxVals[0];//high-low;
-//		for(int i=0;i<funcVals.length;++i) {		
-//			//funcVals[i][0] = low + (i * xdiff)/numVals;	
-//			funcVals[i][0] = minMaxVals[0] + (i * xdiff)/numVals;	
-//		}
-//		
-//		//evaluate specified function on funcVals
-//		double minY = Double.MAX_VALUE, maxY = -minY, ydiff;
-//		for(int i=0;i<funcVals.length-1;++i) {	
-//			double lowVal = zigNormGen.func.f(funcVals[i][0]), highVal = zigNormGen.func.f(funcVals[i+1][0]);
-//			funcVals[i][1] = func.getFuncVal(funcType,lowVal,highVal);
-//			minY = (minY > funcVals[i][1] ? funcVals[i][1] : minY);
-//			maxY = (maxY < funcVals[i][1] ? funcVals[i][1] : maxY);
-//		}
-//		//last argument is ignored except for integral calc 
-//		int i=funcVals.length-1;
-//		double lowVal = zigNormGen.func.f(funcVals[i][0]);
-//		funcVals[i][1] = func.getFuncVal(funcType,lowVal,Double.POSITIVE_INFINITY);
-//		if(Math.abs(funcVals[i][1]) <= 10000000* Math.abs(funcVals[i-1][1])) {//- don't count this last value for min/max in case of divergence 
-//			minY = (minY > funcVals[i][1] ? funcVals[i][1] : minY);
-//			maxY = (maxY < funcVals[i][1] ? funcVals[i][1] : maxY);
-//		}
-//		minY = (minY > 0 ? 0 : minY);
-//		ydiff = maxY - minY;
-//		//distVisObj.setValuesFunc(funcVals, new double[][]{{minMaxVals[0], minMaxVals[1], xdiff}, {minY, maxY, ydiff}});
-//		double minVal = (minMaxVals[0] < low ? minMaxVals[0] : low),
-//				maxVal = (minMaxVals[1] > high ? minMaxVals[1] : high);
-//		
-//		double[][] minMaxDiffFuncVals = new double[][]{{minVal, maxVal, (maxVal-minVal)}, {minY, maxY, ydiff}};
-//		
-//		
-//		distVisObj.setValuesFunc(funcVals, minMaxDiffFuncVals);
-//	}//calcFValsForDisp
-//	
-//	@Override
-//	public double[] getMultiSamples(int num) {
-//		double[] res = new double[num];
-//		double val;
-//		boolean clipRes = summary.doClipAllSamples();
-//		//transformation via mean and std already performed as part of f function
-//		if (clipRes){
-//			int idx = 0;
-//			while (idx < num) {		val = func.f(zigNormGen.getSample());		if(summary.checkInBnds(val)) {				res[idx++]=val;	}}
-//		} else {					for(int i =0;i<res.length;++i) {		res[i]=func.f(zigNormGen.getSample());			}		}
-//		return res;
-//	}//getMultiSamples
-//
-//	@Override
-//	public double[] getMultiFastSamples(int num) {
-//		double[] res = new double[num];
-//		boolean clipRes = summary.doClipAllSamples();
-//		//transformation via mean and std already performed as part of f function
-//		if (clipRes){
-//			int idx = 0;
-//			while (idx < num) {			double val = func.f(zigNormGen.getSampleFast());	if(summary.checkInBnds(val)) {				res[idx++]=val;	}}
-//		} else {						for(int i =0;i<res.length;++i) {	res[i]=func.f(zigNormGen.getSampleFast());			}		}
-//		return res;
-//	}//getMultiFastSamples
-//	
-//	@Override
-//	public double getSample() {
-//		double res;
-//		if(summary.doClipAllSamples()) {
-//			do {				res = func.f(zigNormGen.getSample());			} while (!summary.checkInBnds(res));
-//		} else {				res = func.f(zigNormGen.getSample());			}
-//		return res;
-//
-//	}//getSample
-//
-//	@Override
-//	public double getSampleFast() {
-//		double res;
-//		if(func.summary.doClipAllSamples()) {
-//			do {				res = func.f(zigNormGen.getSampleFast());		} while (!summary.checkInBnds(res));
-//		} else {				res = func.f(zigNormGen.getSampleFast());		}
-//		return res;
-//		
-////		double res = func.f(zigNormGen.getSampleFast());
-////		return res;
-//	}//getSampleFast
-//	
-//	//find inverse CDF value for passed val - val must be between 0->1; value for which prob(x<=value) is _pval
-//	//this is mapping from 0->1 to probability based on the random variable function definition
-//	@Override
-//	public double inverseCDF(double _pval) {
-//		return func.CDF_inv(_pval);
-//	}
-//	//find the cdf value of the passed val == returns prob (x<= _val)
-//	//for fleishman polynomial, these use the opposite mapping from the normal distrubtion - 
-//	//so for CDF, we want normal dist's inverse cdf of passed value passed to fleish CDF calc
-//	@Override
-//	public double CDF(double _val) {
-//		return func.CDF(_val);	
-//	}//CDF
-//	
-//}//class myFleishRandGen
 
 class myFleishUniVarRandGen extends myRandGen{
 	
@@ -701,8 +591,9 @@ abstract class transform extends myRandGen{
 	}
 	//overrding base class verison to remove refs to func
 	@Override
-	public void initRandGen() {
+	protected void initRandGen() {
 		setFlag(funcSetIDX, func!=null);
+		funcName=  "No Rand Func for Transform " + name; 
 		desc = new RandGenDesc("No Quad Solver", "No Rand Func", this);
 		distVisObj = null;
 	}//initRandGen
@@ -722,15 +613,6 @@ abstract class transform extends myRandGen{
 	@Override
 	public String getFuncDataStr() {return "No Function for Transform RandGen - only has mapping";}
 
-	//transform "randGen" objects are actually intended only as a mappers,so never going to ever generate any values
-	@Override
-	public double[] getMultiSamples(int num) {	return new double[0];}
-	@Override
-	public double[] getMultiFastSamples(int num) {return new double[0];}
-	@Override
-	public double getSample() {return 0;}
-	@Override
-	public double getSampleFast() {return 0;}
 	@Override
 	public String getTransformName() {		return name+"_"+ _getTransformNameIndiv();	}
 	
@@ -743,7 +625,7 @@ abstract class transform extends myRandGen{
 //will never generate values, nor will it ever access a random variable function.
 //only maps values via affine transformation to 0->1
 class linearTransform extends transform{
-	//func must not be null, but doesn't matter for this transforming rand gen
+	//these are of given data
 	double min, max, diff;
 	//summary must have min and max
 	public linearTransform( myProbSummary _summary) {
@@ -767,6 +649,20 @@ class linearTransform extends transform{
 
 	@Override
 	public double CDF(double _val) {		return (_val - min)/diff;}
+	
+	//transform "randGen" objects are actually intended only as a mappers,so never going to ever generate any values
+	@Override
+	public double[] getMultiSamples(int num) {	
+		double[] res = new double[num];
+		for(int i=0;i<num;++i) {res[i] = getSample();}		
+		return res;		
+	}
+	@Override
+	public double[] getMultiFastSamples(int num) {return getMultiSamples(num);}
+	@Override
+	public double getSample() {	return getUniform01();}
+	@Override
+	public double getSampleFast() {return getSample();}
 
 	@Override
 	public String _getTransformNameIndiv() {		return "|Linear Transform | Min : "+ String.format("%3.8f", min) + " | Max : "+ String.format("%3.8f", max);	}
@@ -795,16 +691,37 @@ class uniformCountTransform extends transform{
 		sortedGrades = new TreeMap<Double, Integer>();
 		rankedGrades = new TreeMap<Integer, Double>();
 		double [] vals = summary.getDataVals();
-		//System.out.println("Vals size : " + vals.length);
 		//place in grade map
 		for (double val : vals) {			sortedGrades.put(val, 0);		}
 		//find count
 		count = sortedGrades.size();
-		//System.out.println("uniformCountTransform : This object has :"+ count+" elements");
+		//System.out.println("Vals size : " + vals.length+" uniformCountTransform : This object has :"+ count+" elements");
+		//for (double val : vals) {System.out.println("\t"+val);}
 		//place count in sorted map - treats grades of same value as same grade
 		int idx =0;
 		for(double val : sortedGrades.keySet()) {		rankedGrades.put(idx, val);	sortedGrades.put(val, idx++);	}//start with 1
 	}
+	
+	//transform "randGen" objects are actually intended only as a mappers,so never going to ever generate any values
+	@Override
+	public double[] getMultiSamples(int num) {	
+		double[] res = new double[num];
+		for(int i=0;i<num;++i) {res[i] = getSample();}		
+		return res;		
+	}
+	@Override
+	public double[] getMultiFastSamples(int num) {return getMultiSamples(num);}
+	@Override
+	public double getSample() {	
+		if(count==0) {return 0;}
+		int rank = getUniInt(0,count);
+		double val = rank;//rankedGrades.get(rank);		
+		return val;}
+	@Override
+	public double getSampleFast() {return getSample();}
+
+	
+	
 	//provides mapping from rank/n to original grade
 	@Override
 	public double inverseCDF(double _val) {	
@@ -818,11 +735,13 @@ class uniformCountTransform extends transform{
 		return rankedGrades.get(desKey);	}
 	//provides mapping from original grade to rank/n (0->1)
 	@Override
-	public double CDF(double _val) {		
+	public double CDF(double _val) {
+		
 		//update every time?
 		_setFuncSummaryIndiv();
-		
-		return (1.0 * sortedGrades.get(_val)+1)/count;	}
+		Integer retRank = sortedGrades.get(_val);
+		if(null==retRank) {	retRank = sortedGrades.get(sortedGrades.ceilingKey(_val));	}
+		return (1.0 * retRank+1)/count;	}
 	
 	@Override
 	public String _getTransformNameIndiv() {return "Uniformly Ranked | # of unique grades : " + count;	}	

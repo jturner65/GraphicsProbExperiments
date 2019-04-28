@@ -1,7 +1,8 @@
 package graphProbExp_PKG;
 
 import java.util.*;
-
+import base_UI_Objects.*;
+import base_Utils_Objects.*;
 
 public class Grade2DWindow extends myDispWindow {
 	
@@ -63,7 +64,9 @@ public class Grade2DWindow extends myDispWindow {
 	//ddl 
 	public static final String[] 
 			gIDX_FuncTypeEvalList = myRandVarFunc.queryFuncTypes,
-			gIDX_ExpDistTypeList = ClassGradeExperiment.expType;		
+			gIDX_ExpDistTypeList = ClassGradeExperiment.expType;	
+	
+	private static final String[] noCosCompExpTypes = new String[] {"Linear", "Uniform Spaced"};
 
 	//////////////
 	// local/ui interactable boolean buttons
@@ -99,11 +102,11 @@ public class Grade2DWindow extends myDispWindow {
 	//class experiment
 	private ClassGradeExperiment gradeAvgExperiment;
 	
-	public Grade2DWindow(GraphProbExpMain _p, String _n, int _flagIdx, int[] fc, int[] sc, float[] rd, float[] rdClosed,String _winTxt, boolean _canDrawTraj) {
+	public Grade2DWindow(my_procApplet _p, String _n, int _flagIdx, int[] fc, int[] sc, float[] rd, float[] rdClosed,String _winTxt, boolean _canDrawTraj) {
 		super(_p, _n, _flagIdx, fc, sc, rd, rdClosed, _winTxt, _canDrawTraj);
 		float stY = rectDim[1]+rectDim[3]-4*yOff,stYFlags = stY + 2*yOff;
-		trajFillClrCnst = GraphProbExpMain.gui_DarkCyan;		//override this in the ctor of the instancing window class
-		trajStrkClrCnst = GraphProbExpMain.gui_Cyan;
+		trajFillClrCnst = my_procApplet.gui_DarkCyan;		//override this in the ctor of the instancing window class
+		trajStrkClrCnst = my_procApplet.gui_Cyan;
 		super.initThisWin(_canDrawTraj, true, false);
 	}//ctor
 			
@@ -142,12 +145,12 @@ public class Grade2DWindow extends myDispWindow {
 		truePrivFlagNames = new String[]{			//needs to be in order of privModFlgIdxs
 				"Rebuilding/reloading Grades","Rebuilding Final Grade Dist","Setting Current Grades as Glbl",
 				"CosCDF 1 + sine x","Rebuild Class dist on move","ZScore for final grades",
-				"Eval/Draw Func on Bounds","Eval/Draw Distribution","Showing Cos To Gauss Dist"
+				"Eval/Draw Func on Bounds","Eval/Draw Hist of Dist","Showing Cos To Gauss Dist"
 		};
 		falsePrivFlagNames = new String[]{			//needs to be in order of flags
 				"Rebuild/reload Grades","Rebuild Final Grade Dist","Set Current Grades as Glbl",
 				"CosCDF x + sine x","Don't rebuild class dist on move","Specific Dist for final grades",
-				"Eval/Draw Func on Bounds","Eval/Draw Distribution"	,"Compare Cos To Gauss Dist"			
+				"Eval/Draw Func on Bounds","Eval/Draw Hist of Dist"	,"Compare Cos To Gauss Dist"			
 		};
 		privModFlgIdxs = new int[]{					//idxs of buttons that are able to be interacted with
 				reCalcRandGradeSpread,reBuildFinalGradeDist,setCurrGrades,
@@ -196,9 +199,14 @@ public class Grade2DWindow extends myDispWindow {
 			case drawFuncEval : {
 				//System.out.println("drawFuncEval : " + val + " getPrivFlags(drawHistEval) : " + getPrivFlags(drawHistEval)+ " getPrivFlags(drawFuncEval) : " + getPrivFlags(drawFuncEval));
 				if (val) {
-					clearAllPlotsButMe(drawFuncEval);
-					//now evaluate new results
-					gradeAvgExperiment.evalPlotClassFuncs(funcEvalType, funcEvalNumVals, funcEvalLow, funcEvalHigh);
+					if((expTypeIDX == 1) || (expTypeIDX == 2)) {
+						gradeAvgExperiment.setShowPlots(false);
+						setPrivFlags(idx, false);					
+					} else {
+						clearAllPlotsButMe(idx);
+						//now evaluate new results
+						gradeAvgExperiment.evalPlotClassFuncs(funcEvalType, funcEvalNumVals, funcEvalLow, funcEvalHigh);
+					}
 				} else {//turning off
 					if(!isShowingPlots()) {gradeAvgExperiment.setShowPlots(false);}
 				}
@@ -206,7 +214,7 @@ public class Grade2DWindow extends myDispWindow {
 			case drawHistEval : {
 				//System.out.println("drawHistEval : " + val + " getPrivFlags(drawHistEval) : " + getPrivFlags(drawHistEval)+ " getPrivFlags(drawFuncEval) : " + getPrivFlags(drawFuncEval));
 				if (val) {
-					clearAllPlotsButMe(drawHistEval);
+					clearAllPlotsButMe(idx);
 					//now evaluate new results
 					gradeAvgExperiment.evalPlotClassHists(funcEvalNumVals,funcEvalNumBuckets,funcEvalLow, funcEvalHigh);					
 				} else {//turning off					
@@ -215,11 +223,17 @@ public class Grade2DWindow extends myDispWindow {
 			
 			case drawMultiEval : {
 				if (val) {
-					clearAllPlotsButMe(drawMultiEval);
-					//now evaluate new results for selected options
-					gradeAvgExperiment.evalCosAndNormWithHist(funcEvalNumVals,funcEvalNumBuckets,funcEvalLow, funcEvalHigh);			
+					if((expTypeIDX == 1) || (expTypeIDX == 2)) {
+						gradeAvgExperiment.setShowPlots(false);
+						setPrivFlags(idx, false);					
+					} else {
+						clearAllPlotsButMe(idx);						
+						//now evaluate new results for selected options
+						gradeAvgExperiment.evalCosAndNormWithHist(funcEvalNumVals,funcEvalNumBuckets,funcEvalLow, funcEvalHigh);		
+					}	
 				} else {//turning off					
-					if(!isShowingPlots()) {gradeAvgExperiment.setShowPlots(false);}				}
+					if(!isShowingPlots()) {gradeAvgExperiment.setShowPlots(false);}				
+				}
 				break;}		
 				
 			case setCurrGrades : {
@@ -579,6 +593,7 @@ public class Grade2DWindow extends myDispWindow {
 					resetButtonState();
 					break;}
 				case 1 : {	
+					gradeAvgExperiment.dbgTestStuff();
 					resetButtonState();
 					break;}
 				case 2 : {	

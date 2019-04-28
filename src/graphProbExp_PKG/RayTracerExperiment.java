@@ -1,5 +1,8 @@
 package graphProbExp_PKG;
 
+import base_UI_Objects.*;
+import base_Utils_Objects.*;
+
 public class RayTracerExperiment extends BaseProbExpMgr {
 	
 	//experiment-specific state flag bits - bits in array holding relevant process info

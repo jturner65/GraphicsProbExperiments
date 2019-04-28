@@ -2,6 +2,8 @@ package graphProbExp_PKG;
 
 import java.util.HashMap;
 
+import base_UI_Objects.*;
+import base_Utils_Objects.*;
 /**
  * a single observation belonging to a sample set - values specified by inheriting class
  * @author john
@@ -46,7 +48,7 @@ public class mySmplObs{
 	// sample draw function
 	
 	//pass location and display name of visualization for sample
-	protected void drawMe(GraphProbExpMain pa, float rad, int[] _drawClr, myPointf _transLoc, String _dispName) {
+	protected void drawMe(my_procApplet pa, float rad, int[] _drawClr, myPointf _transLoc, String _dispName) {
 		pa.pushMatrix();pa.pushStyle();
 		pa.translate(_transLoc);
 		pa.setFill(_drawClr,255); pa.setStroke(blkStrk,255);			
@@ -72,7 +74,7 @@ public class mySmplObs{
  * @author john
  *
  */
-class myStudent implements Comparable<mySmplObs>{
+class myStudent implements Comparable<mySmplObs> {
 	//short display name
 	public final String shrtName;
 	public final int ObjID;
@@ -87,7 +89,7 @@ class myStudent implements Comparable<mySmplObs>{
 	//listing of raw grade following some distribution, and uniform grade, from result of mapping, keyed by mapping type
 	private HashMap<String,HashMap<mySampleSet, mySmplObs>> grades;
 	
-	public myStudent(GraphProbExpMain _pa, String _name) {
+	public myStudent(my_procApplet _pa, String _name) {
 		ObjID = IDCnt++;  name=_name;
 		clr = _pa.getRndClr2(255);//should be brighter colors
 		shrtName = ""+(char)((ObjID % 26) + 65) + (ObjID / 26);
@@ -198,7 +200,7 @@ class myStudent implements Comparable<mySmplObs>{
 	
 	//////////////////
 	// draw this student on line of width ttlWidth - expected to be at start of line when this is called
-	public void drawMeTransformed(GraphProbExpMain pa, String _type, mySampleSet _class, int[] _drawClr, float ttlWidth) {	
+	public void drawMeTransformed(my_procApplet pa, String _type, mySampleSet _class, int[] _drawClr, float ttlWidth) {	
 		HashMap<mySampleSet, mySmplObs> classValsForType = grades.get(_type);
 		if (classValsForType==null) {					return;	}// no values for this type for any classes set yet 		
 		mySmplObs smplVal = classValsForType.get(_class);			//grade for class for specified type

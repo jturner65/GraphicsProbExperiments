@@ -1,6 +1,10 @@
 package graphProbExp_PKG;
 
+
 import java.util.*;
+
+import base_UI_Objects.*;
+import base_Utils_Objects.*;
 
 /**
  * this class will provide I/O functionality for graphical representations of distributions
@@ -93,7 +97,7 @@ public abstract class myVisMgr {
 	protected abstract void _mouseReleaseIndiv();
 	protected abstract void _setDispWidthIndiv(float dispWidth);
 	
-	public void drawVis(GraphProbExpMain pa) {
+	public void drawVis(my_procApplet pa) {
 		if(!getFlag(isVisibleIDX)) {return;}
 		pa.pushMatrix();pa.pushStyle();
 		pa.translate(startRect[0], startRect[1],0);
@@ -103,7 +107,7 @@ public abstract class myVisMgr {
 		pa.popStyle();pa.popMatrix();			
 	}//drawVis
 	
-	protected abstract void _drawVisIndiv(GraphProbExpMain pa);
+	protected abstract void _drawVisIndiv(my_procApplet pa);
 	
 	public void setIsVisible(boolean _isVis) {setFlag(isVisibleIDX, _isVis);}
 	
@@ -123,10 +127,10 @@ public abstract class myVisMgr {
 }//class myDistributionDisplay
 
 /**
- * this class holds the functionality to manage a class's grade bar display, along with the overall grade bar display
+ * this class holds the functionality to manage a 1 dimensional 
  * @author john
  */
-class gradeBar extends myVisMgr {
+class my1D_DistVis extends myVisMgr {
 
 	//class this bar is attached to - if none means overall grade
 	private final myClassRoster owningClass;
@@ -152,7 +156,7 @@ class gradeBar extends myVisMgr {
 	protected myStudent _modStudent;
 	
 	//specific color constructor - used to set up overall grade bar for a single class
-	public gradeBar(myClassRoster _owningClass, float[] _dims, String _typ, int[] _barColor, String _name) {
+	public my1D_DistVis(myClassRoster _owningClass, float[] _dims, String _typ, int[] _barColor, String _name) {
 		super(new float[] {_dims[0],_dims[1], _barStX + (_owningClass.probExp.getVisibleSreenWidth()*barWidthMult) ,_dims[2]}, _name);
 		gradeType=_typ;
 		setIsVisible(true);			//default bar to being visible
@@ -208,9 +212,9 @@ class gradeBar extends myVisMgr {
 	public float getAbsYLoc() {return startRect[1]+_barStY;}
 	
 	//translate to where the par part of this par starts, so the lines connecting grades for same students can be drawn
-	public void transToBarStart(GraphProbExpMain pa) {pa.translate(startRect[0]+_barStX,startRect[1]+_barStY,0);}	
+	public void transToBarStart(my_procApplet pa) {pa.translate(startRect[0]+_barStX,startRect[1]+_barStY,0);}	
 	//draw grade bar and student locations
-	protected void _drawVisIndiv(GraphProbExpMain pa) {
+	protected void _drawVisIndiv(my_procApplet pa) {
 		if(enabled) {
 			pa.pushMatrix();pa.pushStyle();
 			_drawBoxAndBar(pa,clr_green,barColor);
@@ -225,7 +229,7 @@ class gradeBar extends myVisMgr {
 	}//_drawVisIndiv
 	
 	//draw box and bar with appropriate colors
-	private void _drawBoxAndBar(GraphProbExpMain pa, int[] fClr, int[] _bClr) {
+	private void _drawBoxAndBar(my_procApplet pa, int[] fClr, int[] _bClr) {
 		pa.setFill(fClr);
 		pa.setStroke(clr_black);
 		pa.rect(_clkBox);
@@ -393,7 +397,7 @@ class myDistFuncHistVis extends myVisMgr {
 	}
 		
 	@Override
-	public void _drawVisIndiv(GraphProbExpMain pa) {
+	public void _drawVisIndiv(my_procApplet pa) {
 		pa.setFill(clr_black);
 		pa.setStroke(clr_white);
 	
@@ -531,7 +535,7 @@ abstract class myBaseDistVisObj{
 	// drawing routines
 
 	//draw axis lines through 0,0 and give tags
-	private void _drawZeroLines(GraphProbExpMain pa) {
+	private void _drawZeroLines(my_procApplet pa) {
 		pa.pushMatrix();pa.pushStyle();
 		pa.strokeWeight(2.0f);
 		pa.setFill(owner.clr_cyan);
@@ -573,7 +577,7 @@ abstract class myBaseDistVisObj{
 	
 	//draw x and y axis values
 	//offset == 0 for axes on left, offset == frameDims[2] for offset on right
-	protected void drawAxes(GraphProbExpMain pa, float offset) {
+	protected void drawAxes(my_procApplet pa, float offset) {
 		pa.pushMatrix();pa.pushStyle();
 		pa.setFill(owner.clr_white);
 		float yAxisTxtXOffset = offset -tic-owner.frmBnds[0]+10 ,
@@ -606,13 +610,13 @@ abstract class myBaseDistVisObj{
 		pa.popStyle();pa.popMatrix();
 	}//drawAxes
 	
-	public final void drawMe(GraphProbExpMain pa, boolean isMulti) {
+	public final void drawMe(my_procApplet pa, boolean isMulti) {
 		pa.setFill(fillClr);
 		pa.setStroke(strkClr);
 		_drawCurve(pa,isMulti ? frameDims[2] : 0);
 	}//drawMe
 
-	protected abstract void _drawCurve(GraphProbExpMain pa, float offset);
+	protected abstract void _drawCurve(my_procApplet pa, float offset);
 	
 }//myBaseDistVisObj
 
@@ -623,7 +627,7 @@ class myFuncVisObj extends myBaseDistVisObj{
 	}
 	
 	@Override
-	protected void _drawCurve(GraphProbExpMain pa, float offset) {
+	protected void _drawCurve(my_procApplet pa, float offset) {
 		pa.point(dispVals[0][0], dispVals[0][1], 0);
 		for (int idx = 1; idx <dispVals.length;++idx) {	
 			//draw point 			
@@ -643,7 +647,7 @@ class myHistVisObj extends myBaseDistVisObj{
 		super(_owner, _clrs);
 	}
 	
-	protected void _drawCurve(GraphProbExpMain pa, float offset) {
+	protected void _drawCurve(my_procApplet pa, float offset) {
 		for (int idx = 0; idx <dispVals.length-1;++idx) {	
 			pa.rect(dispVals[idx][0], 0, (dispVals[idx+1][0]-dispVals[idx][0]), dispVals[idx][1]);			
 		}		

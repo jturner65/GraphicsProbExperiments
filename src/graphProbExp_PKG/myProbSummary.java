@@ -328,5 +328,12 @@ public class myProbSummary{
 		for(int i=0;i<numMmntsGiven;++i) { 			res += "_"+String.format("%.5f",mmnts[i]);		}
 		return res;
 	}	
+	
+	public String toString() {
+		String res ="";
+		res+=getMomentsVals() + " | Min = " +String.format("%.8f",minMax[0])+ " | Max = " +String.format("%.8f",minMax[1]);
+		
+		return res;
+	}
 
 }//class myProbAnalysis

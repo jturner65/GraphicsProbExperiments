@@ -2,6 +2,9 @@ package graphProbExp_PKG;
 
 import java.util.*;
 
+import base_UI_Objects.*;
+import base_Utils_Objects.*;
+
 /**
  * class to hold 2-D ray tracer experiment - bunch of circles, shoot rays and plot their traversal
  * @author john
@@ -51,11 +54,11 @@ public class RayTracer2DWin extends myDispWindow {
 	};
 
 		
-	public RayTracer2DWin(GraphProbExpMain _p, String _n, int _flagIdx, int[] fc, int[] sc, float[] rd, float[] rdClosed,String _winTxt, boolean _canDrawTraj) {
+	public RayTracer2DWin(my_procApplet _p, String _n, int _flagIdx, int[] fc, int[] sc, float[] rd, float[] rdClosed,String _winTxt, boolean _canDrawTraj) {
 		super(_p, _n, _flagIdx, fc, sc, rd, rdClosed, _winTxt, _canDrawTraj);
 		float stY = rectDim[1]+rectDim[3]-4*yOff,stYFlags = stY + 2*yOff;
-		trajFillClrCnst = GraphProbExpMain.gui_DarkCyan;		//override this in the ctor of the instancing window class
-		trajStrkClrCnst = GraphProbExpMain.gui_Cyan;
+		trajFillClrCnst = my_procApplet.gui_DarkCyan;		//override this in the ctor of the instancing window class
+		trajStrkClrCnst = my_procApplet.gui_Cyan;
 		super.initThisWin(_canDrawTraj, true, false);
 	}//ctor
 			

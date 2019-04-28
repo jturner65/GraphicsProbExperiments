@@ -1,13 +1,16 @@
-package graphProbExp_PKG;
+package base_UI_Objects;
 
 import java.io.File;
 import java.util.*;
 
+import base_Utils_Objects.myPoint;
+import base_Utils_Objects.myVector;
+import base_Utils_Objects.myVectorf;
 import processing.core.*;
 
 //abstract class to hold base code for a menu/display window (2D for gui, etc), to handle displaying and controlling the window, and calling the implementing class for the specifics
 public abstract class myDispWindow {
-	public GraphProbExpMain pa;
+	public my_procApplet pa;
 	public static int winCnt = 0;
 	public int ID;	
 	public String name, winText;		
@@ -17,7 +20,7 @@ public abstract class myDispWindow {
 	//current visible screen width and height
 	public float[] curVisScrDims;
 
-	public static final float xOff = 20 , yOff = 18.0f * (GraphProbExpMain.txtSz/12.0f), btnLblYOff = 2 * yOff, rowStYOff = yOff*.15f;
+	public static final float xOff = 20 , yOff = 18.0f * (my_procApplet.txtSz/12.0f), btnLblYOff = 2 * yOff, rowStYOff = yOff*.15f;
 	private static final float maxBtnWidthMult = .9f;
 	public static final int topOffY = 40;			//offset values to render boolean menu on side of screen - offset at top before drawing
 	public static final float clkBxDim = 10;//size of interaction/close window box in pxls
@@ -61,10 +64,10 @@ public abstract class myDispWindow {
 	public float[][] privFlagBtns;									//clickable dimensions for these buttons
 	public int numClickBools;
 	//array of priv buttons to be cleared next frame - should always be empty except when buttons need to be cleared
-	protected ArrayList<Integer> privBtnsToClear;	
+	protected ArrayList<Integer> privBtnsToClear;
 	
 	//edit circle quantities for visual cues when grab and smoothen
-	public static final int[] editCrcFillClrs = new int[] {GraphProbExpMain.gui_FaintMagenta, GraphProbExpMain.gui_FaintGreen};			
+	public static final int[] editCrcFillClrs = new int[] {my_procApplet.gui_FaintMagenta, my_procApplet.gui_FaintGreen};			
 	public static final float[] editCrcRads = new float[] {20.0f,40.0f};			
 	public static final float[] editCrcMods = new float[] {1f,2f};			
 	public final myPoint[] editCrcCtrs = new myPoint[] {new myPoint(0,0,0),new myPoint(0,0,0)};			
@@ -134,12 +137,12 @@ public abstract class myDispWindow {
 	
 	//these ints hold the index of which custom functions or debug functions should be launched.  
 	//these are set when the sidebar menu is clicked and these processes are requested, and they are set to -1 when these processes are launched.  this is so the buttons can be turned on before the process starts
-	protected int[] curCustBtn = new int[] {-1,-1,-1,-1};// curCustFunc = -1, curCustDbg = -1;//need an entry per row of buttons
+	protected int[] curCustBtn = new int[] {-1,-1,-1};// curCustFunc = -1, curCustDbg = -1;
 	protected int curCustBtnType = -1;//type/row of current button selected
 	//this is set to true when curCustXXX vals are set to != -1; this is used as a 1-frame buffer to allow the UI to turn on the source buttons of these functions
 	private boolean custClickSetThisFrame = false, custFuncDoLaunch = false;
 	
-	public myDispWindow(GraphProbExpMain _p, String _n, int _flagIdx, int[] fc,  int[] sc, float[] rd, float[] rdClosed, String _winTxt, boolean _canDrawTraj) {
+	public myDispWindow(my_procApplet _p, String _n, int _flagIdx, int[] fc,  int[] sc, float[] rd, float[] rdClosed, String _winTxt, boolean _canDrawTraj) {
 		pa=_p;
 		ID = winCnt++;
 		name = _n;
@@ -150,8 +153,8 @@ public abstract class myDispWindow {
 		ssPathBase = pa.sketchPath() +File.separatorChar +name+"_"+tmpNow + File.separatorChar;
 		initClrDims( fc, sc, rd, rdClosed);
 		winText = _winTxt;
-		trajFillClrCnst = GraphProbExpMain.gui_Black;		//override this in the ctor of the instancing window class
-		trajStrkClrCnst = GraphProbExpMain.gui_Black;		
+		trajFillClrCnst = my_procApplet.gui_Black;		//override this in the ctor of the instancing window class
+		trajStrkClrCnst = my_procApplet.gui_Black;		
 		msClkObj = -1;
 		msOvrObj = -1;
 	}	
@@ -178,8 +181,8 @@ public abstract class myDispWindow {
 		mseClickCrnr[0] = 0;
 		mseClickCrnr[1] = 0;		
 		if(getFlags(hasScrollBars)){scbrs = new myScrollBars[numSubScrInWin];	for(int i =0; i<numSubScrInWin;++i){scbrs[i] = new myScrollBars(pa, this);}}
-	}//initThisWin
-
+	}//initThisWin	
+	
 	//final initialization stuff, after window made, but necessary to make sure window displays correctly
 	public void finalInit(boolean thisIs3D, boolean viewCanChange, myPoint _ctr, myVector _baseFcs) {
 		setFlags(is3DWin, thisIs3D);
@@ -196,7 +199,7 @@ public abstract class myDispWindow {
 	//init fill and stroke colors and dims of rectangular area open and closed - only called from ctor
 	private void initClrDims(int[] fc,  int[] sc, float[] rd, float[] rdClosed) {
 		fillClr = new int[4];rtSideUIFillClr= new int[4]; rtSideUIStrkClr= new int[4]; strkClr = new int[4];	 
-		rectDim = new float[4];	rectDimClosed = new float[4]; closeBox = new float[4]; uiClkCoords = new float[4];
+		rectDim = new float[4];	rectDimClosed = new float[4]; closeBox = new float[4]; uiClkCoords = new float[4];		
 		for(int i =0;i<4;++i){
 			fillClr[i] = fc[i];strkClr[i]=sc[i];
 			rtSideUIFillClr[i] = fc[i];rtSideUIStrkClr[i]=sc[i];			
@@ -207,7 +210,7 @@ public abstract class myDispWindow {
 		UIRtSideRectBox = new float[] {rectDim[2]-boxWidth,0,boxWidth, rectDim[3]};		
 		closedUIRtSideRecBox = new float[] {rectDim[2]-20,0,20,rectDim[3]};
 
-		curVisScrDims = new float[] {rectDim[2] - closedUIRtSideRecBox[2],rectDim[3]};
+		curVisScrDims = new float[] {closedUIRtSideRecBox[0],rectDim[3]};
 	}//initClrDims	
 	
 	protected void setVisScreenWidth(float visScrWidth) {setVisScreenDims(visScrWidth,curVisScrDims[1]);}
@@ -343,10 +346,10 @@ public abstract class myDispWindow {
 			case drawRightSideMenu  : { break;}	//can drawn right side menu
 			case showRightSideMenu  : { 		//modify the dimensions of the visible window based on whether the side bar menu is shown
 				if(getFlags(drawRightSideMenu)) {
-					float visWidth = rectDim[2] - (val ?  UIRtSideRectBox[2] : 20);		//to match whether the side bar menu is open or closed
+					float visWidth = (val ?  UIRtSideRectBox[0] : closedUIRtSideRecBox[0]);		//to match whether the side bar menu is open or closed
 					setVisScreenWidth(visWidth);
 				}
-				break;}
+				break;}		
 		}				
 	}//setFlags
 
@@ -366,7 +369,7 @@ public abstract class myDispWindow {
 	//set a list of indexes in private flags array to be a specific value
 	public void setAllPrivFlags(int[] idxs, boolean val) { for(int idx =0;idx<idxs.length;++idx) {setPrivFlags(idxs[idx],val);}}
 
-	//for adding/deleting a screen programatically TODO
+	//for adding/deleting a screen programatically  TODO
 	//rebuild arrays of start locs whenever trajectory maps/arrays have changed - passed key is value modded in drwnTrajMap, 
 	//modVal is if this is a deleted screen's map(0), a new map (new screen) at this location (1), or a modified map (added or deleted trajectory) (2)
 	protected void rbldTrnsprtAras(int modScrKey, int modVal){
@@ -522,7 +525,7 @@ public abstract class myDispWindow {
 		}	
 		setUIWinVals(uiIdx);//update window's values with UI construct's values
 	}//setValFromFileStr
-	
+
 	public void loadFromFile(File file){
 		if (file == null) {
 		    pa.outStr2Scr("Load was cancelled.");
@@ -619,9 +622,8 @@ public abstract class myDispWindow {
 		//setupGUIObjsAras();					//rebuild UI object stuff
 		initDrwnTrajIndiv();				
 	}
-	
 	//displays point with a name
-	protected void showKeyPt(myPoint a, String s, float rad){	pa.show(a,rad, s, new myVector(10,-5,0), GraphProbExpMain.gui_Cyan, getFlags(trajPointsAreFlat));	}	
+	protected void showKeyPt(myPoint a, String s, float rad){	pa.show(a,rad, s, new myVector(10,-5,0), my_procApplet.gui_Cyan, getFlags(trajPointsAreFlat));	}	
 	//draw a series of strings in a column
 	protected void dispMenuTxtLat(String txt, int[] clrAra, boolean showSphere){
 		pa.setFill(clrAra, 255); 
@@ -647,9 +649,9 @@ public abstract class myDispWindow {
 	//draw a series of strings in a row
 	protected void dispBttnAtLoc(String txt, float[] loc, int[] clrAra){
 		pa.setFill(clrAra);
-		pa.setColorValStroke(GraphProbExpMain.gui_Black);
+		pa.setColorValStroke(my_procApplet.gui_Black);
 		pa.rect(loc);		
-		pa.setColorValFill(GraphProbExpMain.gui_Black);
+		pa.setColorValFill(my_procApplet.gui_Black);
 		//pa.translate(-xOff*.5f,-yOff*.5f);
 		pa.text(""+txt,loc[0] + (txt.length() * .3f),loc[1]+loc[3]*.75f);
 		//pa.translate(width, 0);
@@ -744,12 +746,12 @@ public abstract class myDispWindow {
 	//draw box to hide window
 	protected void drawMouseBox(){
 		if( getFlags(showIDX)){
-		    pa.setColorValFill(GraphProbExpMain.gui_LightGreen );
+		    pa.setColorValFill(my_procApplet.gui_LightGreen );
 			pa.rect(closeBox);
 			pa.setFill(strkClr);
 			pa.text("Close" , closeBox[0]-35, closeBox[1]+10);
 		} else {
-		    pa.setColorValFill(GraphProbExpMain.gui_DarkRed);
+		    pa.setColorValFill(my_procApplet.gui_DarkRed);
 			pa.rect(closeBox);
 			pa.setFill(strkClr);
 			pa.text("Open", closeBox[0]-35, closeBox[1]+10);			
@@ -881,10 +883,10 @@ public abstract class myDispWindow {
 		//debug stuff
 		pa.pushMatrix();				pa.pushStyle();
 		pa.translate(rectDim[0]+20,rectDim[1]+rectDim[3]-70);
-		dispMenuTxtLat("Drawing curve", pa.getClr((getFlags(drawingTraj) ? GraphProbExpMain.gui_Green : GraphProbExpMain.gui_Red)), true);
+		dispMenuTxtLat("Drawing curve", pa.getClr((getFlags(drawingTraj) ? my_procApplet.gui_Green : my_procApplet.gui_Red)), true);
 		//pa.show(new myPoint(0,0,0),4, "Drawing curve",new myVector(10,15,0),(getFlags(this.drawingTraj) ? pa.gui_Green : pa.gui_Red));
 		//pa.translate(0,-30);
-		dispMenuTxtLat("Editing curve", pa.getClr((getFlags(editingTraj) ? GraphProbExpMain.gui_Green : GraphProbExpMain.gui_Red)), true);
+		dispMenuTxtLat("Editing curve", pa.getClr((getFlags(editingTraj) ? my_procApplet.gui_Green : my_procApplet.gui_Red)), true);
 		//pa.show(new myPoint(0,0,0),4, "Editing curve",new myVector(10,15,0),(getFlags(this.editingTraj) ? pa.gui_Green : pa.gui_Red));
 		pa.popStyle();pa.popMatrix();		
 	}
@@ -910,7 +912,7 @@ public abstract class myDispWindow {
 	}//
 	
 	//if ending simulation, call this function
-	private void endSim() {	pa.setFlags(pa.runSim, false);}//endSim
+	private void endSim() {	pa.setSimIsRunning(false);}//endSim
 	
 	//call after single draw - will clear window-based priv buttons that are momentary
 	protected void clearAllPrivBtns() {
@@ -968,7 +970,7 @@ public abstract class myDispWindow {
 	protected void toggleWindowState(){
 		//pa.outStr2Scr("Attempting to close window : " + this.name);
 		setFlags(showIDX,!getFlags(showIDX));
-		pa.setFlags(pFlagIdx, getFlags(showIDX));		//value has been changed above by close box
+		pa.setBaseFlag(pFlagIdx, getFlags(showIDX));		//value has been changed above by close box
 	}
 	
 	protected boolean checkClsBox(int mouseX, int mouseY){
@@ -1039,7 +1041,7 @@ public abstract class myDispWindow {
 		boolean mod = false;
 		if((getFlags(showIDX))&& (msePtInUIRect(mouseX, mouseY))){//in clickable region for UI interaction
 			for(int j=0; j<guiObjs.length; ++j){
-				if(guiObjs[j].checkIn(mouseX, mouseY)){						
+				if(guiObjs[j].checkIn(mouseX, mouseY)){	
 					msBtnClcked = mseBtn;
 					if(pa.isClickModUIVal()){//allows for click-mod
 						setUIObjValFromClickAlone(j);
@@ -1063,7 +1065,7 @@ public abstract class myDispWindow {
 		if((!mod) && (msePtInRect(mouseX, mouseY, this.rectDim)) && (getFlags(canDrawTraj))){ 
 			myPoint pt =  getMsePoint(mouseX, mouseY);
 			if(null==pt){return false;}
-			mod = handleTrajClick(pa.flags[pa.altKeyPressed], pt);}			//click + alt for traj drawing : only allow drawing trajectory if it can be drawn and no other interaction has occurred
+			mod = handleTrajClick(pa.altIsPressed(), pt);}			//click + alt for traj drawing : only allow drawing trajectory if it can be drawn and no other interaction has occurred
 		return mod;
 	}//handleMouseClick
 	//vector for drag in 3D
@@ -1071,20 +1073,20 @@ public abstract class myDispWindow {
 		boolean mod = false;
 		if(!getFlags(showIDX)){return mod;}
 		//check if modding view
-		if ((pa.flags[pa.shiftKeyPressed]) && getFlags(canChgView) && (msClkObj==-1)) {//modifying view angle/zoom
-			pa.setFlags(pa.modView,true);	
+		if ((pa.shiftIsPressed()) && getFlags(canChgView) && (msClkObj==-1)) {//modifying view angle/zoom
+			pa.setModView(true);	
 			if(mseBtn == 0){			handleViewChange(false,pa.msSclY*(mouseY-pmouseY), pa.msSclX*(mouseX-pmouseX));}	
 			else if (mseBtn == 1) {		handleViewChange(true,(mouseY-pmouseY), 0);}	//moveZoom(mouseY-pmouseY);}//dz-=(
 			return true;
-		} else if ((pa.flags[pa.cntlKeyPressed]) && getFlags(canChgView) && (msClkObj==-1)) {//modifying view focus
-			pa.setFlags(pa.modView,true);
+		} else if ((pa.cntlIsPressed()) && getFlags(canChgView) && (msClkObj==-1)) {//modifying view focus
+			pa.setModView(true);
 			handleViewTargetChange((mouseY-pmouseY), (mouseX-pmouseX));
 			return true;
 		} else {//modify UI elements
 		
 			//any generic dragging stuff - need flag to determine if trajectory is being entered		
 			//modify object that was clicked in by mouse motion
-			if(msClkObj!=-1){	guiObjs[msClkObj].modVal((mouseX-pmouseX)+(mouseY-pmouseY)*-(pa.flags[pa.shiftKeyPressed] ? 50.0f : 5.0f));setFlags(uiObjMod, true); return true;}		
+			if(msClkObj!=-1){	guiObjs[msClkObj].modVal((mouseX-pmouseX)+(mouseY-pmouseY)*-(pa.shiftIsPressed() ? 50.0f : 5.0f));setFlags(uiObjMod, true); return true;}		
 			if(getFlags(drawingTraj)){ 		//if drawing trajectory has started, then process it
 				//pa.outStr2Scr("drawing traj");
 				myPoint pt =  getMsePoint(mouseX, mouseY);
@@ -1156,7 +1158,7 @@ public abstract class myDispWindow {
 			
 	//drawn trajectory stuff	
 	public void startBuildDrawObj(){
-		pa.flags[pa.drawing] = true;
+		pa.setIsDrawing(true);
 		//drawnTrajAra[curDrnTrajScrIDX][curDrnTrajStaffIDX].startBuildTraj();
 		tmpDrawnTraj= new myDrawnSmplTraj(pa,this,topOffY,trajFillClrCnst, trajStrkClrCnst, getFlags(trajPointsAreFlat), !getFlags(trajPointsAreFlat));
 		tmpDrawnTraj.startBuildTraj();
@@ -1262,9 +1264,7 @@ public abstract class myDispWindow {
 	}
 		
 	//updates values in UI with programatic changes 
-	protected boolean setWinToUIVals(int UIidx, double val){return val == guiObjs[UIidx].setVal(val);}
-
-	
+	public boolean setWinToUIVals(int UIidx, double val){return val == guiObjs[UIidx].setVal(val);}	
 	//UI controlled auxiliary/debug functionality	
 	public final void clickSideMenuBtn(int _typeIDX, int btnNum) {	curCustBtnType = _typeIDX; curCustBtn[_typeIDX] = btnNum; custClickSetThisFrame = true;}
 	
@@ -1272,7 +1272,6 @@ public abstract class myDispWindow {
 	public final void checkCustMenuUIObjs() {
 		if (custClickSetThisFrame) { custClickSetThisFrame = false;custFuncDoLaunch=true;return;}	//was set last frame and processed, so clear all flags
 		if (!custFuncDoLaunch) {return;}//has been launched don't relaunch
-		//pa.outStr2Scr("Clicked Btn Type : " + curCustBtnType + " | Btn : " + curCustBtn[curCustBtnType]);
 		launchMenuBtnHndlr();
 		custFuncDoLaunch=false;
 	}//checkCustMenuUIObjs
@@ -1298,9 +1297,9 @@ public abstract class myDispWindow {
 	protected abstract void delSScrToWinIndiv(int idx);
 	protected abstract void delTrajToScrIndiv(int subScrKey, String newTrajKey);
 	
-	protected abstract myPoint getMsePtAs3DPt(int mouseX, int mouseY);
+	protected abstract myPoint getMsePtAs3DPt(int mouseX, int mouseY);	
 	//set window-specific variables that are based on current visible screen dimensions
-	protected abstract void setVisScreenDimsPriv();	
+	protected abstract void setVisScreenDimsPriv();
 	//implementing class' necessary functions - implement for each individual window
 	protected abstract boolean hndlMouseMoveIndiv(int mouseX, int mouseY, myPoint mseClckInWorld);
 	protected abstract boolean hndlMouseClickIndiv(int mouseX, int mouseY, myPoint mseClckInWorld, int mseBtn);
@@ -1321,9 +1320,9 @@ public abstract class myDispWindow {
 	
 	//file io used from selectOutput/selectInput - 
 	//take loaded params and process
-	protected abstract void hndlFileLoad(String[] vals, int[] stIdx);
+	public abstract void hndlFileLoad(String[] vals, int[] stIdx);
 	//accumulate array of params to save
-	protected abstract ArrayList<String> hndlFileSave();	
+	public abstract ArrayList<String> hndlFileSave();	
 	
 	protected abstract void initMe();
 	protected abstract void resizeMe(float scale);	
@@ -1344,699 +1343,11 @@ public abstract class myDispWindow {
 	}
 }//dispWindow
 
-//displays sidebar menu of interaction and functionality
-class mySideBarMenu extends myDispWindow{
-	//booleans in main program - need to have labels in idx order, even if not displayed
-	public final String[] truePFlagNames = {//needs to be in order of flags
-			"Debug Mode",
-			"Final init Done",
-			"Save Anim", 		
-			"Shift-Key Pressed",
-			"Alt-Key Pressed",
-			"Cntl-Key Pressed",
-			"Click interact", 	
-			"Drawing Curve",
-			"Changing View",	
-			"Stop Simulation",
-			"Single Step",
-			"Displaying Side Menu",
-			"Displaying UI Menu",
-			"Reverse Drawn Trajectory"
-			};
-	
-	public final String[] falsePFlagNames = {//needs to be in order of flags
-			"Debug Mode",	
-			"Final init Done",
-			"Save Anim", 		
-			"Shift-Key Pressed",
-			"Alt-Key Pressed",
-			"Cntl-Key Pressed",
-			"Click interact", 	
-			"Drawing Curve",
-			"Changing View",	 	
-			"Run Simulation",
-			"Single Step",
-			"Displaying Side Menu",
-			"Displaying UI Menu",
-			"Reverse Drawn Trajectory"
-			};
-	
-	public int[][] pFlagColors;
-	
-	public final int clkFlgsStY = 10;
-	
-	public final String[] StateBoolNames = {"Shift","Alt","Cntl","Click", "Draw","View"};
-	//multiplier for displacement to display text label for stateboolnames
-	public final float[] StrWdMult = new float[]{-3.0f,-3.0f,-3.0f,-3.2f,-3.5f,-2.5f};
-	public int[][] stBoolFlagColors;
 
-	//	//GUI Objects	
-	//idx's of objects in gui objs array	
-	public static final int 
-		gIDX_Temp 				= 0;//, 						//placeholder
-	public final int numGUIObjs = 0;							//# of gui objects for ui
-	
-	//private child-class flags - window specific
-	public static final int 
-			mseClickedInBtnsIDX 		= 0;					//the mouse was clicked in the button region of the menu and a click event was processed
-	//private flag based buttons - ui menu won't have these
-	public static final int numPrivFlags = 1;
-	//where buttons should start on side menu
-	public float minBtnClkY;			
-	
-	//GUI Buttons
-
-	public static final String[] guiBtnRowNames = new String[]{ 
-			"Window","Raw Data/Ftr Processing","Post Proc Load And Map Config/Exec","DEBUG","File"};
-
-	public static final int 
-			btnShowWinIdx = 0, 				//which window to show
-			btnAuxFunc1Idx = 1,			//aux functionality 1
-			btnAuxFunc2Idx = 2,			//aux functionality 2
-			btnDBGSelCmpIdx = 3,			//debug
-			btnFileCmdIdx = 4;				//load/save files
-	//names for each row of buttons - idx 1 is name of row
-	public final String[][] guiBtnNames = new String[][]{
-		new String[]{pa.winTitles[1], pa.winTitles[2], pa.winTitles[3], pa.winTitles[4]},							//display specific windows - multi-select/ always on if sel
-		new String[]{"Func 1","Func 2","Func 3"},								//per-window user functions - momentary
-		new String[]{"Func 1","Func 2","Func 3","Func 4"},						//per-window user functions - momentary
-		new String[]{"Dbg 1","Dbg 2","Dbg 3","Dbg 4","Dbg 5"},						//DEBUG - momentary
-		new String[]{"Load Txt File","Save Txt File"}							//load an existing score, save an existing score - momentary		
-	};
-	//default names, to return to if not specified by user
-	public final String[][] defaultUIBtnNames = new String[][]{
-		new String[]{pa.winTitles[1], pa.winTitles[2], pa.winTitles[3], pa.winTitles[4]},							//display specific windows - multi-select/ always on if sel
-		new String[]{"Func 1","Func 2","Func 3"},					//per-window user functions - momentary
-		new String[]{"Func 1","Func 2","Func 3","Func 4"},			//per-window user functions - momentary
-		new String[]{"Dbg 1","Dbg 2","Dbg 3","Dbg 4","Dbg 5"},						//DEBUG - momentary
-		new String[]{"Load Txt File","Save Txt File"}							//load an existing score, save an existing score - momentary		
-	};
-	//whether buttons are momentary or not (on only while being clicked)
-	public boolean[][] guiBtnInst = new boolean[][]{
-		new boolean[]{false,false,false,false},         						//display specific windows - multi-select/ always on if sel
-		new boolean[]{false,false,false,false,false},                   //functionality - momentary
-		new boolean[]{false,false,false,false,false},                   //functionality - momentary
-		new boolean[]{true,true,true,true,true},                   		//debug - momentary
-		new boolean[]{true,true},			              			//load an existing score, save an existing score - momentary	
-	};		
-	//whether buttons are waiting for processing to complete (for non-momentary buttons)
-	public boolean[][] guiBtnWaitForProc = new boolean[][]{
-		new boolean[]{false,false,false,false},         						//display specific windows - multi-select/ always on if sel
-		new boolean[]{false,false,false,false,false},                   //functionality - momentary
-		new boolean[]{false,false,false,false,false},                   //functionality - momentary
-		new boolean[]{false,false,false,false,false},                   		//debug - momentary
-		new boolean[]{false,false},			              			//load an existing score, save an existing score - momentary	
-	};			
-	
-	//whether buttons are disabled(-1), enabled but not clicked/on (0), or enabled and on/clicked(1)
-	public int[][] guiBtnSt = new int[][]{
-		new int[]{0,0,1,0},                    					//display specific windows - multi-select/ always on if sel
-		new int[]{0,0,0,0,0},                   					//debug - momentary
-		new int[]{0,0,0,0,0},                   					//debug - momentary
-		new int[]{0,0,0,0,0},                   					//debug - momentary
-		new int[]{0,0}			              					//load an existing score, save an existing score - momentary	
-	};
-	
-	public int[] guiBtnStFillClr;
-	public int[] guiBtnStTxtClr;
-	//row and column of currently clicked-on button (for display highlight as pressing)
-	public int[] curBtnClick = new int[]{-1,-1};
-
-	public mySideBarMenu(GraphProbExpMain _p, String _n, int _flagIdx, int[] fc, int[] sc, float[] rd, float[] rdClosed, String _winTxt, boolean _canDrawTraj) {
-		super(_p, _n, _flagIdx, fc, sc,  rd, rdClosed, _winTxt, _canDrawTraj);
-		guiBtnStFillClr = new int[]{		//button colors based on state
-				GraphProbExpMain.gui_White,								//disabled color for buttons
-				GraphProbExpMain.gui_LightGray,								//not clicked button color
-				GraphProbExpMain.gui_LightBlue,									//clicked button color
-			};
-		guiBtnStTxtClr = new int[]{			//text color for buttons
-				GraphProbExpMain.gui_LightGray,									//disabled color for buttons
-				GraphProbExpMain.gui_Black,									//not clicked button color
-				GraphProbExpMain.gui_Black,									//clicked button color
-			};			
-		super.initThisWin(_canDrawTraj, false, true);
-	}
-	
-	//set up initial colors for papplet's flags for display
-	public void initPFlagColors(){
-		pFlagColors = new int[pa.numFlags][3];
-		for (int i = 0; i < pa.numFlags; ++i) { pFlagColors[i] = new int[]{(int) pa.random(150),(int) pa.random(100),(int) pa.random(150)}; }		
-		stBoolFlagColors = new int[pa.numStFlagsToShow][3];
-		stBoolFlagColors[0] = new int[]{255,0,0};
-		stBoolFlagColors[1] = new int[]{0,255,0};
-		stBoolFlagColors[2] = new int[]{0,0,255};		
-		for (int i = 3; i < pa.numStFlagsToShow; ++i) { stBoolFlagColors[i] = new int[]{100+((int) pa.random(150)),150+((int) pa.random(100)),150+((int) pa.random(150))};		}
-	}
-	@Override
-	protected void snapMouseLocs(int oldMouseX, int oldMouseY, int[] newMouseLoc){}//not a snap-to window
-		
-	//call this from each new window to set function names, if specified, when window gets focus
-	public void setAllBtnNames(int rowIdx, String[] btnNames) {
-		String[] replAra = ((null==btnNames) || (btnNames.length != guiBtnNames[rowIdx].length)) ? defaultUIBtnNames[rowIdx] : btnNames;
-		for(int i=0;i<guiBtnNames[rowIdx].length;++i) {guiBtnNames[rowIdx][i]=replAra[i];}
-	}//setFunctionButtonNames
-	
-	
-	@Override
-	//initialize all private-flag based UI buttons here - called by base class
-	public void initAllPrivBtns(){
-		truePrivFlagNames = new String[]{								//needs to be in order of flags
-		};
-		falsePrivFlagNames = new String[]{			//needs to be in order of flags
-		};
-		privModFlgIdxs = new int[]{};
-		numClickBools = privModFlgIdxs.length;	
-	}//
-	
-	@Override
-	protected void initMe() {//init/reinit this window
-		setFlags(closeable, false);
-//		setFlags(uiObjsAreVert, true);
-		initPrivFlags(numPrivFlags);		
-	}	
-	//set flag values and execute special functionality for this sequencer
-	@Override
-	public void setPrivFlags(int idx, boolean val){
-		int flIDX = idx/32, mask = 1<<(idx%32);
-		privFlags[flIDX] = (val ?  privFlags[flIDX] | mask : privFlags[flIDX] & ~mask);
-		switch (idx) {//special actions for each flag
-			case mseClickedInBtnsIDX : {
-				
-			}
-		}
-	}
-
-	//initialize structure to hold modifiable menu regions
-	@Override
-	protected void setupGUIObjsAras(){						//called from super.initThisWin
-		guiMinMaxModVals = new double [][]{	{}};//min max mod values		
-		guiStVals = new double[]{};
-		guiObjNames = new String[]{};		
-		
-		//idx 0 is treat as int, idx 1 is obj has list vals, idx 2 is object gets sent to windows
-		guiBoolVals = new boolean [][]{{}};
-		
-		minBtnClkY = (pa.numFlagsToShow+3) * yOff + clkFlgsStY;										//start of buttons from under boolean flags	
-		initUIClickCoords(rectDim[0] + .1f * rectDim[2],minBtnClkY + (guiBtnRowNames.length * 2.0f) * yOff,rectDim[0] + .99f * rectDim[2],0);//last val over-written by actual value in buildGuiObjs
-		guiObjs = new myGUIObj[numGUIObjs];			//list of modifiable gui objects
-		if(0!=numGUIObjs){
-			buildGUIObjs(guiObjNames,guiStVals,guiMinMaxModVals,guiBoolVals, new double[]{xOff,yOff});
-		} else {
-			uiClkCoords[3] = uiClkCoords[1];		//set y start values
-		}
-	}
-	
-	//check if buttons clicked
-	private boolean checkButtons(int mseX, int mseY){
-		double stY = minBtnClkY + rowStYOff, endY = stY+yOff, stX = 0, endX, widthX; //btnLblYOff			
-		for(int row=0; row<guiBtnRowNames.length;++row){
-			widthX = rectDim[2]/(1.0f * guiBtnNames[row].length);
-			stX =0;	endX = widthX;
-			for(int col =0; col<guiBtnNames[row].length;++col){	
-				if((pa.ptInRange(mseX, mseY,stX, stY, endX, endY)) && (guiBtnSt[row][col] != -1)){
-					handleButtonClick(row,col);
-					return true;
-				}					
-				stX += widthX;	endX += widthX; 
-			}
-			stY = endY + yOff+ rowStYOff;endY = stY + yOff;				
-		}
-		return false;
-	}//handleButtonClick	
-	//public void clearAllBtnStates(){for(int row=0; row<guiBtnRowNames.length;++row){for(int col =0; col<guiBtnNames[row].length;++col){if((guiBtnInst[row][col]) && (guiBtnSt[row][col] ==1)){	guiBtnSt[row][col] = 0;}}}}
-	
-	//turn off buttons that may be on and should be turned off - called at release of mouse - check for mouse loc before calling (in button region)?
-	public void clearAllBtnStates(){
-		if(this.getPrivFlags(mseClickedInBtnsIDX)) {
-			//guiBtnWaitForProc should only be set for non-momentary buttons when they are pushed and cleared when whatever they are do is complete
-			for(int row=0; row<guiBtnRowNames.length;++row){for(int col =0; col<guiBtnNames[row].length;++col){				
-				if((guiBtnSt[row][col]==1) && (guiBtnInst[row][col]  || !guiBtnWaitForProc[row][col])){	guiBtnSt[row][col] = 0;}//btn is on, and either is momentary or it is not waiting for processing
-			}}
-			this.setPrivFlags(mseClickedInBtnsIDX, false);
-		}
-	}//clearAllBtnStates
-	
-	//set non-momentary buttons to be waiting for processing complete comand
-	public void setWaitForProc(int row, int col) {
-		if(!guiBtnInst[row][col]) {	guiBtnWaitForProc[row][col] = true;}		
-	}
-	//handle click on button region of menubar
-	public void handleButtonClick(int row, int col){
-		int val = guiBtnSt[row][col];//initial state, before being changed
-		guiBtnSt[row][col] = (guiBtnSt[row][col] + 1)%2;//change state
-		//if not momentary buttons, set wait for proc to true
-		setWaitForProc(row,col);
-		switch(row){
-			case btnShowWinIdx 			: {pa.handleShowWin(col, val);break;}
-			case btnAuxFunc1Idx 		: //{pa.handleMenuBtnSelCmp(btnAuxFunc1Idx,col, val);break;}
-			case btnAuxFunc2Idx 		: //{pa.handleMenuBtnSelCmp(btnAuxFunc2Idx,col, val);break;}
-			case btnDBGSelCmpIdx  		: {pa.handleMenuBtnSelCmp(row, col, val);break;}//{pa.handleMenuBtnSelCmp(btnDBGSelCmpIdx,col, val);break;}
-			case btnFileCmdIdx 			: {pa.handleFileCmd(col, val);break;}
-		}				
-	}	
-
-	//handle the display of UI objects backed by a list
-	@Override
-	protected String getUIListValStr(int UIidx, int validx){
-		switch(UIidx){
-		}
-		return "";
-	}//dispUIListObj
-	//uses passed time
-	@Override //only send new values if actually new values
-	protected void setUIWinVals(int UIidx){
-		switch(UIidx){
-//		//set lcl/global vals
-//		case gIDX_UIElem2List 		: {
-////			int sel = (int)guiObjs[UIidx].getVal() % keySigs.length;
-////			if (sel != myDispWindow.glblKeySig.keyIdx){for(int i=1; i<pa.dispWinFrames.length; ++i){pa.dispWinFrames[i].setGlobalKeySigVal(sel);} pa.setFlags(pa.forceInKey,false); }			
-//			break;}
-//		case gIDX_UIElem3 	: 
-//		case gIDX_UIElem3List 	: {
-////			int tsDenom = timeSigDenom[(int)guiObjs[gIDX_UIElem3List].getVal() %timeSigDenom.length],
-////					tsNum = (int)guiObjs[gIDX_TimeSigNum].getVal();
-////			durType dType = pa.getDurTypeForNote(tsDenom);			
-////			if((dType != glblBeatNote) || (glblTimeSig.beatPerMeas != tsNum) || (glblTimeSig.beatNote != tsDenom)){			
-////				for(int i=1; i<pa.dispWinFrames.length; ++i){pa.dispWinFrames[i].setGlobalTimeSigVal(tsNum,tsDenom, dType);} 
-////			}
-//			break;}
-//		case gIDX_UIElem1			: {
-//			float tmpTempo = (float)guiObjs[UIidx].getVal();
-////			if(PApplet.abs(tmpTempo - glblTempo) > pa.feps){for(int i=1; i<pa.dispWinFrames.length; ++i){pa.dispWinFrames[i].setGlobalTempoVal(tmpTempo);}}
-//			break;}
-		}			
-	}//setUIWinVals
-	@Override
-	protected boolean hndlMouseMoveIndiv(int mouseX, int mouseY, myPoint mseClckInWorld){		return false;	}
-	@Override
-	protected boolean hndlMouseClickIndiv(int mouseX, int mouseY, myPoint mseClckInWorld, int mseBtn) {	
-		if((!pa.ptInRange(mouseX, mouseY, rectDim[0], rectDim[1], rectDim[0]+rectDim[2], rectDim[1]+rectDim[3]))){return false;}//not in this window's bounds, quit asap for speedz
-		int i = (int)((mouseY-(yOff + yOff + clkFlgsStY))/(yOff));					//TODO Awful - needs to be recalced, dependent on menu being on left
-		if((i>=0) && (i<pa.numFlagsToShow)){
-			pa.setFlags(pa.flagsToShow.get(i),!pa.flags[pa.flagsToShow.get(i)]);return true;	}
-		else if(pa.ptInRange(mouseX, mouseY, 0, minBtnClkY, uiClkCoords[2], uiClkCoords[1])){
-			boolean clkInBtnRegion = checkButtons(mouseX, mouseY);
-			if(clkInBtnRegion) { this.setPrivFlags(mseClickedInBtnsIDX, true);}
-			return clkInBtnRegion;
-		}//in region where clickable buttons are - uiClkCoords[1] is bottom of buttons
-		return false;
-	}
-	@Override
-	protected boolean hndlMouseDragIndiv(int mouseX, int mouseY,int pmouseX, int pmouseY, myPoint mouseClickIn3D, myVector mseDragInWorld, int mseBtn) {//regular UI obj handling handled elsewhere - custom UI handling necessary to call main window		
-		boolean res = pa.dispWinFrames[pa.curFocusWin].hndlMouseDragIndiv(mouseX, mouseY,pmouseX, pmouseY, mouseClickIn3D, mseDragInWorld, mseBtn);
-		return res;	}
-	@Override
-	protected void hndlMouseRelIndiv() {	clearAllBtnStates();}
-
-	private void drawSideBarBooleans(){
-		//draw main booleans and their state
-		pa.translate(10,yOff*2);
-		pa.setColorValFill(GraphProbExpMain.gui_Black);
-		pa.text("Boolean Flags",0,yOff*.20f);
-		pa.translate(0,clkFlgsStY);
-		for(int idx =0; idx<pa.numFlagsToShow; ++idx){
-			int i = pa.flagsToShow.get(idx);
-			if(pa.flags[i] ){												dispMenuTxtLat(truePFlagNames[i],pFlagColors[i], true);			}
-			else {	if(truePFlagNames[i].equals(falsePFlagNames[i])) {		dispMenuTxtLat(truePFlagNames[i],new int[]{180,180,180}, false);}	
-					else {													dispMenuTxtLat(falsePFlagNames[i],new int[]{0,255-pFlagColors[i][1],255-pFlagColors[i][2]}, true);}		
-			}
-		}	
-	}//drawSideBarBooleans
-	private void drawSideBarStateBools(){ //numStFlagsToShow
-		pa.translate(110,10);
-		float xTrans = (int)((pa.menuWidth-100) / pa.numStFlagsToShow);
-		for(int idx =0; idx<pa.numStFlagsToShow; ++idx){
-			dispBoolStFlag(StateBoolNames[idx],stBoolFlagColors[idx], pa.flags[pa.stateFlagsToShow.get(idx)],StrWdMult[idx]);			
-			pa.translate(xTrans,0);
-		}
-	}
-	
-	//draw UI buttons that control functions, debug and global load/save stubs
-	private void drawSideBarButtons(){
-		pa.translate(xOff*.5f,(float)minBtnClkY);
-		pa.setFill(new int[]{0,0,0}, 255);
-		for(int row=0; row<guiBtnRowNames.length;++row){
-			pa.text(guiBtnRowNames[row],0,-yOff*.15f);
-			pa.translate(0,rowStYOff);
-			float xWidthOffset = rectDim[2]/(1.0f * guiBtnNames[row].length), halfWay;
-			pa.pushMatrix();pa.pushStyle();
-			pa.strokeWeight(1.0f);
-			pa.stroke(0,0,0,255);
-			pa.noFill();
-			pa.translate(-xOff*.5f, 0);
-			for(int col =0; col<guiBtnNames[row].length;++col){
-				halfWay = (xWidthOffset - pa.textWidth(guiBtnNames[row][col]))/2.0f;
-				pa.setColorValFill(guiBtnStFillClr[guiBtnSt[row][col]+1]);
-				pa.rect(0,0,xWidthOffset, yOff);	
-				pa.setColorValFill(guiBtnStTxtClr[guiBtnSt[row][col]+1]);
-				pa.text(guiBtnNames[row][col], halfWay, yOff*.75f);
-				pa.translate(xWidthOffset, 0);
-			}
-			pa.popStyle();	pa.popMatrix();						
-			pa.translate(0,btnLblYOff);
-		}
-	}//drawSideBarButtons	
-	@Override
-	protected void drawOnScreenStuffPriv(float modAmtMillis) {}
-	@Override//for windows to draw on screen
-	protected void drawRightSideInfoBarPriv(float modAmtMillis) {}
-	@Override
-	protected void drawMe(float animTimeMod) {
-		pa.pushMatrix();pa.pushStyle();
-			drawSideBarBooleans();				//toggleable booleans 
-		pa.popStyle();	pa.popMatrix();	
-		pa.pushMatrix();pa.pushStyle();
-			drawSideBarStateBools();				//lights that reflect various states
-		pa.popStyle();	pa.popMatrix();	
-		pa.pushMatrix();pa.pushStyle();			
-			drawSideBarButtons();						//draw buttons
-		pa.popStyle();	pa.popMatrix();	
-		pa.pushMatrix();pa.pushStyle();
-			drawGUIObjs();					//draw what global user-modifiable fields are currently available 
-		pa.popStyle();	pa.popMatrix();			
-		pa.pushMatrix();pa.pushStyle();
-			pa.drawWindowGuiObjs();			//draw objects for window with primary focus
-		pa.popStyle();	pa.popMatrix();	
-	}
-	
-	@Override
-	public void drawCustMenuObjs(){}	
-	@Override
-	protected void launchMenuBtnHndlr() {
-		switch(curCustBtnType) {
-		case mySideBarMenu.btnAuxFunc1Idx : {break;}//row 1 of menu side bar buttons
-		case mySideBarMenu.btnAuxFunc2Idx : {break;}//row 2 of menu side bar buttons
-		case mySideBarMenu.btnDBGSelCmpIdx : {break;}//row 3 of menu side bar buttons (debug)			
-		case mySideBarMenu.btnFileCmdIdx : {break;}//row 3 of menu side bar buttons (debug)			
-		}		
-	}
-	//no custom camera handling for menu , float rx, float ry, float dz are all now member variables of every window
-	@Override
-	protected void setCameraIndiv(float[] camVals){}
-	@Override
-	public void hndlFileLoad(String[] vals, int[] stIdx) {
-		hndlFileLoad_GUI(vals, stIdx);
-		
-	}
-	@Override
-	public ArrayList<String> hndlFileSave() {
-		ArrayList<String> res = hndlFileSave_GUI();
-
-		return res;
-	}
-	@Override
-	protected String[] getSaveFileDirNamesPriv() {return new String[]{"menuDir","menuFile"};	}
-	@Override
-	public void drawClickableBooleans() {	}//this is only for non-sidebar menu windows, to display their own personal buttons
-	@Override
-	protected void setVisScreenDimsPriv() {}
-	@Override
-	protected myPoint getMsePtAs3DPt(int mouseX, int mouseY){return pa.P(mouseX,mouseY,0);}
-	@Override
-	protected void initTrajStructs() {}
-	@Override
-	protected void endShiftKeyI() {}
-	@Override
-	protected void endAltKeyI() {}
-	@Override
-	protected void endCntlKeyI() {}
-	@Override
-	protected void closeMe() {}
-	@Override
-	protected void showMe() {}
-	@Override
-	protected void resizeMe(float scale) {}	
-	@Override
-	protected boolean simMe(float modAmtSec) {return false;}
-	@Override
-	protected void stopMe() {}
-	@Override
-	protected void addSScrToWinIndiv(int newWinKey){}
-	@Override
-	protected void addTrajToScrIndiv(int subScrKey, String newTrajKey){}
-	@Override
-	protected void delSScrToWinIndiv(int idx) {}	
-	@Override
-	protected void delTrajToScrIndiv(int subScrKey, String newTrajKey) {}		
-	//no trajectory here
-	@Override
-	protected void processTrajIndiv(myDrawnSmplTraj drawnTraj){}	
-	@Override
-	protected void initDrwnTrajIndiv(){}
-	@Override
-	public String toString(){
-		String res = super.toString();
-		return res;
-	}
-
-
-}//mySideBarMenu
-
-
-//class holds trajctory and 4 macro cntl points, and handling for them
-class myDrawnSmplTraj {
-	public GraphProbExpMain pa;
-	public myDispWindow win;
-	public static int trjCnt = 0;
-	public int ID;
-
-	public myDrawnObject drawnTraj;						//a drawable curve - per staff
-	public static float topOffY;
-	public int drawnTrajPickedIdx;						//idx of mouse-chosen point	in editable drawn trajectory		
-	public static final int drawnTrajEditWidth = 10;			//width in cntl points of the amount of the drawn trajectory deformed by dragging
-	public static final float trajDragScaleAmt = 100.0f;					//amt of displacement when dragging drawn trajectory to edit
-	public static float msClkPtRad = 10,msClkPt3DRad = 20,	//radius within which a mouse click will register on a point
-			spTmplOffset, 
-			mseSens = 100.0f,
-			minTmplOff, maxTmplOff;		//offset between end points in edit draw region, min and max 
-	public static float sqMsClkRad = msClkPtRad*msClkPtRad;
-
-	public myPoint[] edtCrvEndPts;					//end points for edit curve in editable region	- modify these guys	to move curve - pts 2 and 3 are perp control axes						
-	public int editEndPt;							//if an endpoint is being edited(moved around) : -1 == no, 0 = pt 0, 1 = pt 1, 2 = pt 2, 3 = pt 3 ;
-		
-	//public myPoint[] pathBetweenPts;				//Array that stores all the path Points, once they are scaled
-	
-	public int fillClrCnst, strkClrCnst;
-		
-	public boolean[] trajFlags;
-	public static final int 
-				flatPtIDX = 0,						//whether this should draw plat circles or spheres for its points
-				smCntlPtsIDX = 1;					//whether the 4 cntl points should be as small as regular points or larger
-	public static final int numTrajFlags = 2;
-	
-	public int ctlRad;
-	
-	public myDrawnSmplTraj(GraphProbExpMain _p, myDispWindow _win,float _topOffy, int _fillClrCnst, int _strkClrCnst, boolean _flat, boolean _smCntl){
-		pa = _p;
-		fillClrCnst = _fillClrCnst; 
-		strkClrCnst = _strkClrCnst;
-		win = _win;
-		ID = trjCnt++;
-		setTopOffy(_topOffy);			//offset in y from top of screen
-		initTrajFlags();
-		initTrajStuff();		
-		trajFlags[flatPtIDX] = _flat;
-		trajFlags[smCntlPtsIDX] = _smCntl;
-		ctlRad = (trajFlags[smCntlPtsIDX] ? myDrawnObject.trajPtRad : 5 );
-	}
-	protected void initTrajFlags(){trajFlags = new boolean[numTrajFlags];for(int i=0;i<numTrajFlags;++i){trajFlags[i]=false;}}
-	public void initTrajStuff(){
-		spTmplOffset = 400;						//vary this based on scale of drawn arc, to bring the end points together and keep arcs within gray region
-		minTmplOff = 10; 		
-		maxTmplOff = 400;		
-		drawnTrajPickedIdx = -1;
-		editEndPt = -1;
-		
-		edtCrvEndPts = new myPoint[4];
-		//pathBetweenPts = new myPoint[0];
-		edtCrvEndPts[0] = new myPoint(win.rectDim[0] + .25 * win.rectDim[2], .5 * (2*win.rectDim[1] + win.rectDim[3]),0);
-		edtCrvEndPts[1] = new myPoint(win.rectDim[0] + .75 * win.rectDim[2], .5 * (2*win.rectDim[1] + win.rectDim[3]),0);		
-	}
-	
-	public void calcPerpPoints(){
-		myVector dir = pa.U(myVector._rotAroundAxis(pa.V(edtCrvEndPts[0],edtCrvEndPts[1]), pa.c.drawSNorm));
-		float mult =  .125f,
-		dist = mult * (float)myPoint._dist(edtCrvEndPts[0],edtCrvEndPts[1]);
-		edtCrvEndPts[2] = pa.P(pa.P(edtCrvEndPts[0],edtCrvEndPts[1]), dist,dir);
-		edtCrvEndPts[3] = pa.P(pa.P(edtCrvEndPts[0],edtCrvEndPts[1]),-dist,dir);
-	}
-	//scale edit points and cntl points
-	public void reCalcCntlPoints(float scale){
-		for(int i = 0; i<edtCrvEndPts.length; ++i){	edtCrvEndPts[i].y = win.calcOffsetScale(edtCrvEndPts[i].y,scale,topOffY);edtCrvEndPts[i].z = 0; }//edtCrvEndPts[curDrnTrajScrIDX][i].y -= topOffY; edtCrvEndPts[curDrnTrajScrIDX][i].y *= scale;edtCrvEndPts[curDrnTrajScrIDX][i].y += topOffY;	}	
-		if(drawnTraj != null){
-			((myVariStroke)drawnTraj).scaleMeY(false,scale,topOffY);//only for display - rescaling changes the notes slightly so don't recalc notes
-		}
-	}//reCalcCntlPoints/
-	
-	public void startBuildTraj(){
-		edtCrvEndPts[2] = null;
-		edtCrvEndPts[3] = null;
-		calcPerpPoints();
-		drawnTraj = new myVariStroke(pa, pa.V(pa.c.drawSNorm),fillClrCnst, strkClrCnst);
-		drawnTraj.startDrawing();
-	}
-	public boolean startEditEndPoint(int idx){
-		editEndPt = idx; win.setFlags(myDispWindow.editingTraj, true);
-		//pa.outStr2Scr("Handle TrajClick 2 startEditEndPoint : " + name + " | Move endpoint : "+editEndPt);
-		return true;
-	}
-	//check if initiating an edit on an existing object, if so then set up edit
-	public boolean startEditObj(myPoint mse){
-		boolean doEdit = false; 
-		float chkDist = win.getFlags(myDispWindow.is3DWin) ? msClkPt3DRad : msClkPtRad;
-		//first check endpoints, then check curve points
-		double[] distTocPts = new double[1];			//using array as pointer, passing by reference
-		int cntpIdx = win.findClosestPt(mse, distTocPts, edtCrvEndPts);	
-		if(distTocPts[0] < chkDist){						startEditEndPoint(cntpIdx);} 
-		else {
-			double[] distToPts = new double[1];			//using array as pointer, passing by reference
-			myPoint[] pts = ((myVariStroke)drawnTraj).getDrawnPtAra(false);
-			int pIdx = win.findClosestPt(mse, distToPts, pts);
-			//pa.outStr2Scr("Handle TrajClick 2 startEditObj : " + name);
-			if(distToPts[0] < chkDist){//close enough to mod
-				win.setEditCueCircle(0,mse);
-				win.setFlags(myDispWindow.editingTraj, true);
-				doEdit = true;
-				//pa.outStr2Scr("Handle TrajClick 3 startEditObj modPt : " + name + " : pIdx : "+ pIdx);
-				drawnTrajPickedIdx = pIdx;	
-				editEndPt = -1;
-			} else if (distToPts[0] < sqMsClkRad){//not close enough to mod but close to curve
-				win.setEditCueCircle(1,mse);
-				win.setFlags(myDispWindow.smoothTraj, true);
-			}
-		}
-		return doEdit;
-	}//startEditObj//rectDim
-	
-	//returns true if within eps of any of the points of this trajector
-	public boolean clickedMe(myPoint mse){
-		float chkDist = win.getFlags(myDispWindow.is3DWin) ? msClkPt3DRad : msClkPtRad;	
-		double[] distToPts = new double[1];			//using array as pointer, passing by reference
-		int cntpIdx = win.findClosestPt(mse, distToPts, edtCrvEndPts);	
-		if(distToPts[0] < chkDist){return true;}
-		distToPts[0] = 9999;
-		int pIdx = win.findClosestPt(mse, distToPts, ((myVariStroke)drawnTraj).getDrawnPtAra(false));
-		return (distToPts[0] < chkDist);
-	}
-	
-	private boolean checkEndPoint(myPoint pt){return ((pt.x >= win.rectDim[0]) && (pt.x <= win.rectDim[0]+win.rectDim[2]) && (pt.y >= win.rectDim[1]) && (pt.y <=  win.rectDim[1]+win.rectDim[3]));}
-	private void modTrajCntlPts(myVector diff){
-		if((editEndPt == 0) || (editEndPt == 1)){
-			myPoint newLoc = myPoint._add(edtCrvEndPts[editEndPt], diff);
-			if(checkEndPoint(newLoc)){edtCrvEndPts[editEndPt].set(newLoc);}
-			//edtCrvEndPts[editEndPt]._add(diff);		
-			calcPerpPoints();
-			drawnTraj.remakeDrawnTraj(false);
-			rebuildDrawnTraj();	
-		} else {//scale all traj points based on modification of pts 2 or 3 - only allow them to move along the perp axis
-			myVector abRotAxis = pa.U(myVector._rotAroundAxis(pa.V(edtCrvEndPts[0],edtCrvEndPts[1]), pa.c.drawSNorm));
-			float dist = (float)myPoint._dist(edtCrvEndPts[2], edtCrvEndPts[3]);
-			double modAmt = diff._dot(abRotAxis);
-			if(editEndPt == 2){	edtCrvEndPts[2]._add(pa.V(modAmt,abRotAxis));edtCrvEndPts[3]._add(pa.V(-modAmt,abRotAxis));} 
-			else {				edtCrvEndPts[2]._add(pa.V(-modAmt,abRotAxis));edtCrvEndPts[3]._add(pa.V(modAmt,abRotAxis));}
-			float dist2 = (float)myPoint._dist(edtCrvEndPts[2], edtCrvEndPts[3]);
-			//pa.outStr2Scr("modTrajCntlPts : editEndPt : " + editEndPt + " : diff : "+ diff+ " dist : " + dist+ " dist2 :" + dist2 + " rot tangent axis : " + abRotAxis + " | Scale : " + (1+dist2)/(1+dist) );
-			((myVariStroke)drawnTraj).scalePointsAboveAxis(edtCrvEndPts[0],edtCrvEndPts[1], abRotAxis, (1+dist2)/(1+dist));
-			//pa.outStr2Scr("");
-		}			
-	}
-	
-	//edit the trajectory used for UI input in this window
-	public boolean editTraj(int mouseX, int mouseY,int pmouseX, int pmouseY, myPoint mouseClickIn3D, myVector mseDragInWorld){
-		boolean mod = false;
-		if((drawnTrajPickedIdx == -1) && (editEndPt == -1) && (!win.getFlags(myDispWindow.smoothTraj))){return mod;}			//neither endpoints nor drawn points have been edited, and we're not smoothing
-		myVector diff = win.getFlags(myDispWindow.is3DWin) ? mseDragInWorld : pa.V(mouseX-pmouseX, mouseY-pmouseY,0);		
-		//pa.outStr2Scr("Diff in editTraj for  " + name + "  : " +diff.toStrBrf());
-		//needs to be before templateZoneY check
-		if (editEndPt != -1){//modify scale of ornament here, or modify drawn trajectory	
-			modTrajCntlPts(diff);
-			mod = true;
-		} else if (drawnTrajPickedIdx != -1){	//picked trajectory element to edit other than end points	
-			diff._div(mseSens);
-			((myVariStroke)drawnTraj).handleMouseDrag(diff,drawnTrajPickedIdx);
-			mod = true;
-		} 
-		return mod;
-	}//editTraj
-	
-	public void endEditObj(){
-		if((drawnTrajPickedIdx != -1) || (editEndPt != -1)
-			|| ( win.getFlags(myDispWindow.smoothTraj))){//editing curve
-			drawnTraj.remakeDrawnTraj(false);
-			rebuildDrawnTraj();		
-		}
-//		else if( win.getFlags(myDispWindow.smoothTraj)){		
-//			drawnTraj.remakeDrawnTraj(false);	
-//			rebuildDrawnTraj();	
-//		}
-		//pa.outStr2Scr("In Traj : " + this.ID + " endEditObj ");
-		win.processTrajectory(this);//dispFlags[trajDirty, true);
-		drawnTrajPickedIdx = -1;
-		editEndPt = -1;
-		win.setFlags(myDispWindow.editingTraj, false);
-		win.setFlags(myDispWindow.smoothTraj, false);
-	}
-	
-	public void endDrawObj(myPoint endPoint){
-		drawnTraj.addPt(endPoint);
-		//pa.outStr2Scr("Size of drawn traj : " + drawnTraj.cntlPts.length);
-		if(drawnTraj.cntlPts.length >= 2){
-			drawnTraj.finalizeDrawing(true);
-			myPoint[] pts = ((myVariStroke)drawnTraj).getDrawnPtAra(false);
-			//pa.outStr2Scr("Size of pts ara after finalize (use drawn vels : " +false + " ): " + pts.length);
-			edtCrvEndPts[0] = pa.P(pts[0]);
-			edtCrvEndPts[1] = pa.P(pts[pts.length-1]);
-			rebuildDrawnTraj();
-			//pa.outStr2Scr("In Traj : " + this.ID + " endDrawObj ");
-			win.processTrajectory(this);
-		} else {
-			drawnTraj = new myVariStroke(pa, pa.V(pa.c.drawSNorm),fillClrCnst, strkClrCnst);
-		}
-		win.setFlags(myDispWindow.drawingTraj, false);
-	}//endDrawObj
-	
-	public void addPoint(myPoint mse){
-		drawnTraj.addPt(mse);
-	}
-	//print out all points in this trajectory
-	public void dbgPrintAllPoints(){
-		if(drawnTraj == null){return;}
-		((myVariStroke) drawnTraj).dbgPrintAllPoints(false);
-	}
-	
-	//use animTimeMod to animate/decay showing this traj TODO 
-	public void drawMe(float animTimeMod){
-		if(drawnTraj != null){
-			pa.setColorValFill(fillClrCnst);
-			pa.setColorValStroke(strkClrCnst);
-			for(int i =0; i< edtCrvEndPts.length; ++i){
-				win.showKeyPt(edtCrvEndPts[i],""+ (i+1),ctlRad);
-			}	
-			((myVariStroke)drawnTraj).drawMe(false,trajFlags[flatPtIDX]);
-		} 
-	}
-	public void rebuildDrawnTraj(){
-		//Once edge is drawn
-		calcPerpPoints();
-		if(drawnTraj != null){
-			if(drawnTraj.flags[drawnTraj.isMade]){				  
-				//Initialize the array that stores the path
-				int a= 0, b= 1;
-				if(pa.flags[pa.flipDrawnTraj]){	 a = 1; b= 0;}
-				//TODO
-				if(false){//pathBetweenPts =
-						((myVariStroke)drawnTraj).moveVelCurveToEndPoints(edtCrvEndPts[a], edtCrvEndPts[b], pa.flags[pa.flipDrawnTraj]); }
-				else{//pathBetweenPts =
-						((myVariStroke)drawnTraj).moveCntlCurveToEndPoints(edtCrvEndPts[a], edtCrvEndPts[b], pa.flags[pa.flipDrawnTraj]);  	}
-			}
-		}	
-	}//rebuildDrawnTraj	
-	public void setTopOffy(float _topOffy){	topOffY = _topOffy;	}		//offset in y from top of screen
-}//class myDrawnNoteTraj
 
 
 class myScrollBars{
-	public GraphProbExpMain pa;
+	public my_procApplet pa;
 	public myDispWindow win;
 	public static int scrBarCnt = 0;
 	public int ID;
@@ -2064,7 +1375,7 @@ class myScrollBars{
 	
 	public int[][] clrs;			//colors for thumb and up/down/left/right arrows
 	
-	public myScrollBars(GraphProbExpMain _pa,myDispWindow _win){
+	public myScrollBars(my_procApplet _pa,myDispWindow _win){
 		pa = _pa;
 		win = _win;
 		ID = scrBarCnt++;
