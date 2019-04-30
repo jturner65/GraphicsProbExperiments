@@ -1,5 +1,6 @@
 package graphProbExp_PKG;
 
+import java.io.*;
 import java.util.*;
 
 import base_UI_Objects.*;
@@ -16,20 +17,27 @@ public class RayTracer2DWin extends myDispWindow {
 	/////////////
 	// ui objects 
 	////////////
-	// # of students across all classes
-	private int numCircles = 5;
-	
+	//scene dimensions
+	private int sceneCols = 300;
+	private int sceneRows = 300;
+	//cli file describing current scene
+	private int curSceneCliFileIDX;
+
 	//idxs - need one per object
 	public final static int
-		gIDX_NumCircles			= 0;
+		gIDX_SceneCols		= 0,
+		gIDX_SceneRows		= 1,
+		gIDX_CurrSceneCLI	= 2;
 	//initial values - need one per object
 	public float[] uiVals = new float[]{
-			numCircles,
+			sceneCols,
+			sceneRows,
+			0
 	};			//values of 8 ui-controlled quantities
 	public final int numGUIObjs = uiVals.length;	
 	/////////
-	//ui button names -empty will do nothing, otherwise add custom labels for debug and custom functionality names
-	public static final String[] gIDX_FuncTypeEvalList = myRandVarFunc.queryFuncTypes;
+	
+	public String[] gIDX_CurrSceneCLIList = new String[] {"Unknown"};
 
 	//////////////
 	// local/ui interactable boolean buttons
@@ -111,7 +119,8 @@ public class RayTracer2DWin extends myDispWindow {
 		switch(idx){
 			case shootRays : {//build new grade distribution
 				if (val) {
-
+					RTExp.startRayTrace();
+					addPrivBtnToClear(shootRays);
 				}
 				break;}
 
@@ -124,22 +133,29 @@ public class RayTracer2DWin extends myDispWindow {
 	protected void setupGUIObjsAras(){	
 		//pa.outStr2Scr("setupGUIObjsAras start");
 		guiMinMaxModVals = new double [][]{
-			{2,100,1},							//# circles 
+			{200,rectDim[2],10},						//gIDX_SceneCols
+			{200,rectDim[3],10},						//gIDX_SceneRows
+			{0,1,1},								//gIDX_CurrSceneCLI
 			
 		};		//min max modify values for each modifiable UI comp	
 
 		guiStVals = new double[]{
-				uiVals[gIDX_NumCircles],		//# circles 
+				uiVals[gIDX_SceneCols],		//gIDX_SceneCols
+				uiVals[gIDX_SceneRows],     //gIDX_SceneRows
+				uiVals[gIDX_CurrSceneCLI],	//gIDX_CurrSceneCLI
 		};								//starting value
 		
 		guiObjNames = new String[]{
-				"Number of Circles",			//# circles 
+				"Image Width (pxls)",			//gIDX_SceneCols
+				"Image Height (pxls)",          //gIDX_SceneRows
+				"Scene to Display",				//gIDX_CurrSceneCLI
 		};								//name/label of component	
 		
 		//idx 0 is treat as int, idx 1 is obj has list vals, idx 2 is object gets sent to windows
 		guiBoolVals = new boolean [][]{
-			{true, false, true},				//# circles 
-			
+			{true, false, true},				//gIDX_SceneCols
+			{true, false, true},				//gIDX_SceneRows
+			{true, true, true},					//gIDX_CurrSceneCLI
 		};						//per-object  list of boolean flags
 		
 		//since horizontal row of UI comps, uiClkCoords[2] will be set in buildGUIObjs		
@@ -159,12 +175,24 @@ public class RayTracer2DWin extends myDispWindow {
 		if(val != uiVals[UIidx]){//if value has changed...
 			uiVals[UIidx] = val;
 			switch(UIidx){		
-			case gIDX_NumCircles 			:{
-				if(ival != numCircles){
-					numCircles = ival;
-					
-				}	break;}			
-			}
+				case gIDX_SceneCols		:{
+					if(ival != sceneCols){
+						sceneCols = ival;		
+						
+					}	
+					break;}			
+				case gIDX_SceneRows		:{
+					if(ival != sceneRows){
+						sceneRows = ival;
+						
+					}	
+					break;}	
+				case gIDX_CurrSceneCLI :{
+					if(ival != curSceneCliFileIDX) {
+						curSceneCliFileIDX = ival;
+					}
+					break;}
+			}//switch
 		}//if val is different
 	}//setUIWinVals
 	
@@ -172,6 +200,7 @@ public class RayTracer2DWin extends myDispWindow {
 	@Override
 	protected String getUIListValStr(int UIidx, int validx) {
 		switch(UIidx){
+		case gIDX_CurrSceneCLI : {return gIDX_CurrSceneCLIList[validx % gIDX_CurrSceneCLIList.length];}
 		//case gIDX_FuncTypeEval : {return gIDX_FuncTypeEvalList[validx % gIDX_FuncTypeEvalList.length];}
 		default : {break;}
 	}
@@ -357,15 +386,14 @@ public class RayTracer2DWin extends myDispWindow {
 	protected void stopMe() {pa.outStr2Scr("Stop");}	
 	
 	@Override
-	public void hndlFileLoad(String[] vals, int[] stIdx) {
+	public void hndlFileLoad(File file, String[] vals, int[] stIdx) {
 		//if wanting to load/save UI values, uncomment this call and similar in hndlFileSave 
 		//hndlFileLoad_GUI(vals, stIdx);
 		//loading in grade data from grade file - vals holds array of strings, expected to be comma sep values, for a single class, with student names and grades
-		
-		
+		for(String s : vals) {			pa.outStr2Scr(s);}	
 	}
 	@Override
-	public ArrayList<String> hndlFileSave() {
+	public ArrayList<String> hndlFileSave(File file) {
 		ArrayList<String> res = new ArrayList<String>();
 		//if wanting to load/save UI values, uncomment this call and similar in hndlFileLoad 
 		//res = hndlFileSave_GUI();

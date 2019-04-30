@@ -59,18 +59,10 @@ public class GraphProbExpMain extends my_procApplet {
 		size((int)(displayWidth*.95f), (int)(displayHeight*.92f),P3D);
 		noSmooth();
 	}		
-
-	public void setup() {
-		colorMode(RGB, 255, 255, 255, 255);
-		frameRate(frate);
-		if(useSphereBKGnd) {
-			setBkgndSphere();
-		} else {
-			setBkgrnd();
-		}
-		initVisOnce();
-		//call this in first draw loop?
-		initOnce();
+	
+	@Override
+	protected void setup_indiv() {
+		if(useSphereBKGnd) {			setBkgndSphere();	} else {		setBkgrnd();	}
 	}// setup
 	
 	private void setBkgndSphere() {
@@ -105,6 +97,7 @@ public class GraphProbExpMain extends my_procApplet {
 		buildInitMenuWin(showUIMenu);
 		//instanced window dimensions when open and closed - only showing 1 open at a time
 		float[] _dimOpen  =  new float[]{menuWidth, 0, width-menuWidth, height}, _dimClosed  =  new float[]{menuWidth, 0, hideWinWidth, height};	
+		System.out.println("Width : " + width + " | Height : " + height);
 		int wIdx = dispMenuIDX,fIdx=showUIMenu;
 		dispWinFrames[wIdx] = new mySideBarMenu(this, winTitles[wIdx], fIdx, winFillClrs[wIdx], winStrkClrs[wIdx], winRectDimOpen[wIdx], winRectDimClose[wIdx], winDescr[wIdx],dispWinFlags[wIdx][dispCanDrawInWinIDX]);			
 		
@@ -135,11 +128,9 @@ public class GraphProbExpMain extends my_procApplet {
 		setInitDispWinVals(wIdx, _dimOpen, _dimClosed,new boolean[]{false,false,false,false}, new int[]{50,20,50,255}, new int[]{255,255,255,255},gui_LightGray,gui_DarkGray); 
 		dispWinFrames[wIdx] = new Grade2DWindow(this, winTitles[wIdx], fIdx,winFillClrs[wIdx], winStrkClrs[wIdx], winRectDimOpen[wIdx], winRectDimClose[wIdx], winDescr[wIdx],dispWinFlags[wIdx][dispCanDrawInWinIDX]);
 
-		//after all display windows are drawn
-		finalDispWinInit();
 		//specify windows that cannot be shown simultaneously here
 		initXORWins(new int[]{show1stWinIDX,show2ndWinIDX, show2DRayTracerIDX, showGradeWinIDX},new int[]{disp1stWinIDX, disp2ndWinIDX, disp2DRayTracerIDX, dispGradeWinIDX});
-		initVisFlags();
+
 		
 	}//initVisOnce_Priv
 		
@@ -148,71 +139,22 @@ public class GraphProbExpMain extends my_procApplet {
 	protected void initOnce_Priv(){
 		setVisFlag(showUIMenu, true);					//show input UI menu	
 		setVisFlag(showGradeWinIDX, true);
-		initProgram();
 	}//	initOnce
 	
 	@Override
 	//called multiple times, whenever re-initing
-	protected void initProgram_Indiv(){
-		initVisProg();				//always first
-		
-	}//initProgram
+	protected void initProgram_Indiv(){}//initProgram
 	
 	@Override
 	protected void initVisProg_Indiv() {}	
 	
+	@Override
 	//main draw loop
 	public void draw(){	
-		if(!isFinalInitDone()) {initOnce(); return;}	
-		float modAmtMillis = getModAmtMillis();
-		//simulation section
-		if(isRunSim() ){
-			//run simulation
-			drawCount++;									//needed here to stop draw update so that pausing sim retains animation positions	
-			for(int i =1; i<numDispWins; ++i){if((isShowingWindow(i)) && (dispWinFrames[i].getFlags(myDispWindow.isRunnable))){dispWinFrames[i].simulate(modAmtMillis);}}
-			if(isSingleStep()){setSimIsRunning(false);}
-			simCycles++;
-		}		//play in current window
-
-		//drawing section
-		pushMatrix();pushStyle();
-		drawSetup();																//initialize camera, lights and scene orientation and set up eye movement		
-		if((curFocusWin == -1) || (curDispWinIs3D())){	//allow for single window to have focus, but display multiple windows	
-			//if refreshing screen, this clears screen, sets background
-			setBkgrnd();				
-			draw3D_solve3D(modAmtMillis);
-			c.buildCanvas();			
-			if(curDispWinCanShow3dbox()){drawBoxBnds();}
-			if(dispWinFrames[curFocusWin].chkDrawMseRet()){			c.drawMseEdge();	}			
-			popStyle();popMatrix(); 
-		} else {	//either/or 2d window
-			//2d windows paint window box so background is always cleared
-			c.buildCanvas();
-			c.drawMseEdge();
-			popStyle();popMatrix(); 
-			for(int i =1; i<numDispWins; ++i){if (isShowingWindow(i) && !(dispWinFrames[i].getFlags(myDispWindow.is3DWin))){dispWinFrames[i].draw2D(modAmtMillis);}}
-		}
-		drawUI(modAmtMillis);																	//draw UI overlay on top of rendered results			
-		if (doSaveAnim()) {	savePic();}
-		updateConsoleStrs();
+		//private draw routine
+		_drawPriv();
 		surface.setTitle(prjNmLong + " : " + (int)(frameRate) + " fps|cyc curFocusWin : " + curFocusWin);
 	}//draw
-	
-	public void draw3D_solve3D(float modAmtMillis){
-		//System.out.println("drawSolve");
-		pushMatrix();pushStyle();
-		for(int i =1; i<numDispWins; ++i){
-			if((isShowingWindow(i)) && (dispWinFrames[i].getFlags(myDispWindow.is3DWin))){
-				dispWinFrames[i].draw3D(modAmtMillis);
-			}
-		}
-		popStyle();popMatrix();
-		//fixed xyz rgb axes for visualisation purposes and to show movement and location in otherwise empty scene
-		drawAxes(100,3, new myPoint(-c.getViewDimW()/2.0f+40,0.0f,0.0f), 200, false); 		
-	}//draw3D_solve3D
-	
-	//if should show problem # i
-	public boolean isShowingWindow(int i){return getVisFlag((i+this.showUIMenu));}//showUIMenu is first flag of window showing flags
 
 	//handle pressing keys 0-9
 	//keyVal is actual value of key (screen character as int)
@@ -294,13 +236,13 @@ public class GraphProbExpMain extends my_procApplet {
 	//////////////////////////////////////////
 	/// graphics and base functionality utilities and variables
 	//////////////////////////////////////////
-	
+	@Override
 		//init boolean state machine flags for program
 	public void initVisFlags(){
 		visFlags = new int[1 + numVisFlags/32];for(int i =0; i<numVisFlags;++i){forceVisFlag(i,false);}	
 		((mySideBarMenu)dispWinFrames[dispMenuIDX]).initPFlagColors();			//init sidebar window flags
 	}		
-	
+	@Override
 	//address all flag-setting here, so that if any special cases need to be addressed they can be
 	public void setVisFlag(int idx, boolean val ){
 		int flIDX = idx/32, mask = 1<<(idx%32);
@@ -310,22 +252,19 @@ public class GraphProbExpMain extends my_procApplet {
 			case show1stWinIDX			: {setWinFlagsXOR(disp1stWinIDX, val); break;}
 			case show2ndWinIDX			: {setWinFlagsXOR(disp2ndWinIDX, val); break;}
 			case show2DRayTracerIDX		: {setWinFlagsXOR(disp2DRayTracerIDX, val); break;}		
-			case showGradeWinIDX		: {setWinFlagsXOR(dispGradeWinIDX, val); break;}
-			
+			case showGradeWinIDX		: {setWinFlagsXOR(dispGradeWinIDX, val); break;}			
 			default : {break;}
 		}
 	}//setFlags  
+	@Override
 	//get vis flag
 	public boolean getVisFlag(int idx){int bitLoc = 1<<(idx%32);return (visFlags[idx/32] & bitLoc) == bitLoc;}	
+	@Override
 	public void forceVisFlag(int idx, boolean val) {
 		int flIDX = idx/32, mask = 1<<(idx%32);
 		visFlags[flIDX] = (val ?  visFlags[flIDX] | mask : visFlags[flIDX] & ~mask);
 		//doesn't perform any other ops - to prevent 
 	}
-	
-	
-	
-	
 	
 
 }//class GraphProbExpMain

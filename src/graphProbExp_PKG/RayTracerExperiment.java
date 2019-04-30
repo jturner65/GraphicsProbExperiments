@@ -1,9 +1,19 @@
 package graphProbExp_PKG;
 
+import java.util.TreeMap;
+
+import base_RayTracer.myRTFileReader;
+import base_RayTracer.myScene;
 import base_UI_Objects.*;
 import base_Utils_Objects.*;
 
 public class RayTracerExperiment extends BaseProbExpMgr {
+	//holds references to all loaded scenes
+	public TreeMap<String, myScene> loadedScenes;
+
+	//file reader/interpreter
+	public myRTFileReader rdr; 	
+
 	
 	//experiment-specific state flag bits - bits in array holding relevant process info
 	public static final int
@@ -16,25 +26,30 @@ public class RayTracerExperiment extends BaseProbExpMgr {
 
 	@Override
 	public void initExp() {
-		// TODO Auto-generated method stub
+		rdr = new myRTFileReader(this.win.pa,"txtrs");	
+		loadedScenes = new TreeMap<String, myScene>();
+	}//initExp	
 
+	//set values for RT scene experiment values
+	public void setRTSceneExpVals() {
+		
+		
 	}
-
+	
+	public void startRayTrace() {
+		
+	}
+	
+	
 	@Override
 	protected void buildSolvers_indiv() {
-		// TODO Auto-generated method stub
-
 	}
 	//update all rand gen objects for this function, including updating rand var funcs
 	@Override
 	protected void updateAllRandGens_Priv() {
-		// TODO Auto-generated method stub
-		
 	}
 	@Override
 	protected void setVisWidth_Priv() {
-		// TODO Auto-generated method stub
-
 	}
 
 	@Override

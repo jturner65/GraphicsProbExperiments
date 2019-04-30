@@ -4,12 +4,14 @@ import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.*;
 
+import base_UI_Objects.*;
 import processing.core.*;
 import base_Utils_Objects.*;
 
 //class to hold all objects within a desired scene
 public abstract class myScene {
-	public DistRayTracer pa;
+	public myDispWindow win;
+	public my_procApplet pa;
 	
 	//multi-threaded stuff
 	public ExecutorService th_exec;
@@ -31,11 +33,11 @@ public abstract class myScene {
 	public int matStackMaxHeight = 20;
 
 	//row and col values of scene - scene dimensions in pxls
-	public int sceneCols = 300;
+	protected int sceneCols = 300;
 	//public static final int sceneRows = 240;
-	public int sceneRows = 300;
+	protected int sceneRows = 300;
 	//number of rays in play - including initial ray (recursive depth)
-	public int numRays = 8;
+	protected int numRays = 8;
 
 	//origin of eye rays
 	public myVector eyeOrigin;
@@ -195,11 +197,11 @@ public abstract class myScene {
 	//current depth in matrix stack - starts at 0;
 	public int currMatrixDepthIDX;	
 	
-	public myScene(DistRayTracer _p) {
+	public myScene(my_procApplet _p, String _sceneName, int _numCols, int _numRows) {
 		pa = _p;
 		now = Calendar.getInstance();
 		folderName = "pics." +getDateTimeString(); 
-		setImageSize(pa.sceneCols,pa.sceneRows);		
+		setImageSize(_numCols, _numRows);		
 		initialize_table();
 		allObjsToFind = new ArrayList<myGeomBase>();
 		lightList = new ArrayList<myGeomBase>();
@@ -216,7 +218,7 @@ public abstract class myScene {
 		numInstances = new TreeMap<String,Integer>();
 
 		tmpObjList = new ArrayList<myGeomBase>();										//list to hold objects being built to be put into acceleration structure	
-		initVars();
+		initVars(_sceneName);
 	}
 	
 	public myScene(myScene _old){//copy ctor, for when scene type is being set - only use when old scene is being discarded (shallow copy)
@@ -243,10 +245,10 @@ public abstract class myScene {
 		matrixStack = _old.matrixStack;
 	}//myScene
 	
-	public void initFlags(){scFlags=new boolean[numFlags];for(int i=0;i<numFlags;++i){scFlags[i]=false;}}
+	private void initFlags(){scFlags=new boolean[numFlags];for(int i=0;i<numFlags;++i){scFlags[i]=false;}}
 	
 	//scene-wide variables set during loading of scene info from .cli file
-	public void initVars(){
+	private void initVars(String _saveName){
 		currTextureTop = null;
 		currTextureBottom = null;
 		currBkgTexture = null;
@@ -256,7 +258,7 @@ public abstract class myScene {
 		kNhood = 0;
 		ph_max_near_dist = 0;
 		
-		saveName = "";
+		saveName = _saveName;
 		txtrType = 0;
 		noiseScale = 1;
 		numNonLights = 0;
@@ -285,7 +287,7 @@ public abstract class myScene {
 	}//initVars method
 	
 	//scene-wide variables set during loading of scene info from .cli file
-	public void initVars(myScene _old){
+	private void initVars(myScene _old){
 		currTextureTop = _old.currTextureTop;
 		currTextureBottom = _old.currTextureBottom;
 		currBkgTexture = _old.currBkgTexture;
@@ -326,6 +328,9 @@ public abstract class myScene {
 		lens_focal_distance = _old.lens_focal_distance;		
 		focalPlane = _old.focalPlane;		
 	}//initVars from old scene method	
+	protected abstract void initVarsPriv();
+	
+	
 	public abstract void setSceneParams(double[] args);	
 
 	public void startTmpObjList(){
@@ -1379,12 +1384,11 @@ public abstract class myScene {
 	private void saveFile(){
 		now = Calendar.getInstance();
 		String tmpSaveName;
-		if(saveName.equals("")){saveName=pa.gCurrentFile;}				//use cli file name as default save name
 		String[] tmp = saveName.split("\\.(?=[^\\.]+$)");				//remove extension from given savename
 		//if (scFlags[saveImgInDirIDX]){	tmpSaveName = folderName.toString() + "\\"  + tmp[0]+(scFlags[myScene.flipNormsIDX] ? "_normFlipped" : "")+"_"+getDateTimeString(false,true,"-") + ".png";} //rebuild name to include directory and image name including render time
 		if (scFlags[saveImgInDirIDX]){	tmpSaveName = folderName.toString() + "\\"  + tmp[0]+(scFlags[myScene.flipNormsIDX] ? "_normFlipped" : "")+ ".png";} //rebuild name to include directory and image name including render time
 		else {							tmpSaveName = tmp[0]+(scFlags[myScene.flipNormsIDX] ? "_normFlipped" : "")+".png";		}
-		System.out.println("File saved as  : "+ saveName);
+		System.out.println("File saved as  : "+ tmpSaveName);
 		rndrdImg.save(tmpSaveName);
 		scFlags[saveImageIDX] =  false;//don't keep saving every frame
 	}//save image
@@ -1414,7 +1418,9 @@ public abstract class myScene {
 			System.out.println("" + mySkyDome.showUV());  
 		}
 		System.out.println("total # of rays : " + globRayCount + " | refl/refr rays " + reflRays +"/" + refrRays);
-		pa.DispEnd();
+		System.out.println("");
+		System.out.println("Image rendered from file name : " + saveName);
+		System.out.println("");
 	}
 	
 	
@@ -1534,10 +1540,6 @@ public abstract class myScene {
 		return result;
 	}
 	
-	
-	
-	
-	
 	//describe scene
 	public String toString(){
 		String res = "";
@@ -1551,17 +1553,22 @@ class myFOVScene extends myScene {
 	//public List<Future<Boolean>> callFOVFutures;
 	//public List<myFOVCall> callFOVCalcs;
 
-	public myFOVScene(DistRayTracer _p) {
-		super(_p);
-		viewZ = -1;
+	public myFOVScene(my_procApplet _p, String _sceneName, int _numCols, int _numRows) {
+		super(_p,_sceneName,_numCols,_numRows);
 		//callFOVCalcs= new ArrayList<myFOVCall>();
 		//callFOVFutures = new ArrayList<Future<Boolean>>(); 
 	}
 	public myFOVScene(myScene _scene) {
 		super( _scene);
+		viewZ = ((myFOVScene)(_scene)).viewZ;
 		//callFOVCalcs= new ArrayList<myFOVCall>();
 		//callFOVFutures = new ArrayList<Future<Boolean>>(); 
 	}
+	@Override
+	protected void initVarsPriv() {
+		viewZ = -1;		
+	}
+	
 
 	@Override
 	public void setSceneParams(double[] args){
@@ -1729,7 +1736,7 @@ class myFOVScene extends myScene {
 		pa.imageMode(PConstants.CORNER);
 		pa.image(rndrdImg,0,0);		
 	}
-	
+
 }//myFOVScene
 
 class myFishEyeScene extends myScene{
@@ -1739,19 +1746,17 @@ class myFishEyeScene extends myScene{
 	//public List<Future<Boolean>> callFishFutures;
 	//public List<myFishCall> callFishCalcs;
 	
-	public myFishEyeScene(DistRayTracer _p) {
-		super(_p);		
-		//callFishCalcs= new ArrayList<myFishCall>();
-		//callFishFutures = new ArrayList<Future<Boolean>>(); 
-
+	public myFishEyeScene(my_procApplet _p, String _sceneName, int _numCols, int _numRows) {
+		super(_p,_sceneName,_numCols,_numRows);	
 	}
 	
 	public myFishEyeScene(myScene _s){
 		super(_s);
-		//callFishCalcs= new ArrayList<myFishCall>();
-		//callFishFutures = new ArrayList<Future<Boolean>>(); 
 	}
-	
+
+	@Override
+	protected void initVarsPriv() {}
+
 	@Override
 	public void setSceneParams(double[] args) {
 		fishEye = args[0];
@@ -1841,7 +1846,6 @@ class myFishEyeScene extends myScene{
 		pa.imageMode(PConstants.CORNER);
 		pa.image(rndrdImg,0,0);			
 	}//draw
-
 }//myFishEyeScene
 
 class myOrthoScene extends myScene{
@@ -1851,37 +1855,31 @@ class myOrthoScene extends myScene{
 	//public List<Future<Boolean>> callOrthoFutures;
 	//public List<myOrthoCall> callOrthoCalcs;
 
-	public myOrthoScene(DistRayTracer _p) {
-		super(_p);
-		orthoWidth = pa.sceneCols;
-		orthoHeight = pa.sceneRows;
-		double div = Math.min(pa.sceneCols, pa.sceneRows);
-		orthPerRow = orthoHeight/div;
-		orthPerCol = orthoWidth/div;
-		//callOrthoCalcs= new ArrayList<myOrthoCall>();
-		//callOrthoFutures = new ArrayList<Future<Boolean>>(); 
-		
-		
+	public myOrthoScene(my_procApplet _p, String _sceneName,int _numCols, int _numRows) {
+		super(_p,_sceneName,_numCols,_numRows);
 	}
-	public myOrthoScene(myScene _s){
+	public myOrthoScene(myScene _s, int _numCols, int _numRows){
 		super(_s);
-		orthoWidth = pa.sceneCols;
-		orthoHeight = pa.sceneRows;
-		double div = Math.min(pa.sceneCols, pa.sceneRows);
-		orthPerRow = orthoHeight/div;
-		orthPerCol = orthoWidth/div;		
-		//callOrthoCalcs= new ArrayList<myOrthoCall>();
-		//callOrthoFutures = new ArrayList<Future<Boolean>>(); 
 	}
+	@Override
+	protected void initVarsPriv() {
+		orthoWidth = sceneCols;
+		orthoHeight = sceneRows;
+		setOrthoPerRow();
+	}//initVarsPriv()	
 
 	@Override
 	public void setSceneParams(double[] args) {
 		orthoWidth = args[0];
 		orthoHeight = args[1];	
-		double div = Math.min(pa.sceneCols, pa.sceneRows);
-		orthPerRow = orthoHeight/div;
-		orthPerCol = orthoWidth/div;
+		setOrthoPerRow();
 	}//setSceneParams
+	
+	private void setOrthoPerRow() {
+		double div = Math.min(orthoWidth, orthoHeight);
+		orthPerRow = orthoHeight/div;
+		orthPerCol = orthoWidth/div;		
+	}
 	
 	@Override
 	public myColor shootMultiRays(double xBseVal, double yBseVal) {

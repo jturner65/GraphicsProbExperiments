@@ -8,74 +8,50 @@ import processing.core.*;
 import java.awt.event.KeyEvent;
 import java.util.*;
 
+import base_UI_Objects.my_procApplet;
 
-public class DistRayTracer extends PApplet {
 
-	public final int sceneCols = 300;
-	public final int sceneRows = 300;
-	
-	
-//	public final int hashPrime1 = 1572869;
-//	public final int hashPrime2 = 6291469;
+public class DistRayTracer extends my_procApplet {
+
+	private final int sceneCols = 300;
+	private final int sceneRows = 300;
 	
 	//map holding all loaded scene descriptions - scene should describe all scene and rendering-specific variables and quantities
 	public TreeMap<String, myScene> loadedScenes;
 
-	
-//	public final float sqrt3 = PApplet.sqrt(3.0f),
-//			sqrt66 = PApplet.sqrt(6.0f)/6.0f, 
-//			sqrt612 = .5f*sqrt66;
 
 	//name to save the file with, folder to put picture file in, a global variable for holding current active file name.
 	public String gCurrentFile;
-	public String currentDir;	//current directory to search for cli file
+	private String currentDir;	//current directory to search for cli file
 	//file reader/interpreter
-	public myRTFileReader rdr; 	
-	
-	public boolean[] flags;
-	//interface flags	
-	public final int altKeyPressed  	= 0;			//alt pressed
-	public final int cntlKeyPressed  	= 1;			//cntrl pressed
-	public final int numFlags = 2;
-//	
-//	public final double epsVal = .0000001;
+	private myRTFileReader rdr; 	
 		
-	
 	public static void main(String[] passedArgs) {		
 		String[] appletArgs = new String[] { "base_RayTracer.DistRayTracer" };
-		    if (passedArgs != null) {
-		    	PApplet.main(PApplet.concat(appletArgs, passedArgs));
-		    } else {
-		    	PApplet.main(appletArgs);
-		    }
+		    if (passedArgs != null) {	    	PApplet.main(PApplet.concat(appletArgs, passedArgs));	    } 
+		    else {		    					PApplet.main(appletArgs);    }
 	}//main
 
 	public void settings(){	size(sceneCols,sceneRows, P3D);	}	
-	public void setup() {
+	public void setup_indiv() {
 		colorMode(RGB, 1.0f);
 		background(0, 0, 0);
-		initProg();
 		//initialize_table();
 		gCurrentFile = "";
 		currentDir = "";		//TODO set different directories
 	}
-	
-	public void initProg(){	rdr = new myRTFileReader(this);	loadedScenes = new TreeMap<String, myScene>();	initBoolFlags();}//initProg method
+	@Override
+	protected void setBkgrnd() {background(0, 0, 0);}
 	public void draw() {if(!gCurrentFile.equals("")){loadedScenes.get(gCurrentFile).draw();}}
-	public void initBoolFlags(){
-		flags = new boolean[numFlags];
-		for (int i = 0; i < numFlags; ++i) { flags[i] = false;}	
-	}		
-	
-	//print out info at the end of rendering
-	public void DispEnd(){
-		System.out.println("");
-		System.out.println("Image rendered : " +gCurrentFile + " Current directory for cli's : " + getDirName());
-		System.out.println("");
-	}
-	
+
 	//key press IO -ugh.  change to UI
 	public void keyPressed() {
+		if(key==CODED) {
+			if(!shiftIsPressed()){setShiftPressed(keyCode  == 16);} //16 == KeyEvent.VK_SHIFT
+			if(!cntlIsPressed()){setCntlPressed(keyCode  == 17);}//17 == KeyEvent.VK_CONTROL			
+			if(!altIsPressed()){setAltPressed(keyCode  == 18);}//18 == KeyEvent.VK_ALT
+		} else {	
+		
 		switch(key) {
 			case '`' : {if(!gCurrentFile.equals("")){ loadedScenes.get(gCurrentFile).flipNormal();}   break;}//flip poly norms
 			case '1':  {gCurrentFile = currentDir + "t01.cli"; break;}		//photon map cli's
@@ -176,29 +152,14 @@ public class DistRayTracer extends PApplet {
 		    case '.':  {gCurrentFile = currentDir + "old_t06a.cli"; break;}
 		    case '/':  {gCurrentFile = currentDir + "old_t07a.cli"; break;}			
 			default : {return;}
-		}//switch
-		if(!gCurrentFile.equals("")){
-			rdr.readRTFile(gCurrentFile, null);//pass null as scene so that we don't add to an existing scene
+		}//switch		
+			if(!gCurrentFile.equals("")){
+				myScene tmp = rdr.readRTFile(loadedScenes, gCurrentFile, null, sceneCols, sceneRows);//pass null as scene so that we don't add to an existing scene
+				if(null==tmp) {gCurrentFile = "";}
+			}
 		}
-		if((!flags[altKeyPressed])&&(key==CODED)){setFlags(altKeyPressed,(keyCode  == KeyEvent.VK_ALT));}
-		if((!flags[cntlKeyPressed])&&(key==CODED)){setFlags(cntlKeyPressed,(keyCode  == KeyEvent.VK_CONTROL));}
 	}	
 	
-	public void keyReleased(){
-		if((flags[altKeyPressed])&&(key==CODED)){ if(keyCode == KeyEvent.VK_ALT){endAltKey();}}
-		if((flags[cntlKeyPressed])&&(key==CODED)){ if(keyCode == KeyEvent.VK_CONTROL){endCntlKey();}}
-	}		
-	public void endAltKey(){clearFlags(new int []{altKeyPressed});	}
-	public void endCntlKey(){clearFlags(new int []{cntlKeyPressed});}
-	
-	public void setFlags(int idx, boolean val ){
-		flags[idx] = val;
-		switch (idx){
-			case altKeyPressed 		: { break;}//anything special for altKeyPressed 	
-			case cntlKeyPressed 		: { break;}//anything special for altKeyPressed 	
-		}
-	}
-	public void clearFlags(int[] idxs){		for(int idx : idxs){flags[idx]=false;}	}			
 	
 	public String getDirName(){	if(currentDir.equals("")){	return "data/";}	return "data/"+currentDir;}
 	public void setCurDir(int input){
@@ -215,4 +176,33 @@ public class DistRayTracer extends PApplet {
 		default :{currentDir = "";break;}
 		}
 	}//setCurDir
+
+	@Override
+	protected void initVisOnce_Priv() {}
+	@Override
+	protected void initOnce_Priv() {}
+	@Override
+	protected void initVisProg_Indiv() {}
+	@Override
+	protected void initProgram_Indiv() {
+		rdr = new myRTFileReader(this,"txtrs");	loadedScenes = new TreeMap<String, myScene>();	
+	}
+
+	@Override
+	public void initVisFlags() {}
+	@Override
+	public void setVisFlag(int idx, boolean val) {}
+	@Override
+	public void forceVisFlag(int idx, boolean val) {}
+	@Override
+	public boolean getVisFlag(int idx) {return false;}
+	@Override
+	public double clickValModMult() {return 0;}
+	@Override
+	public boolean isClickModUIVal() {return false;}
+	@Override
+	public float[] getUIRectVals(int idx) {return null;}
+	@Override
+	public void handleShowWin(int btn, int val, boolean callFlags) {}
+
 }//DistRayTracer class

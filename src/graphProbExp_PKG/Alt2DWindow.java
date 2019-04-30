@@ -1,5 +1,6 @@
 package graphProbExp_PKG;
 
+import java.io.File;
 import java.util.*;
 import base_UI_Objects.*;
 import base_Utils_Objects.*;
@@ -330,13 +331,13 @@ public class Alt2DWindow extends myDispWindow {
 	protected void stopMe() {pa.outStr2Scr("Stop");}	
 	
 	@Override
-	public void hndlFileLoad(String[] vals, int[] stIdx) {
+	public void hndlFileLoad(File file, String[] vals, int[] stIdx) {
 		//if wanting to load/save UI values, uncomment this call and similar in hndlFileSave 
 		//hndlFileLoad_GUI(vals, stIdx);
 		
 	}
 	@Override
-	public ArrayList<String> hndlFileSave() {
+	public ArrayList<String> hndlFileSave(File file) {
 		ArrayList<String> res = new ArrayList<String>();
 		//if wanting to load/save UI values, uncomment this call and similar in hndlFileLoad 
 		//res = hndlFileSave_GUI();

@@ -1,5 +1,6 @@
 package base_UI_Objects;
 
+import java.io.File;
 import java.util.ArrayList;
 
 import base_Utils_Objects.*;
@@ -341,12 +342,12 @@ public abstract class BaseBarMenu extends myDispWindow{
 	@Override
 	protected void setCameraIndiv(float[] camVals){}
 	@Override
-	public void hndlFileLoad(String[] vals, int[] stIdx) {
+	public void hndlFileLoad(File file, String[] vals, int[] stIdx) {
 		hndlFileLoad_GUI(vals, stIdx);
 		
 	}
 	@Override
-	public ArrayList<String> hndlFileSave() {
+	public ArrayList<String> hndlFileSave(File file) {
 		ArrayList<String> res = hndlFileSave_GUI();
 
 		return res;

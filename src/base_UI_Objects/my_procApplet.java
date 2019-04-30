@@ -75,8 +75,7 @@ public abstract class my_procApplet extends PApplet {
 	public static final int txtSz = 11;
 	//mouse wheel sensitivity
 	public static final float mouseWhlSens = 1.0f;
-	//constant path strings for different file types
-	public static final String fileDelim = "\\";	
+
 	//display-related size variables
 	public final int grid2D_X=800, grid2D_Y=800;	
 	public final int gridDimX = 800, gridDimY = 800, gridDimZ = 800;				//dimensions of 3d region
@@ -188,14 +187,27 @@ public abstract class my_procApplet extends PApplet {
 	//whether or not to show start up instructions for code		
 	public boolean showInfo=false;			
 	
-	protected String exeDir = Paths.get("").toAbsolutePath().toString();
+	protected String exeDir = Paths.get(".").toAbsolutePath().toString();
+	//file location of current executable
+	protected File currFileIOLoc = Paths.get(".").toAbsolutePath().toFile();
 	
 	////////////////////////
 	// code
 	
 	///////////////////////////////////
-	/// generic graphics functions and classes
+	/// inits
 	///////////////////////////////////
+	
+	public final void setup() {
+		colorMode(RGB, 255, 255, 255, 255);
+		frameRate(frate);
+		setup_indiv();
+		initVisOnce();
+		//call this in first draw loop?
+		initOnce();		
+	}//setup()
+	
+	protected abstract void setup_indiv();
 		//1 time initialization of visualization things that won't change
 	public final void initVisOnce(){	
 		int numThreadsAvail = Runtime.getRuntime().availableProcessors();
@@ -216,6 +228,10 @@ public abstract class my_procApplet extends PApplet {
 		strokeCap(SQUARE);//makes the ends of stroke lines squared off		
 		//instancing class version
 		initVisOnce_Priv();
+		
+		//after all display windows are drawn
+		finalDispWinInit();
+		initVisFlags();
 		
 		//init initernal state flags structure
 		initBaseFlags();			
@@ -242,6 +258,9 @@ public abstract class my_procApplet extends PApplet {
 		//th_exec = Executors.newCachedThreadPool();
 		//1-time init for program and windows
 		initOnce_Priv();
+		//initProgram is called every time reinitialization is desired
+		initProgram();		
+
 		//after all init is done
 		setFinalInitDone(true);
 	}//initOnce	
@@ -258,8 +277,10 @@ public abstract class my_procApplet extends PApplet {
 	protected abstract void initVisProg_Indiv();
 		//called every time re-initialized
 	public final void initProgram() {
+		initVisProg();				//always first
 		
 		initProgram_Indiv();
+
 	}//initProgram	
 	protected abstract void initProgram_Indiv();
 	
@@ -339,6 +360,155 @@ public abstract class my_procApplet extends PApplet {
 	}//finalDispWinInit
 	
 	
+	///////////////////////////////////////////
+	// draw routines
+	
+	protected abstract void setBkgrnd();
+	
+	protected boolean isShowingWindow(int i){return getVisFlag(i);}//showUIMenu is first flag of window showing flags, visFlags are defined in instancing class
+	
+	//get difference between frames and set both glbl times
+	protected final float getModAmtMillis() {
+		glblStartSimFrameTime = millis();
+		float modAmtMillis = (glblStartSimFrameTime - glblLastSimFrameTime);
+		glblLastSimFrameTime = millis();
+		return modAmtMillis;
+	}
+	
+	//main draw loop
+	protected void _drawPriv(){	
+		if(!isFinalInitDone()) {initOnce(); return;}	
+		float modAmtMillis = getModAmtMillis();
+		//simulation section
+		if(isRunSim() ){
+			//run simulation
+			drawCount++;									//needed here to stop draw update so that pausing sim retains animation positions	
+			for(int i =1; i<numDispWins; ++i){if((isShowingWindow(i)) && (dispWinFrames[i].getFlags(myDispWindow.isRunnable))){dispWinFrames[i].simulate(modAmtMillis);}}
+			if(isSingleStep()){setSimIsRunning(false);}
+			simCycles++;
+		}		//play in current window
+
+		//drawing section
+		pushMatrix();pushStyle();
+		drawSetup();																//initialize camera, lights and scene orientation and set up eye movement		
+		if((curFocusWin == -1) || (curDispWinIs3D())){	//allow for single window to have focus, but display multiple windows	
+			//if refreshing screen, this clears screen, sets background
+			setBkgrnd();				
+			draw3D_solve3D(modAmtMillis);
+			c.buildCanvas();			
+			if(curDispWinCanShow3dbox()){drawBoxBnds();}
+			if(dispWinFrames[curFocusWin].chkDrawMseRet()){			c.drawMseEdge();	}			
+			popStyle();popMatrix(); 
+		} else {	//either/or 2d window
+			//2d windows paint window box so background is always cleared
+			c.buildCanvas();
+			c.drawMseEdge();
+			popStyle();popMatrix(); 
+			for(int i =1; i<numDispWins; ++i){if (isShowingWindow(i) && !(dispWinFrames[i].getFlags(myDispWindow.is3DWin))){dispWinFrames[i].draw2D(modAmtMillis);}}
+		}
+		drawUI(modAmtMillis);																	//draw UI overlay on top of rendered results			
+		if (doSaveAnim()) {	savePic();}
+		updateConsoleStrs();
+	}//draw	
+	
+	protected void draw3D_solve3D(float modAmtMillis){
+		//System.out.println("drawSolve");
+		pushMatrix();pushStyle();
+		for(int i =1; i<numDispWins; ++i){
+			if((isShowingWindow(i)) && (dispWinFrames[i].getFlags(myDispWindow.is3DWin))){	dispWinFrames[i].draw3D(modAmtMillis);}
+		}
+		popStyle();popMatrix();
+		//fixed xyz rgb axes for visualisation purposes and to show movement and location in otherwise empty scene
+		drawAxes(100,3, new myPoint(-c.getViewDimW()/2.0f+40,0.0f,0.0f), 200, false); 		
+	}//draw3D_solve3D
+	
+	public final void drawUI(float modAmtMillis){					
+		//for(int i =1; i<numDispWins; ++i){if ( !(dispWinFrames[i].dispFlags[myDispWindow.is3DWin])){dispWinFrames[i].draw(sceneCtrVals[sceneIDX]);}}
+		//dispWinFrames[0].draw(sceneCtrVals[sceneIDX]);
+		for(int i =1; i<numDispWins; ++i){dispWinFrames[i].drawHeader(modAmtMillis);}
+		//menu always idx 0
+		dispWinFrames[0].draw2D(modAmtMillis);
+		dispWinFrames[0].drawHeader(modAmtMillis);
+		drawOnScreenData();				//debug and on-screen data
+	}//drawUI	
+	
+	public final void drawAxes(double len, float stW, myPoint ctr, int alpha, boolean centered){//axes using current global orientation
+		pushMatrix();pushStyle();
+			strokeWeight(stW);
+			stroke(255,0,0,alpha);
+			if(centered){
+				double off = len*.5f;
+				line(ctr.x-off,ctr.y,ctr.z,ctr.x+off,ctr.y,ctr.z);stroke(0,255,0,alpha);line(ctr.x,ctr.y-off,ctr.z,ctr.x,ctr.y+off,ctr.z);stroke(0,0,255,alpha);line(ctr.x,ctr.y,ctr.z-off,ctr.x,ctr.y,ctr.z+off);} 
+			else {		line(ctr.x,ctr.y,ctr.z,ctr.x+len,ctr.y,ctr.z);stroke(0,255,0,alpha);line(ctr.x,ctr.y,ctr.z,ctr.x,ctr.y+len,ctr.z);stroke(0,0,255,alpha);line(ctr.x,ctr.y,ctr.z,ctr.x,ctr.y,ctr.z+len);}
+		popStyle();	popMatrix();	
+	}//	drawAxes
+	public final void drawAxes(double len, float stW, myPoint ctr, myVector[] _axis, int alpha, boolean drawVerts){//RGB -> XYZ axes
+		pushMatrix();pushStyle();
+		if(drawVerts){
+			show(ctr,3,gui_Black,gui_Black, false);
+			for(int i=0;i<_axis.length;++i){show(myPoint._add(ctr, myVector._mult(_axis[i],len)),3,rgbClrs[i],rgbClrs[i], false);}
+		}
+		strokeWeight(stW);
+		for(int i =0; i<3;++i){	setColorValStroke(rgbClrs[i]);	showVec(ctr,len, _axis[i]);	}
+		popStyle();	popMatrix();	
+	}//	drawAxes
+	public final void drawAxes(double len, float stW, myPoint ctr, myVector[] _axis, int[] clr, boolean drawVerts){//all axes same color
+		pushMatrix();pushStyle();
+			if(drawVerts){
+				show(ctr,2,gui_Black,gui_Black, false);
+				for(int i=0;i<_axis.length;++i){show(myPoint._add(ctr, myVector._mult(_axis[i],len)),2,rgbClrs[i],rgbClrs[i], false);}
+			}
+			strokeWeight(stW);stroke(clr[0],clr[1],clr[2],clr[3]);
+			for(int i =0; i<3;++i){	showVec(ctr,len, _axis[i]);	}
+		popStyle();	popMatrix();	
+	}//	drawAxes
+	
+	public final void drawText(String str, double x, double y, double z, int clr){
+		int[] c = getClr(clr);
+		pushMatrix();	pushStyle();
+			fill(c[0],c[1],c[2],c[3]);
+			unSetCamOrient();
+			translate((float)x,(float)y,(float)z);
+			text(str,0,0,0);		
+		popStyle();	popMatrix();	
+	}//drawText	
+	
+	public final int addInfoStr(String str){return addInfoStr(DebugInfoAra.size(), str);}
+	public final int addInfoStr(int idx, String str){	
+		int lstIdx = DebugInfoAra.size();
+		if(idx >= lstIdx){		for(int i = lstIdx; i <= idx; ++i){	DebugInfoAra.add(i,"");	}}
+		setInfoStr(idx,str);	return idx;
+	}
+	public final void setInfoStr(int idx, String str){DebugInfoAra.set(idx,str);	}
+	public final void drawInfoStr(float sc, int clr){drawInfoStr(sc, getClr(clr,255));}
+	public final void drawInfoStr(float sc, int[] fillClr){//draw text on main part of screen
+		pushMatrix();		pushStyle();
+			fill(fillClr[0],fillClr[1],fillClr[2],fillClr[3]);
+			translate((menuWidth),0);
+			scale(sc,sc);
+			for(int i = 0; i < DebugInfoAra.size(); ++i){		text((getBaseFlag(debugMode)?(i<10?"0":"")+i+":     " : "") +"     "+DebugInfoAra.get(i)+"\n\n",0,(10+(12*i)));	}
+		popStyle();	popMatrix();
+	}		
+	
+	
+	//vector and point functions to be compatible with earlier code from jarek's class or previous projects	
+	//draw bounding box for 3d
+	public final void drawBoxBnds(){
+		pushMatrix();	pushStyle();
+		strokeWeight(3f);
+		noFill();
+		setColorValStroke(gui_TransGray);		
+		box(gridDimX,gridDimY,gridDimZ);
+		popStyle();	popMatrix();
+	}		
+	//drawsInitial setup for each draw
+	public final void drawSetup(){
+		perspective(PI/3.0f, (1.0f*width)/(1.0f*height), .5f, camVals[2]*100.0f);
+		lights(); 	
+	    dispWinFrames[curFocusWin].drawSetupWin(camVals);
+	}//drawSetup		
+	
+
 	//called by sidebar menu to display current window's UI components
 	public final void drawWindowGuiObjs(){
 		if(curFocusWin != -1){
@@ -380,16 +550,8 @@ public abstract class my_procApplet extends PApplet {
 		if(drawCount % cnslStrDecay == 0){drawCount = 0;	consoleStrings.poll();}			
 	}//updateConsoleStrs
 	
-	
-	public final void drawUI(float modAmtMillis){					
-		//for(int i =1; i<numDispWins; ++i){if ( !(dispWinFrames[i].dispFlags[myDispWindow.is3DWin])){dispWinFrames[i].draw(sceneCtrVals[sceneIDX]);}}
-		//dispWinFrames[0].draw(sceneCtrVals[sceneIDX]);
-		for(int i =1; i<numDispWins; ++i){dispWinFrames[i].drawHeader(modAmtMillis);}
-		//menu always idx 0
-		dispWinFrames[0].draw2D(modAmtMillis);
-		dispWinFrames[0].drawHeader(modAmtMillis);
-		drawOnScreenData();				//debug and on-screen data
-	}//drawUI	
+	//////////////////////////////////
+	// end draw routines
 
 		
 	public abstract void initVisFlags();
@@ -456,9 +618,6 @@ public abstract class my_procApplet extends PApplet {
 	public final boolean curDispWinCanMoveView() {return dispWinFlags[curFocusWin][dispCanMoveViewIDX];}
 	public final boolean curDispWinIs3D() {return dispWinFlags[curFocusWin][dispWinIs3dIDX];}
 	
-	
-	
-	
 	public final void setSimIsRunning(boolean val) {setBaseFlag(runSim,val);}
 	public final void toggleSimIsRunning() {setBaseFlag(runSim, !getBaseFlag(runSim));}
 	public final void setSimIsSingleStep(boolean val) {setBaseFlag(singleStep,val);}
@@ -511,15 +670,7 @@ public abstract class my_procApplet extends PApplet {
 			dispWinFrames[curFocusWin].handleViewChange(true,(mult * event.getCount()),0);
 		}
 	}
-	
-	//get difference between frames and set both glbl times
-	protected final float getModAmtMillis() {
-		glblStartSimFrameTime = millis();
-		float modAmtMillis = (glblStartSimFrameTime - glblLastSimFrameTime);
-		glblLastSimFrameTime = millis();
-		return modAmtMillis;
-	}
-	
+
 	public final void mouseReleased(){
 		clearBaseFlags(new int[]{mouseClicked, modView});
 		for(int i =0; i<numDispWins; ++i){dispWinFrames[i].handleMouseRelease();}
@@ -581,8 +732,8 @@ public abstract class my_procApplet extends PApplet {
 	public final void handleFileCmd(int _type, int btn, int val, boolean callFlags){//{"Load","Save"},							//load an existing score, save an existing score - momentary	
 		if(!callFlags){			setMenuBtnState(_type,btn, val);		}  else {
 			switch(btn){
-				case 0 : {selectInput("Select a txt file to load parameters from : ", "loadFromFile");break;}
-				case 1 : {selectOutput("Select a txt file to save parameters to : ", "saveToFile");break;}
+				case 0 : {selectInput("Select a file to load from : ", "loadFromFile", currFileIOLoc);break;}
+				case 1 : {selectOutput("Select a file to save to : ", "saveToFile", currFileIOLoc);break;}
 			}
 			((BaseBarMenu)dispWinFrames[dispMenuIDX]).hndlMouseRelIndiv();
 		}
@@ -609,8 +760,9 @@ public abstract class my_procApplet extends PApplet {
 		if (file == null) {
 		    outStr2Scr("Load was cancelled.");
 		    return;
-		} 
-		
+		} 		
+		//reset to match navigation in file IO window
+		currFileIOLoc = file;
 		dispWinFrames[curFocusWin].loadFromFile(file);
 	
 	}//loadFromFile
@@ -620,6 +772,8 @@ public abstract class my_procApplet extends PApplet {
 		    outStr2Scr("Save was cancelled.");
 		    return;
 		} 
+		//reset to match navigation in file IO window
+		currFileIOLoc = file;
 		dispWinFrames[curFocusWin].saveToFile(file);
 	}//saveToFile	
 	
@@ -627,81 +781,9 @@ public abstract class my_procApplet extends PApplet {
 	//2d range checking of point
 	public final boolean ptInRange(double x, double y, double minX, double minY, double maxX, double maxY){return ((x > minX)&&(x <= maxX)&&(y > minY)&&(y <= maxY));}	
 
-	public final int addInfoStr(String str){return addInfoStr(DebugInfoAra.size(), str);}
-	public final int addInfoStr(int idx, String str){	
-		int lstIdx = DebugInfoAra.size();
-		if(idx >= lstIdx){		for(int i = lstIdx; i <= idx; ++i){	DebugInfoAra.add(i,"");	}}
-		setInfoStr(idx,str);	return idx;
-	}
-	public final void setInfoStr(int idx, String str){DebugInfoAra.set(idx,str);	}
-	public final void drawInfoStr(float sc, int clr){drawInfoStr(sc, getClr(clr,255));}
-	public final void drawInfoStr(float sc, int[] fillClr){//draw text on main part of screen
-		pushMatrix();		pushStyle();
-			fill(fillClr[0],fillClr[1],fillClr[2],fillClr[3]);
-			translate((menuWidth),0);
-			scale(sc,sc);
-			for(int i = 0; i < DebugInfoAra.size(); ++i){		text((getBaseFlag(debugMode)?(i<10?"0":"")+i+":     " : "") +"     "+DebugInfoAra.get(i)+"\n\n",0,(10+(12*i)));	}
-		popStyle();	popMatrix();
-	}		
-	//vector and point functions to be compatible with earlier code from jarek's class or previous projects	
-	//draw bounding box for 3d
-	public final void drawBoxBnds(){
-		pushMatrix();	pushStyle();
-		strokeWeight(3f);
-		noFill();
-		setColorValStroke(gui_TransGray);		
-		box(gridDimX,gridDimY,gridDimZ);
-		popStyle();	popMatrix();
-	}		
-	//drawsInitial setup for each draw
-	public final void drawSetup(){
-		perspective(PI/3.0f, (1.0f*width)/(1.0f*height), .5f, camVals[2]*100.0f);
-		lights(); 	
-	    dispWinFrames[curFocusWin].drawSetupWin(camVals);
-	}//drawSetup		
-	
 	public final void setCamOrient(){rotateX(rx);rotateY(ry); rotateX(PI/(2.0f));		}//sets the rx, ry, pi/2 orientation of the camera eye	
 	public final void unSetCamOrient(){rotateX(-PI/(2.0f)); rotateY(-ry);   rotateX(-rx); }//reverses the rx,ry,pi/2 orientation of the camera eye - paints on screen and is unaffected by camera movement
-	public final void drawAxes(double len, float stW, myPoint ctr, int alpha, boolean centered){//axes using current global orientation
-		pushMatrix();pushStyle();
-			strokeWeight(stW);
-			stroke(255,0,0,alpha);
-			if(centered){
-				double off = len*.5f;
-				line(ctr.x-off,ctr.y,ctr.z,ctr.x+off,ctr.y,ctr.z);stroke(0,255,0,alpha);line(ctr.x,ctr.y-off,ctr.z,ctr.x,ctr.y+off,ctr.z);stroke(0,0,255,alpha);line(ctr.x,ctr.y,ctr.z-off,ctr.x,ctr.y,ctr.z+off);} 
-			else {		line(ctr.x,ctr.y,ctr.z,ctr.x+len,ctr.y,ctr.z);stroke(0,255,0,alpha);line(ctr.x,ctr.y,ctr.z,ctr.x,ctr.y+len,ctr.z);stroke(0,0,255,alpha);line(ctr.x,ctr.y,ctr.z,ctr.x,ctr.y,ctr.z+len);}
-		popStyle();	popMatrix();	
-	}//	drawAxes
-	public final void drawAxes(double len, float stW, myPoint ctr, myVector[] _axis, int alpha, boolean drawVerts){//RGB -> XYZ axes
-		pushMatrix();pushStyle();
-		if(drawVerts){
-			show(ctr,3,gui_Black,gui_Black, false);
-			for(int i=0;i<_axis.length;++i){show(myPoint._add(ctr, myVector._mult(_axis[i],len)),3,rgbClrs[i],rgbClrs[i], false);}
-		}
-		strokeWeight(stW);
-		for(int i =0; i<3;++i){	setColorValStroke(rgbClrs[i]);	showVec(ctr,len, _axis[i]);	}
-		popStyle();	popMatrix();	
-	}//	drawAxes
-	public final void drawAxes(double len, float stW, myPoint ctr, myVector[] _axis, int[] clr, boolean drawVerts){//all axes same color
-		pushMatrix();pushStyle();
-			if(drawVerts){
-				show(ctr,2,gui_Black,gui_Black, false);
-				for(int i=0;i<_axis.length;++i){show(myPoint._add(ctr, myVector._mult(_axis[i],len)),2,rgbClrs[i],rgbClrs[i], false);}
-			}
-			strokeWeight(stW);stroke(clr[0],clr[1],clr[2],clr[3]);
-			for(int i =0; i<3;++i){	showVec(ctr,len, _axis[i]);	}
-		popStyle();	popMatrix();	
-	}//	drawAxes
-	
-	public final void drawText(String str, double x, double y, double z, int clr){
-		int[] c = getClr(clr);
-		pushMatrix();	pushStyle();
-			fill(c[0],c[1],c[2],c[3]);
-			unSetCamOrient();
-			translate((float)x,(float)y,(float)z);
-			text(str,0,0,0);		
-		popStyle();	popMatrix();	
-	}//drawText	
+
 	//save screenshot
 	public final void savePic(){	
 		//if(!flags[this.runSim]) {return;}//don't save until actually running simulation

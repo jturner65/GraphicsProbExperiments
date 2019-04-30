@@ -1,9 +1,6 @@
 package base_RayTracer;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.PriorityQueue;
+import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 
 import processing.core.PConstants;

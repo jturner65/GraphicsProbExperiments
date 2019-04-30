@@ -3,9 +3,7 @@ package base_UI_Objects;
 import java.io.File;
 import java.util.*;
 
-import base_Utils_Objects.myPoint;
-import base_Utils_Objects.myVector;
-import base_Utils_Objects.myVectorf;
+import base_Utils_Objects.*;
 import processing.core.*;
 
 //abstract class to hold base code for a menu/display window (2D for gui, etc), to handle displaying and controlling the window, and calling the implementing class for the specifics
@@ -533,7 +531,7 @@ public abstract class myDispWindow {
 		} 
 		String[] res = pa.loadStrings(file.getAbsolutePath());
 		int[] stIdx = {0};//start index for a particular window - make an array so it can be passed by ref and changed by windows
-		hndlFileLoad(res,stIdx);
+		hndlFileLoad(file, res,stIdx);
 	}//loadFromFile
 	
 	public void saveToFile(File file){
@@ -543,7 +541,7 @@ public abstract class myDispWindow {
 		} 
 		ArrayList<String> res = new ArrayList<String>();
 
-		res.addAll(hndlFileSave());	
+		res.addAll(hndlFileSave(file));	
 
 		pa.saveStrings(file.getAbsolutePath(), res.toArray(new String[0]));  
 	}//saveToFile	
@@ -622,6 +620,7 @@ public abstract class myDispWindow {
 		//setupGUIObjsAras();					//rebuild UI object stuff
 		initDrwnTrajIndiv();				
 	}
+	
 	//displays point with a name
 	protected void showKeyPt(myPoint a, String s, float rad){	pa.show(a,rad, s, new myVector(10,-5,0), my_procApplet.gui_Cyan, getFlags(trajPointsAreFlat));	}	
 	//draw a series of strings in a column
@@ -795,7 +794,8 @@ public abstract class myDispWindow {
 		pa.popStyle();pa.popMatrix();	
 		//last thing per draw - clear btns that have been set to clear after 1 frame of display
 		if (getFlags(clearPrivBtns)) {clearAllPrivBtns();setFlags(clearPrivBtns,false);}
-		if (privBtnsToClear.size() > 0){setFlags(clearPrivBtns, true);	}		
+//		//if buttons have been set to clear, clear them next draw - put this in mouse release?
+//		if (privBtnsToClear.size() > 0){setFlags(clearPrivBtns, true);	}		
 	}//drawHeader
 	
 	//draw right side "menu" used to display simualtion/calculation variables and results
@@ -1134,7 +1134,10 @@ public abstract class myDispWindow {
 		if (getFlags(editingTraj)){    this.tmpDrawnTraj.endEditObj();}    //this process assigns tmpDrawnTraj to owning window's traj array
 		if (getFlags(drawingTraj)){	this.tmpDrawnTraj.endDrawObj(getMsePoint(pa.Mouse()));}	//drawing curve
 		msClkObj = -1;	
+		//if buttons have put in clear queue (set to clear), set flag to clear them next draw
+		if (privBtnsToClear.size() > 0){setFlags(clearPrivBtns, true);	}		
 		hndlMouseRelIndiv();//specific instancing window implementation stuff
+
 		this.tmpDrawnTraj = null;
 	}//handleMouseRelease	
 	
@@ -1320,9 +1323,9 @@ public abstract class myDispWindow {
 	
 	//file io used from selectOutput/selectInput - 
 	//take loaded params and process
-	public abstract void hndlFileLoad(String[] vals, int[] stIdx);
+	public abstract void hndlFileLoad(File file, String[] vals, int[] stIdx);
 	//accumulate array of params to save
-	public abstract ArrayList<String> hndlFileSave();	
+	public abstract ArrayList<String> hndlFileSave(File file);	
 	
 	protected abstract void initMe();
 	protected abstract void resizeMe(float scale);	

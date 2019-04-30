@@ -2,7 +2,7 @@ package graphProbExp_PKG;
 
 import base_UI_Objects.*;
 
-//instance of sidebar menu, holding descriptions of application-specifc buttons
+//instance of sidebar menu, holding descriptions of application-specifc sidebar buttons
 public class mySideBarMenu extends BaseBarMenu {
 	public static final int 
 		btnShowWinIdx = 0, 				//which window to show
