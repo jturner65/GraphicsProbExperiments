@@ -2,6 +2,9 @@ package graphProbExp_PKG;
 
 import java.util.concurrent.ThreadLocalRandom;
 
+import base_ProbTools.BaseProbExpMgr;
+import base_ProbTools.myProbSummary;
+import base_ProbTools.randGenFunc.gens.myRandGen;
 import base_UI_Objects.*;
 import base_Utils_Objects.*;
 /**
@@ -80,7 +83,7 @@ public class myProbExpMgr extends BaseProbExpMgr{
 		dispMessage("myProbExpMgr","testRandGen","Start test of ThreadLocalRandom random gaussian gen of " +numVals + " vals.",MsgCodes.info1,true);
 		double[] genVals = new double[numVals];
 		//now test standard distribution of same # of values
-		double mean = gaussGen.func.getMean(), std = gaussGen.func.getStd();
+		double mean = gaussGen.getMean(), std = gaussGen.getStd();
 		for(int i=0;i<genVals.length;++i) {	genVals[i] = mean + (std*ThreadLocalRandom.current().nextGaussian());		}
 		dispMessage("myProbExpMgr","testRandGen","Finished synthesizing " + numVals +" gaussian vals ~ N(" + mean + ","+std +") using ThreadLocalRandom random gaussian",MsgCodes.info1,true);
 		myProbSummary analysis = new myProbSummary(genVals);

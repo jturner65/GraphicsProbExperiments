@@ -18,10 +18,10 @@ public class RayTracer2DWin extends myDispWindow {
 	// ui objects 
 	////////////
 	//scene dimensions
-	private int sceneCols = 300;
-	private int sceneRows = 300;
+	private int sceneCols = RayTracerExperiment.sceneCols;
+	private int sceneRows = RayTracerExperiment.sceneRows;
 	//cli file describing current scene
-	private int curSceneCliFileIDX;
+	private int curSceneCliFileIDX = 0;
 
 	//idxs - need one per object
 	public final static int
@@ -37,7 +37,19 @@ public class RayTracer2DWin extends myDispWindow {
 	public final int numGUIObjs = uiVals.length;	
 	/////////
 	
-	public String[] gIDX_CurrSceneCLIList = new String[] {"Unknown"};
+	public String[] gIDX_CurrSceneCLIList = new String[] {
+			"trTrans.cli","t01.cli","t02.cli","t03.cli","t04.cli","t05.cli","t06.cli","t07.cli","t08.cli","t09.cli","t10.cli","t11.cli",
+			"p4_st01.cli","p4_st02.cli","p4_st03.cli","p4_st04.cli","p4_st05.cli","p4_st06.cli","p4_st07.cli","p4_st08.cli","p4_st09.cli",
+			"p4_t05.cli","p4_t06.cli","p4_t07.cli","p4_t08.cli","p4_t09.cli","plnts3ColsBunnies.cli","p3_t02_sierp.cli",
+			"p2_t01.cli", "p2_t02.cli", "p2_t03.cli", "p2_t04.cli", "p2_t05.cli","p2_t06.cli", "p2_t07.cli", "p2_t08.cli", "p2_t09.cli", 			
+			"old_t07c.cli","earthAA1.cli","earthAA2.cli","earthAA3.cli","c2clear.cli","c3shinyBall.cli","c4InSphere.cli","c6.cli", "c6Fish.cli","c2torus.cli",
+			"old_t02.cli","old_t03.cli","old_t04.cli","old_t05.cli","old_t06.cli","old_t07.cli","old_t08.cli","old_t09.cli","old_t10.cli",
+			"planets.cli","planets2.cli","planets3.cli","planets3columns.cli","planets3Ortho.cli",
+			"c0.cli", "c1.cli","c2.cli","c3.cli","c4.cli","c5.cli",
+			"p3_t01.cli","p3_t02.cli","p3_t03.cli","p3_t04.cli","p3_t05.cli","p3_t06.cli","p3_t07.cli","p3_t11_sierp.cli", 	
+			"p4_t06_2.cli", "p4_t09.cli","cylinder1.cli", "tr0.cli","c0Square.cli",  "c1octo.cli",  			
+			"old_t0rotate.cli","old_t03a.cli", "old_t04a.cli", "old_t05a.cli", "old_t06a.cli", 	"old_t07a.cli",		
+	};
 
 	//////////////
 	// local/ui interactable boolean buttons
@@ -47,8 +59,9 @@ public class RayTracer2DWin extends myDispWindow {
 	//use getPrivFlags(idx) and setPrivFlags(idx,val) to consume
 	//put idx-specific code in case statement in setPrivFlags
 	public static final int 
-			shootRays			 		= 0;					//shoot rays
-	public static final int numPrivFlags = 1;
+			shootRays			 		= 0,					//shoot rays
+			flipNorms					= 1;
+	public static final int numPrivFlags = 2;
 
 	private RayTracerExperiment RTExp;
 	
@@ -87,23 +100,25 @@ public class RayTracer2DWin extends myDispWindow {
 		setVisScreenDimsPriv();			
 		//set offset to use for custom menu objects
 		custMenuOffset = uiClkCoords[3];	
-			
+		//set initial values
+		RTExp.setRTSceneExpVals(sceneCols, sceneRows, gIDX_CurrSceneCLIList[curSceneCliFileIDX % gIDX_CurrSceneCLIList.length]);
+		RTExp.startRayTrace();
 		//moved from mapMgr ctor, to remove dependence on papplet in that object
-		pa.setAllMenuBtnNames(menuBtnNames);	
-	
+		pa.setAllMenuBtnNames(menuBtnNames);		
 	}//
+	
 	//initialize all UI buttons here
 	@Override
 	public void initAllPrivBtns() {
 		//give true labels, false labels and specify the indexes of the booleans that should be tied to UI buttons
 		truePrivFlagNames = new String[]{			//needs to be in order of privModFlgIdxs
-				"Shooting Rays",
+				"Shooting Rays","Norms are Flipped",
 		};
 		falsePrivFlagNames = new String[]{			//needs to be in order of flags
-				"Shoot Rays",
+				"Shoot Rays","Flip Normals",
 		};
 		privModFlgIdxs = new int[]{					//idxs of buttons that are able to be interacted with
-				shootRays,
+				shootRays,flipNorms,
 		};
 		numClickBools = privModFlgIdxs.length;	
 		initPrivBtnRects(0,numClickBools);
@@ -120,11 +135,12 @@ public class RayTracer2DWin extends myDispWindow {
 			case shootRays : {//build new grade distribution
 				if (val) {
 					RTExp.startRayTrace();
-					addPrivBtnToClear(shootRays);
+					addPrivBtnToClear(idx);
 				}
 				break;}
-
-			
+			case flipNorms : {
+				RTExp.setFlipNorms();
+				break;}
 		}
 	}//setPrivFlags
 	
@@ -133,9 +149,9 @@ public class RayTracer2DWin extends myDispWindow {
 	protected void setupGUIObjsAras(){	
 		//pa.outStr2Scr("setupGUIObjsAras start");
 		guiMinMaxModVals = new double [][]{
-			{200,rectDim[2],10},						//gIDX_SceneCols
-			{200,rectDim[3],10},						//gIDX_SceneRows
-			{0,1,1},								//gIDX_CurrSceneCLI
+			{200,(int)(rectDim[2]/2),10},						//gIDX_SceneCols
+			{200,(int)(rectDim[3]/2),10},						//gIDX_SceneRows
+			{0,gIDX_CurrSceneCLIList.length-1,1},									//gIDX_CurrSceneCLI
 			
 		};		//min max modify values for each modifiable UI comp	
 
@@ -178,18 +194,19 @@ public class RayTracer2DWin extends myDispWindow {
 				case gIDX_SceneCols		:{
 					if(ival != sceneCols){
 						sceneCols = ival;		
-						
+						RTExp.setRTSceneExpVals(sceneCols, sceneRows, gIDX_CurrSceneCLIList[curSceneCliFileIDX % gIDX_CurrSceneCLIList.length]);
 					}	
 					break;}			
 				case gIDX_SceneRows		:{
 					if(ival != sceneRows){
 						sceneRows = ival;
-						
+						RTExp.setRTSceneExpVals(sceneCols, sceneRows, gIDX_CurrSceneCLIList[curSceneCliFileIDX % gIDX_CurrSceneCLIList.length]);
 					}	
 					break;}	
 				case gIDX_CurrSceneCLI :{
 					if(ival != curSceneCliFileIDX) {
 						curSceneCliFileIDX = ival;
+						RTExp.setRTSceneExpVals(sceneCols, sceneRows, gIDX_CurrSceneCLIList[curSceneCliFileIDX % gIDX_CurrSceneCLIList.length]);
 					}
 					break;}
 			}//switch
@@ -391,6 +408,20 @@ public class RayTracer2DWin extends myDispWindow {
 		//hndlFileLoad_GUI(vals, stIdx);
 		//loading in grade data from grade file - vals holds array of strings, expected to be comma sep values, for a single class, with student names and grades
 		for(String s : vals) {			pa.outStr2Scr(s);}	
+		String fileName = file.getName();
+		TreeMap<String, String> tmpAra = new TreeMap<String, String>(), valsToIDX = new TreeMap<String, String>();
+		for(String s : gIDX_CurrSceneCLIList) {tmpAra.put(s, "");	}
+		tmpAra.put(fileName, "");
+		int idx = 0;
+		int fileIDX = 0;
+		for(String s : tmpAra.keySet()){
+			if (s.equals(fileName)) {fileIDX=idx; break;}
+			++idx;
+		}		
+		gIDX_CurrSceneCLIList = tmpAra.keySet().toArray(new String[0]);		
+		curSceneCliFileIDX = fileIDX;
+		this.guiObjs[gIDX_CurrSceneCLI].setNewMax(gIDX_CurrSceneCLIList.length-1);
+		RTExp.setRTSceneExpVals(sceneCols, sceneRows, gIDX_CurrSceneCLIList[curSceneCliFileIDX % gIDX_CurrSceneCLIList.length]);
 	}
 	@Override
 	public ArrayList<String> hndlFileSave(File file) {

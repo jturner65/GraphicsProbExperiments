@@ -11,6 +11,7 @@ import processing.opengl.*;
 
 import base_UI_Objects.*;
 import base_Utils_Objects.*;
+import classGradeExperimentsPKG.Grade2DWindow;
 
 /**
  * Testbed to experiment with synthesizing probablity distributions and displaying the results
@@ -51,19 +52,16 @@ public class GraphProbExpMain extends my_procApplet {
 //CODE STARTS
 ///////////////	
 	//////////////////////////////////////////////// code
+	
+	//do not modify this
 	public static void main(String[] passedArgs) {		
 		String[] appletArgs = new String[] { "graphProbExp_PKG.GraphProbExpMain" };
 		    if (passedArgs != null) {PApplet.main(PApplet.concat(appletArgs, passedArgs)); } else {PApplet.main(appletArgs);		    }
 	}//main
-	public void settings(){
-		size((int)(displayWidth*.95f), (int)(displayHeight*.92f),P3D);
-		noSmooth();
-	}		
+	public void settings(){	size((int)(displayWidth*.95f), (int)(displayHeight*.92f),P3D);	noSmooth();}		
 	
 	@Override
-	protected void setup_indiv() {
-		if(useSphereBKGnd) {			setBkgndSphere();	} else {		setBkgrnd();	}
-	}// setup
+	protected void setup_indiv() {	if(useSphereBKGnd) {			setBkgndSphere();	} else {		setBkgrnd();	}}// setup
 	
 	private void setBkgndSphere() {
 		sphereDetail(100);
@@ -82,6 +80,18 @@ public class GraphProbExpMain extends my_procApplet {
 		background(bground[0],bground[1],bground[2],bground[3]);		
 	}//setBkgrnd
 	
+	/**
+	 * determine which main flags to show at upper left of menu 
+	 */
+	@Override
+	protected void initMainFlags_Priv() {
+		setMainFlagToShow_debugMode(false);
+		setMainFlagToShow_saveAnim(true); 
+		setMainFlagToShow_runSim(false);
+		setMainFlagToShow_singleStep(false);
+		setMainFlagToShow_showRtSideMenu(true);
+	}
+
 	@Override
 	//build windows here
 	protected void initVisOnce_Priv() {
@@ -138,7 +148,8 @@ public class GraphProbExpMain extends my_procApplet {
 	//called from base class, once at start of program after vis init is called
 	protected void initOnce_Priv(){
 		setVisFlag(showUIMenu, true);					//show input UI menu	
-		setVisFlag(showGradeWinIDX, true);
+		//setVisFlag(showGradeWinIDX, true);
+		setVisFlag(show2DRayTracerIDX, true);
 	}//	initOnce
 	
 	@Override

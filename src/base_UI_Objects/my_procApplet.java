@@ -1,11 +1,9 @@
 package base_UI_Objects;
 
 import java.io.File;
-import java.nio.file.Paths;
+import java.nio.file.*;
 import java.util.*;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.*;
 
 import base_Utils_Objects.*;
 import processing.core.PApplet;
@@ -24,7 +22,7 @@ public abstract class my_procApplet extends PApplet {
 	public int drawnTrajEditWidth = 10; //TODO make ui component			//width in cntl points of the amount of the drawn trajectory deformed by dragging
 	
 	//individual display/HUD windows for gui/user interaction
-	protected myDispWindow[] dispWinFrames;
+	protected myDispWindow[] dispWinFrames = new myDispWindow[0] ;
 	//set in instancing class - must be > 1
 	protected int numDispWins;
 	//always idx 0 - first window is always menu
@@ -131,27 +129,28 @@ public abstract class my_procApplet extends PApplet {
 	// boolean flags used to control various elements of the program 
 	private int[] baseFlags;
 	//dev/debug flags
-	private final int debugMode 	= 0,			//whether we are in debug mode or not	
-			 finalInitDone		= 1,			//used only to call final init in first draw loop, to avoid stupid timeout error processing 3.x's setup introduced
-			 saveAnim 			= 2,			//whether we are saving or not
+	private final int 
+			debugMode 			= 0,			//whether we are in debug mode or not	
+			finalInitDone		= 1,			//used only to call final init in first draw loop, to avoid stupid timeout error processing 3.x's setup introduced
+			saveAnim 			= 2,			//whether we are saving or not
 	//interface flags	                   ,
-			 shiftKeyPressed 	= 3,			//shift pressed
-			 altKeyPressed  	= 4,			//alt pressed
-			 cntlKeyPressed  	= 5,			//cntrl pressed
-			 mouseClicked 		= 6,			//mouse left button is held down	
-			 drawing			= 7, 			//currently drawing  showSOMMapUI
-			 modView	 		= 8,			//shift+mouse click+mouse move being used to modify the view
+			shiftKeyPressed 	= 3,			//shift pressed
+			altKeyPressed  		= 4,			//alt pressed
+			cntlKeyPressed  	= 5,			//cntrl pressed
+			mouseClicked 		= 6,			//mouse left button is held down	
+			drawing				= 7, 			//currently drawing  showSOMMapUI
+			modView	 			= 8,			//shift+mouse click+mouse move being used to modify the view
 	//simulation
-			 runSim				= 9,			//run simulation
-			 singleStep			= 10,			//run single sim step
-			 showRtSideMenu		= 11,			//display the right side info menu for the current window, if it supports that display
-			 flipDrawnTraj  	= 12;			//whether or not to flip the direction of the drawn trajectory
+			runSim				= 9,			//run simulation
+			singleStep			= 10,			//run single sim step
+			showRtSideMenu		= 11,			//display the right side info menu for the current window, if it supports that display
+			flipDrawnTraj  		= 12;			//whether or not to flip the direction of the drawn trajectory
 			
 	public final int numBaseFlags = 13;
 	
 	public final int numDebugVisFlags = 6;
 	//flags to actually display in menu as clickable text labels - order does matter
-	public List<Integer> flagsToShow = Arrays.asList( 
+	private List<Integer> flagsToShow = Arrays.asList( 
 		debugMode, 			
 		saveAnim,
 		runSim,
@@ -159,9 +158,9 @@ public abstract class my_procApplet extends PApplet {
 		showRtSideMenu
 		);
 	
-	public final int numFlagsToShow = flagsToShow.size();
+	private int numFlagsToShow = flagsToShow.size();
 	
-	public List<Integer> stateFlagsToShow = Arrays.asList( 
+	public final List<Integer> stateFlagsToShow = Arrays.asList( 
 		shiftKeyPressed,			//shift pressed
 		altKeyPressed,				//alt pressed
 		cntlKeyPressed,				//cntrl pressed
@@ -226,6 +225,9 @@ public abstract class my_procApplet extends PApplet {
 		hidWinHeight = height * hideWinHeightMult;
 		c = new my3DCanvas(this);			
 		strokeCap(SQUARE);//makes the ends of stroke lines squared off		
+		//this is to determine which main flags to display on window
+		initMainFlags_Priv();
+		
 		//instancing class version
 		initVisOnce_Priv();
 		
@@ -250,8 +252,13 @@ public abstract class my_procApplet extends PApplet {
 
 		initCamView();
 		simCycles = 0;
-
 	}//	initVisOnce
+	/**
+	 * this is called to determine which main flags to display in the window
+	 */
+	protected abstract void initMainFlags_Priv();
+	
+	
 	protected abstract void initVisOnce_Priv();
 		//1 time initialization of programmatic things that won't change
 	public final void initOnce() {
@@ -265,8 +272,7 @@ public abstract class my_procApplet extends PApplet {
 		setFinalInitDone(true);
 	}//initOnce	
 //	protected abstract void initDispWins();
-	protected abstract void initOnce_Priv();
-	
+	protected abstract void initOnce_Priv();	
 	
 		//called every time re-initialized
 	public final void initVisProg(){	
@@ -280,10 +286,25 @@ public abstract class my_procApplet extends PApplet {
 		initVisProg();				//always first
 		
 		initProgram_Indiv();
-
 	}//initProgram	
 	protected abstract void initProgram_Indiv();
 	
+	private void _setMainFlagToShow(int idx, boolean val) {
+		TreeMap<Integer, Integer> tmpMapOfFlags = new TreeMap<Integer, Integer>();
+		for(Integer flag : flagsToShow) {			tmpMapOfFlags.put(flag, 0);		}
+		if(val) {tmpMapOfFlags.put(idx, 0);	} else {tmpMapOfFlags.remove(idx);}
+		flagsToShow = new ArrayList<Integer>(tmpMapOfFlags.keySet());
+		numFlagsToShow = flagsToShow.size();
+	}
+	
+	protected void setMainFlagToShow_debugMode(boolean val) {_setMainFlagToShow(debugMode, val);}
+	protected void setMainFlagToShow_saveAnim(boolean val) {_setMainFlagToShow(saveAnim, val);}
+	protected void setMainFlagToShow_runSim(boolean val) {_setMainFlagToShow(runSim, val);}
+	protected void setMainFlagToShow_singleStep(boolean val) {_setMainFlagToShow(singleStep, val);}
+	protected void setMainFlagToShow_showRtSideMenu(boolean val) {_setMainFlagToShow(showRtSideMenu, val);}
+	
+	public int getNumFlagsToShow() {return numFlagsToShow;}
+	public List<Integer> getMainFlagsToShow() {return flagsToShow;}
 	
 	public final void initCamView(){	dz=camInitialDist;	ry=camInitRy;	rx=camInitRx - ry;	}
 	public final void reInitInfoStr(){		DebugInfoAra = new ArrayList<String>();		DebugInfoAra.add("");	}	
@@ -665,6 +686,7 @@ public abstract class my_procApplet extends PApplet {
 	
 	//only for zooming
 	public final void mouseWheel(MouseEvent event) {
+		if(dispWinFrames.length < 1) {return;}
 		if (dispWinFrames[curFocusWin].getFlags(myDispWindow.canChgView)) {// (canMoveView[curFocusWin]){	
 			float mult = (getBaseFlag(shiftKeyPressed)) ? 5.0f * mouseWhlSens : mouseWhlSens;
 			dispWinFrames[curFocusWin].handleViewChange(true,(mult * event.getCount()),0);

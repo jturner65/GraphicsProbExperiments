@@ -1,16 +1,25 @@
 package graphProbExp_PKG;
 
+import java.io.File;
 import java.util.TreeMap;
 
+import base_ProbTools.BaseProbExpMgr;
 import base_RayTracer.myRTFileReader;
-import base_RayTracer.myScene;
+import base_RayTracer.scene.myScene;
 import base_UI_Objects.*;
 import base_Utils_Objects.*;
 
 public class RayTracerExperiment extends BaseProbExpMgr {
 	//holds references to all loaded scenes
 	public TreeMap<String, myScene> loadedScenes;
-
+	
+	//current scene dims
+	public static int sceneCols = 300;
+	public static int sceneRows = 300;
+	private int[] transLoc = new int[] {0,0};
+	//current scene name
+	private String currSceneName = "", currDispSceneName = "";
+	
 	//file reader/interpreter
 	public myRTFileReader rdr; 	
 
@@ -26,20 +35,40 @@ public class RayTracerExperiment extends BaseProbExpMgr {
 
 	@Override
 	public void initExp() {
-		rdr = new myRTFileReader(this.win.pa,"txtrs");	
-		loadedScenes = new TreeMap<String, myScene>();
+		rdr = new myRTFileReader(this.win.pa,".."+File.separator+"data"+File.separator+"txtrs"+File.separator);	
+		loadedScenes = new TreeMap<String, myScene>();		
+		
 	}//initExp	
 
 	//set values for RT scene experiment values
-	public void setRTSceneExpVals() {
-		
-		
+	public void setRTSceneExpVals(int cols, int rows, String _currFileName) {
+		sceneCols = cols;
+		sceneRows = rows;
+		currSceneName = _currFileName;
+		setTransLoc();		
+	}//setRTSceneExpVals
+	
+	private void setTransLoc() {
+		//layout is for 2 images side by side, first is standard dist calc, 2nd is using modified cos dist calcs
+		//with 3rd image beneath showing difference (upsized by 2)
+		int stLocX = (int) ((visScreenWidth- (2*sceneCols))/2.0f);
+		transLoc[0] = (0>stLocX ? 0 : stLocX);
+		int stLocY = (int) ((win.rectDim[3]-sceneRows)/6.0f);	
+		transLoc[1] = (0 > stLocY ? 0 : stLocY);
 	}
 	
-	public void startRayTrace() {
-		
+	public void setFlipNorms() {
+		myScene s = loadedScenes.get(currSceneName);
+		if(s!=null) {s.flipNormal();}
 	}
 	
+	public void startRayTrace() {		
+		myScene tmp = rdr.readRTFile(loadedScenes, currSceneName, null, sceneCols, sceneRows);//pass null as scene so that we don't add to an existing scene
+		this.dispMessage("RayTracerExperiment", "startRayTrace", "Done with readRTFile", MsgCodes.info1);
+		//returns null means not found
+		if(null==tmp) {currSceneName = "";}
+		currDispSceneName = currSceneName;
+	}
 	
 	@Override
 	protected void buildSolvers_indiv() {
@@ -50,6 +79,7 @@ public class RayTracerExperiment extends BaseProbExpMgr {
 	}
 	@Override
 	protected void setVisWidth_Priv() {
+		if(transLoc != null) {	setTransLoc();	}
 	}
 
 	@Override
@@ -67,13 +97,24 @@ public class RayTracerExperiment extends BaseProbExpMgr {
 	@Override
 	public void setMouseReleaseInExp2D() {
 		// TODO Auto-generated method stub
-
 	}
-
 	@Override
 	public void drawExp() {
-		// TODO Auto-generated method stub
-		
+		pa.pushMatrix();pa.pushStyle();
+			pa.noLights();
+			pa.translate(transLoc[0],transLoc[1],0);
+			myScene s = loadedScenes.get(currDispSceneName);
+			if(s!=null) {s.draw();}		
+			pa.translate(sceneCols,0,0);
+			//TODO needs to be alt scene, using reduced cosine dist
+			if(s!=null) {s.draw();}
+			pa.pushMatrix();pa.pushStyle();
+			pa.translate(-sceneCols,sceneRows,0);
+			//draw diff image
+			pa.scale(2.0f);
+			if(s!=null) {s.draw();}
+			pa.popStyle();pa.popMatrix();
+		pa.popStyle();pa.popMatrix();
 	}
 
 	/////////////////////////////
