@@ -149,11 +149,11 @@ public class myDistFuncHistVis extends myVisMgr {
 		
 	@Override
 	public void _drawVisIndiv(my_procApplet pa) {
-		pa.setFill(clr_black);
-		pa.setStroke(clr_white);
+		pa.setFill(clr_black,clr_black[3]);
+		pa.setStroke(clr_white,clr_white[3]);
 	
 		//draw box around graph area
-		pa.rect(frameDims);
+		pa.drawRect(frameDims);
 		pa.pushMatrix();pa.pushStyle();
 		pa.translate(frameDims[0],frameDims[1]+frameDims[3], 0.0f);
 		//pa.sphere(3.0f);	

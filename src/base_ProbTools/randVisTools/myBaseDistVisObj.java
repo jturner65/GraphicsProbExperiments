@@ -120,17 +120,17 @@ public abstract class myBaseDistVisObj{
 	private void _drawZeroLines(my_procApplet pa) {
 		pa.pushMatrix();pa.pushStyle();
 		pa.strokeWeight(2.0f);
-		pa.setFill(owner.clr_cyan);
+		pa.setFill(owner.clr_cyan,owner.clr_cyan[3]);
 		if (drawZeroAxes[0]) {//draw x==0 axis
 			float yVal = zeroAxisVals[0];
 			//draw line @ y Val
-			pa.setStroke(owner.clr_white);
+			pa.setStroke(owner.clr_white,owner.clr_white[3]);
 			pa.line(-tic, yVal, 0, tic, yVal, 0);
 			//draw line to other side
-			pa.setStroke(owner.clr_cyan);
+			pa.setStroke(owner.clr_cyan,owner.clr_cyan[3]);
 			pa.line(-tic, yVal, 0, frameDims[2], yVal, 0);
 			//draw text for display
-			pa.setStroke(owner.clr_white);
+			pa.setStroke(owner.clr_white,owner.clr_white[3]);
 			pa.pushMatrix();pa.pushStyle();
 			pa.translate(-tic-10, yVal+5.0f,0);
 			pa.scale(1.4f);
@@ -141,13 +141,13 @@ public abstract class myBaseDistVisObj{
 		if (drawZeroAxes[1]) {//draw y==0 axis
 			float xVal = zeroAxisVals[1];
 			//draw tick line @ x Val
-			pa.setStroke(owner.clr_white);
+			pa.setStroke(owner.clr_white,owner.clr_white[3]);
 			pa.line(xVal, -tic, 0, xVal, tic, 0);	
 			//draw line to other side
-			pa.setStroke(owner.clr_cyan);
+			pa.setStroke(owner.clr_cyan,owner.clr_cyan[3]);
 			pa.line(xVal, -frameDims[3], 0, xVal, tic, 0);	
 			//draw text for display
-			pa.setStroke(owner.clr_white);
+			pa.setStroke(owner.clr_white,owner.clr_white[3]);
 			pa.pushMatrix();pa.pushStyle();
 			pa.translate( xVal - 4.0f, tic+20.0f,0);
 			pa.scale(1.4f);
@@ -161,17 +161,17 @@ public abstract class myBaseDistVisObj{
 	//offset == 0 for axes on left, offset == frameDims[2] for offset on right
 	protected void drawAxes(my_procApplet pa, float offset) {
 		pa.pushMatrix();pa.pushStyle();
-		pa.setFill(owner.clr_white);
+		pa.setFill(owner.clr_white,owner.clr_white[3]);
 		float yAxisTxtXOffset = offset -tic-owner.frmBnds[0]+10 ,
 				yAxisTxtYOffset = (offset == 0.0)? 5.0f : -4.0f;
 		for (int idx = 0; idx <axisVals.length;++idx) {
 			float xVal = axisVals[idx][0];
 			String dispX = String.format(fmtXStr, axisDispVals[idx][0]); 
 			//draw tick line @ x Val
-			pa.setStroke(owner.clr_white);
+			pa.setStroke(owner.clr_white,owner.clr_white[3]);
 			pa.line(xVal, -tic, 0, xVal, tic, 0);	
 			//draw line to other side
-			pa.setStroke(owner.clr_clearWite);
+			pa.setStroke(owner.clr_clearWite,owner.clr_clearWite[3]);
 			pa.line(xVal, -frameDims[3], 0, xVal, tic, 0);	
 			//draw text for display
 			pa.text(dispX, xVal - 20.0f, tic+10.0f);
@@ -179,10 +179,10 @@ public abstract class myBaseDistVisObj{
 				float yVal = axisVals[idx][1];
 				String dispY = String.format(fmtYStr, axisDispVals[idx][1]);
 				//draw line @ y Val
-				pa.setStroke(owner.clr_white);
+				pa.setStroke(owner.clr_white,owner.clr_white[3]);
 				pa.line(-tic + offset, yVal, 0, tic + offset, yVal, 0);
 				//draw line to other side
-				pa.setStroke(owner.clr_clearWite);
+				pa.setStroke(owner.clr_clearWite,owner.clr_clearWite[3]);
 				pa.line(-tic, yVal, 0, frameDims[2], yVal, 0);
 				//draw text for display
 				pa.text(dispY, yAxisTxtXOffset, yVal+yAxisTxtYOffset);
@@ -193,8 +193,8 @@ public abstract class myBaseDistVisObj{
 	}//drawAxes
 	
 	public final void drawMe(my_procApplet pa, boolean isMulti) {
-		pa.setFill(fillClr);
-		pa.setStroke(strkClr);
+		pa.setFill(fillClr, fillClr[3]);
+		pa.setStroke(strkClr, strkClr[3]);
 		_drawCurve(pa,isMulti ? frameDims[2] : 0);
 	}//drawMe
 

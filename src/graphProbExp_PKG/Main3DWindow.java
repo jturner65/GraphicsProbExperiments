@@ -59,8 +59,8 @@ public class Main3DWindow extends myDispWindow {
 	public Main3DWindow(my_procApplet _p, String _n, int _flagIdx, int[] fc, int[] sc, float[] rd, float[] rdClosed, String _winTxt, boolean _canDrawTraj) {
 		super(_p, _n, _flagIdx, fc, sc, rd, rdClosed, _winTxt, _canDrawTraj);
 		float stY = rectDim[1]+rectDim[3]-4*yOff,stYFlags = stY + 2*yOff;
-		trajFillClrCnst = my_procApplet.gui_DarkCyan;		
-		trajStrkClrCnst = my_procApplet.gui_Cyan;
+		trajFillClrCnst = new int[] {0,120,120,255};
+		trajStrkClrCnst = new int[] {0,255,255,255};
 		super.initThisWin(_canDrawTraj, true, false);
 	}//DancingBallWin
 	
@@ -412,8 +412,6 @@ public class Main3DWindow extends myDispWindow {
 	@Override
 	protected void processTrajIndiv(myDrawnSmplTraj drawnNoteTraj){	}
 	@Override
-	protected myPoint getMsePtAs3DPt(int mouseX, int mouseY){return pa.P(mouseX,mouseY,0);}
-	@Override
 	protected boolean hndlMouseMoveIndiv(int mouseX, int mouseY, myPoint mseClckInWorld){
 		return false;
 	}
@@ -450,5 +448,8 @@ public class Main3DWindow extends myDispWindow {
 	//resize drawn all trajectories
 	@Override
 	protected void resizeMe(float scale) { }
+
+	@Override
+	protected myPoint getMsePtAs3DPt(myPoint mseLoc) {return new myPoint(mseLoc);}
 }//DESSimWindow
 

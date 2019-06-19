@@ -83,8 +83,8 @@ public class RayTracer2DWin extends myDispWindow {
 	public RayTracer2DWin(my_procApplet _p, String _n, int _flagIdx, int[] fc, int[] sc, float[] rd, float[] rdClosed,String _winTxt, boolean _canDrawTraj) {
 		super(_p, _n, _flagIdx, fc, sc, rd, rdClosed, _winTxt, _canDrawTraj);
 		float stY = rectDim[1]+rectDim[3]-4*yOff,stYFlags = stY + 2*yOff;
-		trajFillClrCnst = my_procApplet.gui_DarkCyan;		//override this in the ctor of the instancing window class
-		trajStrkClrCnst = my_procApplet.gui_Cyan;
+		trajFillClrCnst = new int[] {0,120,120,255};
+		trajStrkClrCnst = new int[] {0,255,255,255};
 		super.initThisWin(_canDrawTraj, true, false);
 	}//ctor
 			
@@ -490,9 +490,8 @@ public class RayTracer2DWin extends myDispWindow {
 
 	@Override
 	protected void initDrwnTrajIndiv() {}
-
 	@Override
-	protected myPoint getMsePtAs3DPt(int mouseX, int mouseY) {
+	protected myPoint getMsePtAs3DPt(myPoint mseLoc) {
 		// TODO Auto-generated method stub
 		return null;
 	}

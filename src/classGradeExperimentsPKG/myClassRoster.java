@@ -293,7 +293,7 @@ public class myClassRoster extends mySampleSet{
 			for (myStudent s : students.values()) {//uses student color
 				double rawXLoc = s.getGradeXLoc(fromTransType, fromCls, gradeBars[GB_rawGradeTypeIDX].barWidth);
 				double transXLoc = s.getGradeXLoc(toTransType, toCls, gradeBars[GB_rawGradeTypeIDX].barWidth);
-				pa.setStroke(s.clr);
+				pa.setStroke(s.clr, s.clr[3]);
 				pa.line(rawXLoc, 0, 0, transXLoc,dist,0);				
 			}
 			pa.popStyle();pa.popMatrix();		

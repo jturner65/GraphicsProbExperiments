@@ -101,7 +101,7 @@ public abstract class myVisMgr {
 		if(!getFlag(isVisibleIDX)) {return;}
 		pa.pushMatrix();pa.pushStyle();
 		pa.translate(startRect[0], startRect[1],0);
-		pa.setFill(clr_white);
+		pa.setFill(clr_white, clr_white[3]);
 		pa.text(name, 0, 0);
 		_drawVisIndiv(pa);
 		pa.popStyle();pa.popMatrix();			

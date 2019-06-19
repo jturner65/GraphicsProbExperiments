@@ -3,7 +3,6 @@
  */
 package base_UI_Objects;
 
-import base_Utils_Objects.*;
 import base_Utils_Objects.vectorObjs.myPoint;
 import base_Utils_Objects.vectorObjs.myPointf;
 import base_Utils_Objects.vectorObjs.myVector;

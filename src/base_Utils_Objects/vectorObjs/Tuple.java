@@ -9,6 +9,7 @@ public class Tuple<X,Y> implements Comparable<Tuple<X,Y>> {
     public final X x;    public final Y y;  private final Float sqmag; private final int hash;
     public Tuple(X x, Y y) {    this.x = x;   this.y = y; sqmag = getSqMag(); hash= this.hashCode(); }
     public Tuple(Tuple<X,Y> _t) {   this( _t.x,_t.y);  }
+    public String toCSVString() {	return "("+x+"|"+y+")";}
     public String toString() {      return "(" + x + "," + y + ")";  }
     public boolean equals(Object _o) {  if (_o == null) {return false;} if (_o == this) { return true; } if (!(_o instanceof Tuple)){ return false; } Tuple<X,Y> o = (Tuple<X,Y>) _o;  return o.x.equals(this.x) && o.y.equals(this.y);  }
     public int hashCode() { 

@@ -3,7 +3,6 @@ package base_Utils_Objects.io;
 import java.io.*;
 import java.util.*;
 
-
 /**
  * This class will manage file IO
  * @author john
@@ -11,7 +10,7 @@ import java.util.*;
  */
 
 public class FileIOManager{
-	//owning map manager
+	//msg object interface
 	protected MessageObject msg;
 	//name of owning class of the instance of this object, for display
 	protected String owner;

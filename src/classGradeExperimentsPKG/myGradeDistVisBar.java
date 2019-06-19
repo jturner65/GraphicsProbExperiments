@@ -110,12 +110,12 @@ public class myGradeDistVisBar extends myVisMgr {
 	
 	//draw box and bar with appropriate colors
 	private void _drawBoxAndBar(my_procApplet pa, int[] fClr, int[] _bClr) {
-		pa.setFill(fClr);
-		pa.setStroke(clr_black);
-		pa.rect(_clkBox);
+		pa.setFill(fClr,fClr[3]);
+		pa.setStroke(clr_black,clr_black[3]);
+		pa.drawRect(_clkBox);
 		//move to where bar starts
 		pa.translate(_barStX,_barStY,0);
-		pa.setStroke(_bClr);
+		pa.setStroke(_bClr,_bClr[3]);
 		pa.strokeWeight(2.0f);
 		pa.line(0,0,0,barWidth,0,0);		
 	}
