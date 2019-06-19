@@ -1,4 +1,4 @@
-package base_Utils_Objects;
+package base_Utils_Objects.vectorObjs;
 
 public class myVector extends myPoint{
 	public double sqMagn, magn;

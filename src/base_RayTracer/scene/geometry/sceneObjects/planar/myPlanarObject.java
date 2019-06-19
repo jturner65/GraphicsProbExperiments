@@ -8,6 +8,8 @@ import base_RayTracer.scene.myScene;
 import base_RayTracer.scene.geometry.sceneObjects.mySceneObject;
 import processing.core.PImage;
 import base_Utils_Objects.*;
+import base_Utils_Objects.vectorObjs.myMatrix;
+import base_Utils_Objects.vectorObjs.myVector;
 
 public abstract class myPlanarObject extends mySceneObject{
 	//objects used for both square and triangle

@@ -5,7 +5,14 @@ import java.nio.file.*;
 import java.util.*;
 import java.util.concurrent.*;
 
+import base_UI_Objects.windowUI.BaseBarMenu;
+import base_UI_Objects.windowUI.myDispWindow;
 import base_Utils_Objects.*;
+import base_Utils_Objects.vectorObjs.cntlPt;
+import base_Utils_Objects.vectorObjs.myPoint;
+import base_Utils_Objects.vectorObjs.myPointf;
+import base_Utils_Objects.vectorObjs.myVector;
+import base_Utils_Objects.vectorObjs.myVectorf;
 import processing.core.PApplet;
 import processing.core.PConstants;
 import processing.event.MouseEvent;
@@ -22,7 +29,7 @@ public abstract class my_procApplet extends PApplet {
 	public int drawnTrajEditWidth = 10; //TODO make ui component			//width in cntl points of the amount of the drawn trajectory deformed by dragging
 	
 	//individual display/HUD windows for gui/user interaction
-	protected myDispWindow[] dispWinFrames = new myDispWindow[0] ;
+	public myDispWindow[] dispWinFrames = new myDispWindow[0] ;
 	//set in instancing class - must be > 1
 	protected int numDispWins;
 	//always idx 0 - first window is always menu
@@ -105,7 +112,17 @@ public abstract class my_procApplet extends PApplet {
 	public final int scrMsgTime = 50;									//5 seconds to delay a message 60 fps (used against draw count)
 	
 	protected int drawCount,simCycles;												// counter for draw cycles		
-	protected float menuWidth,menuWidthMult = .15f, hideWinWidth, hideWinWidthMult = .03f, hidWinHeight, hideWinHeightMult = .05f;			//side menu is 15% of screen grid2D_X, 
+	public float menuWidth;			//side menu is 15% of screen grid2D_X, 
+
+	protected float menuWidthMult = .15f;
+
+	protected float hideWinWidth;
+
+	protected float hideWinWidthMult = .03f;
+
+	protected float hidWinHeight;
+
+	protected float hideWinHeightMult = .05f;
 	
 	private ArrayList<String> DebugInfoAra;										//enable drawing dbug info onto screen
 	private String debugInfoString;

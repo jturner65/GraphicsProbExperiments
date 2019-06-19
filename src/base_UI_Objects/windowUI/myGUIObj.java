@@ -1,8 +1,9 @@
-package base_UI_Objects;
+package base_UI_Objects.windowUI;
 
 import java.util.*;
 
-import base_Utils_Objects.myVector;
+import base_UI_Objects.my_procApplet;
+import base_Utils_Objects.vectorObjs.myVector;
 
 //object on menu that can be modified via mouse input
 public class myGUIObj {

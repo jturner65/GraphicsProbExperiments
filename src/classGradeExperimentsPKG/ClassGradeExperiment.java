@@ -7,7 +7,9 @@ import base_ProbTools.*;
 import base_ProbTools.randGenFunc.gens.myFleishUniVarRandGen;
 import base_ProbTools.randGenFunc.gens.myRandGen;
 import base_UI_Objects.*;
+import base_UI_Objects.windowUI.myDispWindow;
 import base_Utils_Objects.*;
+import base_Utils_Objects.io.MsgCodes;
 /**
  * this class is a specialized type fo probability experiment manager, specifically for the class grades project
  * @author john

@@ -7,7 +7,7 @@ import base_ProbTools.BaseProbExpMgr;
 import base_ProbTools.myIntegrator;
 import base_ProbTools.myProbSummary;
 import base_ProbTools.randGenFunc.gens.myZigRandGen;
-import base_Utils_Objects.MsgCodes;
+import base_Utils_Objects.io.MsgCodes;
 
 /**
  * instancing class for a univariate fleishman polynomial-based distribution function

@@ -3,7 +3,7 @@ package base_ProbTools.randGenFunc.funcs;
 import base_ProbTools.BaseProbExpMgr;
 import base_ProbTools.myIntegrator;
 import base_ProbTools.myProbSummary;
-import base_Utils_Objects.MsgCodes;
+import base_Utils_Objects.io.MsgCodes;
 
 //class to model a pdf via a cosine
 //mean is phase, std is function of frequency

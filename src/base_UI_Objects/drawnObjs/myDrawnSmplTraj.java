@@ -1,6 +1,10 @@
-package base_UI_Objects;
+package base_UI_Objects.drawnObjs;
 
+import base_UI_Objects.my_procApplet;
+import base_UI_Objects.windowUI.myDispWindow;
 import base_Utils_Objects.*;
+import base_Utils_Objects.vectorObjs.myPoint;
+import base_Utils_Objects.vectorObjs.myVector;
 
 //class holds trajctory and 4 macro cntl points, and handling for them
 public class myDrawnSmplTraj {

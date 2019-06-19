@@ -6,7 +6,12 @@ import java.util.*;
 import base_ProbTools.BaseProbExpMgr;
 import base_ProbTools.randGenFunc.funcs.myRandVarFunc;
 import base_UI_Objects.*;
+import base_UI_Objects.drawnObjs.myDrawnSmplTraj;
+import base_UI_Objects.windowUI.myDispWindow;
+import base_UI_Objects.windowUI.myGUIObj;
 import base_Utils_Objects.*;
+import base_Utils_Objects.vectorObjs.myPoint;
+import base_Utils_Objects.vectorObjs.myVector;
 import graphProbExp_PKG.mySideBarMenu;
 
 public class Grade2DWindow extends myDispWindow {

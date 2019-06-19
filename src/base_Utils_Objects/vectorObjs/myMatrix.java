@@ -1,5 +1,4 @@
-package base_Utils_Objects;
-
+package base_Utils_Objects.vectorObjs;
 
 public class myMatrix {	  
 	public double[][] m;

@@ -1,10 +1,12 @@
-package base_UI_Objects;
+package base_UI_Objects.drawnObjs;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 
-import base_Utils_Objects.myPoint;
-import base_Utils_Objects.myVector;
+import base_UI_Objects.my_procApplet;
+import base_Utils_Objects.vectorObjs.cntlPt;
+import base_Utils_Objects.vectorObjs.myPoint;
+import base_Utils_Objects.vectorObjs.myVector;
 import processing.core.PApplet;
 import processing.core.PConstants;
 

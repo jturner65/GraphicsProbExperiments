@@ -7,7 +7,7 @@ import base_RayTracer.myColor;
 import base_RayTracer.rayHit;
 import base_RayTracer.scene.myScene;
 import base_RayTracer.scene.shaders.myObjShader;
-import base_Utils_Objects.myVector;
+import base_Utils_Objects.vectorObjs.myVector;
 
 public class myCellularTexture extends myNoiseTexture{
 	private double avgNumPerCell, mortarThresh;	

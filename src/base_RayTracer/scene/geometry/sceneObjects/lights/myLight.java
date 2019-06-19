@@ -12,6 +12,8 @@ import base_RayTracer.scene.geometry.sceneObjects.mySceneObject;
 import processing.core.PConstants;
 import processing.core.PImage;
 import base_Utils_Objects.*;
+import base_Utils_Objects.vectorObjs.myMatrix;
+import base_Utils_Objects.vectorObjs.myVector;
 
 
 public abstract class myLight extends mySceneObject{

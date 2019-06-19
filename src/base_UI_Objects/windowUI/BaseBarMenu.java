@@ -1,9 +1,13 @@
-package base_UI_Objects;
+package base_UI_Objects.windowUI;
 
 import java.io.*;
 import java.util.*;
 
+import base_UI_Objects.my_procApplet;
+import base_UI_Objects.drawnObjs.myDrawnSmplTraj;
 import base_Utils_Objects.*;
+import base_Utils_Objects.vectorObjs.myPoint;
+import base_Utils_Objects.vectorObjs.myVector;
 
 //displays sidebar menu of interaction and functionality
 

@@ -7,8 +7,8 @@ import base_RayTracer.scene.myScene;
 import base_RayTracer.scene.objType;
 import base_RayTracer.scene.geometry.myGeomBase;
 import base_RayTracer.scene.geometry.accelStruct.*;
-import base_Utils_Objects.myMatrix;
-import base_Utils_Objects.myVector;
+import base_Utils_Objects.vectorObjs.myMatrix;
+import base_Utils_Objects.vectorObjs.myVector;
 import processing.core.PImage;
 
 //an instance of an instanced object - used to minimize memory footprint - only have a reference of the object, and then the relevant transformation matrices

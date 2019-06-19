@@ -1,6 +1,7 @@
 package graphProbExp_PKG;
 
 import base_UI_Objects.*;
+import base_UI_Objects.windowUI.BaseBarMenu;
 
 //instance of sidebar menu, holding descriptions of application-specifc sidebar buttons
 public class mySideBarMenu extends BaseBarMenu {

@@ -6,7 +6,7 @@ import base_RayTracer.myColor;
 import base_RayTracer.myRay;
 import base_RayTracer.rayHit;
 import base_UI_Objects.my_procApplet;
-import base_Utils_Objects.myVector;
+import base_Utils_Objects.vectorObjs.myVector;
 import processing.core.PConstants;
 
 public class myFOVScene extends myScene {

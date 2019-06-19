@@ -1,9 +1,14 @@
-package base_UI_Objects;
+package base_UI_Objects.windowUI;
 
 import java.io.File;
 import java.util.*;
 
+import base_UI_Objects.my_procApplet;
+import base_UI_Objects.drawnObjs.myDrawnSmplTraj;
 import base_Utils_Objects.*;
+import base_Utils_Objects.vectorObjs.myPoint;
+import base_Utils_Objects.vectorObjs.myVector;
+import base_Utils_Objects.vectorObjs.myVectorf;
 import processing.core.*;
 
 //abstract class to hold base code for a menu/display window (2D for gui, etc), to handle displaying and controlling the window, and calling the implementing class for the specifics
@@ -628,7 +633,7 @@ public abstract class myDispWindow {
 	}
 	
 	//displays point with a name
-	protected void showKeyPt(myPoint a, String s, float rad){	pa.show(a,rad, s, new myVector(10,-5,0), my_procApplet.gui_Cyan, getFlags(trajPointsAreFlat));	}	
+	public void showKeyPt(myPoint a, String s, float rad){	pa.show(a,rad, s, new myVector(10,-5,0), my_procApplet.gui_Cyan, getFlags(trajPointsAreFlat));	}	
 	//draw a series of strings in a column
 	protected void dispMenuTxtLat(String txt, int[] clrAra, boolean showSphere){
 		pa.setFill(clrAra, 255); 
@@ -1218,7 +1223,7 @@ public abstract class myDispWindow {
 	protected int getTrajAraIDXVal(String str){for(int i=0; i<trajNameAra.length;++i){if(trajNameAra[i].equals(str)){return i;}}return -1; }
 
 	//add trajectory to appropriately keyed current trajectory ara in treemap	
-	protected void processTrajectory(myDrawnSmplTraj drawnNoteTraj){
+	public void processTrajectory(myDrawnSmplTraj drawnNoteTraj){
 		TreeMap<String,ArrayList<myDrawnSmplTraj>> tmpTreeMap = drwnTrajMap.get(this.curDrnTrajScrIDX);
 		ArrayList<myDrawnSmplTraj> tmpAra;
 		if(curTrajAraIDX != -1){		//make sure some trajectory/staff has been selected

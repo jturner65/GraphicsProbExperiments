@@ -10,6 +10,7 @@ import processing.event.MouseEvent;
 import processing.opengl.*;
 
 import base_UI_Objects.*;
+import base_UI_Objects.windowUI.myDispWindow;
 import base_Utils_Objects.*;
 import classGradeExperimentsPKG.Grade2DWindow;
 

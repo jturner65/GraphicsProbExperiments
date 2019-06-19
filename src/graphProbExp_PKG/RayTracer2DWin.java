@@ -4,7 +4,12 @@ import java.io.*;
 import java.util.*;
 
 import base_UI_Objects.*;
+import base_UI_Objects.drawnObjs.myDrawnSmplTraj;
+import base_UI_Objects.windowUI.myDispWindow;
+import base_UI_Objects.windowUI.myGUIObj;
 import base_Utils_Objects.*;
+import base_Utils_Objects.vectorObjs.myPoint;
+import base_Utils_Objects.vectorObjs.myVector;
 
 /**
  * class to hold 2-D ray tracer experiment - bunch of circles, shoot rays and plot their traversal

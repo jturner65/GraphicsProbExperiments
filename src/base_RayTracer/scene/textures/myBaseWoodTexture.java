@@ -4,7 +4,7 @@ import base_RayTracer.myColor;
 import base_RayTracer.rayHit;
 import base_RayTracer.scene.myScene;
 import base_RayTracer.scene.shaders.myObjShader;
-import base_Utils_Objects.myVector;
+import base_Utils_Objects.vectorObjs.myVector;
 
 //wood texture that looks like imag in proj 4 - based on only single iteration of noise
 public class myBaseWoodTexture extends myNoiseTexture{ 	

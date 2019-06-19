@@ -1,7 +1,7 @@
 package base_ProbTools.randGenFunc;
 
 import base_ProbTools.randGenFunc.funcs.myRandVarFunc;
-import base_Utils_Objects.MsgCodes;
+import base_Utils_Objects.io.MsgCodes;
 
 //class holding ziggurat pre-calced values (in tabular form) for a particular prob function and # of rectangles
 //this needs to have no memory so multiple functions can use it

@@ -10,6 +10,7 @@ import base_RayTracer.scene.myScene;
 import base_RayTracer.scene.shaders.myObjShader;
 import processing.core.PImage;
 import base_Utils_Objects.*;
+import base_Utils_Objects.vectorObjs.myVector;
 
 //class to handle base texture functionality
 

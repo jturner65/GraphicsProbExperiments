@@ -14,6 +14,7 @@ import base_RayTracer.scene.textures.myImageTexture;
 import base_RayTracer.scene.textures.myTextureHandler;
 import processing.core.PConstants;
 import base_Utils_Objects.*;
+import base_Utils_Objects.vectorObjs.myVector;
 
 public class myObjShader {
 	public myScene scene;

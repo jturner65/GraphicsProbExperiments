@@ -6,7 +6,9 @@ import base_ProbTools.BaseProbExpMgr;
 import base_ProbTools.myProbSummary;
 import base_ProbTools.randGenFunc.gens.myRandGen;
 import base_UI_Objects.*;
+import base_UI_Objects.windowUI.myDispWindow;
 import base_Utils_Objects.*;
+import base_Utils_Objects.io.MsgCodes;
 /**
  * this class will manage probability-based graphical experiments
  * @author john

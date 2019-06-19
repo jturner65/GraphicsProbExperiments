@@ -3,7 +3,12 @@ package graphProbExp_PKG;
 import java.io.*;
 import java.util.*;
 import base_UI_Objects.*;
+import base_UI_Objects.drawnObjs.myDrawnSmplTraj;
+import base_UI_Objects.windowUI.myDispWindow;
+import base_UI_Objects.windowUI.myGUIObj;
 import base_Utils_Objects.*;
+import base_Utils_Objects.vectorObjs.myPoint;
+import base_Utils_Objects.vectorObjs.myVector;
 
 public class Main3DWindow extends myDispWindow {
 	
