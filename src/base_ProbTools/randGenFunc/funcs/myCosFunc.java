@@ -17,23 +17,18 @@ public class myCosFunc extends myRandVarFunc{
 	//frequency == 1/period; needs to be calculated so that stdArea is under curve from mean -> x @ 1 std - cos(x) has freq 1/2pi, so this value is actually 2pi*freq
 	//xBnds == x value where function == 0 -> corresponds to +Pi for freq = 1
 	private double freqMult, xBnd, actLBnd, actUBnd;
-	//for standardized functions
-	private static double freq1StdMult = -1, halfAmpl1Std, xBnd1Std;
+	//for standardized functions : freq1StdMult found to be 1.20934655
+	private static final double freq1StdMult = calcFreq(1.0), halfAmpl1Std = freq1StdMult/twoPi, xBnd1Std = Math.PI/freq1StdMult;
 	//half amplitude - needs to be freq/2pi; 
 	//amplitude to maintain area == 1 under 1 period of cosine is actually freq/pi but we are using .5 + .5*cos, so make calc easier to use freq/2pi * ( 1 + cos)
 	private double halfAmpl;
 
-	public myCosFunc(BaseProbExpMgr _expMgr, myIntegrator _quadSlvr, myProbSummary _summaryObj) {
-		super(_expMgr, _quadSlvr, _summaryObj, "Cosine PDF");
-		if(freq1StdMult == -1) {
-			freq1StdMult = calcFreq(1.0);
-			halfAmpl1Std = freq1StdMult/twoPi;
-			xBnd1Std = Math.PI/freq1StdMult;		//values need to be between mu - xBnd and mu + xBnd
-		}
+	public myCosFunc(myIntegrator _quadSlvr, myProbSummary _summaryObj) {
+		super(_quadSlvr, _summaryObj, "Cosine PDF");
 	}
 	
 	//this will calculate the freq val for a given std iteratively 
-	protected double calcFreq(double std) {
+	protected static double calcFreq(double std) {
 		//qStd is std @ stdFreqMultToUse
 		double stdArea = stdAreaAra[stdFreqMultToUse], twoPiStdArea = stdArea* twoPi;
 		double res = std,sinFreqS,diff, qStd = stdFreqMultToUse * std  ,cosFreqS ;
@@ -48,7 +43,7 @@ public class myCosFunc extends myRandVarFunc{
 			res -= .2*diff;
 			++i;
 		}//
-		//System.out.println("Final freq val : iters " + i + "\t std :"+ String.format("%3.8f", std) + " freq res : " + String.format("%3.8f", res));
+		//expMgr.dispMessage("myCosFunc","calcFreq","Final freq val : iters " + i + "\t std :"+ String.format("%3.8f", std) + " freq res : " + String.format("%3.8f", res),MsgCodes.info1,true);
 		return res;
 	}//calcFreq
 	
@@ -62,7 +57,7 @@ public class myCosFunc extends myRandVarFunc{
 		} else {
 			freqMult = calcFreq(std);	//solve based on std	
 			double freqMult2 = Math.PI/std;
-			expMgr.dispMessage("myCosFuncFromCDF","rebuildFuncs_Indiv","Calced freqMult : " + String.format("%3.8f",freqMult) + " | pi/s : " + String.format("%3.8f",freqMult2) + " | s :"+String.format("%3.8f",std) + " | calc ov pi/s : " + String.format("%3.8f",freqMult/freqMult2),MsgCodes.info1,true);
+			msgObj.dispMessage("myCosFunc","rebuildFuncs_Indiv","freq1StdMult : " + String.format("%3.8f",freq1StdMult)+ " | Calced freqMult : " + String.format("%3.8f",freqMult) + " | pi/s : " + String.format("%3.8f",freqMult2) + " | s :"+String.format("%3.8f",std) + " | calc ov pi/s : " + String.format("%3.8f",freqMult/freqMult2),MsgCodes.info1,true);
 		}
 		xBnd = Math.PI/freqMult;		//values need to be between mu - xBnd and mu + xBnd
 		actLBnd = mu - xBnd;
@@ -117,11 +112,13 @@ public class myCosFunc extends myRandVarFunc{
 	//given probability p find value x such that CDF(X<= x) == p
 	@Override
 	public double CDF_inv(double p) {
-		//expMgr.dispMessage("myCosFunc", "CDF_inv", "Begin CDF_inv calc for prob : " + String.format("%3.8f", p), true);
-		double res = calcInvCDF(p, integrals[fStdIntegIDX],  -xBnd1Std);		//iteratively finds inverse
+		//expMgr.dispMessage("myCosFunc", "CDF_inv", "Begin CDF_inv calc for prob : " + String.format("%3.8f", p), MsgCodes.info1,true);
+		//double res = calcInvCDF(p, integrals[fStdIntegIDX],  -xBnd1Std);		//iteratively finds inverse
+		
+		double res2 = calcInvCDF_Newton(p, integrals[fStdIntegIDX], funcs[fStdIDX], -xBnd1Std);
 		//double res = calcInvCDF(p, integrals[fIntegIDX],  actLBnd);
-		//expMgr.dispMessage("myCosFunc", "CDF_inv", "Finish CDF_inv calc for prob : " + String.format("%3.8f", p) + "\t stdzd res : " + String.format("%3.8f",res)+ "\t low xBnd1Std : " + String.format("%3.8f", -xBnd1Std), true);			
-		return processResValByMmnts(res);
+		//expMgr.dispMessage("myCosFunc", "CDF_inv", "Finish CDF_inv calc for prob : " + String.format("%3.8f", p) + "\t stdzd res : " + String.format("%3.8f",res)+ "\t newton stdzd res : " + String.format("%3.8f",res2)+ "\t low xBnd1Std : " + String.format("%3.8f", -xBnd1Std),MsgCodes.info1,true);
+		return processResValByMmnts(res2);
 		//return res;//processResValByMmnts(res);
 	}//CDF_inv
 	

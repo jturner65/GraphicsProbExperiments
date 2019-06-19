@@ -21,7 +21,8 @@ import base_ProbTools.randVisTools.myDistFuncHistVis;
  *
  */
 public abstract class myRandVarFunc {
-	public static BaseProbExpMgr expMgr;
+	public static MessageObject msgObj;
+	//public static BaseProbExpMgr expMgr;
 	//descriptive name of function
 	public final String name;	
 	//quadrature solver for this random variable/function
@@ -29,7 +30,7 @@ public abstract class myRandVarFunc {
 	//object to hold descriptive values and statistics for this distribution, and any source data/samples, if they exist
 	protected myProbSummary summary;	
 	//convergence limit for iterative calcs
-	public final double convLim=1e-6;	
+	public static final double convLim=1e-6;	
 	//state flags - bits in array holding relevant info about this random variable function
 	private int[] stFlags;						
 	public static final int
@@ -84,8 +85,10 @@ public abstract class myRandVarFunc {
 	
 	public static final String[] queryFuncTypes = new String[] {"Function Eval", "PDF Eval", "CDF Eval", "Inv CDF Eval","Integral Eval"};	
 	
-	public myRandVarFunc(BaseProbExpMgr _expMgr, myIntegrator _quadSlvr, myProbSummary _summaryObj, String _name) {
-		expMgr = _expMgr;name=_name;
+	public myRandVarFunc(myIntegrator _quadSlvr, myProbSummary _summaryObj, String _name) {
+		if(null==msgObj) {msgObj = MessageObject.buildMe();}
+		
+		name=_name;
 		initFlags();
 		setQuadSolver(_quadSlvr);
 		rebuildFuncs(_summaryObj);
@@ -136,7 +139,7 @@ public abstract class myRandVarFunc {
 		case queryInvCDFIDX: {			return CDF_inv(x1);}
 		case queryIntegIDX : {			return integral_f(x1,x2);}		
 		default : {
-			expMgr.dispMessage("myRandVarFunc", "getFuncVal", "Attempting to evaluate unknown func type : " + funcType +" on value(s) : [" + x1 + ", "+ x2 + "] Aborting.",MsgCodes.warning1 , true);
+			msgObj.dispMessage("myRandVarFunc", "getFuncVal", "Attempting to evaluate unknown func type : " + funcType +" on value(s) : [" + x1 + ", "+ x2 + "] Aborting.",MsgCodes.warning1 , true);
 			return x1;}
 		}
 	}//getFuncVal
@@ -149,7 +152,7 @@ public abstract class myRandVarFunc {
 		case queryInvCDFIDX: {			return name+ " Inverse CDF";}
 		case queryIntegIDX : {			return name+ " Integral";}		
 		default : {
-			expMgr.dispMessage("myRandVarFunc", "getFuncVal", "Attempting to name unknown func type : " + funcType +". Aborting.",MsgCodes.warning1 , true);
+			msgObj.dispMessage("myRandVarFunc", "getFuncVal", "Attempting to name unknown func type : " + funcType +". Aborting.",MsgCodes.warning1 , true);
 			return name+ " ERROR";}
 		}		
 	}//
@@ -244,23 +247,48 @@ public abstract class myRandVarFunc {
 			xVal += .2*diff;
 			++i;
 		}//
-		//System.out.println("Final InvCDF val : iters " + i + "\t tar prob :"+ String.format("%3.8f", p) + " xVal : " + String.format("%3.8f", xVal) + " prob(xVal) : " +  String.format("%3.8f", calcPVal)+ " lbnd : " +  String.format("%3.8f", lBndVal));
+		//System.out.println("Final InvCDF val : iters " + i + "\t tar prob :"+ String.format("%3.8f", p) + " xVal : " + String.format("%3.8f", xVal) + " prob(xVal) : " +  String.format("%3.8f", calcPVal)+ " lbnd : " +  String.format("%3.8f", lbnd));
 		return xVal;
 	}//calcInvCDF
 	
-		
+	//find inverse  value -> x value such that CDF(X<= x) == p
+	//Lower bound should either be neg inf or the lower bound of the pdf, if it is bounded
+	//include derivative function
+	public double calcInvCDF_Newton(double p, Function<Double[], Double> integralFunc,  Function<Double, Double> derivFunc, Double lbnd) {
+		double xVal = 0, xVal1 = 0, calcPVal = 0, calcDPVal = 0, del,diff;
+		Double[] args = new Double[] {lbnd, xVal};
+		//double lBndVal = a*(lbnd + Math.sin(freq*lbnd)/freq);
+		boolean done = false;
+		int i = 0;
+		while ((!done) && (i < 1000)){
+			//calcPVal = a*(xVal + Math.sin(freq*(xVal-mu))/freq) - lBndVal;//solve for std value - ignore mu
+			args[1]=xVal;
+			calcPVal = integralFunc.apply(args) - p;//solve for std value - ignore mu
+			calcDPVal = derivFunc.apply(xVal);
+			del = calcPVal/calcDPVal;
+			xVal1 = xVal - del;
+			diff = xVal - xVal1;
+			//System.out.println("iter " + i + " diff : " + String.format("%3.8f", diff) + "\t tar prob :"+ String.format("%3.8f", p) + " xVal : " + String.format("%3.8f", xVal) + " sinFreqS : "+ String.format("%3.8f", calcPVal)+ " deriv : "+ String.format("%3.8f", calcDPVal));
+			if(Math.abs(diff) < convLim) {				done=true;			}
+			xVal = xVal1;
+			++i;
+		}//
+		//System.out.println("Final InvCDF val : iters " + i + "\t tar prob :"+ String.format("%3.8f", p) + " xVal : " + String.format("%3.8f", xVal) + " prob(xVal) : " +  String.format("%3.8f", calcPVal)+ " lbnd : " +  String.format("%3.8f", lbnd));
+		return xVal;
+	}//calcInvCDF
+	
 	//process a result from a 0-centered, 1-std distribution to match stated moments of this distribution
 	public abstract double processResValByMmnts(double val);	
 	
 	//if this rand var is going to be accessed via the ziggurat algorithm, this needs to be called w/# of rectangles to use
 	//this must be called after an Quad solver has been set, since finding R and Vol for passed # of ziggurats requires such a solver
 	public void setZigVals(int _nRect) {
-		if (!getFlag(quadSlvrSetIDX)) {	expMgr.dispMessage("myRandVarFunc", "setZigVals", "No quadrature solver has been set, so cannot set ziggurat values for "+_nRect+" rectangles (incl tail).",MsgCodes.warning1,true); return;}
+		if (!getFlag(quadSlvrSetIDX)) {	msgObj.dispMessage("myRandVarFunc", "setZigVals", "No quadrature solver has been set, so cannot set ziggurat values for "+_nRect+" rectangles (incl tail).",MsgCodes.warning1,true); return;}
 		double checkRect = Math.log(_nRect)/ln2;
 		int nRectCalc = (int)Math.pow(2.0, checkRect);//int drops all decimal values
 		if (_nRect != nRectCalc) {	
 			int numRectToUse = (int)Math.pow(2.0, (int)(checkRect) + 1);
-			expMgr.dispMessage("myRandVarFunc", "setZigVals", "Number of ziggurat rectangles requested " + _nRect + " : " + nRectCalc + " must be an integral power of 2, so forcing requested " + _nRect + " to be " + numRectToUse,MsgCodes.warning1,true);
+			msgObj.dispMessage("myRandVarFunc", "setZigVals", "Number of ziggurat rectangles requested " + _nRect + " : " + nRectCalc + " must be an integral power of 2, so forcing requested " + _nRect + " to be " + numRectToUse,MsgCodes.warning1,true);
 			numZigRects = numRectToUse;
 		}		
 		zigVals = new zigConstVals(this,numZigRects);
@@ -285,8 +313,8 @@ public abstract class myRandVarFunc {
 	
 	//display results from cdf map of values, where key is cdf and value is value
 	protected void dbgDispCDF(TreeMap<Double,Double> map, String callingClass) {
-		expMgr.dispMessage(callingClass,"dbgDispCDF","CDF Values : ",MsgCodes.warning1,true);
-		for(Double key : map.keySet()) {expMgr.dispMessage(callingClass,"dbgDispCDF","\tKey : " + key +" | CDF Val : " + map.get(key),MsgCodes.warning1,true);}
+		msgObj.dispMessage(callingClass,"dbgDispCDF","CDF Values : ",MsgCodes.warning1,true);
+		for(Double key : map.keySet()) {msgObj.dispMessage(callingClass,"dbgDispCDF","\tKey : " + key +" | CDF Val : " + map.get(key),MsgCodes.warning1,true);}
 		
 	}//dbgDispCDF
 

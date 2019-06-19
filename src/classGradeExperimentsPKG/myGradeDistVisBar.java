@@ -37,10 +37,10 @@ public class myGradeDistVisBar extends myVisMgr {
 	
 	//specific color constructor - used to set up overall grade bar for a single class
 	public myGradeDistVisBar(myClassRoster _owningClass, float[] _dims, String _typ, int[] _barColor, String _name) {
-		super(new float[] {_dims[0],_dims[1], _barStX + (_owningClass.probExp.getVisibleSreenWidth()*barWidthMult) ,_dims[2]}, _name);
+		super(new float[] {_dims[0],_dims[1], _barStX + (_owningClass.distPlotDimRect[2]*barWidthMult) ,_dims[2]}, _name);
 		gradeType=_typ;
 		setIsVisible(true);			//default bar to being visible
-		_setDispWidthIndiv(_owningClass.probExp.getVisibleSreenWidth());
+		_setDispWidthIndiv(_owningClass.distPlotDimRect[2]);
 		_barStY = .5f * startRect[3];
 		_clkBox = new float[] {0,-8+_barStY,16,16};
 		barColor = _barColor;// getRndClr2 should be brighter colors
@@ -103,7 +103,7 @@ public class myGradeDistVisBar extends myVisMgr {
 		} else {							
 			pa.pushMatrix();pa.pushStyle();
 			_drawBoxAndBar(pa,clr_red,clr_grey);
-			for (myStudent s : owningClass.students.values()) {		s.drawMeTransformed(pa, gradeType, owningClass, mySmplObs.greyOff, barWidth);	}		
+			for (myStudent s : owningClass.students.values()) {		s.drawMeTransformed(pa, gradeType, owningClass, mySampleObs.greyOff, barWidth);	}		
 			pa.popStyle();pa.popMatrix();
 		}
 	}//_drawVisIndiv

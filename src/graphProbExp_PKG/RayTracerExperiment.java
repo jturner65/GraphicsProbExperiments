@@ -64,7 +64,7 @@ public class RayTracerExperiment extends BaseProbExpMgr {
 	
 	public void startRayTrace() {		
 		myScene tmp = rdr.readRTFile(loadedScenes, currSceneName, null, sceneCols, sceneRows);//pass null as scene so that we don't add to an existing scene
-		this.dispMessage("RayTracerExperiment", "startRayTrace", "Done with readRTFile", MsgCodes.info1);
+		msgObj.dispMessage("RayTracerExperiment", "startRayTrace", "Done with readRTFile", MsgCodes.info1);
 		//returns null means not found
 		if(null==tmp) {currSceneName = "";}
 		currDispSceneName = currSceneName;

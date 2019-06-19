@@ -26,8 +26,9 @@ import base_Utils_Objects.*;
 
 //class to hold all objects within a desired scene
 public abstract class myScene {
-	public myDispWindow win;
-	public my_procApplet pa;
+	public static my_procApplet pa;
+	//for screen display
+	public static MessageObject msgObj = null;
 	
 	//multi-threaded stuff
 	public ExecutorService th_exec;
@@ -215,6 +216,7 @@ public abstract class myScene {
 	
 	public myScene(my_procApplet _p, String _sceneName, int _numCols, int _numRows) {
 		pa = _p;
+		
 		now = Calendar.getInstance();
 		folderName = "pics." +getDateTimeString(); 
 		setImageSize(_numCols, _numRows);		

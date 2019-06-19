@@ -58,10 +58,10 @@ public class myClassRoster extends mySampleSet{
 	private myFinalGradeRoster _finalGrades;			//ref to final grade roster
 	
 	public myClassRoster(my_procApplet _pa, BaseProbExpMgr _gradeExp, String _name, float[][] _barLocs) {
-		super(_pa, _gradeExp, _name);
+		super(_pa,  _name);
 		initFlags();
 		//visualization stuff
-		distPlotDimRect = new float[] {_barLocs[2][0], _barLocs[2][1],probExp.getVisibleSreenWidth(),ClassGradeExperiment.distBtwnAdjPlots};
+		distPlotDimRect = new float[] {_barLocs[2][0], _barLocs[2][1],_gradeExp.getVisibleSreenWidth(),ClassGradeExperiment.distBtwnAdjPlots};
 		distBtwnClassBars = ClassGradeExperiment.distBtwnAdjBars;
 		distBtwnRawTransBars =  _barLocs[1][1] - _barLocs[0][1];
 		clsLineClr = pa.getRndClr2(255);//should be brighter colors
@@ -117,7 +117,7 @@ public class myClassRoster extends mySampleSet{
 			Integer SID = s.ObjID;
 			Double grade = classGrades.get(SID);
 			if(null==grade) {//no grade for student - this is an error
-				probExp.dispMessage("myClassRoster","setAllStudentRawGrades","In class : " +name + "| No grade found for student ID :"+SID +" | Name : " +s.name+" | Defaulting grade to 0", MsgCodes.info1);
+				msgObj.dispMessage("myClassRoster","setAllStudentRawGrades","In class : " +name + "| No grade found for student ID :"+SID +" | Name : " +s.name+" | Defaulting grade to 0", MsgCodes.info1);
 				grade=0.0;
 			}
 			s.setTransformedGrade(transTypes[GB_rawGradeTypeIDX], this, grade);
@@ -373,7 +373,7 @@ class myFinalGradeRoster extends myClassRoster {
 			}			
 		} else {
 			myRandGen baseDistModel = baseDistModels.get(curDistModel);
-			if(null==baseDistModel) {	probExp.dispMessage("myFinalGradeRoster","calcTotalGrades","baseDistModel == null", MsgCodes.info1);	return;}
+			if(null==baseDistModel) {	msgObj.dispMessage("myFinalGradeRoster","calcTotalGrades","baseDistModel == null", MsgCodes.info1);	return;}
 			//baseDistModel.setFuncSummary(tmpSummary);
 			updateName();
 			for (myStudent s : students.values()) {
@@ -452,7 +452,7 @@ class myFinalGradeRoster extends myClassRoster {
 	//this is not used to set grades
 	@Override
 	public void setAllStudentRawGrades(HashMap<Integer, Double> classGrades) {
-		this.probExp.dispMessage("myFinalGradeRoster", "setAllStudentRawGrades", "Final Grades for students are not set via setAllStudentRawGrades method.  Final Grades must be calculated" ,MsgCodes.error2, true);
+		msgObj.dispMessage("myFinalGradeRoster", "setAllStudentRawGrades", "Final Grades for students are not set via setAllStudentRawGrades method.  Final Grades must be calculated" ,MsgCodes.error2, true);
 	}
 }//class myFinalGradeRoster
 
@@ -465,7 +465,7 @@ class myFinalGradeRoster extends myClassRoster {
 //	//this is not used to set grades
 //	@Override
 //	public void setAllStudentRawGrades(HashMap<Integer, Double> classGrades) {
-//		this.gradeExp.dispMessage("myUniformCountFinalGradeRoster", "setAllStudentRawGrades", "Final Grades for students are not set via setAllStudentRawGrades method.  Final Grades must be calculated" , true);
+//		this.gradeExp.msgObj.dispMessage("myUniformCountFinalGradeRoster", "setAllStudentRawGrades", "Final Grades for students are not set via setAllStudentRawGrades method.  Final Grades must be calculated" , true);
 //	}
 //}//class myUniformCountFinalGradeRoster
 

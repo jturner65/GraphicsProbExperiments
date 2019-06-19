@@ -3,7 +3,7 @@ package classGradeExperimentsPKG;
 import java.util.HashMap;
 
 import base_ProbTools.mySampleSet;
-import base_ProbTools.mySmplObs;
+import base_ProbTools.mySampleObs;
 import base_UI_Objects.my_procApplet;
 import base_Utils_Objects.myPointf;
 
@@ -13,7 +13,7 @@ import base_Utils_Objects.myPointf;
  * @author john
  *
  */
-public class myStudent implements Comparable<mySmplObs> {
+public class myStudent implements Comparable<mySampleObs> {
 	//short display name
 	public final String shrtName;
 	public final int ObjID;
@@ -26,13 +26,13 @@ public class myStudent implements Comparable<mySmplObs> {
 	protected static final float rad = 12.0f;
 	
 	//listing of raw grade following some distribution, and uniform grade, from result of mapping, keyed by mapping type
-	private HashMap<String,HashMap<mySampleSet, mySmplObs>> grades;
+	private HashMap<String,HashMap<mySampleSet, mySampleObs>> grades;
 	
 	public myStudent(my_procApplet _pa, String _name) {
 		ObjID = IDCnt++;  name=_name;
 		clr = _pa.getRndClr2(255);//should be brighter colors
 		shrtName = ""+(char)((ObjID % 26) + 65) + (ObjID / 26);
-		grades = new HashMap<String,HashMap<mySampleSet, mySmplObs>>();
+		grades = new HashMap<String,HashMap<mySampleSet, mySampleObs>>();
 	}//ctor
 
 	
@@ -40,18 +40,18 @@ public class myStudent implements Comparable<mySmplObs> {
 	public void clearTransformedGrades(mySampleSet _cls) {
 		for (String typ : grades.keySet()) {
 			if (typ.equals("raw")) {continue;}		//don't clear raw grades
-			HashMap<mySampleSet, mySmplObs> typeToClearForClasses = grades.get(typ);
+			HashMap<mySampleSet, mySampleObs> typeToClearForClasses = grades.get(typ);
 			typeToClearForClasses.put(_cls,null);
 		}
 	}//clearTransformedGrades
 	
 	//convert transformed uniform grade to span 0->1, using passed min and max values of observed uniform grades in a particular class
 	public void setScaledUniformGrade(mySampleSet _cls, String _transType, String _scaledUnitype,  double min, double max) {
-		HashMap<mySampleSet, mySmplObs> allClassesUniType = grades.get(_transType);
-		HashMap<mySampleSet, mySmplObs> allClassesScaledType = grades.get(_scaledUnitype);
-		mySmplObs uniObs = allClassesUniType.get(_cls);
-		mySmplObs sclObs = allClassesScaledType.get(_cls);
-		if(null==sclObs) {			sclObs = new mySmplObs (name+"|"+_cls.name,_cls, 0.0);}	
+		HashMap<mySampleSet, mySampleObs> allClassesUniType = grades.get(_transType);
+		HashMap<mySampleSet, mySampleObs> allClassesScaledType = grades.get(_scaledUnitype);
+		mySampleObs uniObs = allClassesUniType.get(_cls);
+		mySampleObs sclObs = allClassesScaledType.get(_cls);
+		if(null==sclObs) {			sclObs = new mySampleObs (name+"|"+_cls.name,_cls, 0.0);}	
 		double uniVal = uniObs.getValue(), diff = max - min, sclVal;
 		if(max - min == 0) {	sclVal = uniVal;} 
 		else {					sclVal = (uniVal - min)/diff; }
@@ -64,9 +64,9 @@ public class myStudent implements Comparable<mySmplObs> {
 	public void calcTotalGrade(mySampleSet _finalRoster) {
 		for (String typ : grades.keySet()) {		//for every type of grade, calculate total grade and put in new "class"
 			if(typ.equals(myClassRoster.transTypes[myClassRoster.GB_rawGradeTypeIDX])) {continue;}
-			HashMap<mySampleSet, mySmplObs> classValsForType = grades.get(typ);
-			mySmplObs finalObs = classValsForType.get(_finalRoster);
-			if(finalObs == null) {		finalObs = new mySmplObs (name+"|"+_finalRoster.name,_finalRoster, 0.0);}
+			HashMap<mySampleSet, mySampleObs> classValsForType = grades.get(typ);
+			mySampleObs finalObs = classValsForType.get(_finalRoster);
+			if(finalObs == null) {		finalObs = new mySampleObs (name+"|"+_finalRoster.name,_finalRoster, 0.0);}
 			double tot = 0, ttlGrade = 0;
 			int numClasses = 0;
 			for (mySampleSet _class : classValsForType.keySet()) {
@@ -84,7 +84,7 @@ public class myStudent implements Comparable<mySmplObs> {
 	public void disperseFromTotalGrade(mySampleSet _finalRoster) {
 		for (String typ : grades.keySet()) {		//for every type of grade, calculate total grade and put in new "class"
 			if(typ.equals(myClassRoster.transTypes[myClassRoster.GB_rawGradeTypeIDX])) {continue;}
-			HashMap<mySampleSet, mySmplObs> classValsForType = grades.get(typ);
+			HashMap<mySampleSet, mySampleObs> classValsForType = grades.get(typ);
 			//new value from moving student grade
 			double newAvg = classValsForType.get(_finalRoster).getValue();
 			double tot = 0, oldAverage = 0;
@@ -99,7 +99,7 @@ public class myStudent implements Comparable<mySmplObs> {
 			double ratio = newAvg/oldAverage;
 			for (mySampleSet _class : classValsForType.keySet()) {
 				if(_class.name.equals(_finalRoster.name)){continue;}
-				mySmplObs clsSample = classValsForType.get(_class);
+				mySampleObs clsSample = classValsForType.get(_class);
 				clsSample.setValue(clsSample.getValue() * ratio);
 				classValsForType.put(_class, clsSample);
 			}
@@ -108,13 +108,13 @@ public class myStudent implements Comparable<mySmplObs> {
 	
 	//set transformed values for student, keyed by type of transformation and class
 	public void setTransformedGrade(String _type, mySampleSet _class, double _gr) {	
-		HashMap<mySampleSet, mySmplObs> classValsForType = grades.get(_type);	
+		HashMap<mySampleSet, mySampleObs> classValsForType = grades.get(_type);	
 		if (classValsForType==null) {// no values for this class set yet - build new map of types for this class
-			classValsForType = new HashMap<mySampleSet, mySmplObs>(); 
+			classValsForType = new HashMap<mySampleSet, mySampleObs>(); 
 			grades.put(_type,classValsForType);
 		}		
-		mySmplObs clsSample = classValsForType.get(_class);
-		if(clsSample == null) {		clsSample = new mySmplObs (name+"|"+_class.name,_class, 0.0);}
+		mySampleObs clsSample = classValsForType.get(_class);
+		if(clsSample == null) {		clsSample = new mySampleObs (name+"|"+_class.name,_class, 0.0);}
 		clsSample.setClippedValue(_type,_gr, 0.0, 1.0);
 		classValsForType.put(_class,clsSample);
 	}//setTransformedGrade
@@ -122,17 +122,17 @@ public class myStudent implements Comparable<mySmplObs> {
 	public double getRawGrade(mySampleSet _class) {	return getTransformedGrade(myClassRoster.transTypes[myClassRoster.GB_rawGradeTypeIDX], _class);}
 	
 	public double getTransformedGrade(String _type,mySampleSet _class) {
-		HashMap<mySampleSet, mySmplObs> classValsForType = grades.get(_type);
+		HashMap<mySampleSet, mySampleObs> classValsForType = grades.get(_type);
 		if (classValsForType==null) {			return 0.0;	}// no values for this type for any classes set yet  - return 0		
-		mySmplObs sample = classValsForType.get(_class);			//no grade for this particular class for specified type
+		mySampleObs sample = classValsForType.get(_class);			//no grade for this particular class for specified type
 		if (sample==null) {						return 0.0;	}//student has no transformed grade for this class, default to 0	- db message here if desired	
 		return sample.getValue();
 	}//getTransformedGrade
 
 	public float getGradeXLoc(String _type,  mySampleSet _class, float ttlWidth) {
-		HashMap<mySampleSet, mySmplObs> classValsForType = grades.get(_type);
+		HashMap<mySampleSet, mySampleObs> classValsForType = grades.get(_type);
 		if (classValsForType==null) {				return 0.0f;		}// no values for this type for any classes set yet 	
-		mySmplObs sample = classValsForType.get(_class);			//grade for class for specified type
+		mySampleObs sample = classValsForType.get(_class);			//grade for class for specified type
 		if (sample==null) {							return 0.0f;	 	}//student has no transformed grade for this class	
 		return ttlWidth*sample.getFValue();
 	}//getGradeXLoc
@@ -140,9 +140,9 @@ public class myStudent implements Comparable<mySmplObs> {
 	//////////////////
 	// draw this student on line of width ttlWidth - expected to be at start of line when this is called
 	public void drawMeTransformed(my_procApplet pa, String _type, mySampleSet _class, int[] _drawClr, float ttlWidth) {	
-		HashMap<mySampleSet, mySmplObs> classValsForType = grades.get(_type);
+		HashMap<mySampleSet, mySampleObs> classValsForType = grades.get(_type);
 		if (classValsForType==null) {					return;	}// no values for this type for any classes set yet 		
-		mySmplObs smplVal = classValsForType.get(_class);			//grade for class for specified type
+		mySampleObs smplVal = classValsForType.get(_class);			//grade for class for specified type
 		if (smplVal==null) {								return;	}//student has no transformed grade for this class	
 		float gr = smplVal.getFValue();
 		smplVal.drawMe(pa, rad, _drawClr, new myPointf(ttlWidth*gr, 0.0f, 0.0f), shrtName +":"+ String.format("%.1f",gr * 100.0f));		
@@ -152,7 +152,7 @@ public class myStudent implements Comparable<mySmplObs> {
 	
 	//compare based on name first, then sort by ObjID
 	@Override
-	public int compareTo(mySmplObs othr) {
+	public int compareTo(mySampleObs othr) {
 		int res = this.name.toLowerCase().compareTo(othr.name.toLowerCase());
 		return (res == 0 ? Integer.compare(ObjID, othr.ObjID) : res);
 	}//compareTo

@@ -29,10 +29,10 @@ public class myGaussianFunc extends myRandVarFunc{
 	
     protected double gaussSclFact, meanStd, invStdSclFact;
     //summary object needs to exist before ctor is called
-	public myGaussianFunc(BaseProbExpMgr _expMgr, myIntegrator _quadSlvr, myProbSummary _summaryObj, String _name) {
-		super(_expMgr,_quadSlvr, _summaryObj, _name);	
+	public myGaussianFunc(myIntegrator _quadSlvr, myProbSummary _summaryObj, String _name) {
+		super(_quadSlvr, _summaryObj, _name);	
 	}//ctor
-	public myGaussianFunc(BaseProbExpMgr _expMgr, myIntegrator _quadSlvr, myProbSummary _summaryObj) {this(_expMgr, _quadSlvr,  _summaryObj, "Gaussian");}
+	public myGaussianFunc(myIntegrator _quadSlvr, myProbSummary _summaryObj) {this(_quadSlvr,  _summaryObj, "Gaussian");}
 	
 	//rebuild function with new summary object - establish instance-class specific requirements before rebuilding
 	@Override
@@ -81,7 +81,7 @@ public class myGaussianFunc extends myRandVarFunc{
 	@Override
 	public double integral_f(Double x1, Double x2) {
 		double res = 0;
-		if (!getFlag(quadSlvrSetIDX)) {	expMgr.dispMessage("myGaussianFunc", "integral_f", "No quadrature solver has been set, so cannot integrate f",MsgCodes.warning1,true);return res;}
+		if (!getFlag(quadSlvrSetIDX)) {	msgObj.dispMessage("myGaussianFunc", "integral_f", "No quadrature solver has been set, so cannot integrate f",MsgCodes.warning1,true);return res;}
 		//expMgr.dispMessage("myGaussianFunc", "integral_f", "Integrating for : x1 : "+x1 + " and  x2 : " + x2);
 		
 		//if x1 is -inf... gauss-legendre quad - use error function via gaussian quad - calculating cdf
@@ -108,7 +108,7 @@ public class myGaussianFunc extends myRandVarFunc{
 	@Override
 	public double integral_fStd(Double x1, Double x2) {
 		double res = 0;
-		if (!getFlag(quadSlvrSetIDX)) {	expMgr.dispMessage("myGaussianFunc", "integral_fStd", "No quadrature solver has been set, so cannot integrate f",MsgCodes.warning1,true);return res;}
+		if (!getFlag(quadSlvrSetIDX)) {	msgObj.dispMessage("myGaussianFunc", "integral_fStd", "No quadrature solver has been set, so cannot integrate f",MsgCodes.warning1,true);return res;}
 		//expMgr.dispMessage("myGaussianFunc", "integral_f", "Integrating for : x1 : "+x1 + " and  x2 : " + x2);		
 		//if x1 is -inf... gauss-legendre quad - use error function via gaussian quad - calculating cdf
 		if(x1==Double.NEGATIVE_INFINITY) {				//cdf of x2 == .5 + .5 * error function x2/sqrt(2) 
