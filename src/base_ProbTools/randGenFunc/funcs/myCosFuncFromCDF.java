@@ -33,8 +33,8 @@ public class myCosFuncFromCDF extends myRandVarFunc{
 		cdf1pSine = 0,
 		cdfXpSine = 1;
 	private static final int numSlvrFuncs = 2;
-	public myCosFuncFromCDF(BaseProbExpMgr _expMgr, myIntegrator _quadSlvr, myProbSummary _summaryObj) {
-		super(_expMgr, _quadSlvr, _summaryObj, "Cosine PDF");
+	public myCosFuncFromCDF(myIntegrator _quadSlvr, myProbSummary _summaryObj) {
+		super(_quadSlvr, _summaryObj, "Cosine PDF");
 		buildSlvrFuncs();		
 	}//ctor
 	
@@ -96,7 +96,7 @@ public class myCosFuncFromCDF extends myRandVarFunc{
 		Function func = slvrFuncs[cdf1pSine];
 		double lbnd = calcActualBnd(func,Theta,0.0),
 		ubnd = calcActualBnd(func,Theta,1.0);//CDFMap.get(CDFMap.lastKey());
-		expMgr.dispMessage("myCosFuncFromCDF","deriveCoeffs_onePSine","# vals : " +mapToUse.size() +" y2 : " + y2 + " x2 : " + x2 + " | Theta values : A : " + Theta.get(0) + " |B : " + Theta.get(1) + " |C : " + Theta.get(2) + " : bnds : act : [" +actLBnd +", "+actUBnd +"] | iter :  [" +lbnd +", "+ubnd +"]",MsgCodes.info1,true);				
+		msgObj.dispMessage("myCosFuncFromCDF","deriveCoeffs_onePSine","# vals : " +mapToUse.size() +" y2 : " + y2 + " x2 : " + x2 + " | Theta values : A : " + Theta.get(0) + " |B : " + Theta.get(1) + " |C : " + Theta.get(2) + " : bnds : act : [" +actLBnd +", "+actUBnd +"] | iter :  [" +lbnd +", "+ubnd +"]",MsgCodes.info1,true);				
 	}//deriveCoeffs
 	
 	//calculate residual values
@@ -160,7 +160,7 @@ public class myCosFuncFromCDF extends myRandVarFunc{
 		actLBnd = calcActualBnd(slvrFuncs[slvrIDX],Theta,0.0);
 		actUBnd = calcActualBnd(slvrFuncs[slvrIDX],Theta,1.0);//CDFMap.get(CDFMap.lastKey());
 		if(actLBnd > actUBnd) {actLBnd -= twoPi/Theta.get(1);}
-		expMgr.dispMessage("myCosFuncFromCDF","deriveCoeffs","# vals : " +mapToUse.size() +" | Final Iters :  " + iter + " Theta values : A : " + Theta.get(0) + " |B : " + Theta.get(1) + " |C : " + Theta.get(2)+" | lbnd : " + actLBnd + " | ubnd : " + actUBnd,MsgCodes.info1,true);	
+		msgObj.dispMessage("myCosFuncFromCDF","deriveCoeffs","# vals : " +mapToUse.size() +" | Final Iters :  " + iter + " Theta values : A : " + Theta.get(0) + " |B : " + Theta.get(1) + " |C : " + Theta.get(2)+" | lbnd : " + actLBnd + " | ubnd : " + actUBnd,MsgCodes.info1,true);	
 			
 	}//deriveCoeffs
 	
@@ -259,7 +259,7 @@ public class myCosFuncFromCDF extends myRandVarFunc{
 			integrals[fIntegIDX] = x -> {double a = Theta.get(0), b = Theta.get(1), c = Theta.get(2); return (a * (Math.sin(b * (x[1] - c)) - Math.sin(b * (x[0] - c))) );};
 			
 		}
-		expMgr.dispMessage("myCosFuncFromCDF","buildFuncs","LBnd : " + actLBnd + " UBnd : " + actUBnd,MsgCodes.info1,true);	
+		msgObj.dispMessage("myCosFuncFromCDF","buildFuncs","LBnd : " + actLBnd + " UBnd : " + actUBnd,MsgCodes.info1,true);	
 	}//
 
 	@Override

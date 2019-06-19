@@ -15,7 +15,7 @@ import base_Utils_Objects.*;
 public abstract class mySampleSet implements Comparable<mySampleSet> {
 	public static my_procApplet pa;
 	//experiment owning/using this sample set
-	public BaseProbExpMgr probExp;
+	public static MessageObject msgObj;
 	public final int ObjID;
 	private static int IDCnt = 0;
 	//sample set name
@@ -25,8 +25,9 @@ public abstract class mySampleSet implements Comparable<mySampleSet> {
 	//currently used dist model
 	protected String curDistModel;
 
-	public mySampleSet(my_procApplet _pa, BaseProbExpMgr _probExp, String _name) {
-		pa =_pa;probExp=_probExp;
+	public mySampleSet(my_procApplet _pa, String _name) {
+		pa =_pa;
+		msgObj = MessageObject.buildMe();
 		ObjID = IDCnt++;  name=_name;	
 		curDistModel = "";
 		baseDistModels = new HashMap<String, myRandGen>();
@@ -41,7 +42,7 @@ public abstract class mySampleSet implements Comparable<mySampleSet> {
 	
 	public void setCurDistModel(String desMdlName) {
 		if(null==baseDistModels.get(desMdlName)) {
-			probExp.dispMessage("myClassRoster", "setCurDistModel", "Desired base dist model : " + desMdlName+" has not been set/is null.  Aborting",MsgCodes.warning1, true);	return;
+			msgObj.dispMessage("myClassRoster", "setCurDistModel", "Desired base dist model : " + desMdlName+" has not been set/is null.  Aborting",MsgCodes.warning1, true);	return;
 		}
 		curDistModel = desMdlName;
 	}
@@ -67,12 +68,12 @@ public abstract class mySampleSet implements Comparable<mySampleSet> {
 	
 	public void evalAndPlotFuncRes(int numVals, double low, double high, int funcType) {
 		myRandGen baseDistModel = baseDistModels.get(curDistModel);
-		if(baseDistModel == null) {			probExp.dispMessage("myClassRoster", "evalAndPlotFuncRes", "curDistModel has not been set/is null.  Aborting",MsgCodes.warning1, true);	return;	}
+		if(baseDistModel == null) {			msgObj.dispMessage("myClassRoster", "evalAndPlotFuncRes", "curDistModel has not been set/is null.  Aborting",MsgCodes.warning1, true);	return;	}
 		baseDistModel.calcFuncValsForDisp(numVals, low, high, funcType);		
 	}
 	public void evalAndPlotHistRes(int numVals, int numBuckets) {
 		myRandGen baseDistModel = baseDistModels.get(curDistModel);
-		if(baseDistModel == null) {			probExp.dispMessage("myClassRoster", "evalAndPlotHistRes", "curDistModel has not been set/is null.  Aborting",MsgCodes.warning1, true);	return;	}		
+		if(baseDistModel == null) {			msgObj.dispMessage("myClassRoster", "evalAndPlotHistRes", "curDistModel has not been set/is null.  Aborting",MsgCodes.warning1, true);	return;	}		
 		baseDistModel.calcHistValsForDisp(numVals, numBuckets);
 	}
 	

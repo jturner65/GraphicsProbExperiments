@@ -44,6 +44,8 @@ public abstract class BaseBarMenu extends myDispWindow{
 			"Reverse Drawn Trajectory"
 			};
 	
+	protected static final float xLblOffsetMult = .02f;
+	
 	public int[][] pFlagColors;
 	private final List<Integer> mainFlagsToShow;
 	private final int numMainFlagsToShow;
@@ -168,8 +170,9 @@ public abstract class BaseBarMenu extends myDispWindow{
 		//idx 0 is treat as int, idx 1 is obj has list vals, idx 2 is object gets sent to windows
 		guiBoolVals = new boolean [][]{{}};
 		
-		minBtnClkY = (numMainFlagsToShow+3) * yOff + clkFlgsStY;										//start of buttons from under boolean flags	
-		initUIClickCoords(rectDim[0] + .02f * rectDim[2],minBtnClkY + (guiBtnRowNames.length * 2.0f) * yOff,rectDim[0] + .99f * rectDim[2],0);//last val over-written by actual value in buildGuiObjs
+		minBtnClkY = (numMainFlagsToShow+3) * yOff + clkFlgsStY;										//start of buttons from under boolean flags
+		//all ui ojbects for all windows will follow this format and share the x[0] value
+		initUIClickCoords(rectDim[0] + xLblOffsetMult * rectDim[2],minBtnClkY + (guiBtnRowNames.length * 2.0f) * yOff,rectDim[0] + .99f * rectDim[2],0);//last val over-written by actual value in buildGuiObjs
 		guiObjs = new myGUIObj[numGUIObjs];			//list of modifiable gui objects
 		if(0!=numGUIObjs){			buildGUIObjs(guiObjNames,guiStVals,guiMinMaxModVals,guiBoolVals, new double[]{xOff,yOff});		} 
 		else {			uiClkCoords[3] = uiClkCoords[1];	}	//set y start values
@@ -374,6 +377,8 @@ public abstract class BaseBarMenu extends myDispWindow{
 	protected void showMe() {}
 	@Override
 	protected void resizeMe(float scale) {}	
+	@Override
+	protected void setCustMenuBtnNames() {}
 	@Override
 	protected boolean simMe(float modAmtSec) {return false;}
 	@Override

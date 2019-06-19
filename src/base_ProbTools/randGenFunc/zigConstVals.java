@@ -69,14 +69,14 @@ public class zigConstVals{
 	
 	//function described in zig paper to find appropriate r value - need to find r to make this funct == 0 
 	private double[] z_R(double rVal) {
-		//func.expMgr.dispMessage("myGaussianFunc", "z_R", "Starting z_R with: rVal : " + rVal,true);
+		//func.msgObj.dispMessage("myGaussianFunc", "z_R", "Starting z_R with: rVal : " + rVal,true);
 		//this gives the volume at the tail - rectangle @ r + tail from r to end		
 		double funcAtR = func.fStd(rVal);  							
 		//vol = rF(r) + integral(r->+inf) (f_zig(x))
 		double integralRes = func.integral_fStd(rVal, Double.POSITIVE_INFINITY);
 		double vol = rVal* funcAtR + integralRes;//Q func == 1 - CDF
 		if (vol < 0) {
-			func.expMgr.dispMessage("zigConstVals", "z_R", func.getShortDesc()+ "| Initial Ziggurat R val chosen to be too high, causing integration to yield a negative volume due to error",MsgCodes.error1,true);
+			func.msgObj.dispMessage("zigConstVals", "z_R", func.getShortDesc()+ "| Initial Ziggurat R val chosen to be too high, causing integration to yield a negative volume due to error",MsgCodes.error1,true);
 			return new double[] {-rVal*9, 0};
 		}
 		//x values and functional eval of x vals
@@ -91,10 +91,10 @@ public class zigConstVals{
 			xVals[i]=func.f_invStd(eval);
 			fXVals[i]=func.fStd(xVals[i]);
 			retVal = vol - xVals[i+1] + xVals[i+1]*fXVals[i+1];//area vol - vol of top block
-			//func.expMgr.dispMessage("myGaussianFunc", "z_R", "Inverse @ i=="+i+" =  " + xVals[i]  + " f(x[i]) : " + fXVals[i] + " eval : " + eval + " Vol : " + (xVals[i]* fXVals[i]),true);
+			//func.msgObj.dispMessage("myGaussianFunc", "z_R", "Inverse @ i=="+i+" =  " + xVals[i]  + " f(x[i]) : " + fXVals[i] + " eval : " + eval + " Vol : " + (xVals[i]* fXVals[i]),true);
 		}
 		//double retVal = vol - xVals[1] - xVals[1]*fXVals[1];
-		//func.expMgr.dispMessage("myGaussianFunc", "z_R", "End : Passed rval : " + rVal + " f(rVal) : " + funcAtR + " Vol : " + vol + " xVals[1] :"+ xVals[1]+ " F(x[1]) :"+fXVals[1] + " Return val : " + retVal,true);
+		//func.msgObj.dispMessage("myGaussianFunc", "z_R", "End : Passed rval : " + rVal + " f(rVal) : " + funcAtR + " Vol : " + vol + " xVals[1] :"+ xVals[1]+ " F(x[1]) :"+fXVals[1] + " Return val : " + retVal,true);
 		return new double[] {retVal, vol};
 	}//z_R
 	   
@@ -117,21 +117,21 @@ public class zigConstVals{
 			else {//modify guess appropriately							
 				rValGuess += zValAra[0] * learnRate;
 				curLearnRate = learnRate;
-				//func.expMgr.dispMessage("myRandVarFunc", "calcRVal", "Name : " + func.name+ "| For " + Nrect + " rectangles, @ iter : " + iter + " rVal : " + String.format("%3.18f", rValGuess)+ "  oldGuess : " + String.format("%3.18f", oldGuess)+ " Gives zVal : " + String.format("%3.18f", zValAra[0]) + " Vol : " + String.format("%3.18f", zValAra[1]),true);
+				//func.msgObj.dispMessage("myRandVarFunc", "calcRVal", "Name : " + func.name+ "| For " + Nrect + " rectangles, @ iter : " + iter + " rVal : " + String.format("%3.18f", rValGuess)+ "  oldGuess : " + String.format("%3.18f", oldGuess)+ " Gives zVal : " + String.format("%3.18f", zValAra[0]) + " Vol : " + String.format("%3.18f", zValAra[1]),true);
 				while ((oldGuess < rValGuess) && (curLearnRate > minLearnRate)) {
-					//func.expMgr.dispMessage("myRandVarFunc", "calcRVal", "\tFlip : curLearnRate : " + curLearnRate + " new learn rate : " + curLearnRate/2.0);
+					//func.msgObj.dispMessage("myRandVarFunc", "calcRVal", "\tFlip : curLearnRate : " + curLearnRate + " new learn rate : " + curLearnRate/2.0);
 					curLearnRate /= 2.0;
 					rValGuess -= zValAra[0] * curLearnRate;	//change mod to 1/2 last mod					
 				}				
 			}//not close enough, modifying guess			
-			//func.expMgr.dispMessage("myRandVarFunc", "calcRVal", "Name : " + func.name+ "| For " + Nrect + " rectangles, @ iter : " + iter + " rVal : " + String.format("%3.18f", rValGuess)+ " Gives zVal : " + String.format("%3.18f", zValAra[0]) + " Vol : " + String.format("%3.18f", zValAra[1]),true);
+			//func.msgObj.dispMessage("myRandVarFunc", "calcRVal", "Name : " + func.name+ "| For " + Nrect + " rectangles, @ iter : " + iter + " rVal : " + String.format("%3.18f", rValGuess)+ " Gives zVal : " + String.format("%3.18f", zValAra[0]) + " Vol : " + String.format("%3.18f", zValAra[1]),true);
 		}//while
 		double[] res = new double[2];
 		if(done) {
 			res[0] = rValGuess;
 			res[1] = zValAra[1];
 		}
-		//func.expMgr.dispMessage("zigConstVals", "calcRValAndVol",  func.getShortDesc()+ " | Done w/ " + Nrect + " rects, @ iter : " + iter + " rVal : " + String.format("%3.18f", rValGuess)+ " Gives Vol : " + String.format("%3.18f", zValAra[1]),true);
+		//func.msgObj.dispMessage("zigConstVals", "calcRValAndVol",  func.getShortDesc()+ " | Done w/ " + Nrect + " rects, @ iter : " + iter + " rVal : " + String.format("%3.18f", rValGuess)+ " Gives Vol : " + String.format("%3.18f", zValAra[1]),true);
 		return res;
 	}//calcRVal
 	

@@ -99,8 +99,8 @@ public class Grade2DWindow extends myDispWindow {
 	//custom debug/function ui button names -empty will do nothing
 	public String[][] menuBtnNames = new String[][] {	//each must have literals for every button defined in side bar menu, or ignored
 		{},
-		{"Func 01", "Func 02","Func 03"},				//row 1
-		{"Test Inv Fl", "Test Fleish", "Tst Fl Range", "Test COS"},	//row 2
+		{"Func 01", "Func 02","Func 03","Func 04","Func 05"},				//row 1
+		{"Test Inv Fl", "Test Fleish", "Tst Fl Range", "Test COS","Func 05"},	//row 2
 		{"Test Zig Seq","DBG 2","DBG 3","DBG 4","DBG 5"}	
 	};
 
@@ -521,7 +521,8 @@ public class Grade2DWindow extends myDispWindow {
 		//things to do when swapping this window out for another window - release objects that take up a lot of memory, for example.
 	}
 	//modify menu buttons to display whether using CSV or SQL to access raw data
-	private void setCustMenuBtnNames() {
+	@Override
+	protected void setCustMenuBtnNames() {
 		//menuBtnNames[mySideBarMenu.btnAuxFunc1Idx][loadRawBtnIDX]=menuLdRawFuncBtnNames[(rawDataSource % menuLdRawFuncBtnNames.length) ];
 		pa.setAllMenuBtnNames(menuBtnNames);	
 	}

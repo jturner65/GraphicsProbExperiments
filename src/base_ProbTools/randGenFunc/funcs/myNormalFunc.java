@@ -13,8 +13,8 @@ public class myNormalFunc extends myGaussianFunc{
 	//////////////////////////////
 	//zig algorithm fields for scaled normal - all myRandVarFuncs need their own impelemtnations of this map, independent of base class
 	//////////////////////////////	
-	public myNormalFunc(BaseProbExpMgr _expMgr, myIntegrator _quadSlvr) {
-		super(_expMgr,_quadSlvr, new myProbSummary(new double[] {0.0, 1.0},2), "Normal");			
+	public myNormalFunc(myIntegrator _quadSlvr) {
+		super(_quadSlvr, new myProbSummary(new double[] {0.0, 1.0},2), "Normal");			
 	}//ctor	
 	
 	@Override

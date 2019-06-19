@@ -296,7 +296,8 @@ public class RayTracer2DWin extends myDispWindow {
 	
 	
 	//modify menu buttons to display whether using CSV or SQL to access raw data
-	private void setCustMenuBtnNames() {
+	@Override
+	protected void setCustMenuBtnNames() {
 		//menuBtnNames[mySideBarMenu.btnAuxFunc1Idx][loadRawBtnIDX]=menuLdRawFuncBtnNames[(rawDataSource % menuLdRawFuncBtnNames.length) ];
 		pa.setAllMenuBtnNames(menuBtnNames);	
 	}

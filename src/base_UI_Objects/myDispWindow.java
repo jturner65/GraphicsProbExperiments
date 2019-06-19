@@ -1321,6 +1321,8 @@ public abstract class myDispWindow {
 	protected abstract void endAltKeyI();
 	protected abstract void endCntlKeyI();
 	
+	protected abstract void setCustMenuBtnNames();
+	
 	//ui init routines
 	protected abstract void setupGUIObjsAras();	
 	protected abstract void setUIWinVals(int UIidx);		//set prog values from ui

@@ -18,7 +18,7 @@ public class myFleishUniVarRandGen extends myRandGen{
 	public myFleishUniVarRandGen(myRandVarFunc _func, String _name) {
 		super(_func, _name);
 		//need to build a source of normal random vars
-		zigNormGen = new myZigRandGen(new myNormalFunc(func.expMgr, func.getQuadSlvr()), 256, "Ziggurat Algorithm");		
+		zigNormGen = new myZigRandGen(new myNormalFunc(func.getQuadSlvr()), 256, "Ziggurat Algorithm");		
 	}//ctor
 	
 	//if summary object is changed, new fleishman polynomial values need to be synthesized - this is done already in calling function 

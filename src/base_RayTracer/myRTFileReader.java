@@ -25,7 +25,6 @@ public class myRTFileReader {
 		textureDir = _txtrDirs;		
 	}
 	
-	
 	//passed scene is for when called recursively - is null on first time in, passes scene to be used otherwise
 	public myScene readRTFile(TreeMap<String, myScene> loadedScenes, String fileName, myScene _scene, int _numCols, int _numRows) {		  
 		//build individual scene for each file		
