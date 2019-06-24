@@ -22,8 +22,6 @@ public class GraphProbExpMain extends my_procApplet {
 	//project-specific variables
 	public String prjNmLong = "Testbed for Graphical Probability Experiments", prjNmShrt = "GraphProbExp";
 	
-	//data in files created by SOM_MAP separated by spaces
-	public String SOM_FileToken = " ", csvFileToken = "\\s*,\\s*";
 	//platform independent path separator
 	public String dirSep = File.separator;
 	//don't use sphere background for this program
@@ -57,10 +55,22 @@ public class GraphProbExpMain extends my_procApplet {
 	//do not modify this
 	public static void main(String[] passedArgs) {		
 		String[] appletArgs = new String[] { "graphProbExp_PKG.GraphProbExpMain" };
-		    if (passedArgs != null) {PApplet.main(PApplet.concat(appletArgs, passedArgs)); } else {PApplet.main(appletArgs);		    }
+		my_procApplet.main(appletArgs, passedArgs);
 	}//main
-	public void settings(){	size((int)(displayWidth*.95f), (int)(displayHeight*.92f),P3D);	noSmooth();}		
-	
+	/**
+	 * This will return the desired dimensions of the application, to be called in setup
+	 * @return int[] { desired application window width, desired application window height}
+	 */
+	protected int[] getDesiredAppDims() {return new int[] {(int)(getDisplayWidth()*.95f), (int)(getDisplayHeight()*.92f)};}
+
+	@Override
+	protected String getPrjNmLong() {return prjNmLong;}
+	@Override
+	protected String getPrjNmShrt() {return prjNmShrt;}
+	/**
+	 * return the default background color set in the calling application
+	 * @return
+	 */
 	@Override
 	protected void setup_indiv() {	if(useSphereBKGnd) {			setBkgndSphere();	} else {		setBkgrnd();	}}// setup
 	
@@ -75,9 +85,11 @@ public class GraphProbExpMain extends my_procApplet {
 		//TODO move to myDispWindow
 		background(bground[0],bground[1],bground[2],bground[3]);		
 		shape(bgrndSphere);	
+		sphereDetail(10);
 	}
 	
-	public void setBkgrnd(){
+	@Override
+	protected void setBkgrnd(){
 		background(bground[0],bground[1],bground[2],bground[3]);		
 	}//setBkgrnd
 	
@@ -118,7 +130,8 @@ public class GraphProbExpMain extends my_procApplet {
 		//int _winIDX, 
 		//float[] _dimOpen, float[] _dimClosed  : dimensions opened or closed
 		//String _ttl, String _desc 			: window title and description
-		//boolean[] _dispFlags 					: flags controlling display of window :  idxs : 0 : canDrawInWin; 1 : canShow3dbox; 2 : canMoveView; 3 : dispWinIs3d
+		//boolean[] _dispFlags 					: 
+		//   flags controlling display of window :  idxs : 0 : canDrawInWin; 1 : canShow3dbox; 2 : canMoveView; 3 : dispWinIs3d
 		//int[] _fill, int[] _strk, 			: window fill and stroke colors
 		//int _trajFill, int _trajStrk)			: trajectory fill and stroke colors, if these objects can be drawn in window (used as alt color otherwise)
 
@@ -159,53 +172,34 @@ public class GraphProbExpMain extends my_procApplet {
 	
 	@Override
 	protected void initVisProg_Indiv() {}	
-	
-	@Override
-	//main draw loop
-	public void draw(){	
-		//private draw routine
-		_drawPriv();
-		surface.setTitle(prjNmLong + " : " + (int)(frameRate) + " fps|cyc curFocusWin : " + curFocusWin);
-	}//draw
 
-	//handle pressing keys 0-9
-	//keyVal is actual value of key (screen character as int)
-	//keyPressed is actual key pressed (shift-1 gives keyVal 33 ('!') but keyPressed 49 ('1')) 
-	//need to subtract 48 from keyVal or keyPressed to get actual number
-	private void handleNumberKeyPress(int keyVal, int keyPressed) {
-		//use key if want character 
-		if (key == '0') {
-			setVisFlag(showUIMenu,true);
-		} 
-		
-	}//handleNumberKeyPress
-	
+
 	//////////////////////////////////////////////////////
 	/// user interaction
 	//////////////////////////////////////////////////////	
 	//key is key pressed
 	//keycode is actual physical key pressed == key if shift/alt/cntl not pressed.,so shift-1 gives key 33 ('!') but keycode 49 ('1')
-	public void keyPressed(){
-		if(key==CODED) {
-			if(!shiftIsPressed()){setShiftPressed(keyCode  == 16);} //16 == KeyEvent.VK_SHIFT
-			if(!cntlIsPressed()){setCntlPressed(keyCode  == 17);}//17 == KeyEvent.VK_CONTROL			
-			if(!altIsPressed()){setAltPressed(keyCode  == 18);}//18 == KeyEvent.VK_ALT
-		} else {	
-			//handle pressing keys 0-9 (with or without shift,alt, cntl)
-			if ((keyCode>=48) && (keyCode <=57)) { handleNumberKeyPress(((int)key),keyCode);}
-			else {					//handle all other (non-numeric) keys
-				switch (key){
-					case ' ' : {toggleSimIsRunning(); break;}							//run sim
-					case 'f' : {dispWinFrames[curFocusWin].setInitCamView();break;}					//reset camera
-					case 'a' :
-					case 'A' : {toggleSaveAnim();break;}						//start/stop saving every frame for making into animation
-					case 's' :
-					case 'S' : {save(getScreenShotSaveName(prjNmShrt));break;}//save picture of current image			
-					default : {	}
-				}//switch	
-			}
-		}
-	}//keyPressed()
+
+
+	/**
+	 * handle non-numeric keys being pressed
+	 * @param keyVal character of key having been pressed
+	 * @param keyCode actual code of key having been pressed
+	 */
+	@Override
+	protected void handleKeyPress(char keyVal, int keyCode) {
+		switch (keyVal){
+			case ' ' : {toggleSimIsRunning(); break;}							//run sim
+			case 'f' : {dispWinFrames[curFocusWin].setInitCamView();break;}					//reset camera
+			case 'a' :
+			case 'A' : {toggleSaveAnim();break;}						//start/stop saving every frame for making into animation
+			case 's' :
+			case 'S' : {saveSS(prjNmShrt);break;}//save picture of current image			
+			default : {	}
+		}//switch	
+			
+	}//handleNonNumberKeyPress
+
 	
 	@Override
 	//gives multiplier based on whether shift, alt or cntl (or any combo) is pressed
@@ -220,13 +214,13 @@ public class GraphProbExpMain extends my_procApplet {
 	
 	@Override
 	public void handleShowWin(int btn, int val, boolean callFlags){//display specific windows - multi-select/ always on if sel
-	if(!callFlags){//called from setflags - only sets button state in UI to avoid infinite loop
-		setMenuBtnState(mySideBarMenu.btnShowWinIdx,btn, val);
-	} else {//called from clicking on buttons in UI
-		//val is btn state before transition 
-		boolean bVal = (val == 1?  false : true);
-		//each entry in this array should correspond to a clickable window
-		setVisFlag(winFlagsXOR[btn], bVal);
+		if(!callFlags){//called from setflags - only sets button state in UI to avoid infinite loop
+			setMenuBtnState(mySideBarMenu.btnShowWinIdx,btn, val);
+		} else {//called from clicking on buttons in UI
+			//val is btn state before transition 
+			boolean bVal = (val == 1?  false : true);
+			//each entry in this array should correspond to a clickable window
+			setVisFlag(winFlagsXOR[btn], bVal);
 		}
 	}//handleShowWin
 	
@@ -278,5 +272,17 @@ public class GraphProbExpMain extends my_procApplet {
 		//doesn't perform any other ops - to prevent 
 	}
 	
+	
+	/**
+	 * any instancing-class-specific colors - colorVal set to be higher than IRenderInterface.gui_OffWhite
+	 * @param colorVal
+	 * @param alpha
+	 * @return
+	 */
+	@Override
+	protected int[] getClr_Custom(int colorVal, int alpha) {
+		// TODO Auto-generated method stub
+		return new int[] {255,255,255,alpha};
+	}
 
 }//class GraphProbExpMain

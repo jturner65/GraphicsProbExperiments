@@ -710,9 +710,6 @@ public class Grade2DWindow extends myDispWindow {
 	protected void initDrwnTrajIndiv() {}
 
 	@Override
-	protected myPoint getMsePtAs3DPt(myPoint mseLoc) {
-		// TODO Auto-generated method stub
-		return null;
-	}
+	protected myPoint getMsePtAs3DPt(myPoint mseLoc){return new myPoint(mseLoc.x,mseLoc.y,0);}
 
 }
