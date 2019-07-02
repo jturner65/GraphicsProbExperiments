@@ -58,9 +58,6 @@ public class Main3DWindow extends myDispWindow {
 
 	public Main3DWindow(my_procApplet _p, String _n, int _flagIdx, int[] fc, int[] sc, float[] rd, float[] rdClosed, String _winTxt, boolean _canDrawTraj) {
 		super(_p, _n, _flagIdx, fc, sc, rd, rdClosed, _winTxt, _canDrawTraj);
-		float stY = rectDim[1]+rectDim[3]-4*yOff,stYFlags = stY + 2*yOff;
-		trajFillClrCnst = new int[] {0,120,120,255};
-		trajStrkClrCnst = new int[] {0,255,255,255};
 		super.initThisWin(_canDrawTraj, true, false);
 	}//DancingBallWin
 	
@@ -135,6 +132,8 @@ public class Main3DWindow extends myDispWindow {
 	//initialize structure to hold modifiable menu regions
 	@Override
 	protected void setupGUIObjsAras(){	
+		//for list select objs
+		TreeMap<Integer, String[]> tmpListObjVals = new TreeMap<Integer, String[]>();
 		//pa.outStr2Scr("setupGUIObjsAras start");
 		guiMinMaxModVals = new double [][]{
 			{1.0f,10000.0f,1.0f},						//time scaling - 1 is real time, 1000 is 1000x speedup           		gIDX_FrameTimeScale 
@@ -165,7 +164,7 @@ public class Main3DWindow extends myDispWindow {
 		//since horizontal row of UI comps, uiClkCoords[2] will be set in buildGUIObjs		
 		guiObjs = new myGUIObj[numGUIObjs];			//list of modifiable gui objects
 		if(numGUIObjs > 0){
-			buildGUIObjs(guiObjNames,guiStVals,guiMinMaxModVals,guiBoolVals,new double[]{xOff,yOff});			//builds a horizontal list of UI comps
+			buildGUIObjs(guiObjNames,guiStVals,guiMinMaxModVals,guiBoolVals,new double[]{xOff,yOff},tmpListObjVals);			//builds a horizontal list of UI comps
 		}
 		
 //		setupGUI_XtraObjs();
@@ -204,16 +203,6 @@ public class Main3DWindow extends myDispWindow {
 			}
 		}
 	}
-	//if any ui values have a string behind them for display
-	@Override
-	protected String getUIListValStr(int UIidx, int validx) {			
-		switch(UIidx){
-			//case gIDX_UAVTeamSize : {return uavTeamSizeVals[(validx % uavTeamSizeVals.length)];}
-			default : {break;}
-		}
-		return "";
-	}
-	
 	@Override
 	public void initDrwnTrajIndiv(){}
 	

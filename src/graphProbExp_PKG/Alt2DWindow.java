@@ -51,9 +51,6 @@ public class Alt2DWindow extends myDispWindow {
 	
 	public Alt2DWindow(my_procApplet _p, String _n, int _flagIdx, int[] fc, int[] sc, float[] rd, float[] rdClosed,String _winTxt, boolean _canDrawTraj) {
 		super(_p, _n, _flagIdx, fc, sc, rd, rdClosed, _winTxt, _canDrawTraj);
-		float stY = rectDim[1]+rectDim[3]-4*yOff,stYFlags = stY + 2*yOff;
-		trajFillClrCnst = new int[] {0,120,120,255};
-		trajStrkClrCnst = new int[] {0,255,255,255};
 		super.initThisWin(_canDrawTraj, true, false);
 	}
 			
@@ -107,6 +104,8 @@ public class Alt2DWindow extends myDispWindow {
 	//initialize structure to hold modifiable menu regions
 	@Override
 	protected void setupGUIObjsAras(){	
+		TreeMap<Integer, String[]> tmpListObjVals = new TreeMap<Integer, String[]>();
+		
 		//pa.outStr2Scr("setupGUIObjsAras start");
 		guiMinMaxModVals = new double [][]{
 			{1,100,1},						//temp
@@ -131,7 +130,7 @@ public class Alt2DWindow extends myDispWindow {
 		//since horizontal row of UI comps, uiClkCoords[2] will be set in buildGUIObjs		
 		guiObjs = new myGUIObj[numGUIObjs];			//list of modifiable gui objects
 		if(numGUIObjs > 0){
-			buildGUIObjs(guiObjNames,guiStVals,guiMinMaxModVals,guiBoolVals,new double[]{xOff,yOff});			//builds a horizontal list of UI comps
+			buildGUIObjs(guiObjNames,guiStVals,guiMinMaxModVals,guiBoolVals,new double[]{xOff,yOff}, tmpListObjVals);			//builds a horizontal list of UI comps
 		}
 //		setupGUI_XtraObjs();
 	}//setupGUIObjsAras
@@ -150,15 +149,6 @@ public class Alt2DWindow extends myDispWindow {
 		}//if val is different
 	}//setUIWinVals
 	
-	//handle list ui components - return display value for list-based UI object
-	@Override
-	protected String getUIListValStr(int UIidx, int validx) {
-		switch(UIidx){
-		default : {break;}
-	}
-	return "";	}
-
-
 	//check whether the mouse is over a legitimate map location
 	public boolean chkMouseClick2D(int mouseX, int mouseY, int btn){		
 		return false;

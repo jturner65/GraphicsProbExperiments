@@ -114,9 +114,6 @@ public class Grade2DWindow extends myDispWindow {
 	
 	public Grade2DWindow(my_procApplet _p, String _n, int _flagIdx, int[] fc, int[] sc, float[] rd, float[] rdClosed,String _winTxt, boolean _canDrawTraj) {
 		super(_p, _n, _flagIdx, fc, sc, rd, rdClosed, _winTxt, _canDrawTraj);
-		float stY = rectDim[1]+rectDim[3]-4*yOff,stYFlags = stY + 2*yOff;
-		trajFillClrCnst = new int[] {0,120,120,255};
-		trajStrkClrCnst = new int[] {0,255,255,255};
 		super.initThisWin(_canDrawTraj, true, false);
 	}//ctor
 			
@@ -261,12 +258,18 @@ public class Grade2DWindow extends myDispWindow {
 	//initialize structure to hold modifiable menu regions
 	@Override
 	protected void setupGUIObjsAras(){	
-		//pa.outStr2Scr("setupGUIObjsAras start");
+		TreeMap<Integer, String[]> tmpListObjVals = new TreeMap<Integer, String[]>();
+		
+		tmpListObjVals.put(gIDX_FuncTypeEval,gIDX_FuncTypeEvalList);
+		tmpListObjVals.put(gIDX_ExpDistType,gIDX_ExpDistTypeList);
+
+		
+			//pa.outStr2Scr("setupGUIObjsAras start");
 		guiMinMaxModVals = new double [][]{
 			{2,100,1},						//# students
 			{1,9,1},						//# classes
-			{0,gIDX_ExpDistTypeList.length-1,1},
-			{0,gIDX_FuncTypeEvalList.length-1,1}, //gIDX_FuncTypeEval	
+			{0,tmpListObjVals.get(gIDX_ExpDistType).length-1,1},//gIDX_ExpDistType
+			{0,tmpListObjVals.get(gIDX_FuncTypeEval).length-1,1}, //gIDX_FuncTypeEval	
 			{-10.0, 10.0,.01},				//gIDX_FuncEvalLower
 			{-10.0, 10.0,.01},				//gIDX_FuncEvalHigher
 			{10000,1000000,1000},           // gIDX_FuncEvalNumVals 
@@ -332,7 +335,7 @@ public class Grade2DWindow extends myDispWindow {
 		//since horizontal row of UI comps, uiClkCoords[2] will be set in buildGUIObjs		
 		guiObjs = new myGUIObj[numGUIObjs];			//list of modifiable gui objects
 		if(numGUIObjs > 0){
-			buildGUIObjs(guiObjNames,guiStVals,guiMinMaxModVals,guiBoolVals,new double[]{xOff,yOff});			//builds a horizontal list of UI comps
+			buildGUIObjs(guiObjNames,guiStVals,guiMinMaxModVals,guiBoolVals,new double[]{xOff,yOff},tmpListObjVals);			//builds a horizontal list of UI comps
 		}
 //		setupGUI_XtraObjs();
 	}//setupGUIObjsAras
@@ -444,17 +447,6 @@ public class Grade2DWindow extends myDispWindow {
 			gradeAvgExperiment.buildRandGradeExp(flags, vals, expTypeIDX,_finalGradeMappings,_finalGradeDescs);
 		}
 	}//setGradeExp
-	
-	//handle list ui components - return display value for list-based UI object
-	@Override
-	protected String getUIListValStr(int UIidx, int validx) {
-		switch(UIidx){
-		case gIDX_FuncTypeEval : {return gIDX_FuncTypeEvalList[validx % gIDX_FuncTypeEvalList.length];}
-		case gIDX_ExpDistType : {return gIDX_ExpDistTypeList[validx % gIDX_ExpDistTypeList.length];}
-		default : {break;}
-	}
-	return "";	}
-
 
 	//check whether the mouse is over a legitimate map location
 	public boolean chkMouseClick2D(int mouseX, int mouseY, int btn){		

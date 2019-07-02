@@ -82,9 +82,6 @@ public class RayTracer2DWin extends myDispWindow {
 		
 	public RayTracer2DWin(my_procApplet _p, String _n, int _flagIdx, int[] fc, int[] sc, float[] rd, float[] rdClosed,String _winTxt, boolean _canDrawTraj) {
 		super(_p, _n, _flagIdx, fc, sc, rd, rdClosed, _winTxt, _canDrawTraj);
-		float stY = rectDim[1]+rectDim[3]-4*yOff,stYFlags = stY + 2*yOff;
-		trajFillClrCnst = new int[] {0,120,120,255};
-		trajStrkClrCnst = new int[] {0,255,255,255};
 		super.initThisWin(_canDrawTraj, true, false);
 	}//ctor
 			
@@ -152,11 +149,15 @@ public class RayTracer2DWin extends myDispWindow {
 	//initialize structure to hold modifiable menu regions
 	@Override
 	protected void setupGUIObjsAras(){	
+		
+		TreeMap<Integer, String[]> tmpListObjVals = new TreeMap<Integer, String[]>();
+		tmpListObjVals.put(gIDX_CurrSceneCLI, gIDX_CurrSceneCLIList);
+
 		//pa.outStr2Scr("setupGUIObjsAras start");
 		guiMinMaxModVals = new double [][]{
 			{200,(int)(rectDim[2]/2),10},						//gIDX_SceneCols
 			{200,(int)(rectDim[3]/2),10},						//gIDX_SceneRows
-			{0,gIDX_CurrSceneCLIList.length-1,1},									//gIDX_CurrSceneCLI
+			{0,tmpListObjVals.get(gIDX_CurrSceneCLI).length-1,1},									//gIDX_CurrSceneCLI
 			
 		};		//min max modify values for each modifiable UI comp	
 
@@ -182,7 +183,7 @@ public class RayTracer2DWin extends myDispWindow {
 		//since horizontal row of UI comps, uiClkCoords[2] will be set in buildGUIObjs		
 		guiObjs = new myGUIObj[numGUIObjs];			//list of modifiable gui objects
 		if(numGUIObjs > 0){
-			buildGUIObjs(guiObjNames,guiStVals,guiMinMaxModVals,guiBoolVals,new double[]{xOff,yOff});			//builds a horizontal list of UI comps
+			buildGUIObjs(guiObjNames,guiStVals,guiMinMaxModVals,guiBoolVals,new double[]{xOff,yOff},tmpListObjVals);			//builds a horizontal list of UI comps
 		}
 //		setupGUI_XtraObjs();
 	}//setupGUIObjsAras
@@ -218,17 +219,6 @@ public class RayTracer2DWin extends myDispWindow {
 		}//if val is different
 	}//setUIWinVals
 	
-	//handle list ui components - return display value for list-based UI object
-	@Override
-	protected String getUIListValStr(int UIidx, int validx) {
-		switch(UIidx){
-		case gIDX_CurrSceneCLI : {return gIDX_CurrSceneCLIList[validx % gIDX_CurrSceneCLIList.length];}
-		//case gIDX_FuncTypeEval : {return gIDX_FuncTypeEvalList[validx % gIDX_FuncTypeEvalList.length];}
-		default : {break;}
-	}
-	return "";	}
-
-
 	//check whether the mouse is over a legitimate map location
 	public boolean chkMouseClick2D(int mouseX, int mouseY, int btn){		
 		return RTExp.checkMouseClickInExp2D( mouseX-(int)this.rectDim[0], mouseY, btn);
