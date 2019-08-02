@@ -234,5 +234,11 @@ public class DistRayTracer extends my_procApplet {
 		return new int[] {255,255,255,alpha};
 	}
 
+	@Override
+	public String[] getMouseOverSelBtnNames() {
+		// TODO Auto-generated method stub
+		return new String[0];
+	}
+
 
 }//DistRayTracer class

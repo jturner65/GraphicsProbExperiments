@@ -48,7 +48,6 @@ public class Main3DWindow extends myDispWindow {
 	/////////
 	//custom debug/function ui button names -empty will do nothing
 	public String[][] menuBtnNames = new String[][] {	//each must have literals for every button defined in side bar menu, or ignored
-		{},
 		{"Test Rand Gen", "Test R Calc","Func 3"},	//row 1
 		{"Func 1", "Func 2", "Func 3", "Func 4"},	//row 1
 		{"Dbg 1","Dbg 2","Dbg 3","Dbg 4","Dbg 5"}	
@@ -317,10 +316,9 @@ public class Main3DWindow extends myDispWindow {
 		
 	//if launching threads for custom functions or debug, need to remove resetButtonState call in function below and call resetButtonState (with slow proc==true) when thread ends
 	@Override
-	protected void launchMenuBtnHndlr() {
-		int btn = curCustBtn[curCustBtnType];
-		switch(curCustBtnType) {
-		case mySideBarMenu.btnAuxFunc1Idx : {
+	protected void launchMenuBtnHndlr(int funcRow, int btn) {
+		switch(funcRow) {
+		case 0 : {
 			pa.outStr2Scr("Clicked Btn row : Aux Func 1 | Btn : " + btn);
 			switch(btn){
 				case 0 : {	
@@ -338,7 +336,7 @@ public class Main3DWindow extends myDispWindow {
 					break;}
 			}	
 			break;}//row 1 of menu side bar buttons
-		case mySideBarMenu.btnAuxFunc2Idx : {
+		case 1 : {
 			pa.outStr2Scr("Clicked Btn row : Aux Func 2 | Btn : " + btn);
 			switch(btn){
 				case 0 : {	
@@ -356,32 +354,39 @@ public class Main3DWindow extends myDispWindow {
 					break;}	
 			}
 			break;}//row 2 of menu side bar buttons
-		case mySideBarMenu.btnDBGSelCmpIdx : {
-			pa.outStr2Scr("Clicked Btn row : Debug | Btn : " + btn);
-			switch(btn){
-				case 0 : {	
-					resetButtonState();
-					break;}//verify priority queue functionality
-				case 1 : {	
-
-					resetButtonState();
-					break;}//verify FEL pq integrity
-				case 2 : {	
-					resetButtonState();
-					break;}
-				case 3 : {	
-					resetButtonState();
-					break;}
-				case 4 : {						
-					resetButtonState();
-					break;}
-				default : {
-					break;}
-			}				
-			break;}//row 3 of menu side bar buttons (debug)			
 		}		
 	}//launchMenuBtnHndlr
-	
+	@Override
+	public void handleSideMenuMseOvrDispSel(int btn, boolean val) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void handleSideMenuDebugSel(int btn, int val) {
+		pa.outStr2Scr("Clicked Btn row : Debug | Btn : " + btn);
+		switch(btn){
+			case 0 : {	
+				resetButtonState();
+				break;}//verify priority queue functionality
+			case 1 : {	
+
+				resetButtonState();
+				break;}//verify FEL pq integrity
+			case 2 : {	
+				resetButtonState();
+				break;}
+			case 3 : {	
+				resetButtonState();
+				break;}
+			case 4 : {						
+				resetButtonState();
+				break;}
+			default : {
+				break;}
+		}				
+	}
+
 	
 	@Override
 	public void hndlFileLoad(File file, String[] vals, int[] stIdx) {

@@ -103,7 +103,6 @@ public class Grade2DWindow extends myDispWindow {
 	/////////
 	//custom debug/function ui button names -empty will do nothing
 	public String[][] menuBtnNames = new String[][] {	//each must have literals for every button defined in side bar menu, or ignored
-		{},
 		{"Func 01", "Func 02","Func 03","Func 04","Func 05"},				//row 1
 		{"Test Inv Fl", "Test Fleish", "Tst Fl Range", "Test COS","Func 05"},	//row 2
 		{"Test Zig Seq","DBG 2","DBG 3","DBG 4","DBG 5"}	
@@ -542,10 +541,9 @@ public class Grade2DWindow extends myDispWindow {
 	
 	//if launching threads for custom functions or debug, need to remove resetButtonState call in function below and call resetButtonState (with slow proc==true) when thread ends
 	@Override
-	protected void launchMenuBtnHndlr() {
-		int btn = curCustBtn[curCustBtnType];
-		switch(curCustBtnType) {
-		case mySideBarMenu.btnAuxFunc1Idx : {
+	protected void launchMenuBtnHndlr(int funcRow, int btn) {
+		switch(funcRow) {
+		case 0 : {
 			pa.outStr2Scr("Clicked Btn row : Aux Func 1 | Btn : " + btn);
 			switch(btn){
 				case 0 : {						
@@ -561,7 +559,7 @@ public class Grade2DWindow extends myDispWindow {
 					break;}
 			}	
 			break;}//row 1 of menu side bar buttons
-		case mySideBarMenu.btnAuxFunc2Idx : {
+		case 1 : {
 			pa.outStr2Scr("Clicked Btn row : Aux Func 2 | Btn : " + btn);
 			switch(btn){
 				case 0 : {	
@@ -587,33 +585,43 @@ public class Grade2DWindow extends myDispWindow {
 					break;}	
 			}
 			break;}//row 2 of menu side bar buttons
-		case mySideBarMenu.btnDBGSelCmpIdx : {
-			pa.outStr2Scr("Clicked Btn row : Debug | Btn : " + btn);
-			switch(btn){
-				case 0 : {	
-					//test sequential ziggurat values
-					gradeAvgExperiment.testSeqZigGen();
-					resetButtonState();
-					break;}
-				case 1 : {	
-					gradeAvgExperiment.dbgTestStuff();
-					resetButtonState();
-					break;}
-				case 2 : {	
-					resetButtonState();
-					break;}
-				case 3 : {	
-					resetButtonState();
-					break;}
-				case 4 : {	
-					resetButtonState();
-					break;}
-				default : {
-					break;}
-			}				
-			break;}//row 3 of menu side bar buttons (debug)			
+
 		}		
 	}//launchMenuBtnHndlr		
+	
+	@Override
+	public void handleSideMenuMseOvrDispSel(int btn, boolean val) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void handleSideMenuDebugSel(int btn, int val) {
+		pa.outStr2Scr("Clicked Btn row : Debug | Btn : " + btn);
+		switch(btn){
+			case 0 : {	
+				//test sequential ziggurat values
+				gradeAvgExperiment.testSeqZigGen();
+				resetButtonState();
+				break;}
+			case 1 : {	
+				gradeAvgExperiment.dbgTestStuff();
+				resetButtonState();
+				break;}
+			case 2 : {	
+				resetButtonState();
+				break;}
+			case 3 : {	
+				resetButtonState();
+				break;}
+			case 4 : {	
+				resetButtonState();
+				break;}
+			default : {
+				break;}
+	
+		}				
+	}
 	
 	private void toggleDbgBtn(int idx, boolean val) {
 		setPrivFlags(idx, !getPrivFlags(idx));

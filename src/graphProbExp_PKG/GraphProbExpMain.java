@@ -172,6 +172,11 @@ public class GraphProbExpMain extends my_procApplet {
 	
 	@Override
 	protected void initVisProg_Indiv() {}	
+	@Override
+	public String[] getMouseOverSelBtnNames() {
+		// TODO Auto-generated method stub
+		return new String[0];
+	}
 
 
 	//////////////////////////////////////////////////////
