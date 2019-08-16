@@ -31,7 +31,7 @@ public class Main3DWindow extends myDispWindow {
 			1
 			//
 	};			//values of 8 ui-controlled quantities
-	public final int numGUIObjs = uiVals.length;											//# of gui objects for ui	
+	public final int numGUIObjs = 3;											//# of gui objects for ui	
 	
 	/////////
 	//custom debug/function ui button names -empty will do nothing
@@ -62,19 +62,12 @@ public class Main3DWindow extends myDispWindow {
 	
 	@Override
 	//initialize all private-flag based UI buttons here - called by base class
-	public void initAllPrivBtns(){
-		truePrivFlagNames = new String[]{								//needs to be in order of privModFlgIdxs
-				"Visualization Debug","Resetting Simulation", "Drawing Vis","Experimenting"
-		};
-		falsePrivFlagNames = new String[]{			//needs to be in order of flags
-				"Enable Debug","Reset Simulation", "Render Visualization",  "Conduct Experiment"
-		};
-		
-		privModFlgIdxs = new int[]{
-				debugAnimIDX, resetSimIDX, drawVisIDX, conductExpIDX
-		};
-		numClickBools = privModFlgIdxs.length;	
-		initPrivBtnRects(0,numClickBools);
+	public void initAllPrivBtns(ArrayList<Object[]> tmpBtnNamesArray){		
+		tmpBtnNamesArray.add(new Object[]{"Visualization Debug",   "Enable Debug",               debugAnimIDX});
+		tmpBtnNamesArray.add(new Object[]{"Resetting Simulation",  "Reset Simulation",           resetSimIDX});  
+		tmpBtnNamesArray.add(new Object[]{"Drawing Vis",           "Render Visualization",       drawVisIDX});  
+		tmpBtnNamesArray.add(new Object[]{"Experimenting",          "Conduct Experiment",          conductExpIDX }); 
+	
 	}//initAllPrivBtns
 	//set labels of boolean buttons 
 //	private void setLabel(int idx, String tLbl, String fLbl) {truePrivFlagNames[idx] = tLbl;falsePrivFlagNames[idx] = fLbl;}//	
@@ -130,41 +123,12 @@ public class Main3DWindow extends myDispWindow {
 		
 	//initialize structure to hold modifiable menu regions
 	@Override
-	protected void setupGUIObjsAras(){	
-		//for list select objs
-		TreeMap<Integer, String[]> tmpListObjVals = new TreeMap<Integer, String[]>();
+	protected void setupGUIObjsAras(TreeMap<Integer, Object[]> tmpUIObjArray, TreeMap<Integer, String[]> tmpListObjVals){		
 		//pa.outStr2Scr("setupGUIObjsAras start");
-		guiMinMaxModVals = new double [][]{
-			{1.0f,10000.0f,1.0f},						//time scaling - 1 is real time, 1000 is 1000x speedup           		gIDX_FrameTimeScale 
-			{1.0f, 1440, 1.0f},								//experiment length
-			{1.0f, 100, 1.0f}								//# of experimental trials
-		};		//min max mod values for each modifiable UI comp	
-
-		guiStVals = new double[]{
-			uiVals[gIDX_FrameTimeScale],
-			uiVals[gIDX_ExpLength],
-			uiVals[gIDX_NumExpTrials],
-			
-		};								//starting value
 		
-		guiObjNames = new String[]{
-				"Sim Speed Multiplier",
-				"Experiment Duration",
-				"# Experimental Trials"
-		};								//name/label of component	
-		
-		//idx 0 is treat as int, idx 1 is obj has list vals, idx 2 is object gets sent to windows
-		guiBoolVals = new boolean [][]{
-			{false, false, true},	
-			{true, false, true},
-			{true, false, true}			
-		};						//per-object  list of boolean flags
-		
-		//since horizontal row of UI comps, uiClkCoords[2] will be set in buildGUIObjs		
-		guiObjs = new myGUIObj[numGUIObjs];			//list of modifiable gui objects
-		if(numGUIObjs > 0){
-			buildGUIObjs(guiObjNames,guiStVals,guiMinMaxModVals,guiBoolVals,new double[]{xOff,yOff},tmpListObjVals);			//builds a horizontal list of UI comps
-		}
+		tmpUIObjArray.put(gIDX_FrameTimeScale , new Object[] {new double[]{1.0f,10000.0f,1.0f},	1.0*frameTimeScale, "Sim Speed Multiplier", new boolean[]{false, false, true}});  				//time scaling - 1 is real time, 1000 is 1000x speedup           		gIDX_FrameTimeScale 
+		tmpUIObjArray.put(gIDX_ExpLength, new Object[] {new double[]{1.0f, 1440, 1.0f}, 720.0, "Experiment Duration",  new boolean[]{true, false, true}}); 					//experiment length
+		tmpUIObjArray.put(gIDX_NumExpTrials	, new Object[] {new double[]{1.0f, 100, 1.0f}, 1.0, "# Experimental Trials",new boolean[]{true, false, true}}); 	  					//# of experimental trials
 		
 //		setupGUI_XtraObjs();
 	}//setupGUIObjsAras
@@ -415,8 +379,8 @@ public class Main3DWindow extends myDispWindow {
 	//cntl key pressed handles unfocus of spherey
 	@Override
 	protected boolean hndlMouseClickIndiv(int mouseX, int mouseY, myPoint mseClckInWorld, int mseBtn) {	
-		boolean res = checkUIButtons(mouseX, mouseY);	
-		return res;}//hndlMouseClickIndiv
+		
+		return false;}//hndlMouseClickIndiv
 	@Override
 	protected boolean hndlMouseDragIndiv(int mouseX, int mouseY, int pmouseX, int pmouseY, myPoint mouseClickIn3D, myVector mseDragInWorld, int mseBtn) {
 		boolean res = false;

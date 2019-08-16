@@ -33,13 +33,7 @@ public class RayTracer2DWin extends myDispWindow {
 		gIDX_SceneCols		= 0,
 		gIDX_SceneRows		= 1,
 		gIDX_CurrSceneCLI	= 2;
-	//initial values - need one per object
-	public float[] uiVals = new float[]{
-			sceneCols,
-			sceneRows,
-			0
-	};			//values of 8 ui-controlled quantities
-	public final int numGUIObjs = uiVals.length;	
+	public final int numGUIObjs = 3;	
 	/////////
 	
 	public String[] gIDX_CurrSceneCLIList = new String[] {
@@ -110,19 +104,11 @@ public class RayTracer2DWin extends myDispWindow {
 	
 	//initialize all UI buttons here
 	@Override
-	public void initAllPrivBtns() {
+	public void initAllPrivBtns(ArrayList<Object[]> tmpBtnNamesArray) {
 		//give true labels, false labels and specify the indexes of the booleans that should be tied to UI buttons
-		truePrivFlagNames = new String[]{			//needs to be in order of privModFlgIdxs
-				"Shooting Rays","Norms are Flipped",
-		};
-		falsePrivFlagNames = new String[]{			//needs to be in order of flags
-				"Shoot Rays","Flip Normals",
-		};
-		privModFlgIdxs = new int[]{					//idxs of buttons that are able to be interacted with
-				shootRays,flipNorms,
-		};
-		numClickBools = privModFlgIdxs.length;	
-		initPrivBtnRects(0,numClickBools);
+		tmpBtnNamesArray.add(new Object[]{"Shooting Rays", "Shoot Rays", shootRays});  
+		tmpBtnNamesArray.add(new Object[]{"Norms are Flipped", "Flip Normals", flipNorms});  
+	
 	}
 	
 	//add reference here to all button IDX's 
@@ -147,43 +133,16 @@ public class RayTracer2DWin extends myDispWindow {
 	
 	//initialize structure to hold modifiable menu regions
 	@Override
-	protected void setupGUIObjsAras(){	
-		
-		TreeMap<Integer, String[]> tmpListObjVals = new TreeMap<Integer, String[]>();
+	protected void setupGUIObjsAras(TreeMap<Integer, Object[]> tmpUIObjArray, TreeMap<Integer, String[]> tmpListObjVals){		
+	
 		tmpListObjVals.put(gIDX_CurrSceneCLI, gIDX_CurrSceneCLIList);
 
-		//pa.outStr2Scr("setupGUIObjsAras start");
-		guiMinMaxModVals = new double [][]{
-			{200,(int)(rectDim[2]/2),10},						//gIDX_SceneCols
-			{200,(int)(rectDim[3]/2),10},						//gIDX_SceneRows
-			{0,tmpListObjVals.get(gIDX_CurrSceneCLI).length-1,1},									//gIDX_CurrSceneCLI
-			
-		};		//min max modify values for each modifiable UI comp	
 
-		guiStVals = new double[]{
-				uiVals[gIDX_SceneCols],		//gIDX_SceneCols
-				uiVals[gIDX_SceneRows],     //gIDX_SceneRows
-				uiVals[gIDX_CurrSceneCLI],	//gIDX_CurrSceneCLI
-		};								//starting value
-		
-		guiObjNames = new String[]{
-				"Image Width (pxls)",			//gIDX_SceneCols
-				"Image Height (pxls)",          //gIDX_SceneRows
-				"Scene to Display",				//gIDX_CurrSceneCLI
-		};								//name/label of component	
-		
-		//idx 0 is treat as int, idx 1 is obj has list vals, idx 2 is object gets sent to windows
-		guiBoolVals = new boolean [][]{
-			{true, false, true},				//gIDX_SceneCols
-			{true, false, true},				//gIDX_SceneRows
-			{true, true, true},					//gIDX_CurrSceneCLI
-		};						//per-object  list of boolean flags
-		
-		//since horizontal row of UI comps, uiClkCoords[2] will be set in buildGUIObjs		
-		guiObjs = new myGUIObj[numGUIObjs];			//list of modifiable gui objects
-		if(numGUIObjs > 0){
-			buildGUIObjs(guiObjNames,guiStVals,guiMinMaxModVals,guiBoolVals,new double[]{xOff,yOff},tmpListObjVals);			//builds a horizontal list of UI comps
-		}
+		tmpUIObjArray.put(gIDX_SceneCols, new Object[] {new double[]{200,(int)(rectDim[2]/2),10}, 1.0*sceneCols, "Image Width (pxls)", new boolean[]{true, false, true}});
+		tmpUIObjArray.put(gIDX_SceneRows, new Object[] {new double[]{200,(int)(rectDim[3]/2),10}, 1.0*sceneRows, "Image Height (pxls)", new boolean[]{true, false, true}});
+		tmpUIObjArray.put(gIDX_CurrSceneCLI, new Object[] {new double[]{0,tmpListObjVals.get(gIDX_CurrSceneCLI).length-1,1}, 0.0, "Scene to Display",	new boolean[]{true, true, true}});
+	
+
 //		setupGUI_XtraObjs();
 	}//setupGUIObjsAras
 	
@@ -191,31 +150,28 @@ public class RayTracer2DWin extends myDispWindow {
 	@Override
 	protected void setUIWinVals(int UIidx) {
 		float val = (float)guiObjs[UIidx].getVal();
-		float oldVal = uiVals[UIidx];
 		int ival = (int)val;
-		if(val != uiVals[UIidx]){//if value has changed...
-			uiVals[UIidx] = val;
-			switch(UIidx){		
-				case gIDX_SceneCols		:{
-					if(ival != sceneCols){
-						sceneCols = ival;		
-						RTExp.setRTSceneExpVals(sceneCols, sceneRows, gIDX_CurrSceneCLIList[curSceneCliFileIDX % gIDX_CurrSceneCLIList.length]);
-					}	
-					break;}			
-				case gIDX_SceneRows		:{
-					if(ival != sceneRows){
-						sceneRows = ival;
-						RTExp.setRTSceneExpVals(sceneCols, sceneRows, gIDX_CurrSceneCLIList[curSceneCliFileIDX % gIDX_CurrSceneCLIList.length]);
-					}	
-					break;}	
-				case gIDX_CurrSceneCLI :{
-					if(ival != curSceneCliFileIDX) {
-						curSceneCliFileIDX = ival;
-						RTExp.setRTSceneExpVals(sceneCols, sceneRows, gIDX_CurrSceneCLIList[curSceneCliFileIDX % gIDX_CurrSceneCLIList.length]);
-					}
-					break;}
-			}//switch
-		}//if val is different
+		switch(UIidx){		
+			case gIDX_SceneCols		:{
+				if(ival != sceneCols){
+					sceneCols = ival;		
+					RTExp.setRTSceneExpVals(sceneCols, sceneRows, gIDX_CurrSceneCLIList[curSceneCliFileIDX % gIDX_CurrSceneCLIList.length]);
+				}	
+				break;}			
+			case gIDX_SceneRows		:{
+				if(ival != sceneRows){
+					sceneRows = ival;
+					RTExp.setRTSceneExpVals(sceneCols, sceneRows, gIDX_CurrSceneCLIList[curSceneCliFileIDX % gIDX_CurrSceneCLIList.length]);
+				}	
+				break;}	
+			case gIDX_CurrSceneCLI :{
+				if(ival != curSceneCliFileIDX) {
+					curSceneCliFileIDX = ival;
+					RTExp.setRTSceneExpVals(sceneCols, sceneRows, gIDX_CurrSceneCLIList[curSceneCliFileIDX % gIDX_CurrSceneCLIList.length]);
+				}
+				break;}
+		}//switch
+
 	}//setUIWinVals
 	
 	//check whether the mouse is over a legitimate map location
@@ -444,10 +400,8 @@ public class RayTracer2DWin extends myDispWindow {
 	//cntl key pressed handles unfocus of spherey
 	@Override
 	protected boolean hndlMouseClickIndiv(int mouseX, int mouseY, myPoint mseClckInWorld, int mseBtn) {	
-		boolean res = checkUIButtons(mouseX, mouseY);	
-		if(!res) {
-			res = chkMouseClick2D(mouseX, mouseY, mseBtn);
-		}
+		boolean res =  chkMouseClick2D(mouseX, mouseY, mseBtn);
+		
 		return res;}//hndlMouseClickIndiv
 	@Override
 	protected boolean hndlMouseDragIndiv(int mouseX, int mouseY, int pmouseX, int pmouseY, myPoint mouseClickIn3D, myVector mseDragInWorld, int mseBtn) {

@@ -51,24 +51,8 @@ public class Grade2DWindow extends myDispWindow {
 		gIDX_FinalGradeSTD		= 10,
 		gIDX_FinalGradeSkew		= 11,
 		gIDX_FinalGradeExKurt	= 12;
-		
-	//initial values - need one per object
-	public double[] uiVals = new double[]{
-			numStudents,
-			numClasses,
-			expTypeIDX,
-			funcEvalType,
-			funcEvalLow,
-			funcEvalHigh,
-			funcEvalNumVals,
-			funcEvalNumBuckets,
-			finalGradeNumMmnts,
-			finalGradeMmtns[0],
-			finalGradeMmtns[1],
-			finalGradeMmtns[2],
-			finalGradeMmtns[3]
-	};			//values of 8 ui-controlled quantities
-	public final int numGUIObjs = uiVals.length;	
+
+	public final int numGUIObjs = 13;	
 	/////////
 	//ui button names -empty will do nothing, otherwise add custom labels for debug and custom functionality names
 	//ddl 
@@ -146,25 +130,19 @@ public class Grade2DWindow extends myDispWindow {
 	
 	//initialize all UI buttons here
 	@Override
-	public void initAllPrivBtns() {
+	public void initAllPrivBtns(ArrayList<Object[]> tmpBtnNamesArray) {
 		//give true labels, false labels and specify the indexes of the booleans that should be tied to UI buttons
-		truePrivFlagNames = new String[]{			//needs to be in order of privModFlgIdxs
-				"Rebuilding/reloading Grades","Rebuilding Final Grade Dist","Setting Current Grades as Glbl",
-				"CosCDF 1 + sine x","Rebuild Class dist on move","ZScore for final grades",
-				"Eval/Draw Func on Bounds","Eval/Draw Hist of Dist","Showing Cos To Gauss Dist"
-		};
-		falsePrivFlagNames = new String[]{			//needs to be in order of flags
-				"Rebuild/reload Grades","Rebuild Final Grade Dist","Set Current Grades as Glbl",
-				"CosCDF x + sine x","Don't rebuild class dist on move","Specific Dist for final grades",
-				"Eval/Draw Func on Bounds","Eval/Draw Hist of Dist"	,"Compare Cos To Gauss Dist"			
-		};
-		privModFlgIdxs = new int[]{					//idxs of buttons that are able to be interacted with
-				reCalcRandGradeSpread,reBuildFinalGradeDist,setCurrGrades,
-				use1pSineCosCDF, rebuildDistOnMove,useZScore,
-				drawFuncEval,drawHistEval,drawMultiEval
-		};
-		numClickBools = privModFlgIdxs.length;	
-		initPrivBtnRects(0,numClickBools);
+		
+		tmpBtnNamesArray.add(new Object[]{"Rebuilding/reloading Grades",     "Rebuild/reload Grades",            reCalcRandGradeSpread});       
+		tmpBtnNamesArray.add(new Object[]{"Rebuilding Final Grade Dist",     "Rebuild Final Grade Dist",         reBuildFinalGradeDist});         
+		tmpBtnNamesArray.add(new Object[]{"Setting Current Grades as Glbl",  "Set Current Grades as Glbl",       setCurrGrades});                 
+		tmpBtnNamesArray.add(new Object[]{"CosCDF 1 + sine x",               "CosCDF x + sine x",                use1pSineCosCDF});                 
+		tmpBtnNamesArray.add(new Object[]{"Rebuild Class dist on move",      "Don't rebuild class dist on move", rebuildDistOnMove});              
+		tmpBtnNamesArray.add(new Object[]{"ZScore for final grades",         "Specific Dist for final grades",   useZScore});                     
+		tmpBtnNamesArray.add(new Object[]{"Eval/Draw Func on Bounds",        "Eval/Draw Func on Bounds",         drawFuncEval});                    
+		tmpBtnNamesArray.add(new Object[]{"Eval/Draw Hist of Dist",          "Eval/Draw Hist of Dist"	,        drawHistEval});                  
+		tmpBtnNamesArray.add(new Object[]{"Showing Cos To Gauss Dist",        "Compare Cos To Gauss Dist",			drawMultiEval});                    
+		
 	}
 	
 	//add reference here to all button IDX's 
@@ -256,87 +234,30 @@ public class Grade2DWindow extends myDispWindow {
 	
 	//initialize structure to hold modifiable menu regions
 	@Override
-	protected void setupGUIObjsAras(){	
-		TreeMap<Integer, String[]> tmpListObjVals = new TreeMap<Integer, String[]>();
+	protected void setupGUIObjsAras(TreeMap<Integer, Object[]> tmpUIObjArray, TreeMap<Integer, String[]> tmpListObjVals){	
+		
 		
 		tmpListObjVals.put(gIDX_FuncTypeEval,gIDX_FuncTypeEvalList);
 		tmpListObjVals.put(gIDX_ExpDistType,gIDX_ExpDistTypeList);
 
 		
-			//pa.outStr2Scr("setupGUIObjsAras start");
-		guiMinMaxModVals = new double [][]{
-			{2,100,1},						//# students
-			{1,9,1},						//# classes
-			{0,tmpListObjVals.get(gIDX_ExpDistType).length-1,1},//gIDX_ExpDistType
-			{0,tmpListObjVals.get(gIDX_FuncTypeEval).length-1,1}, //gIDX_FuncTypeEval	
-			{-10.0, 10.0,.01},				//gIDX_FuncEvalLower
-			{-10.0, 10.0,.01},				//gIDX_FuncEvalHigher
-			{10000,1000000,1000},           // gIDX_FuncEvalNumVals 
-			{10,1000,1},                    // gIDX_FuncEvalNumBkts 			
-			{2, 4, .1},						//gIDX_FinalGradeNumMmnts 	= 8,			//# of moments to use to descibe final grade, at least 2, no more than 4
-			{0.0, 1.0,.01},					//gIDX_FinalGradeMean		= 9,
-			{0.0, 1.0,.01},					//gIDX_FinalGradeSTD		= 10,
-			{-5.0,5.0,.01},					//gIDX_FinalGradeSkew		= 11,
-			{0.0, 5.0,.01}					//gIDX_FinalGradeExKurt		= 12;					
-		};		//min max modify values for each modifiable UI comp	
+		//pa.outStr2Scr("setupGUIObjsAras start");
 
-		guiStVals = new double[]{
-				uiVals[gIDX_NumStudents],			//# students
-				uiVals[gIDX_NumClasses],			//# classes
-				uiVals[gIDX_ExpDistType],			//gIDX_ExpDistType
-				uiVals[gIDX_FuncTypeEval],			//gIDX_FuncTypeEval	
-				uiVals[gIDX_FuncEvalLower],			//gIDX_FuncEvalLower
-				uiVals[gIDX_FuncEvalHigher],		//gIDX_FuncEvalHigher				
-				uiVals[gIDX_FuncEvalNumVals],    	// gIDX_FuncEvalNumVals
-				uiVals[gIDX_FuncEvalNumBkts],    	// gIDX_FuncEvalNumBkts				
-				uiVals[gIDX_FinalGradeNumMmnts],	// gIDX_FinalGradeNumMmnts
-				uiVals[gIDX_FinalGradeMean],    	// gIDX_FinalGradeMean	
-				uiVals[gIDX_FinalGradeSTD],    		// gIDX_FinalGradeSTD	
-				uiVals[gIDX_FinalGradeSkew],    	// gIDX_FinalGradeSkew	
-				uiVals[gIDX_FinalGradeExKurt],    	// gIDX_FinalGradeExKurt	
-		};								//starting value
-		
-		guiObjNames = new String[]{
-				"Number of Students : ",
-				"Number of Classes : ",
-				"Exp Mapping Type : ",				//gIDX_ExpDistType
-				"Plot Eval Func Type : ",			//gIDX_FuncTypeEval	
-				"Plot Eval Func Low : ",			//gIDX_FuncEvalLower
-				"Plot Eval Func High : ",			//gIDX_FuncEvalHigher
-				"Plot Eval Func # Vals : ", 		// gIDX_FuncEvalNumVals        
-				"Plot Eval Func # Bkts (dist) : ",	// gIDX_FuncEvalNumBkts   
-				"Final Grade # Momments (2-4) : ",  // gIDX_FinalGradeNumMmnts  
-				"Final Grade Mean : ",              // gIDX_FinalGradeMean	    
-				"Final Grade Std Dev : ",           // gIDX_FinalGradeSTD	    
-				"Final Grade Skew : ",              // gIDX_FinalGradeSkew	    
-				"Final Grade Ex Kurt : ",          // gIDX_FinalGradeExKurt	    
-				
-		};								//name/label of component	
-		
-		//idx 0 is treat as int, idx 1 is obj has list vals, idx 2 is object gets sent to windows
-		guiBoolVals = new boolean [][]{
-			{true, false, true},	//# students
-			{true, false, true},	//# classes
-			{true, true, true},		//gIDX_ExpDistType
-			{true, true, true},		//gIDX_FuncTypeEval	
-			{false, false, true},	//gIDX_FuncEvalLower
-			{false, false, true},	//gIDX_FuncEvalHigher
-			{true, false, true}, 	// gIDX_FuncEvalNumVals        
-			{true, false, true}, 	// gIDX_FuncEvalNumBkts      
-			{true, false, true},    // gIDX_FinalGradeNumMmnts  
-			{false,false,true},     // gIDX_FinalGradeMean	    
-			{false,false,true},     // gIDX_FinalGradeSTD	    
-			{false,false,true},     // gIDX_FinalGradeSkew	    
-			{false,false,true},     // gIDX_FinalGradeExKurt	    
-			
-		};						//per-object  list of boolean flags
-		
-		//since horizontal row of UI comps, uiClkCoords[2] will be set in buildGUIObjs		
-		guiObjs = new myGUIObj[numGUIObjs];			//list of modifiable gui objects
-		if(numGUIObjs > 0){
-			buildGUIObjs(guiObjNames,guiStVals,guiMinMaxModVals,guiBoolVals,new double[]{xOff,yOff},tmpListObjVals);			//builds a horizontal list of UI comps
-		}
-//		setupGUI_XtraObjs();
+		tmpUIObjArray.put(gIDX_NumStudents, new Object[] {new double[]{2,100,1},										     1.0*numStudents,        "Number of Students : ", new boolean []{true, false, true}});
+		tmpUIObjArray.put(gIDX_NumClasses, new Object[] {new double[]{1,9,1},												 1.0*numClasses,         "Number of Classes : ",  new boolean []{true, false, true}});
+		tmpUIObjArray.put(gIDX_ExpDistType, new Object[] {new double[]{0,tmpListObjVals.get(gIDX_ExpDistType).length-1,1},   1.0*expTypeIDX,         "Exp Mapping Type : ",	new boolean []{true, true, true}});
+		tmpUIObjArray.put(gIDX_FuncTypeEval, new Object[] {new double[]{0,tmpListObjVals.get(gIDX_FuncTypeEval).length-1,1}, 1.0*funcEvalType,       "Plot Eval Func Type : ",new boolean []{true, true, true}});
+		tmpUIObjArray.put(gIDX_FuncEvalLower, new Object[] {new double[]{-10.0, 10.0,.01},			                         1.0*funcEvalLow,        "Plot Eval Func Low : ",new boolean []{false, false, true}});
+		tmpUIObjArray.put(gIDX_FuncEvalHigher, new Object[] {new double[]{-10.0, 10.0,.01},			                         1.0*funcEvalHigh,       "Plot Eval Func High : ",	new boolean []{false, false, true}});
+		tmpUIObjArray.put(gIDX_FuncEvalNumVals, new Object[] {new double[]{10000,1000000,1000},                              1.0*funcEvalNumVals,    "Plot Eval Func # Vals : ", new boolean []{true, false, true}}); 
+		tmpUIObjArray.put(gIDX_FuncEvalNumBkts, new Object[] {new double[]{10,1000,1},                                       1.0*funcEvalNumBuckets, "Plot Eval Func # Bkts (dist) : ",new boolean []{true, false, true}});
+		tmpUIObjArray.put(gIDX_FinalGradeNumMmnts, new Object[] {new double[]{2, 4, .1},			                         1.0*finalGradeNumMmnts, "Final Grade # Momments (2-4) : ",new boolean []{true, false, true}});
+		tmpUIObjArray.put(gIDX_FinalGradeMean, new Object[] {new double[]{0.0, 1.0,.01},			                         1.0*finalGradeMmtns[0], "Final Grade Mean : ", new boolean []{false,false,true}}); 
+		tmpUIObjArray.put(gIDX_FinalGradeSTD, new Object[] {new double[]{0.0, 1.0,.01},				                         1.0*finalGradeMmtns[1], "Final Grade Std Dev : ", new boolean []{false,false,true}}); 
+		tmpUIObjArray.put(gIDX_FinalGradeSkew, new Object[] {new double[]{-5.0,5.0,.01},			                         1.0*finalGradeMmtns[2], "Final Grade Skew : ", new boolean []{false,false,true}}); 
+		tmpUIObjArray.put(gIDX_FinalGradeExKurt, new Object[] {new double[]{0.0, 5.0,.01},			                         1.0*finalGradeMmtns[3],  "Final Grade Ex Kurt : ", new boolean [] {false,false,true}});
+		//min max modify values for each modifiable UI comp	
+
 	}//setupGUIObjsAras
 	
 	//all ui objects should have an entry here to show how they should interact
@@ -670,10 +591,8 @@ public class Grade2DWindow extends myDispWindow {
 	//cntl key pressed handles unfocus of spherey
 	@Override
 	protected boolean hndlMouseClickIndiv(int mouseX, int mouseY, myPoint mseClckInWorld, int mseBtn) {	
-		boolean res = checkUIButtons(mouseX, mouseY);	
-		if(!res) {
-			res = chkMouseClick2D(mouseX, mouseY, mseBtn);
-		}
+		boolean res = chkMouseClick2D(mouseX, mouseY, mseBtn);
+		
 		return res;}//hndlMouseClickIndiv
 	@Override
 	protected boolean hndlMouseDragIndiv(int mouseX, int mouseY, int pmouseX, int pmouseY, myPoint mouseClickIn3D, myVector mseDragInWorld, int mseBtn) {

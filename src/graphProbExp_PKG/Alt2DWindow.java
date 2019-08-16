@@ -19,11 +19,7 @@ public class Alt2DWindow extends myDispWindow {
 	//idxs - need one per object
 	public final static int
 		gIDX_TempIDX		= 0;
-	//initial values - need one per object
-	public float[] uiVals = new float[]{
-			0,
-	};			//values of 8 ui-controlled quantities
-	public final int numGUIObjs = uiVals.length;	
+
 	/////////
 	//ui button names -empty will do nothing, otherwise add custom labels for debug and custom functionality names
 
@@ -72,19 +68,10 @@ public class Alt2DWindow extends myDispWindow {
 	}//
 	//initialize all UI buttons here
 	@Override
-	public void initAllPrivBtns() {
+	public void initAllPrivBtns(ArrayList<Object[]> tmpBtnNamesArray) {
 		//give true labels, false labels and specify the indexes of the booleans that should be tied to UI buttons
-		truePrivFlagNames = new String[]{			//needs to be in order of privModFlgIdxs
-				"Debugging",
-		};
-		falsePrivFlagNames = new String[]{			//needs to be in order of flags
-				"Enable Debug",
-		};
-		privModFlgIdxs = new int[]{					//idxs of buttons that are able to be interacted with
-				debugAnimIDX,
-		};
-		numClickBools = privModFlgIdxs.length;	
-		initPrivBtnRects(0,numClickBools);
+		tmpBtnNamesArray.add(new Object[] { "Debugging", "Debug", debugAnimIDX });
+		
 	}
 	
 	//add reference here to all button IDX's 
@@ -102,50 +89,19 @@ public class Alt2DWindow extends myDispWindow {
 	
 	//initialize structure to hold modifiable menu regions
 	@Override
-	protected void setupGUIObjsAras(){	
-		TreeMap<Integer, String[]> tmpListObjVals = new TreeMap<Integer, String[]>();
-		
-		//pa.outStr2Scr("setupGUIObjsAras start");
-		guiMinMaxModVals = new double [][]{
-			{1,100,1},						//temp
-		};		//min max modify values for each modifiable UI comp	
+	protected void setupGUIObjsAras(TreeMap<Integer, Object[]> tmpUIObjArray, TreeMap<Integer, String[]> tmpListObjVals){	
 
-		guiStVals = new double[]{
-				uiVals[gIDX_TempIDX],	//temp
-				
-		};								//starting value
-		
-		guiObjNames = new String[]{
-				"Placeholder",		//temp
-		};								//name/label of component	
-		
-		//idx 0 is treat as int, idx 1 is obj has list vals, idx 2 is object gets sent to windows
-		guiBoolVals = new boolean [][]{
-			{true, false, true},	//# students
-			{true, false, true},	//# classes
-			{false,false,true}
-		};						//per-object  list of boolean flags
-		
-		//since horizontal row of UI comps, uiClkCoords[2] will be set in buildGUIObjs		
-		guiObjs = new myGUIObj[numGUIObjs];			//list of modifiable gui objects
-		if(numGUIObjs > 0){
-			buildGUIObjs(guiObjNames,guiStVals,guiMinMaxModVals,guiBoolVals,new double[]{xOff,yOff}, tmpListObjVals);			//builds a horizontal list of UI comps
-		}
-//		setupGUI_XtraObjs();
 	}//setupGUIObjsAras
 	
 	//all ui objects should have an entry here to show how they should interact
 	@Override
 	protected void setUIWinVals(int UIidx) {
 		float val = (float)guiObjs[UIidx].getVal();
-		float oldVal = uiVals[UIidx];
 		int ival = (int)val;
-		if(val != uiVals[UIidx]){//if value has changed...
-			uiVals[UIidx] = val;
-			switch(UIidx){		
-			case gIDX_TempIDX 			:{break;}
-			}
-		}//if val is different
+		switch(UIidx){		
+		case gIDX_TempIDX 			:{break;}
+		}
+		
 	}//setUIWinVals
 	
 	//check whether the mouse is over a legitimate map location
@@ -357,10 +313,8 @@ public class Alt2DWindow extends myDispWindow {
 	//cntl key pressed handles unfocus of spherey
 	@Override
 	protected boolean hndlMouseClickIndiv(int mouseX, int mouseY, myPoint mseClckInWorld, int mseBtn) {	
-		boolean res = checkUIButtons(mouseX, mouseY);	
-		if(!res) {
-			res = chkMouseClick2D(mouseX, mouseY, mseBtn);
-		}
+		boolean res =chkMouseClick2D(mouseX, mouseY, mseBtn);
+		
 		return res;}//hndlMouseClickIndiv
 	@Override
 	protected boolean hndlMouseDragIndiv(int mouseX, int mouseY, int pmouseX, int pmouseY, myPoint mouseClickIn3D, myVector mseDragInWorld, int mseBtn) {
