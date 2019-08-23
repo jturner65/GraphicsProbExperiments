@@ -1,11 +1,9 @@
 package base_RayTracer;
 
-import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 
 import base_RayTracer.scene.myScene;
 import base_RayTracer.scene.geometry.myGeomBase;
-import base_Utils_Objects.*;
 import base_Utils_Objects.vectorObjs.myMatrix;
 import base_Utils_Objects.vectorObjs.myVector;
 
@@ -122,7 +120,7 @@ public class myRay{
 	//build object for hit - contains all relevant info from intersection, including CTM matrix array
 	//args ara : idx 0 is cylinder stuff, idx 1 is bound box plane idx (0-5) args is used only in normal calc
 	public rayHit objHit(myGeomBase _obj, myVector _rawRayDir, myMatrix[] _ctMtrx, myVector pt, int[] args, double _t){
-		myVector fwdTransPt = getTransformedPt(pt, _ctMtrx[_obj.glblIDX]);		//hit location in world space		
+		myVector fwdTransPt = getTransformedPt(pt, _ctMtrx[myGeomBase.glblIDX]);		//hit location in world space		
 		myVector _newNorm = getTransformedVec(_obj.getNormalAtPoint(pt,args), _ctMtrx[_obj.adjIDX]);
 		_newNorm._normalize();
  		rayHit _hit = new rayHit(this, _rawRayDir, _obj,  _ctMtrx, _newNorm, pt,fwdTransPt,  _t,args);

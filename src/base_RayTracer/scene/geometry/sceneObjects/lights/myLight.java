@@ -1,6 +1,5 @@
 package base_RayTracer.scene.geometry.sceneObjects.lights;
 
-import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 
 import base_RayTracer.myColor;
@@ -9,9 +8,7 @@ import base_RayTracer.rayHit;
 import base_RayTracer.scene.myScene;
 import base_RayTracer.scene.geometry.accelStruct.myKD_Tree;
 import base_RayTracer.scene.geometry.sceneObjects.mySceneObject;
-import processing.core.PConstants;
 import processing.core.PImage;
-import base_Utils_Objects.*;
 import base_Utils_Objects.vectorObjs.myMatrix;
 import base_Utils_Objects.vectorObjs.myVector;
 

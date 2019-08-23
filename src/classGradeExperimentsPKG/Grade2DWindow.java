@@ -95,9 +95,9 @@ public class Grade2DWindow extends myDispWindow {
 	//class experiment
 	private ClassGradeExperiment gradeAvgExperiment;
 	
-	public Grade2DWindow(my_procApplet _p, String _n, int _flagIdx, int[] fc, int[] sc, float[] rd, float[] rdClosed,String _winTxt, boolean _canDrawTraj) {
-		super(_p, _n, _flagIdx, fc, sc, rd, rdClosed, _winTxt, _canDrawTraj);
-		super.initThisWin(_canDrawTraj, true, false);
+	public Grade2DWindow(my_procApplet _p, String _n, int _flagIdx, int[] fc, int[] sc, float[] rd, float[] rdClosed,String _winTxt) {
+		super(_p, _n, _flagIdx, fc, sc, rd, rdClosed, _winTxt);
+		super.initThisWin(false);
 	}//ctor
 			
 	@Override

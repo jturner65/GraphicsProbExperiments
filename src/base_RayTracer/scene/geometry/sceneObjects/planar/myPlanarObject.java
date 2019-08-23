@@ -6,8 +6,6 @@ import base_RayTracer.myRay;
 import base_RayTracer.rayHit;
 import base_RayTracer.scene.myScene;
 import base_RayTracer.scene.geometry.sceneObjects.mySceneObject;
-import processing.core.PImage;
-import base_Utils_Objects.*;
 import base_Utils_Objects.vectorObjs.myMatrix;
 import base_Utils_Objects.vectorObjs.myVector;
 

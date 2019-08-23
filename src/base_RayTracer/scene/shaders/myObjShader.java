@@ -13,7 +13,6 @@ import base_RayTracer.scene.geometry.sceneObjects.lights.myPhoton;
 import base_RayTracer.scene.textures.myImageTexture;
 import base_RayTracer.scene.textures.myTextureHandler;
 import processing.core.PConstants;
-import base_Utils_Objects.*;
 import base_Utils_Objects.vectorObjs.myVector;
 
 public class myObjShader {
@@ -80,8 +79,8 @@ public class myObjShader {
 	    currPerm = scene.globRfrIdx;
 	    
 	    shdrFlags[hasCaustic] = ((KRefl > 0.0) || (currPerm > 0.0) || (KTrans > 0.0));
-	    shdrFlags[usePhotonMap] = scene.scFlags[scene.usePhotonMapIDX];
-	    shdrFlags[isCausticPhtnIDX] = scene.scFlags[scene.isCausticPhtnIDX];
+	    shdrFlags[usePhotonMap] = scene.scFlags[myScene.usePhotonMapIDX];
+	    shdrFlags[isCausticPhtnIDX] = scene.scFlags[myScene.isCausticPhtnIDX];
 	    
 	    diffConst = 1 - currPerm;	        
 	    phongExp = scene.currPhongExp;
@@ -125,7 +124,7 @@ public class myObjShader {
   			//uncomment below for instances of bvh - need to fix this TODO
   			//lightNorm.set(hit.transRay.getTransformedPt(hit.transRay.getTransformedPt(light.getOrigin(hit.transRay.time),light.CTMara[light.glblIDX]), hit.CTMara[hit.obj.invIDX]));		
   			//comment below for instances of bvh - need to fix this TODO  			
-  			lightNorm.set(hit.transRay.getTransformedPt(light.getOrigin(hit.transRay.getTime()),light.CTMara[light.glblIDX]));		
+  			lightNorm.set(hit.transRay.getTransformedPt(light.getOrigin(hit.transRay.getTime()),light.CTMara[myGeomBase.glblIDX]));		
   			lightNorm._sub(hitLoc);				//this is point on transformed ray 
   			lightNorm._normalize();
   			//to calculate shadows at this spot, need to check for intersections again making a new ray out of light norm
@@ -178,7 +177,8 @@ public class myObjShader {
   		
   		//incoming angle in radians, critical angle,ray angle upon exiting material
   		//n is ratio of refraction indicies for current material/new material (n1/n2)-use n1 and n2 to denote material refraction indicies - n1 is source material, n2 is destination refraction material
-  		double thetaIncident = 0, thetaCrit = 0, thetaExit = 0, n = 1, n1 = 0, n2 = 0;
+  		double thetaIncident = 0, thetaCrit = 0, //thetaExit = 0, 
+  				n = 1, n1 = 0, n2 = 0;
   		
   		double rPerp = 0, rPar = 0, 		//constant multipliers for reflection perp and parallel - average of rperp and rpar = transreflratio
   				transReflRatio = 0, 		//ratio of resulting transmission vs reflection at surface point - 0 means complete refraction, 1 means complete reflection
@@ -216,7 +216,7 @@ public class myObjShader {
   				n1 = KTrans;
   				n2 = exitMaterialTrans;
   				n = (n1/n2); 
-  				thetaExit = Math.asin(n * Math.sin(thetaIncident));
+  				//thetaExit = Math.asin(n * Math.sin(thetaIncident));
   				double tmpResultC2 = 1.0 - (n*n) * (1.0 - (cosTheta1*cosTheta1));
   				if (tmpResultC2 < 0){System.out.println("\tdanger #1 : refraction bad : " +  tmpResultC2);}
   				cosTheta2 = Math.pow(tmpResultC2,.5);
@@ -231,7 +231,7 @@ public class myObjShader {
   			n2 = KTrans;
   			//println("  entering material : " + n2);
   			n = (n1/n2);
-  			thetaExit = Math.asin(n  * Math.sin(thetaIncident)); 
+  			//thetaExit = Math.asin(n  * Math.sin(thetaIncident)); 
   			double tmpResultC2 = 1.0 - (n*n) * (1.0 - (cosTheta1*cosTheta1));
   			if (tmpResultC2 < 0){System.out.println("\tdanger #2 :  refraction bad : " +  tmpResultC2 + " ray cur ktrans : " + hit.transRay.currKTrans[0]);}
   			cosTheta2 = Math.pow(tmpResultC2,.5);
@@ -319,7 +319,8 @@ public class myObjShader {
   		
   		//incoming angle in radians, critical angle,ray angle upon exiting material
   		//n is ratio of refraction indicies for current material/new material (n1/n2)-use n1 and n2 to denote material refraction indicies - n1 is source material, n2 is destination refraction material
-  		double thetaIncident = 0, thetaCrit = 0, thetaExit = 0, n = 1, n1 = 0, n2 = 0;
+  		double thetaIncident = 0, thetaCrit = 0, //thetaExit = 0, 
+  				n = 1, n1 = 0, n2 = 0;
   		
   		double rPerp = 0, rPar = 0, 		//constant multipliers for reflection perp and parallel - average of rperp and rpar = transreflratio
   				transReflRatio = 0, 		//ratio of resulting transmission vs reflection at surface point - 0 means complete refraction, 1 means complete reflection
@@ -357,7 +358,7 @@ public class myObjShader {
   				n1 = KTrans;
   				n2 = exitMaterialTrans;
   				n = (n1/n2); 
-  				thetaExit = Math.asin(n * Math.sin(thetaIncident));
+  				//thetaExit = Math.asin(n * Math.sin(thetaIncident));
   				double tmpResultC2 = 1.0 - (n*n) * (1.0 - (cosTheta1*cosTheta1));
   				if (tmpResultC2 < 0){System.out.println("\tdanger #1 : refraction bad : " +  tmpResultC2);}
   				cosTheta2 = Math.pow(tmpResultC2,.5);
@@ -372,7 +373,7 @@ public class myObjShader {
   			n2 = KTrans;
   			//println("  entering material : " + n2);
   			n = (n1/n2);
-  			thetaExit = Math.asin(n  * Math.sin(thetaIncident)); 
+  			//thetaExit = Math.asin(n  * Math.sin(thetaIncident)); 
   			double tmpResultC2 = 1.0 - (n*n) * (1.0 - (cosTheta1*cosTheta1));
   			if (tmpResultC2 < 0){System.out.println("\tdanger #2 :  refraction bad : " +  tmpResultC2 + " ray cur ktrans : " + hit.transRay.currKTrans[0]);}
   			cosTheta2 = Math.pow(tmpResultC2,.5);
