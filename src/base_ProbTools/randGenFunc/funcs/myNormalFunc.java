@@ -2,7 +2,7 @@ package base_ProbTools.randGenFunc.funcs;
 
 import base_ProbTools.BaseProbExpMgr;
 import base_ProbTools.myIntegrator;
-import base_ProbTools.myProbSummary;
+import base_ProbTools.summary.myProbSummary_Dbls;
 
 /**
  * instancing class for the function describing a normal random variable - explicitly mean == 0, var==std==1
@@ -14,7 +14,7 @@ public class myNormalFunc extends myGaussianFunc{
 	//zig algorithm fields for scaled normal - all myRandVarFuncs need their own impelemtnations of this map, independent of base class
 	//////////////////////////////	
 	public myNormalFunc(myIntegrator _quadSlvr) {
-		super(_quadSlvr, new myProbSummary(new double[] {0.0, 1.0},2), "Normal");			
+		super(_quadSlvr, new myProbSummary_Dbls(new double[] {0.0, 1.0},2), "Normal");			
 	}//ctor	
 	
 	@Override

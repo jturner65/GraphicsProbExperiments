@@ -3,9 +3,9 @@ package classGradeExperimentsPKG;
 import java.util.HashMap;
 
 import base_ProbTools.BaseProbExpMgr;
-import base_ProbTools.myProbSummary;
 import base_ProbTools.mySampleSet;
 import base_ProbTools.randGenFunc.gens.myRandGen;
+import base_ProbTools.summary.myProbSummary_Dbls;
 import base_UI_Objects.*;
 import base_Utils_Objects.io.MsgCodes;
 
@@ -170,11 +170,11 @@ public class myClassRoster extends mySampleSet{
 		else {														setFlag(classTransUsedInFinalGradeIDX, val);	}		
 	}//setGradeBarEnabled	
 	
-	protected myProbSummary getCurGradeProbSummary(String typ) {
+	protected myProbSummary_Dbls getCurGradeProbSummary(String typ) {
 		double[] tmpTransGrades = new double[students.size()];
 		int idx =0;
 		for (myStudent s : students.values()) {	tmpTransGrades[idx++]=s.getTransformedGrade(typ, this);}
-		myProbSummary tmpSummary = new myProbSummary(tmpTransGrades);
+		myProbSummary_Dbls tmpSummary = new myProbSummary_Dbls(tmpTransGrades);
 		return tmpSummary;
 	}//getCurGradeProbSummary
 		
@@ -223,7 +223,7 @@ public class myClassRoster extends mySampleSet{
 		if (getFlag(rebuildDistWhenMoveIDX)) {
 			//if we are modifying distribution
 			if(barIDX == 0) {				
-				myProbSummary newSummary = getCurGradeProbSummary(transTypes[GB_rawGradeTypeIDX]);
+				myProbSummary_Dbls newSummary = getCurGradeProbSummary(transTypes[GB_rawGradeTypeIDX]);
 				baseDistModel.setFuncSummary(newSummary);
 				updateName();
 				transformStudentGradesToUniform();//transform all grades here				
@@ -232,7 +232,7 @@ public class myClassRoster extends mySampleSet{
 				//from transformed uniform to raw distribution
 				if(gradeBars[barIDX]._modStudent != null) {transformStudentFromUniToRaw(gradeBars[barIDX]._modStudent, baseDistModel);}
 				//rebuild summary obj
-				myProbSummary newSummary = getCurGradeProbSummary(transTypes[GB_rawGradeTypeIDX]);
+				myProbSummary_Dbls newSummary = getCurGradeProbSummary(transTypes[GB_rawGradeTypeIDX]);
 				baseDistModel.setFuncSummary(newSummary);
 				updateName();
 				transformStudentGradesToUniform();			
@@ -361,7 +361,7 @@ class myFinalGradeRoster extends myClassRoster {
 	public void calcTotalGrades() {
 		for (myStudent s : students.values()) {		s.calcTotalGrade(this);	}
 		//get summary of current aggregate uniform grades
-		myProbSummary tmpSummary = getCurGradeProbSummary(transTypes[GB_uniTransGradeTypeIDX]);
+		myProbSummary_Dbls tmpSummary = getCurGradeProbSummary(transTypes[GB_uniTransGradeTypeIDX]);
 		if (useZScore){					
 			for (myStudent s : students.values()) {
 				//now need to transform all uniform student grades for this class roster back to "raw", which in this case will be the final grade
@@ -400,13 +400,13 @@ class myFinalGradeRoster extends myClassRoster {
 		}
 	}//updateDistribution	
 	
-	protected double getZScoreFromGrade(myProbSummary tmpSummary, double _transGrade) {	
+	protected double getZScoreFromGrade(myProbSummary_Dbls tmpSummary, double _transGrade) {	
 		double z = (_transGrade - tmpSummary.smpl_mean())/tmpSummary.smpl_std();
 		double _newGrade = (85 + (10*z))/100.0;
 		return _newGrade;
 	}
 	
-	protected double getGradeFromZScore(myProbSummary tmpSummary, double _zScore) {
+	protected double getGradeFromZScore(myProbSummary_Dbls tmpSummary, double _zScore) {
 		double scaledZ = ((100.0f * _zScore) - 85)/10.0;
 		double _newGrade = (scaledZ * tmpSummary.smpl_std()) + tmpSummary.smpl_mean();
 		return _newGrade;
@@ -416,7 +416,7 @@ class myFinalGradeRoster extends myClassRoster {
 	public void transformStudentFromRawToUni(myStudent s, myRandGen baseDistModel) {
 		double _rawGrade = s.getTransformedGrade(transTypes[GB_rawGradeTypeIDX], this),_newGrade;
 		if (useZScore){
-			myProbSummary tmpSummary = getCurGradeProbSummary(transTypes[GB_uniTransGradeTypeIDX]);
+			myProbSummary_Dbls tmpSummary = getCurGradeProbSummary(transTypes[GB_uniTransGradeTypeIDX]);
 			_newGrade = getGradeFromZScore(tmpSummary, _rawGrade);
 		} else {
 			_newGrade = baseDistModels.get(curDistModel).CDF(_rawGrade);
@@ -432,7 +432,7 @@ class myFinalGradeRoster extends myClassRoster {
 		double _transGrade = s.getTransformedGrade(transTypes[GB_uniTransGradeTypeIDX], this);
 		double _newGrade;
 		if (useZScore){
-			myProbSummary tmpSummary = getCurGradeProbSummary(transTypes[GB_uniTransGradeTypeIDX]);
+			myProbSummary_Dbls tmpSummary = getCurGradeProbSummary(transTypes[GB_uniTransGradeTypeIDX]);
 			_newGrade =getZScoreFromGrade(tmpSummary,_transGrade);			
 		} else {
 			_newGrade = baseDistModel.inverseCDF(_transGrade);

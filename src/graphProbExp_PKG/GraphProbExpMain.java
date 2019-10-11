@@ -289,5 +289,10 @@ public class GraphProbExpMain extends my_procApplet {
 		// TODO Auto-generated method stub
 		return new int[] {255,255,255,alpha};
 	}
+	@Override
+	protected void setSmoothing() {
+		noSmooth();
+		
+	}
 
 }//class GraphProbExpMain

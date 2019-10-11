@@ -5,7 +5,7 @@ import java.util.function.Function;
 
 import base_ProbTools.BaseProbExpMgr;
 import base_ProbTools.myIntegrator;
-import base_ProbTools.myProbSummary;
+import base_ProbTools.summary.myProbSummary_Dbls;
 import base_Utils_Objects.io.MsgCodes;
 
 /**
@@ -29,10 +29,10 @@ public class myGaussianFunc extends myRandVarFunc{
 	
     protected double gaussSclFact, meanStd, invStdSclFact;
     //summary object needs to exist before ctor is called
-	public myGaussianFunc(myIntegrator _quadSlvr, myProbSummary _summaryObj, String _name) {
+	public myGaussianFunc(myIntegrator _quadSlvr, myProbSummary_Dbls _summaryObj, String _name) {
 		super(_quadSlvr, _summaryObj, _name);	
 	}//ctor
-	public myGaussianFunc(myIntegrator _quadSlvr, myProbSummary _summaryObj) {this(_quadSlvr,  _summaryObj, "Gaussian");}
+	public myGaussianFunc(myIntegrator _quadSlvr, myProbSummary_Dbls _summaryObj) {this(_quadSlvr,  _summaryObj, "Gaussian");}
 	
 	//rebuild function with new summary object - establish instance-class specific requirements before rebuilding
 	@Override

@@ -240,5 +240,11 @@ public class DistRayTracer extends my_procApplet {
 		return new String[0];
 	}
 
+	@Override
+	protected void setSmoothing() {
+		noSmooth();
+		
+	}
+
 
 }//DistRayTracer class

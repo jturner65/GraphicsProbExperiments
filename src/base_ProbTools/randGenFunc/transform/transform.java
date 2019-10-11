@@ -2,9 +2,9 @@ package base_ProbTools.randGenFunc.transform;
 
 import java.util.TreeMap;
 
-import base_ProbTools.myProbSummary;
 import base_ProbTools.randGenFunc.RandGenDesc;
 import base_ProbTools.randGenFunc.gens.myRandGen;
+import base_ProbTools.summary.myProbSummary_Dbls;
 
 //////////////////////////////////
 //linear and uniform transformation classes
@@ -12,7 +12,7 @@ import base_ProbTools.randGenFunc.gens.myRandGen;
 
 public abstract class transform extends myRandGen{
 	//func will be null for these, so all functionality that is dependent on func variable needs to be overridden
-	public transform(String _name, myProbSummary _summary) {
+	public transform(String _name, myProbSummary_Dbls _summary) {
 		super(null, _name);
 		setFuncSummary(_summary);
 	}
@@ -27,7 +27,7 @@ public abstract class transform extends myRandGen{
 	
 	//override base class version to remove ref to func, which will be null
 	@Override
-	public void setFuncSummary(myProbSummary _summary) {
+	public void setFuncSummary(myProbSummary_Dbls _summary) {
 		summary = _summary;	
 		 _setFuncSummaryIndiv();
 	}//setFuncSummary

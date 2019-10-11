@@ -2,7 +2,7 @@ package base_ProbTools.randGenFunc.funcs;
 
 import base_ProbTools.BaseProbExpMgr;
 import base_ProbTools.myIntegrator;
-import base_ProbTools.myProbSummary;
+import base_ProbTools.summary.myProbSummary_Dbls;
 import base_Utils_Objects.io.MsgCodes;
 
 //class to model a pdf via a cosine
@@ -23,7 +23,7 @@ public class myCosFunc extends myRandVarFunc{
 	//amplitude to maintain area == 1 under 1 period of cosine is actually freq/pi but we are using .5 + .5*cos, so make calc easier to use freq/2pi * ( 1 + cos)
 	private double halfAmpl;
 
-	public myCosFunc(myIntegrator _quadSlvr, myProbSummary _summaryObj) {
+	public myCosFunc(myIntegrator _quadSlvr, myProbSummary_Dbls _summaryObj) {
 		super(_quadSlvr, _summaryObj, "Cosine PDF");
 	}
 	

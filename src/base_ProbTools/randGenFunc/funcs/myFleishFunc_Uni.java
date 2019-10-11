@@ -5,8 +5,8 @@ import org.jblas.Solve;
 
 import base_ProbTools.BaseProbExpMgr;
 import base_ProbTools.myIntegrator;
-import base_ProbTools.myProbSummary;
 import base_ProbTools.randGenFunc.gens.myZigRandGen;
+import base_ProbTools.summary.myProbSummary_Dbls;
 import base_Utils_Objects.io.MsgCodes;
 
 /**
@@ -39,7 +39,7 @@ public class myFleishFunc_Uni extends myRandVarFunc{
 	private myZigRandGen zigNormGen;
 	
 	
-	public myFleishFunc_Uni(myIntegrator _quadSlvr, myProbSummary _summaryObj, String _name) {
+	public myFleishFunc_Uni(myIntegrator _quadSlvr, myProbSummary_Dbls _summaryObj, String _name) {
 		super(_quadSlvr,_summaryObj, _name);		
 	}//ctor
 

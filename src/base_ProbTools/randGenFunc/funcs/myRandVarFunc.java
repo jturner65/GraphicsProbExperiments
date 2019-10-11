@@ -11,9 +11,9 @@ import org.jblas.*;
 
 import base_ProbTools.BaseProbExpMgr;
 import base_ProbTools.myIntegrator;
-import base_ProbTools.myProbSummary;
 import base_ProbTools.randGenFunc.zigConstVals;
 import base_ProbTools.randVisTools.myDistFuncHistVis;
+import base_ProbTools.summary.myProbSummary_Dbls;
 
 /**
  * classes to provide the functionality of a random variable to be consumed by the random number generators.
@@ -30,7 +30,7 @@ public abstract class myRandVarFunc {
 	//quadrature solver for this random variable/function
 	protected myIntegrator quadSlvr;	
 	//object to hold descriptive values and statistics for this distribution, and any source data/samples, if they exist
-	protected myProbSummary summary;	
+	protected myProbSummary_Dbls summary;	
 	//convergence limit for iterative calcs
 	public static final double convLim=1e-6;	
 	//state flags - bits in array holding relevant info about this random variable function
@@ -87,7 +87,7 @@ public abstract class myRandVarFunc {
 	
 	public static final String[] queryFuncTypes = new String[] {"Function Eval", "PDF Eval", "CDF Eval", "Inv CDF Eval","Integral Eval"};	
 	
-	public myRandVarFunc(myIntegrator _quadSlvr, myProbSummary _summaryObj, String _name) {
+	public myRandVarFunc(myIntegrator _quadSlvr, myProbSummary_Dbls _summaryObj, String _name) {
 		if(null==msgObj) {msgObj = MessageObject.buildMe();}
 		
 		name=_name;
@@ -96,7 +96,7 @@ public abstract class myRandVarFunc {
 		rebuildFuncs(_summaryObj);
 	}//ctor
 	
-	public void rebuildFuncs(myProbSummary _summaryObj) {
+	public void rebuildFuncs(myProbSummary_Dbls _summaryObj) {
 		summary=_summaryObj;
 		rebuildFuncs_Indiv( );
 		funcs= new Function[numFuncs];
@@ -125,7 +125,7 @@ public abstract class myRandVarFunc {
 	}	
 	//momments
 	
-	public myProbSummary getSummary() {return summary;}
+	public myProbSummary_Dbls getSummary() {return summary;}
 	public myIntegrator getQuadSlvr() {return quadSlvr;}
 	public double getMean() {return summary.mean();}
 	public double getStd() {return summary.std();}

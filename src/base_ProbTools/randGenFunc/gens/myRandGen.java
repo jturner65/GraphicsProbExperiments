@@ -3,12 +3,12 @@ package base_ProbTools.randGenFunc.gens;
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 
-import base_ProbTools.myProbSummary;
 import base_ProbTools.randGenFunc.RandGenDesc;
 import base_ProbTools.randGenFunc.funcs.myFleishFunc_Uni;
 import base_ProbTools.randGenFunc.funcs.myNormalFunc;
 import base_ProbTools.randGenFunc.funcs.myRandVarFunc;
 import base_ProbTools.randVisTools.myDistFuncHistVis;
+import base_ProbTools.summary.myProbSummary_Dbls;
 import base_UI_Objects.*;
 
 /**
@@ -18,7 +18,7 @@ public abstract class myRandGen implements Comparable<myRandGen> {
 	public final int ObjID;
 	private static int IDCnt = 0;
 	//original data and analysis of it - fl polynomial needs to be built from a sample distribution or from a set of moments
-	protected myProbSummary summary;
+	protected myProbSummary_Dbls summary;
     //random generator to use to generate uniform data - threadsafe
 	public final String name;	
 	//function name for this randgen
@@ -56,7 +56,7 @@ public abstract class myRandGen implements Comparable<myRandGen> {
 	}
 	
 	//set summary for this object and for function
-	public void setFuncSummary(myProbSummary _summary) {
+	public void setFuncSummary(myProbSummary_Dbls _summary) {
 		summary = _summary;	
 		func.rebuildFuncs(_summary);
 		 _setFuncSummaryIndiv();
@@ -86,7 +86,7 @@ public abstract class myRandGen implements Comparable<myRandGen> {
     	return ThreadLocalRandom.current().nextInt(min,max);
     }
 	
-    public myProbSummary getSummary() {return summary;}
+    public myProbSummary_Dbls getSummary() {return summary;}
     public myRandVarFunc getFunc() {return func;}
 	public double getMean() {return summary.mean();}
 	public double getStd() {return summary.std();}
@@ -154,7 +154,7 @@ public abstract class myRandGen implements Comparable<myRandGen> {
 	public void calcHistValsForDisp(int numVals, int numBuckets) {
 		//x val is distribution/max bucket value, y val is count
 		double [] histVals = getMultiSamples(numVals);		
-		myProbSummary summary = new myProbSummary(histVals);
+		myProbSummary_Dbls summary = new myProbSummary_Dbls(histVals);
 		//build buckets : numBuckets+1 x 2 array; 2nd idxs : idx 0 is lower x value of bucket, y value is count; last entry should always have 0 count
 		double[][] distBuckets = summary.calcBucketVals(numBuckets);
 		System.out.println("calcHistValsForDisp : numVals : " + numVals + " | size of histVals :"+histVals.length + " | size of distBuckets : "+ distBuckets.length + " | distVisObj is null :  "+ (null==distVisObj));

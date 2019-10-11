@@ -6,6 +6,7 @@ import java.util.concurrent.ThreadLocalRandom;
 import base_ProbTools.*;
 import base_ProbTools.randGenFunc.gens.myFleishUniVarRandGen;
 import base_ProbTools.randGenFunc.gens.myRandGen;
+import base_ProbTools.summary.myProbSummary_Dbls;
 import base_UI_Objects.*;
 import base_UI_Objects.windowUI.myDispWindow;
 import base_Utils_Objects.*;
@@ -33,7 +34,7 @@ public class ClassGradeExperiment extends BaseProbExpMgr{
 	//structure holding grades for a particular class read in from a file, or otherwise synthesized from some unknown distribution.  is keyed by class name and then by student ID
 	private HashMap<String,HashMap<Integer, Double>> perClassStudentGrades;
 	//summary objects for each class, based on loaded grades
-	private HashMap<String, myProbSummary> perClassSummaryObjMap;
+	private HashMap<String, myProbSummary_Dbls> perClassSummaryObjMap;
 	
 	//types of different transformed grades
 	public static final int
@@ -136,7 +137,7 @@ public class ClassGradeExperiment extends BaseProbExpMgr{
 		//all student grades for each class
 		perClassStudentGrades = new HashMap<String,HashMap<Integer, Double>>();
 		//object describing class distribution
-		perClassSummaryObjMap = new HashMap<String, myProbSummary>();
+		perClassSummaryObjMap = new HashMap<String, myProbSummary_Dbls>();
 		for(String clsFileName : _classRosterFileNames) {
 			msgObj.dispMessage("ClassGradeExperiment","loadSpecifiedStudentGrades","Start loading grades for class from " + clsFileName,MsgCodes.info1,true);
 			//perClassStudentGrades and perClassSummaryObjMap gets populated here
@@ -160,7 +161,7 @@ public class ClassGradeExperiment extends BaseProbExpMgr{
 	//			classGrades.put(s.ObjID, grade);
 	//		}//for each student assign a random grade and add them to class roster			
 			//build summary object from vals
-			myProbSummary summaryObj = new myProbSummary(vals);
+			myProbSummary_Dbls summaryObj = new myProbSummary_Dbls(vals);
 			msgObj.dispMessage("ClassGradeExperiment","loadAllClassData","Built Summary object with following stats : " + summaryObj.getMinNumMmntsDesc(),MsgCodes.info1,true);
 			perClassSummaryObjMap.put(className, summaryObj);
 			msgObj.dispMessage("ClassGradeExperiment","loadAllClassData","Finished loading grades for class from " + clsFileName,MsgCodes.info1,true);
@@ -198,7 +199,7 @@ public class ClassGradeExperiment extends BaseProbExpMgr{
 				classGrades.put(s.ObjID, grade);
 			}//for each student assign a random grade and add them to class roster			
 			//build summary object from vals
-			myProbSummary summaryObj = new myProbSummary(vals);
+			myProbSummary_Dbls summaryObj = new myProbSummary_Dbls(vals);
 			msgObj.dispMessage("ClassGradeExperiment","updateGlblGrades","Built Summary object for class : " + _cls.name+ " with following stats  : " + summaryObj.getMinNumMmntsDesc(),MsgCodes.info1,true);
 			perClassSummaryObjMap.put(_cls.name, summaryObj);
 		}
@@ -263,10 +264,10 @@ public class ClassGradeExperiment extends BaseProbExpMgr{
 	private void buildRandomStudentGrades() {
 		msgObj.dispMessage("ClassGradeExperiment","buildRandomStudentGrades","Start sampling "  +students.size() + " random student grades for " + classRosters.size() +" classes",MsgCodes.info1,true);
 		perClassStudentGrades = new HashMap<String,HashMap<Integer, Double>>();
-		perClassSummaryObjMap = new HashMap<String, myProbSummary>();
+		perClassSummaryObjMap = new HashMap<String, myProbSummary_Dbls>();
 		
 		//tmp dist for use with generating raw grades - since raw grades are rejected outside the range 0-1 the final dist will be somewhat different
-		myProbSummary tmp = new myProbSummary(initGradeMoments,2);
+		myProbSummary_Dbls tmp = new myProbSummary_Dbls(initGradeMoments,2);
 		tmp.setMinMax(0.0, 1.0);
 		int _randVarType = gaussRandVarIDX;
 		myRandGen tmpRandGen = buildAndInitRandGen(ziggRandGen, _randVarType, tmp);		
@@ -288,7 +289,7 @@ public class ClassGradeExperiment extends BaseProbExpMgr{
 				classGrades.put(s.ObjID, grade);
 			}//for each student assign a random grade and add them to class roster			
 			//build summary object from vals
-			myProbSummary summaryObj = new myProbSummary(vals);
+			myProbSummary_Dbls summaryObj = new myProbSummary_Dbls(vals);
 			msgObj.dispMessage("ClassGradeExperiment","buildRandomStudentGrades","Built Summary object for class : " + _cls.name+ " with following stats : " + summaryObj.getMinNumMmntsDesc(),MsgCodes.info1,true);
 			perClassSummaryObjMap.put(_cls.name, summaryObj);
 		}
@@ -314,7 +315,7 @@ public class ClassGradeExperiment extends BaseProbExpMgr{
 		System.arraycopy(_mmntsAndMinMax[0], 0, mmnts, 0, _descVals[0]);
 		System.arraycopy(_mmntsAndMinMax[1], 0, minMax, 0, _mmntsAndMinMax[1].length);		
 		//kurtosis from UI is excess kurtosis
-		myProbSummary tmpFinal = new myProbSummary(mmnts,_descVals[0], true);
+		myProbSummary_Dbls tmpFinal = new myProbSummary_Dbls(mmnts,_descVals[0], true);
 		tmpFinal.setMinMax(minMax);
 		perClassSummaryObjMap.put(finalGradeClass.name, tmpFinal);			
 		myRandGen tmpFinalRandGen = buildAndInitRandGen(_descVals[1], _descVals[2], perClassSummaryObjMap.get(finalGradeClass.name));
@@ -459,7 +460,7 @@ public class ClassGradeExperiment extends BaseProbExpMgr{
 	//test efficacy of fleishman polynomial transform
 	public void testFleishTransform() {
 
-		myRandGen gradeSourceDistGen = buildAndInitRandGen(fleishRandGen_UniVar, fleishRandVarIDX, new myProbSummary(new double[] {0,1,1,4},4));
+		myRandGen gradeSourceDistGen = buildAndInitRandGen(fleishRandGen_UniVar, fleishRandVarIDX, new myProbSummary_Dbls(new double[] {0,1,1,4},4));
 		//test fleishman polynomial-based transformation
 		_testFlTransform(gradeSourceDistGen, 10000);
 		double min = -1, max = 1;
@@ -474,7 +475,7 @@ public class ClassGradeExperiment extends BaseProbExpMgr{
 		for(int i=0;i<testData.length;++i) {
 			testData[i] = flRandGen.getSample();
 		}
-		myProbSummary testSummary = new myProbSummary(testData);
+		myProbSummary_Dbls testSummary = new myProbSummary_Dbls(testData);
 		msgObj.dispMessage("ClassGradeExperiment","_testFlTransform","Analysis res of testSummary for fleishman polynomial : " + testSummary.getMomentsVals(),MsgCodes.info1,true);
 		
 	}
@@ -497,7 +498,7 @@ public class ClassGradeExperiment extends BaseProbExpMgr{
 	
 	public void testCosFunction() {//generate cdf values given uniform input
     	msgObj.dispMessage("ClassGradeExperiment", "testCosFunction", "Starting test cosine function : generate CDF values given uniform values.",MsgCodes.info1,true);
-    	myRandGen cosFuncTestGen = buildAndInitRandGen(boundedRandGen, raisedCosRandVarIDX, new myProbSummary(new double[] {0,1,0,0},2));
+    	myRandGen cosFuncTestGen = buildAndInitRandGen(boundedRandGen, raisedCosRandVarIDX, new myProbSummary_Dbls(new double[] {0,1,0,0},2));
     	TreeMap<Double,Double> genVals = new TreeMap<Double,Double>();
     	msgObj.dispMessage("ClassGradeExperiment", "testCosFunction", "p \t\t| val",MsgCodes.info1,true);
     		
@@ -513,7 +514,7 @@ public class ClassGradeExperiment extends BaseProbExpMgr{
 	
 	//test inverse fleishman calculation
 	public void testInvFleishCalc(double xDesired) {
-		myRandGen gradeSourceDistGen = buildAndInitRandGen(fleishRandGen_UniVar, fleishRandVarIDX, new myProbSummary(new double[] {0,1,1,4},4));
+		myRandGen gradeSourceDistGen = buildAndInitRandGen(fleishRandGen_UniVar, fleishRandVarIDX, new myProbSummary_Dbls(new double[] {0,1,1,4},4));
 		double val = ((myFleishUniVarRandGen)gradeSourceDistGen).calcInvFuncVal(xDesired);
 
 	}//testInvFleishCalc
@@ -555,10 +556,10 @@ public class ClassGradeExperiment extends BaseProbExpMgr{
 	public void dbgTestStuff() {
 		msgObj.dispMessage("ClassGradeExperiment", "dbgTestStuff", "Start test",MsgCodes.info1,true);
 		//myRandGen gen = buildAndInitRandGen(linearTransformMap, -1, new myProbSummary(new double[] {0,1,1,4},2));		
-		myRandGen gen = buildAndInitRandGen(uniformTransformMap, -1, new myProbSummary(new double[] {0,1,1,4},2));
+		myRandGen gen = buildAndInitRandGen(uniformTransformMap, -1, new myProbSummary_Dbls(new double[] {0,1,1,4},2));
 		double[] vals = gen.getMultiFastSamples(100000);
 		
-		myProbSummary tmpSummary = new myProbSummary(vals); 
+		myProbSummary_Dbls tmpSummary = new myProbSummary_Dbls(vals); 
 		
 		
 		msgObj.dispMessage("ClassGradeExperiment", "dbgTestStuff", "Finish test : summary : "+ tmpSummary.toString(),MsgCodes.info1,true);

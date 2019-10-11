@@ -3,8 +3,8 @@ package graphProbExp_PKG;
 import java.util.concurrent.ThreadLocalRandom;
 
 import base_ProbTools.BaseProbExpMgr;
-import base_ProbTools.myProbSummary;
 import base_ProbTools.randGenFunc.gens.myRandGen;
+import base_ProbTools.summary.myProbSummary_Dbls;
 import base_UI_Objects.*;
 import base_UI_Objects.windowUI.myDispWindow;
 import base_Utils_Objects.*;
@@ -37,8 +37,8 @@ public class myProbExpMgr extends BaseProbExpMgr{
 	//called at end of ctor and whenever experiment needs to be re-instanced
 	@Override
 	public final void initExp() {
-		nrmlGen = buildAndInitRandGen(ziggRandGen, normRandVarIDX, new myProbSummary(new double[] {0,1,0,0},2));	
-		gaussGen = buildAndInitRandGen(ziggRandGen, gaussRandVarIDX, new myProbSummary(new double[] {3,25.9,0,0},2));	
+		nrmlGen = buildAndInitRandGen(ziggRandGen, normRandVarIDX, new myProbSummary_Dbls(new double[] {0,1,0,0},2));	
+		gaussGen = buildAndInitRandGen(ziggRandGen, gaussRandVarIDX, new myProbSummary_Dbls(new double[] {3,25.9,0,0},2));	
 	}//initExp
 	
 	//update all rand gen objects for this function, including updating rand var funcs
@@ -77,7 +77,6 @@ public class myProbExpMgr extends BaseProbExpMgr{
 		
 	}
 
-
 	public void testRandGen(int numVals) {
 		msgObj.dispMessage("myProbExpMgr","testRandGen","Start test of random normal gen of " +numVals + " vals from rand gen with momments : " + nrmlGen.getFuncDataStr(),MsgCodes.info1,true);
 		smplTestRandNumGen(nrmlGen, numVals);
@@ -88,13 +87,10 @@ public class myProbExpMgr extends BaseProbExpMgr{
 		double mean = gaussGen.getMean(), std = gaussGen.getStd();
 		for(int i=0;i<genVals.length;++i) {	genVals[i] = mean + (std*ThreadLocalRandom.current().nextGaussian());		}
 		msgObj.dispMessage("myProbExpMgr","testRandGen","Finished synthesizing " + numVals +" gaussian vals ~ N(" + mean + ","+std +") using ThreadLocalRandom random gaussian",MsgCodes.info1,true);
-		myProbSummary analysis = new myProbSummary(genVals);
+		myProbSummary_Dbls analysis = new myProbSummary_Dbls(genVals);
 		msgObj.dispMessage("myProbExpMgr","testRandGen","Analysis res of TLR.nextGauss : " + analysis.getMomentsVals(),MsgCodes.info1,true);
 	}//testRandGen
-	
-	
-
-	
+		
 	
 	/////////////////////////////
 	//init and manage state flags

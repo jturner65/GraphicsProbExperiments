@@ -12,6 +12,7 @@ import base_UI_Objects.my_procApplet;
  */
 public class myDistFuncHistVis extends myVisMgr {
 	//the func to draw that owns this visMgr
+	@SuppressWarnings("unused")
 	private final myRandGen randGen;
 	//graph frame dims
 	protected float[] frameDims = new float[4];

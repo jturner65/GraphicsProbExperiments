@@ -4,6 +4,7 @@ import java.time.Instant;
 import java.util.*;
 
 import base_ProbTools.randGenFunc.transform.*;
+import base_ProbTools.summary.myProbSummary_Dbls;
 import base_ProbTools.randGenFunc.funcs.*;
 import base_ProbTools.randGenFunc.gens.myBoundedRandGen;
 import base_ProbTools.randGenFunc.gens.myFleishUniVarRandGen;
@@ -11,7 +12,6 @@ import base_ProbTools.randGenFunc.gens.myRandGen;
 import base_ProbTools.randGenFunc.gens.myZigRandGen;
 import base_UI_Objects.*;
 import base_UI_Objects.windowUI.myDispWindow;
-import base_Utils_Objects.*;
 import base_Utils_Objects.io.MessageObject;
 import base_Utils_Objects.io.MsgCodes;
 
@@ -96,7 +96,7 @@ public abstract class BaseProbExpMgr {
 	
 	public BaseProbExpMgr(myDispWindow _win) {
 		win = _win;
-		pa=win.pa;
+		pa=myDispWindow.pa;
 		if(msgObj==null) {msgObj = MessageObject.buildMe(pa);}
 		setVisibleScreenWidth();
 		//base class-specific flags, isolated to within this code only
@@ -168,7 +168,7 @@ public abstract class BaseProbExpMgr {
 		return res;
 	}//buildRandVarFuncOpts
 	
-	public myRandVarFunc buildRandVarType (int _pdfType,  int _quadSlvrIdx, myProbSummary _summaryObj) {
+	public myRandVarFunc buildRandVarType (int _pdfType,  int _quadSlvrIdx, myProbSummary_Dbls _summaryObj) {
 		//System.out.println("buildRandVarType : " + _pdfType);
 		myRandVarFunc rvf;
 		switch (_pdfType) {		
@@ -184,9 +184,9 @@ public abstract class BaseProbExpMgr {
 	}//myRandVarFunc
 	
 	//using default GaussLengendre and 256 zig's for ziggurat alg
-	public myRandGen buildAndInitRandGen(int _type, int _pdfType, myProbSummary _summaryObj) {return buildAndInitRandGen(_type, _pdfType, GL_QuadSlvrIDX, 256, _summaryObj);}
+	public myRandGen buildAndInitRandGen(int _type, int _pdfType, myProbSummary_Dbls _summaryObj) {return buildAndInitRandGen(_type, _pdfType, GL_QuadSlvrIDX, 256, _summaryObj);}
 	//must build rand gen through this method
-	public myRandGen buildAndInitRandGen(int _randGenType, int _pdfType, int _quadSlvrIdx, int _numZigRects, myProbSummary _summaryObj) {
+	public myRandGen buildAndInitRandGen(int _randGenType, int _pdfType, int _quadSlvrIdx, int _numZigRects, myProbSummary_Dbls _summaryObj) {
 		
 		switch (_randGenType) {
 			case boundedRandGen : {
@@ -269,7 +269,7 @@ public abstract class BaseProbExpMgr {
 		}
 		//now calculate mean value and
 		msgObj.dispMessage("BaseProbExpMgr","testRandGen","Finished synthesizing " + numVals+ " values using Gen : " + gen.name + " | Begin analysis of values.",MsgCodes.info1, true);
-		myProbSummary analysis = new myProbSummary(genVals);
+		myProbSummary_Dbls analysis = new myProbSummary_Dbls(genVals);
 		msgObj.dispMessage("BaseProbExpMgr","testRandGen","Analysis res of " + gen.name + " : " + analysis.getMomentsVals(),MsgCodes.info1, true);
 	}//testGen
 	
@@ -284,16 +284,17 @@ public abstract class BaseProbExpMgr {
 		}
 		//now calculate mean value and
 		msgObj.dispMessage("BaseProbExpMgr","testRandGen","Finished synthesizing " + numVals+ " values using Gen : " + gen.name + " | Begin analysis of values.",MsgCodes.info1, true);
-		myProbSummary analysis = new myProbSummary(genVals);
+		myProbSummary_Dbls analysis = new myProbSummary_Dbls(genVals);
 		msgObj.dispMessage("BaseProbExpMgr","testRandGen","Analysis res of " + gen.name + " : " + analysis.getMomentsVals(),MsgCodes.info1, true);
 	}//testGen
 	
 	
 	//test method for calculating r for rand var function (used in ziggurat algorithm)
+	@SuppressWarnings("unused")
 	public void testRCalc() {
 		msgObj.dispMessage("BaseProbExpMgr","testRCalc","Start test of r var calc",MsgCodes.info1, true);
 		myRandVarFunc randVar = new myNormalFunc(quadSlvrs[GL_QuadSlvrIDX]);
-		myProbSummary analysis = new myProbSummary( new double[] {2.0, 3.0}, 2);
+		myProbSummary_Dbls analysis = new myProbSummary_Dbls( new double[] {2.0, 3.0}, 2);
 		//myRandVarFunc randGaussVar = new myGaussianFunc(this, quadSlvrs[GL_QuadSlvrIDX], analysis);
 		randVar.dbgTestCalcRVal(256);
 		
@@ -367,6 +368,7 @@ public abstract class BaseProbExpMgr {
 	/////////////////////////////
 	//init and manage state flags internal to base class computation
 	private void initBaseFlags(){_baseStFlags = new int[1 + _BaseNumStFlags/32]; for(int i = 0; i<_BaseNumStFlags; ++i){setBaseFlag(i,false);}}
+	@SuppressWarnings("unused")
 	private void setAllBaseFlags(int[] idxs, boolean val) {for (int idx : idxs) {setBaseFlag(idx, val);}}
 	private void setBaseFlag(int idx, boolean val){
 		int flIDX = idx/32, mask = 1<<(idx%32);
@@ -376,6 +378,7 @@ public abstract class BaseProbExpMgr {
 			
 		}
 	}//setFlag		
+	@SuppressWarnings("unused")
 	private boolean getBaseFlag(int idx){int bitLoc = 1<<(idx%32);return (_baseStFlags[idx/32] & bitLoc) == bitLoc;}		
 
 

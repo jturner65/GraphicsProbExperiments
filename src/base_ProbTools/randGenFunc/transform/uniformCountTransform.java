@@ -2,7 +2,7 @@ package base_ProbTools.randGenFunc.transform;
 
 import java.util.TreeMap;
 
-import base_ProbTools.myProbSummary;
+import base_ProbTools.summary.myProbSummary_Dbls;
 
 //maps each grade to a specific location based on its order - does not care about original grade value, just uses rank
 public class uniformCountTransform extends transform{
@@ -14,7 +14,7 @@ public class uniformCountTransform extends transform{
 	TreeMap<Integer, Double> rankedGrades;
 	
 	//summary must be built by data and have data vals
-	public uniformCountTransform(myProbSummary _summary) {
+	public uniformCountTransform(myProbSummary_Dbls _summary) {
 		super("Uniform Count Transform Mapping", _summary);
 	}
 

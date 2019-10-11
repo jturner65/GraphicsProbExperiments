@@ -1,6 +1,6 @@
 package base_ProbTools.randGenFunc.transform;
 
-import base_ProbTools.myProbSummary;
+import base_ProbTools.summary.myProbSummary_Dbls;
 
 //min/max to 0->1 -> using this method to facilitate implementing structure for trivial examples - 
 //will never generate values, nor will it ever access a random variable function.
@@ -9,7 +9,7 @@ public class linearTransform extends transform{
 	//these are of given data
 	double min, max, diff;
 	//summary must have min and max
-	public linearTransform( myProbSummary _summary) {
+	public linearTransform( myProbSummary_Dbls _summary) {
 		super( "Linear Transform Mapping", _summary);		
 	}//ctor
 	//called whenever summary object is set/reset

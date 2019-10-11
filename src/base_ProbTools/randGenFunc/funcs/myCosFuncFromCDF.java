@@ -8,7 +8,7 @@ import org.jblas.Solve;
 
 import base_ProbTools.BaseProbExpMgr;
 import base_ProbTools.myIntegrator;
-import base_ProbTools.myProbSummary;
+import base_ProbTools.summary.myProbSummary_Dbls;
 import base_Utils_Objects.io.MsgCodes;
 
 /**
@@ -33,7 +33,7 @@ public class myCosFuncFromCDF extends myRandVarFunc{
 		cdf1pSine = 0,
 		cdfXpSine = 1;
 	private static final int numSlvrFuncs = 2;
-	public myCosFuncFromCDF(myIntegrator _quadSlvr, myProbSummary _summaryObj) {
+	public myCosFuncFromCDF(myIntegrator _quadSlvr, myProbSummary_Dbls _summaryObj) {
 		super(_quadSlvr, _summaryObj, "Cosine PDF");
 		buildSlvrFuncs();		
 	}//ctor
