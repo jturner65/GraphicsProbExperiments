@@ -4,7 +4,8 @@ import java.io.File;
 import java.util.*;
 import base_UI_Objects.*;
 import base_UI_Objects.drawnObjs.myDrawnSmplTraj;
-import base_UI_Objects.windowUI.myDispWindow;
+import base_UI_Objects.windowUI.base.base_UpdateFromUIData;
+import base_UI_Objects.windowUI.base.myDispWindow;
 import base_UI_Objects.windowUI.myGUIObj;
 import base_Utils_Objects.*;
 import base_Utils_Objects.vectorObjs.myPoint;
@@ -52,7 +53,7 @@ public class Alt2DWindow extends myDispWindow {
 	@Override
 	protected void initMe() {
 		//called once
-		initPrivFlags(numPrivFlags);
+		//initPrivFlags(numPrivFlags);
 		//this window is runnable
 		setFlags(isRunnable, true);
 		//this window uses a customizable camera
@@ -68,12 +69,33 @@ public class Alt2DWindow extends myDispWindow {
 	}//
 	//initialize all UI buttons here
 	@Override
-	public void initAllPrivBtns(ArrayList<Object[]> tmpBtnNamesArray) {
+	public int initAllPrivBtns(ArrayList<Object[]> tmpBtnNamesArray) {
 		//give true labels, false labels and specify the indexes of the booleans that should be tied to UI buttons
 		tmpBtnNamesArray.add(new Object[] { "Debugging", "Debug", debugAnimIDX });
+		return numPrivFlags;
 		
 	}
-	
+
+	@Override
+	protected base_UpdateFromUIData buildUIDataUpdateObject() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	protected void buildUIUpdateStruct_Indiv(TreeMap<Integer, Integer> intValues, TreeMap<Integer, Float> floatValues,
+			TreeMap<Integer, Boolean> boolValues) {
+		// TODO Auto-generated method stub
+		
+	}
+
+
+	@Override
+	protected int[] getFlagIDXsToInitToTrue() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 	//add reference here to all button IDX's 
 	@Override
 	public void setPrivFlags(int idx, boolean val) {
@@ -301,7 +323,7 @@ public class Alt2DWindow extends myDispWindow {
 	}
 
 	@Override
-	protected void processTrajIndiv(myDrawnSmplTraj drawnNoteTraj){	}
+	public void processTrajIndiv(myDrawnSmplTraj drawnNoteTraj){	}
 	
 	
 	@Override
@@ -355,5 +377,6 @@ public class Alt2DWindow extends myDispWindow {
 		// TODO Auto-generated method stub
 		return null;
 	}
+
 
 }

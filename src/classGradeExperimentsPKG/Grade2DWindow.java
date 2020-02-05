@@ -7,12 +7,12 @@ import base_ProbTools.BaseProbExpMgr;
 import base_ProbTools.randGenFunc.funcs.myRandVarFunc;
 import base_UI_Objects.*;
 import base_UI_Objects.drawnObjs.myDrawnSmplTraj;
-import base_UI_Objects.windowUI.myDispWindow;
+import base_UI_Objects.windowUI.base.base_UpdateFromUIData;
+import base_UI_Objects.windowUI.base.myDispWindow;
 import base_UI_Objects.windowUI.myGUIObj;
 import base_Utils_Objects.*;
 import base_Utils_Objects.vectorObjs.myPoint;
 import base_Utils_Objects.vectorObjs.myVector;
-import graphProbExp_PKG.mySideBarMenu;
 
 public class Grade2DWindow extends myDispWindow {
 	
@@ -80,7 +80,7 @@ public class Grade2DWindow extends myDispWindow {
 			drawFuncEval				= 6,					//draw results of function evaluation
 			drawHistEval				= 7,					//draw results of histogram evaluation
 			drawMultiEval				= 8;					//draw overlay of multiple results 
-	public static final int numPrivFlags = 9;
+	private static final int numPrivFlags = 9;
 	//idxs of all plots
 	private static final int[] showPlotIDXs = new int[] {drawFuncEval, drawHistEval, drawMultiEval};
 
@@ -103,7 +103,7 @@ public class Grade2DWindow extends myDispWindow {
 	@Override
 	protected void initMe() {
 		//called once
-		initPrivFlags(numPrivFlags);
+		//initPrivFlags(numPrivFlags);
 		//this window is runnable
 		setFlags(isRunnable, true);
 		//this window uses a customizable camera
@@ -119,9 +119,9 @@ public class Grade2DWindow extends myDispWindow {
 		setVisScreenDimsPriv();			
 		//set offset to use for custom menu objects
 		custMenuOffset = uiClkCoords[3];	
-		//set this to default to moving distribution
-		setPrivFlags(rebuildDistOnMove, true);
-		setPrivFlags(use1pSineCosCDF, true);
+//		//set this to default to moving distribution
+//		setPrivFlags(rebuildDistOnMove, true);
+//		setPrivFlags(use1pSineCosCDF, true);
 		
 		//moved from mapMgr ctor, to remove dependence on papplet in that object
 		pa.setAllMenuBtnNames(menuBtnNames);	
@@ -130,7 +130,7 @@ public class Grade2DWindow extends myDispWindow {
 	
 	//initialize all UI buttons here
 	@Override
-	public void initAllPrivBtns(ArrayList<Object[]> tmpBtnNamesArray) {
+	public int initAllPrivBtns(ArrayList<Object[]> tmpBtnNamesArray) {
 		//give true labels, false labels and specify the indexes of the booleans that should be tied to UI buttons
 		
 		tmpBtnNamesArray.add(new Object[]{"Rebuilding/reloading Grades",     "Rebuild/reload Grades",            reCalcRandGradeSpread});       
@@ -141,10 +141,28 @@ public class Grade2DWindow extends myDispWindow {
 		tmpBtnNamesArray.add(new Object[]{"ZScore for final grades",         "Specific Dist for final grades",   useZScore});                     
 		tmpBtnNamesArray.add(new Object[]{"Eval/Draw Func on Bounds",        "Eval/Draw Func on Bounds",         drawFuncEval});                    
 		tmpBtnNamesArray.add(new Object[]{"Eval/Draw Hist of Dist",          "Eval/Draw Hist of Dist"	,        drawHistEval});                  
-		tmpBtnNamesArray.add(new Object[]{"Showing Cos To Gauss Dist",        "Compare Cos To Gauss Dist",			drawMultiEval});                    
+		tmpBtnNamesArray.add(new Object[]{"Showing Cos To Gauss Dist",        "Compare Cos To Gauss Dist",			drawMultiEval});   
 		
+		return numPrivFlags;
 	}
 	
+
+	@Override
+	protected base_UpdateFromUIData buildUIDataUpdateObject() {
+		return null;
+	}
+
+	@Override
+	protected void buildUIUpdateStruct_Indiv(TreeMap<Integer, Integer> intValues, TreeMap<Integer, Float> floatValues,TreeMap<Integer, Boolean> boolValues) {		
+	}
+
+	@Override
+	protected int[] getFlagIDXsToInitToTrue() {
+		// TODO Auto-generated method stub
+		return new int[] {rebuildDistOnMove,use1pSineCosCDF};
+	}
+
+
 	//add reference here to all button IDX's 
 	@Override
 	public void setPrivFlags(int idx, boolean val) {
@@ -579,7 +597,7 @@ public class Grade2DWindow extends myDispWindow {
 	}
 
 	@Override
-	protected void processTrajIndiv(myDrawnSmplTraj drawnNoteTraj){	}
+	public void processTrajIndiv(myDrawnSmplTraj drawnNoteTraj){	}
 	
 	
 	@Override

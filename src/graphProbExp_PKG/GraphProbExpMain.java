@@ -1,17 +1,12 @@
 package graphProbExp_PKG;
 
 import java.io.File;
-import java.nio.file.*;
-import java.util.*;
-import java.util.concurrent.*;			//used for threading
 
 import processing.core.*;
-import processing.event.MouseEvent;
-import processing.opengl.*;
 
 import base_UI_Objects.*;
-import base_UI_Objects.windowUI.myDispWindow;
-import base_Utils_Objects.*;
+import base_UI_Objects.windowUI.base.myDispWindow;
+import base_UI_Objects.windowUI.sidebar.mySideBarMenu;
 import classGradeExperimentsPKG.Grade2DWindow;
 
 /**
@@ -26,8 +21,6 @@ public class GraphProbExpMain extends my_procApplet {
 	public String dirSep = File.separator;
 	//don't use sphere background for this program
 	private boolean useSphereBKGnd = false;	
-	
-	private int[] visFlags;
 	private final int
 		showUIMenu 			= 0,
 		show1stWinIDX		= 1,			//whether to show 1st window
@@ -55,14 +48,19 @@ public class GraphProbExpMain extends my_procApplet {
 	//do not modify this
 	public static void main(String[] passedArgs) {		
 		String[] appletArgs = new String[] { "graphProbExp_PKG.GraphProbExpMain" };
-		my_procApplet.main(appletArgs, passedArgs);
+		my_procApplet._invokedMain(appletArgs, passedArgs);
 	}//main
-	/**
-	 * This will return the desired dimensions of the application, to be called in setup
-	 * @return int[] { desired application window width, desired application window height}
-	 */
-	protected int[] getDesiredAppDims() {return new int[] {(int)(getDisplayWidth()*.95f), (int)(getDisplayHeight()*.92f)};}
 
+	/**
+	 * whether or not we want to restrict window size on widescreen monitors
+	 * 
+	 * @return 0 - use monitor size regardless
+	 * 			1 - use smaller dim to be determine window 
+	 * 			2+ - TBD
+	 */
+	@Override
+	protected int setAppWindowDimRestrictions() {	return 1;}	
+	
 	@Override
 	protected String getPrjNmLong() {return prjNmLong;}
 	@Override
@@ -122,7 +120,8 @@ public class GraphProbExpMain extends my_procApplet {
 		float[] _dimOpen  =  new float[]{menuWidth, 0, width-menuWidth, height}, _dimClosed  =  new float[]{menuWidth, 0, hideWinWidth, height};	
 		System.out.println("Width : " + width + " | Height : " + height);
 		int wIdx = dispMenuIDX,fIdx=showUIMenu;
-		dispWinFrames[wIdx] = new mySideBarMenu(this, winTitles[wIdx], fIdx, winFillClrs[wIdx], winStrkClrs[wIdx], winRectDimOpen[wIdx], winRectDimClose[wIdx], winDescr[wIdx]);			
+		dispWinFrames[wIdx] = this.buildSideBarMenu(wIdx, fIdx, new String[]{"Special Functions 1","Special Functions 2"}, new int[] {3,5}, 5, true, true);
+		// new mySideBarMenu(this, winTitles[wIdx], fIdx, winFillClrs[wIdx], winStrkClrs[wIdx], winRectDimOpen[wIdx], winRectDimClose[wIdx], winDescr[wIdx]);			
 		
 		//define windows
 		//idx 0 is menu, and is ignored	
@@ -247,17 +246,16 @@ public class GraphProbExpMain extends my_procApplet {
 	//////////////////////////////////////////
 	/// graphics and base functionality utilities and variables
 	//////////////////////////////////////////
+	
+	/**
+	 * return the number of visible window flags for this application
+	 * @return
+	 */
 	@Override
-		//init boolean state machine flags for program
-	public void initVisFlags(){
-		visFlags = new int[1 + numVisFlags/32];for(int i =0; i<numVisFlags;++i){forceVisFlag(i,false);}	
-		((mySideBarMenu)dispWinFrames[dispMenuIDX]).initPFlagColors();			//init sidebar window flags
-	}		
+	public int getNumVisFlags() {return numVisFlags;}
 	@Override
 	//address all flag-setting here, so that if any special cases need to be addressed they can be
-	public void setVisFlag(int idx, boolean val ){
-		int flIDX = idx/32, mask = 1<<(idx%32);
-		visFlags[flIDX] = (val ?  visFlags[flIDX] | mask : visFlags[flIDX] & ~mask);
+	protected void setVisFlag_Indiv(int idx, boolean val ){
 		switch (idx){
 			case showUIMenu 	    : { dispWinFrames[dispMenuIDX].setFlags(myDispWindow.showIDX,val);    break;}											//whether or not to show the main ui window (sidebar)			
 			case show1stWinIDX			: {setWinFlagsXOR(disp1stWinIDX, val); break;}
@@ -267,16 +265,6 @@ public class GraphProbExpMain extends my_procApplet {
 			default : {break;}
 		}
 	}//setFlags  
-	@Override
-	//get vis flag
-	public boolean getVisFlag(int idx){int bitLoc = 1<<(idx%32);return (visFlags[idx/32] & bitLoc) == bitLoc;}	
-	@Override
-	public void forceVisFlag(int idx, boolean val) {
-		int flIDX = idx/32, mask = 1<<(idx%32);
-		visFlags[flIDX] = (val ?  visFlags[flIDX] | mask : visFlags[flIDX] & ~mask);
-		//doesn't perform any other ops - to prevent 
-	}
-	
 	
 	/**
 	 * any instancing-class-specific colors - colorVal set to be higher than IRenderInterface.gui_OffWhite

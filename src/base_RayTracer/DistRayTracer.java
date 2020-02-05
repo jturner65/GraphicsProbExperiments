@@ -32,11 +32,19 @@ public class DistRayTracer extends my_procApplet {
 		
 	public static void main(String[] passedArgs) {		
 		String[] appletArgs = new String[] { "base_RayTracer.DistRayTracer" };
-		my_procApplet.main(appletArgs, passedArgs);
+		my_procApplet._invokedMain(appletArgs, passedArgs);
 	}//main
 
+	/**
+	 * whether or not we want to restrict window size on widescreen monitors
+	 * 
+	 * @return 0 - use monitor size regardless
+	 * 			1 - use smaller dim to be determine window 
+	 * 			2+ - TBD
+	 */
 	@Override
-	protected int[] getDesiredAppDims() {return new int[] {sceneCols,sceneRows};}
+	protected int setAppWindowDimRestrictions() {	return 1;}	
+	
 	public void setup_indiv() {
 		colorMode(RGB, 1.0f);
 		background(0, 0, 0);
@@ -205,14 +213,19 @@ public class DistRayTracer extends my_procApplet {
 		if(null==tmp) {gCurrentFile = "";}
 	}
 
+	//////////////////////////////////////////
+	/// graphics and base functionality utilities and variables
+	//////////////////////////////////////////
+	
+	/**
+	 * return the number of visible window flags for this application
+	 * @return
+	 */
 	@Override
-	public void initVisFlags() {}
+	public int getNumVisFlags() {return 1;}
 	@Override
-	public void setVisFlag(int idx, boolean val) {}
-	@Override
-	public void forceVisFlag(int idx, boolean val) {}
-	@Override
-	public boolean getVisFlag(int idx) {return false;}
+	//address all flag-setting here, so that if any special cases need to be addressed they can be
+	protected void setVisFlag_Indiv(int idx, boolean val ){}
 	@Override
 	public double clickValModMult() {return 0;}
 	@Override

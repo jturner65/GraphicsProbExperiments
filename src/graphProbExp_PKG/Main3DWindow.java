@@ -4,7 +4,8 @@ import java.io.*;
 import java.util.*;
 import base_UI_Objects.*;
 import base_UI_Objects.drawnObjs.myDrawnSmplTraj;
-import base_UI_Objects.windowUI.myDispWindow;
+import base_UI_Objects.windowUI.base.base_UpdateFromUIData;
+import base_UI_Objects.windowUI.base.myDispWindow;
 import base_UI_Objects.windowUI.myGUIObj;
 import base_Utils_Objects.*;
 import base_Utils_Objects.vectorObjs.myPoint;
@@ -62,11 +63,12 @@ public class Main3DWindow extends myDispWindow {
 	
 	@Override
 	//initialize all private-flag based UI buttons here - called by base class
-	public void initAllPrivBtns(ArrayList<Object[]> tmpBtnNamesArray){		
+	public int initAllPrivBtns(ArrayList<Object[]> tmpBtnNamesArray){		
 		tmpBtnNamesArray.add(new Object[]{"Visualization Debug",   "Enable Debug",               debugAnimIDX});
 		tmpBtnNamesArray.add(new Object[]{"Resetting Simulation",  "Reset Simulation",           resetSimIDX});  
 		tmpBtnNamesArray.add(new Object[]{"Drawing Vis",           "Render Visualization",       drawVisIDX});  
 		tmpBtnNamesArray.add(new Object[]{"Experimenting",          "Conduct Experiment",          conductExpIDX }); 
+		return numPrivFlags;
 	
 	}//initAllPrivBtns
 	//set labels of boolean buttons 
@@ -82,14 +84,33 @@ public class Main3DWindow extends myDispWindow {
 		setFlags(drawRightSideMenu, true);
 		
 		//called once
-		initPrivFlags(numPrivFlags);
+		//initPrivFlags(numPrivFlags);
 		//moved from mapMgr ctor, to remove dependence on papplet in that object
 		pa.setAllMenuBtnNames(menuBtnNames);	
 		tester = new myProbExpMgr(this);
 
 		custMenuOffset = uiClkCoords[3];	//495	
 	}//initMe	
+
+	@Override
+	protected int[] getFlagIDXsToInitToTrue() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+	
+
+	@Override
+	protected base_UpdateFromUIData buildUIDataUpdateObject() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	protected void buildUIUpdateStruct_Indiv(TreeMap<Integer, Integer> intValues, TreeMap<Integer, Float> floatValues,
+			TreeMap<Integer, Boolean> boolValues) {
+		// TODO Auto-generated method stub
 		
+	}
 	@Override
 	//set flag values and execute special functionality for this sequencer
 	//skipKnown will allow settings to be reset if passed redundantly
@@ -368,7 +389,7 @@ public class Main3DWindow extends myDispWindow {
 	}
 
 	@Override
-	protected void processTrajIndiv(myDrawnSmplTraj drawnNoteTraj){	}
+	public void processTrajIndiv(myDrawnSmplTraj drawnNoteTraj){	}
 	@Override
 	protected boolean hndlMouseMoveIndiv(int mouseX, int mouseY, myPoint mseClckInWorld){
 		return false;
@@ -409,5 +430,6 @@ public class Main3DWindow extends myDispWindow {
 
 	@Override
 	protected myPoint getMsePtAs3DPt(myPoint mseLoc) {return new myPoint(mseLoc);}
+
 }//DESSimWindow
 
