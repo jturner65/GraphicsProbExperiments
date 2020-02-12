@@ -4,7 +4,7 @@ import processing.core.PImage;
 import base_RayTracer.myRay;
 import base_RayTracer.scene.myScene;
 import base_RayTracer.scene.geometry.sceneObjects.mySceneObject;
-import base_Utils_Objects.vectorObjs.myVector;
+import base_Math_Objects.vectorObjs.doubles.myVector;
 
 //scene object described by implicit equations
 public abstract class myImpObject extends mySceneObject {

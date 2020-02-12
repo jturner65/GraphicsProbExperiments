@@ -2,7 +2,7 @@ package base_RayTracer.scene.textures;
 
 import base_RayTracer.scene.myScene;
 import base_RayTracer.scene.geometry.sceneObjects.implicit.mySphere;
-import base_Utils_Objects.vectorObjs.myVector;
+import base_Math_Objects.vectorObjs.doubles.myVector;
 
 //sphere that is moving between origin 0 and origin 1
 public class myMovingSphere extends mySphere{

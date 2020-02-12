@@ -5,8 +5,8 @@ import base_RayTracer.rayHit;
 import base_RayTracer.scene.myScene;
 import base_RayTracer.scene.geometry.myGeomBase;
 import base_RayTracer.scene.shaders.myObjShader;
-import base_Utils_Objects.vectorObjs.myMatrix;
-import base_Utils_Objects.vectorObjs.myVector;
+import base_Math_Objects.vectorObjs.doubles.myMatrix;
+import base_Math_Objects.vectorObjs.doubles.myVector;
 
 public abstract class mySceneObject extends myGeomBase{	
 	

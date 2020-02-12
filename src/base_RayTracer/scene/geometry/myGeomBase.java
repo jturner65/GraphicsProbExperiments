@@ -8,8 +8,8 @@ import base_RayTracer.scene.objType;
 import base_RayTracer.scene.geometry.accelStruct.*;
 import base_RayTracer.scene.shaders.myObjShader;
 import processing.core.PImage;
-import base_Utils_Objects.vectorObjs.myMatrix;
-import base_Utils_Objects.vectorObjs.myVector;
+import base_Math_Objects.vectorObjs.doubles.myMatrix;
+import base_Math_Objects.vectorObjs.doubles.myVector;
 //abstract base class from which scene objects, instances, bounding boxes and acceleration structures all inherit
 //make this very skinny since we may have thousands of them
 public abstract class myGeomBase {

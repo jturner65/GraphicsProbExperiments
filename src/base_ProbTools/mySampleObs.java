@@ -2,7 +2,7 @@ package base_ProbTools;
 
 import base_UI_Objects.*;
 import base_Utils_Objects.*;
-import base_Utils_Objects.vectorObjs.myPointf;
+import base_Math_Objects.vectorObjs.floats.myPointf;
 /**
  * a single observation belonging to a sample set - values specified by inheriting class
  * @author john

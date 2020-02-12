@@ -4,7 +4,7 @@ import base_RayTracer.myColor;
 import base_RayTracer.myRay;
 import base_RayTracer.rayHit;
 import base_RayTracer.scene.myScene;
-import base_Utils_Objects.vectorObjs.myVector;
+import base_Math_Objects.vectorObjs.doubles.myVector;
 
 //simplified transparent shader, for project 1
 public class mySimpleReflObjShdr extends myObjShader{

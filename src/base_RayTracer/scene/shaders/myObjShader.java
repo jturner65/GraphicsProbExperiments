@@ -13,7 +13,7 @@ import base_RayTracer.scene.geometry.sceneObjects.lights.myPhoton;
 import base_RayTracer.scene.textures.myImageTexture;
 import base_RayTracer.scene.textures.myTextureHandler;
 import processing.core.PConstants;
-import base_Utils_Objects.vectorObjs.myVector;
+import base_Math_Objects.vectorObjs.doubles.myVector;
 
 public class myObjShader {
 	public myScene scene;

@@ -22,11 +22,10 @@ import base_RayTracer.scene.shaders.mySimpleReflObjShdr;
 import base_RayTracer.scene.textures.*;
 import base_UI_Objects.*;
 import processing.core.*;
-import base_Utils_Objects.*;
 import base_Utils_Objects.io.MessageObject;
-import base_Utils_Objects.vectorObjs.myMatStack;
-import base_Utils_Objects.vectorObjs.myMatrix;
-import base_Utils_Objects.vectorObjs.myVector;
+import base_Math_Objects.vectorObjs.doubles.myMatStack;
+import base_Math_Objects.vectorObjs.doubles.myMatrix;
+import base_Math_Objects.vectorObjs.doubles.myVector;
 
 //class to hold all objects within a desired scene
 public abstract class myScene {

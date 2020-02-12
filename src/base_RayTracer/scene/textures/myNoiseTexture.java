@@ -4,7 +4,7 @@ import base_RayTracer.myColor;
 import base_RayTracer.rayHit;
 import base_RayTracer.scene.myScene;
 import base_RayTracer.scene.shaders.myObjShader;
-import base_Utils_Objects.vectorObjs.myVector;
+import base_Math_Objects.vectorObjs.doubles.myVector;
 
 //noise-based texture
 public class myNoiseTexture extends myTextureHandler{

@@ -1,7 +1,7 @@
 package base_ProbTools;
 
-import static java.lang.Math.PI;
-import static java.lang.Math.cos;
+//import static java.lang.Math.PI;
+//import static java.lang.Math.cos;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -115,9 +115,9 @@ class myGaussLegenQuad extends myGaussQuad{
 
         //calculate weights and xVals
         BigDecimal x, xSq, x1, legEvalN, legEvalNm1, xDenom, numPointsBD= new BigDecimal(numPoints);
-        double PiOvnp5=PI/(numPoints + 0.5);
+        double PiOvnp5=Math.PI/(numPoints + 0.5);
         for (int i = 1; i <= xVals.length; ++i) {
-            x = new BigDecimal(cos(PiOvnp5 * (i - 0.25)));
+            x = new BigDecimal(Math.cos(PiOvnp5 * (i - 0.25)));
             do {//repeat until converges
             	x1 = new BigDecimal(x.toString());
                 legEvalN = evalPoly(lcoef,numPoints, x);

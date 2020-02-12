@@ -1,6 +1,6 @@
 package base_RayTracer;
 
-import base_Utils_Objects.vectorObjs.myVector;
+import base_Math_Objects.vectorObjs.doubles.myVector;
 
 public class myColor {
 	public myVector RGB;

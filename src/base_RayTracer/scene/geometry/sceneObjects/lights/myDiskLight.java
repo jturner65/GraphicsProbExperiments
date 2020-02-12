@@ -5,7 +5,7 @@ import java.util.concurrent.ThreadLocalRandom;
 import base_RayTracer.myRay;
 import base_RayTracer.scene.myScene;
 import base_RayTracer.scene.objType;
-import base_Utils_Objects.vectorObjs.myVector;
+import base_Math_Objects.vectorObjs.doubles.myVector;
 import processing.core.PConstants;
 
 /**

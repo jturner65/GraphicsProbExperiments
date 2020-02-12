@@ -4,7 +4,7 @@ import base_RayTracer.myColor;
 import base_RayTracer.rayHit;
 import base_RayTracer.scene.myScene;
 import base_RayTracer.scene.shaders.myObjShader;
-import base_Utils_Objects.vectorObjs.myVector;
+import base_Math_Objects.vectorObjs.doubles.myVector;
 
 //more complex wood txtr - uses turbulence for swirly swirls
 public class myWoodTexture extends myNoiseTexture{

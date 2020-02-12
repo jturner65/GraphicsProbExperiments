@@ -5,7 +5,7 @@ import java.util.HashMap;
 import base_ProbTools.mySampleSet;
 import base_ProbTools.mySampleObs;
 import base_UI_Objects.my_procApplet;
-import base_Utils_Objects.vectorObjs.myPointf;
+import base_Math_Objects.vectorObjs.floats.myPointf;
 
 /**
  * this class will hold an instance of a student, a collection of sample observations from multiple class rosters. 

@@ -3,7 +3,7 @@ package base_RayTracer.scene.geometry.sceneObjects.lights;
 import base_RayTracer.myRay;
 import base_RayTracer.scene.myScene;
 import base_RayTracer.scene.objType;
-import base_Utils_Objects.vectorObjs.myVector;
+import base_Math_Objects.vectorObjs.doubles.myVector;
 
 public class myPointLight extends myLight{
  

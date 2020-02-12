@@ -2,8 +2,8 @@ package base_RayTracer;
 
 import base_RayTracer.scene.geometry.myGeomBase;
 import base_RayTracer.scene.shaders.myObjShader;
-import base_Utils_Objects.vectorObjs.myMatrix;
-import base_Utils_Objects.vectorObjs.myVector;
+import base_Math_Objects.vectorObjs.doubles.myMatrix;
+import base_Math_Objects.vectorObjs.doubles.myVector;
 
 //this class stores information regarding a ray hit - the owning ray, the t value, the object hit, the hit location, the object normal at that hit, the object's transformation matrices array
 public class rayHit implements Comparable<rayHit>{

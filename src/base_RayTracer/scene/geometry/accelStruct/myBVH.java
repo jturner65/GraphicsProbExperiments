@@ -10,7 +10,7 @@ import base_RayTracer.rayHit;
 import base_RayTracer.scene.myScene;
 import base_RayTracer.scene.objType;
 import base_RayTracer.scene.geometry.myGeomBase;
-import base_Utils_Objects.vectorObjs.myMatrix;
+import base_Math_Objects.vectorObjs.doubles.myMatrix;
 
 //bvh structure 
 public class myBVH extends myAccelStruct{
