@@ -2,12 +2,12 @@ package graphProbExp_PKG;
 
 import java.io.*;
 import java.util.*;
-import base_UI_Objects.*;
-import base_UI_Objects.drawnObjs.myDrawnSmplTraj;
+
+import base_JavaProjTools_IRender.base_Render_Interface.IRenderInterface;
+import base_UI_Objects.windowUI.drawnObjs.myDrawnSmplTraj;
+import base_UI_Objects.GUI_AppManager;
 import base_UI_Objects.windowUI.base.base_UpdateFromUIData;
 import base_UI_Objects.windowUI.base.myDispWindow;
-import base_UI_Objects.windowUI.myGUIObj;
-import base_Utils_Objects.*;
 import base_Math_Objects.vectorObjs.doubles.myPoint;
 import base_Math_Objects.vectorObjs.doubles.myVector;
 
@@ -56,8 +56,8 @@ public class Main3DWindow extends myDispWindow {
 	
 	private myProbExpMgr tester;
 
-	public Main3DWindow(my_procApplet _p, String _n, int _flagIdx, int[] fc, int[] sc, float[] rd, float[] rdClosed, String _winTxt) {
-		super(_p, _n, _flagIdx, fc, sc, rd, rdClosed, _winTxt);
+	public Main3DWindow(IRenderInterface _p, GUI_AppManager _AppMgr, String _n, int _flagIdx, int[] fc, int[] sc, float[] rd, float[] rdClosed,String _winTxt) {
+		super(_p, _AppMgr, _n, _flagIdx, fc, sc, rd, rdClosed, _winTxt);
 		super.initThisWin(false);
 	}//DancingBallWin
 	
@@ -86,7 +86,7 @@ public class Main3DWindow extends myDispWindow {
 		//called once
 		//initPrivFlags(numPrivFlags);
 		//moved from mapMgr ctor, to remove dependence on papplet in that object
-		pa.setAllMenuBtnNames(menuBtnNames);	
+		AppMgr.setAllMenuBtnNames(menuBtnNames);	
 		tester = new myProbExpMgr(this);
 
 		custMenuOffset = uiClkCoords[3];	//495	
@@ -202,7 +202,7 @@ public class Main3DWindow extends myDispWindow {
 	@Override
 	protected void setCameraIndiv(float[] camVals){		
 		//, float rx, float ry, float dz are now member variables of every window
-		pa.camera(camVals[0],camVals[1],camVals[2],camVals[3],camVals[4],camVals[5],camVals[6],camVals[7],camVals[8]);      
+		pa.setCameraWinVals(camVals);//(camVals[0],camVals[1],camVals[2],camVals[3],camVals[4],camVals[5],camVals[6],camVals[7],camVals[8]);      
 		// puts origin of all drawn objects at screen center and moves forward/away by dz
 		pa.translate(camVals[0],camVals[1],(float)dz); 
 	    setCamOrient();	
@@ -230,10 +230,10 @@ public class Main3DWindow extends myDispWindow {
 	//draw 2d constructs over 3d area on screen - draws behind left menu section
 	//modAmtMillis is in milliseconds
 	protected void drawRightSideInfoBarPriv(float modAmtMillis) {
-		pa.pushMatrix();pa.pushStyle();
+		pa.pushMatState();
 		//display current simulation variables - call sim world through sim exec
 		//simExec.des.drawResultBar(pa, UIrectBox,  yOff);
-		pa.popStyle();pa.popMatrix();					
+		pa.popMatState();					
 	}//drawOnScreenStuff
 	
 	@Override
@@ -249,11 +249,11 @@ public class Main3DWindow extends myDispWindow {
 	//draw custom 2d constructs below interactive component of menu
 	@Override
 	public void drawCustMenuObjs(){
-		pa.pushMatrix();				pa.pushStyle();		
+		pa.pushMatState();	
 		//all sub menu drawing within push mat call
 		pa.translate(0,custMenuOffset+yOff);		
 		//draw any custom menu stuff here
-		pa.popStyle();					pa.popMatrix();		
+		pa.popMatState();		
 	}//drawCustMenuObjs
 
 	//manage any functionality specific to this window that needs to be recalced when the visibile dims of the window change
@@ -280,7 +280,7 @@ public class Main3DWindow extends myDispWindow {
 	@Override
 	protected void setCustMenuBtnNames() {
 		//menuBtnNames[mySideBarMenu.btnAuxFunc1Idx][loadRawBtnIDX]=menuLdRawFuncBtnNames[(rawDataSource % menuLdRawFuncBtnNames.length) ];
-		pa.setAllMenuBtnNames(menuBtnNames);	
+		AppMgr.setAllMenuBtnNames(menuBtnNames);	
 	}
 	
 	@Override

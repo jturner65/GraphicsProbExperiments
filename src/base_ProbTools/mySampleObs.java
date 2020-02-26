@@ -1,7 +1,7 @@
 package base_ProbTools;
 
-import base_UI_Objects.*;
-import base_Utils_Objects.*;
+
+import base_JavaProjTools_IRender.base_Render_Interface.IRenderInterface;
 import base_Math_Objects.vectorObjs.floats.myPointf;
 /**
  * a single observation belonging to a sample set - values specified by inheriting class
@@ -45,16 +45,16 @@ public class mySampleObs{
 
 	///////////////////////
 	// sample draw function
-	
 	//pass location and display name of visualization for sample
-	public void drawMe(my_procApplet pa, float rad, int[] _drawClr, myPointf _transLoc, String _dispName) {
-		pa.pushMatrix();pa.pushStyle();
+	public void drawMe(IRenderInterface pa, float rad, int[] _drawClr, myPointf _transLoc, String _dispName) {
+		pa.pushMatState();
 		pa.translate(_transLoc);
 		pa.setFill(_drawClr,255); pa.setStroke(blkStrk,255);			
-		pa.ellipse(0,0,rad,rad); 
-		pa.ellipse(0,0,2,2);
-		pa.showOffsetText(textLoc,pa.gui_White, _dispName);
-		pa.popStyle();pa.popMatrix();
+		pa.drawEllipse2D(0,0,rad,rad); 
+		pa.drawEllipse2D(0.0f,0.0f,2.0f,2.0f);
+		pa.setColorValFill(IRenderInterface.gui_White, 255);pa.setColorValStroke(IRenderInterface.gui_White, 255);
+		pa.showText(_dispName, textLoc.x, textLoc.y, textLoc.z); 
+		pa.popMatState();
 	}//drawMe
 	
 	

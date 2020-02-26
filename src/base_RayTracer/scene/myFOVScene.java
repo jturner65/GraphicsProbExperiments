@@ -2,12 +2,12 @@ package base_RayTracer.scene;
 
 import java.util.concurrent.ThreadLocalRandom;
 
+import base_JavaProjTools_IRender.base_Render_Interface.IRenderInterface;
 import base_RayTracer.myColor;
 import base_RayTracer.myRay;
 import base_RayTracer.rayHit;
-import base_UI_Objects.my_procApplet;
+import base_RayTracer.scene.geometry.myGeomBase;
 import base_Math_Objects.vectorObjs.doubles.myVector;
-import processing.core.PConstants;
 
 public class myFOVScene extends myScene {
 	//current field of view
@@ -15,7 +15,7 @@ public class myFOVScene extends myScene {
 	//public List<Future<Boolean>> callFOVFutures;
 	//public List<myFOVCall> callFOVCalcs;
 
-	public myFOVScene(my_procApplet _p, String _sceneName, int _numCols, int _numRows) {
+	public myFOVScene(IRenderInterface _p, String _sceneName, int _numCols, int _numRows) {
 		super(_p,_sceneName,_numCols,_numRows);
 		//callFOVCalcs= new ArrayList<myFOVCall>();
 		//callFOVFutures = new ArrayList<Future<Boolean>>(); 
@@ -59,7 +59,7 @@ public class myFOVScene extends myScene {
 		lensCtrPoint._normalize();
 		myRay ray = new myRay(this, eyeOrigin, lensCtrPoint, 0);					//initial ray - find intersection with focal plane
 		//find intersection point with focal plane, use this point to build lens rays
-		rayHit hit = focalPlane.intersectCheck( ray, ray.getTransformedRay(ray, focalPlane.CTMara[focalPlane.invIDX]),focalPlane.CTMara);						//should always hit
+		rayHit hit = focalPlane.intersectCheck( ray, ray.getTransformedRay(ray, focalPlane.CTMara[myGeomBase.invIDX]),focalPlane.CTMara);						//should always hit
 		myVector rayOrigin,														//
 			focalPt = hit.hitLoc;
 		for(int rayNum = 0; rayNum < numRaysPerPixel; ++rayNum){
@@ -107,8 +107,9 @@ public class myFOVScene extends myScene {
 				finishImage();
 			}	
 		}
-		pa.imageMode(PConstants.CORNER);
-		pa.image(rndrdImg,0,0);			
+		finalizeDraw();
+//		pa.imageMode(PConstants.CORNER);
+//		pa.image(rndrdImg,0,0);	
 	}//drawDpthOfFld
 	
 	
@@ -195,8 +196,9 @@ public class myFOVScene extends myScene {
 				finishImage();
 			}	
 		}
-		pa.imageMode(PConstants.CORNER);
-		pa.image(rndrdImg,0,0);		
+		finalizeDraw();
+//		pa.imageMode(PConstants.CORNER);
+//		pa.image(rndrdImg,0,0);		
 	}
 
 }//myFOVScene

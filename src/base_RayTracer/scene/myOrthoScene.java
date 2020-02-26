@@ -2,11 +2,10 @@ package base_RayTracer.scene;
 
 import java.util.concurrent.ThreadLocalRandom;
 
+import base_JavaProjTools_IRender.base_Render_Interface.IRenderInterface;
 import base_RayTracer.myColor;
 import base_RayTracer.myRay;
-import base_UI_Objects.my_procApplet;
 import base_Math_Objects.vectorObjs.doubles.myVector;
-import processing.core.PConstants;
 
 public class myOrthoScene extends myScene{
 	//width and height of view - for ortho projection. for perspective will be screen width and height
@@ -15,7 +14,7 @@ public class myOrthoScene extends myScene{
 	//public List<Future<Boolean>> callOrthoFutures;
 	//public List<myOrthoCall> callOrthoCalcs;
 
-	public myOrthoScene(my_procApplet _p, String _sceneName,int _numCols, int _numRows) {
+	public myOrthoScene(IRenderInterface _p, String _sceneName,int _numCols, int _numRows) {
 		super(_p,_sceneName,_numCols,_numRows);
 	}
 	public myOrthoScene(myScene _s, int _numCols, int _numRows){
@@ -45,7 +44,7 @@ public class myOrthoScene extends myScene{
 	public myColor shootMultiRays(double xBseVal, double yBseVal) {
 		myColor result,aaResultColor;
 		double redVal = 0, greenVal = 0, blueVal = 0, rayY, rayX;//,rayYOffset = 1.0/sceneRows, rayXOffset = 1.0/sceneCols;
-		myRay ray;
+		//myRay ray;
 		for(int rayNum = 0; rayNum < numRaysPerPixel; ++rayNum){//vary by +/- .5
 			rayY = yBseVal + (orthPerRow*ThreadLocalRandom.current().nextDouble(-.5,.5));
 			rayX = xBseVal + (orthPerCol*ThreadLocalRandom.current().nextDouble(-.5,.5));				
@@ -106,8 +105,9 @@ public class myOrthoScene extends myScene{
 			rndrdImg.updatePixels();
 			if(scFlags[renderedIDX]){	finishImage();	}	
 		}
-		pa.imageMode(PConstants.CORNER);
-		pa.image(rndrdImg,0,0);			
+		finalizeDraw();
+//		pa.imageMode(PConstants.CORNER);
+//		pa.image(rndrdImg,0,0);		
 	}//draw	
 
 }//myOrthoScene

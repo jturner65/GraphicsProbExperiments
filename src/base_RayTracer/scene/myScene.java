@@ -1,9 +1,9 @@
 package base_RayTracer.scene;
 
 import java.util.*;
-import java.util.Map.Entry;
 import java.util.concurrent.*;
 
+import base_JavaProjTools_IRender.base_Render_Interface.IRenderInterface;
 import base_RayTracer.myColor;
 import base_RayTracer.myRay;
 import base_RayTracer.rayHit;
@@ -29,7 +29,7 @@ import base_Math_Objects.vectorObjs.doubles.myVector;
 
 //class to hold all objects within a desired scene
 public abstract class myScene {
-	public static my_procApplet pa;
+	public static IRenderInterface pa;
 	//for screen display
 	public static MessageObject msgObj = null;
 	
@@ -217,7 +217,7 @@ public abstract class myScene {
 	//current depth in matrix stack - starts at 0;
 	public int currMatrixDepthIDX;	
 	
-	public myScene(my_procApplet _p, String _sceneName, int _numCols, int _numRows) {
+	public myScene(IRenderInterface _p, String _sceneName, int _numCols, int _numRows) {
 		pa = _p;
 		
 		now = Calendar.getInstance();
@@ -243,7 +243,7 @@ public abstract class myScene {
 	}
 	
 	public myScene(myScene _old){//copy ctor, for when scene type is being set - only use when old scene is being discarded (shallow copy)
-		pa = _old.pa;
+		//pa = _old.pa;
 		now = _old.now;
 		folderName = _old.folderName;
 		setImageSize(_old.sceneCols,_old.sceneRows);
@@ -918,7 +918,7 @@ public abstract class myScene {
 		xStart = ((maxDim - sceneCols)/2.0) - rayXOffset;			//compensate for # rows or # cols not being max - make sure projection is centered in non-square images
 		fishMult = 2.0/maxDim; 
 			
-		rndrdImg = pa.createImage(sceneCols,sceneRows,PConstants.RGB);		
+		rndrdImg = ((my_procApplet) pa).createImage(sceneCols,sceneRows,PConstants.RGB);		
 	}
 	
 	//refining
@@ -1010,7 +1010,7 @@ public abstract class myScene {
 	public int calcShadow(myRay _ray, double distToLight){
 		//for each object in scene, check if intersecting any objects before hitting light
 		for (myGeomBase obj : objList){
-			if(obj.calcShadowHit(_ray, _ray.getTransformedRay(_ray, obj.CTMara[obj.invIDX]), obj.CTMara, distToLight) == 1){	return 1;}
+			if(obj.calcShadowHit(_ray, _ray.getTransformedRay(_ray, obj.CTMara[myGeomBase.invIDX]), obj.CTMara, distToLight) == 1){	return 1;}
 		}//for each object in scene
 		return 0;
 	}//findLight method
@@ -1024,7 +1024,7 @@ public abstract class myScene {
 		for (myGeomBase obj : objList){	
 			rayHit _hit = null;
 			try{
-				_hit = obj.intersectCheck(_ray,_ray.getTransformedRay(_ray, obj.CTMara[obj.invIDX]),obj.CTMara);		
+				_hit = obj.intersectCheck(_ray,_ray.getTransformedRay(_ray, obj.CTMara[myGeomBase.invIDX]),obj.CTMara);		
 			} catch (Exception e){
 				System.out.println("find closest ray hit exception :"+e);
 			}
@@ -1096,7 +1096,7 @@ public abstract class myScene {
 			for(int i =0; i<photonTree.num_Cast; ++i){
 				photon_pwr = new double[]{tmpLight.lightColor.RGB.x * pwrMult,tmpLight.lightColor.RGB.y * pwrMult,tmpLight.lightColor.RGB.z * pwrMult };
 				hitChk = findClosestRayHit(tmpLight.genRndPhtnRay());//first hit
-				if((!hitChk.isHit) || (!hitChk.shdr.shdrFlags[hitChk.shdr.hasCaustic])){continue;}			//either hit background or 1st hit is diffuse object - caustic has to hit spec first
+				if((!hitChk.isHit) || (!hitChk.shdr.shdrFlags[myObjShader.hasCaustic])){continue;}			//either hit background or 1st hit is diffuse object - caustic has to hit spec first
 				//System.out.println("hit obj : " + hitChk.obj.ID);
 				//we have first hit here at caustic-generating surface.  need to propagate through to first diffuse surface
 				hitChk.phtnPwr = photon_pwr;
@@ -1107,7 +1107,7 @@ public abstract class myScene {
 		 				hitChk = findClosestRayHit(reflRefrRay);
 		 				hitChk.phtnPwr = tmpPwr;
 		 			} else {					hitChk.isHit = false;}
-				} while((hitChk.isHit) && (hitChk.shdr.shdrFlags[hitChk.shdr.hasCaustic]) && (reflRefrRay.gen <= numPhotonRays));				//keep going while we have a hit and we are hitting a caustic
+				} while((hitChk.isHit) && (hitChk.shdr.shdrFlags[myObjShader.hasCaustic]) && (reflRefrRay.gen <= numPhotonRays));				//keep going while we have a hit and we are hitting a caustic
 				if((!hitChk.isHit) || (reflRefrRay.gen > numPhotonRays)){continue;}																//bounced off into space
 				
 				//d = hitChk.fwdTransRayDir._normalized().getAsAra();				
@@ -1404,6 +1404,14 @@ public abstract class myScene {
 	//public abstract myColor calcAAColor(double pRayX, double pRayY, double xIncr, double yIncr);
 	public abstract myColor shootMultiRays(double pRayX, double pRayY);
 	public abstract void draw(); 
+	
+	/**
+	 * called at end of drawing - should save image
+	 */
+	protected final void finalizeDraw() {
+		((my_procApplet) pa).imageMode(PConstants.CORNER);
+		((my_procApplet) pa).image(rndrdImg,0,0);	
+	}
 
 	//file
 	private void saveFile(){

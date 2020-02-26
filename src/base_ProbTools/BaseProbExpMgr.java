@@ -3,6 +3,7 @@ package base_ProbTools;
 import java.time.Instant;
 import java.util.*;
 
+import base_JavaProjTools_IRender.base_Render_Interface.IRenderInterface;
 import base_ProbTools.randGenFunc.transform.*;
 import base_ProbTools.summary.myProbSummary_Dbls;
 import base_ProbTools.randGenFunc.funcs.*;
@@ -10,7 +11,6 @@ import base_ProbTools.randGenFunc.gens.myBoundedRandGen;
 import base_ProbTools.randGenFunc.gens.myFleishUniVarRandGen;
 import base_ProbTools.randGenFunc.gens.myRandGen;
 import base_ProbTools.randGenFunc.gens.myZigRandGen;
-import base_UI_Objects.*;
 import base_UI_Objects.windowUI.base.myDispWindow;
 import base_Utils_Objects.io.MessageObject;
 import base_Utils_Objects.io.MsgCodes;
@@ -19,7 +19,7 @@ public abstract class BaseProbExpMgr {
 	//owning window for this experiment handler
 	protected myDispWindow win;
 	//papplet for visualization
-	public static my_procApplet pa;
+	public static IRenderInterface pa;
 	//handle communicating via console or logs
 	public static MessageObject msgObj;
 	

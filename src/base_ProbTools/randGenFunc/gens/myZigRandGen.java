@@ -133,13 +133,13 @@ public class myZigRandGen extends myRandGen{
     /**
      * @return A normal gaussian number.
      */
-	private int numNanRes = 0;
+	//private int numNanRes = 0;
 	private double nextNormal53() {
     	double x;
     	while (true) {
 			x = getFuncValFromLong(getNextLong());
 			if (x==x) {return x;    }		//Nan test -> NaN != NaN
-			//else {System.out.println("Nan res : " + numNanRes++);}
+			//else {System.out.println("Nan res : " + ++numNanRes);}
     	}
     }//nextNormal
 

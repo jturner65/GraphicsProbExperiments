@@ -1,15 +1,9 @@
 package base_RayTracer.scene.textures;
 
-import java.util.ArrayList;
-import java.util.Random;
-import java.util.concurrent.ConcurrentSkipListMap;
-
 import base_RayTracer.myColor;
 import base_RayTracer.rayHit;
 import base_RayTracer.scene.myScene;
 import base_RayTracer.scene.shaders.myObjShader;
-import processing.core.PImage;
-import base_Utils_Objects.*;
 import base_Math_Objects.vectorObjs.doubles.myVector;
 
 //class to handle base texture functionality

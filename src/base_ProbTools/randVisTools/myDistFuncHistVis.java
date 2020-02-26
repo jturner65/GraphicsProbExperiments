@@ -2,8 +2,8 @@ package base_ProbTools.randVisTools;
 
 import java.util.TreeMap;
 
+import base_JavaProjTools_IRender.base_Render_Interface.IRenderInterface;
 import base_ProbTools.randGenFunc.gens.myRandGen;
-import base_UI_Objects.my_procApplet;
 
 /**
  * this class will display the results of a random variable function/generator
@@ -149,13 +149,13 @@ public class myDistFuncHistVis extends myVisMgr {
 	}
 		
 	@Override
-	public void _drawVisIndiv(my_procApplet pa) {
+	public void _drawVisIndiv(IRenderInterface pa) {
 		pa.setFill(clr_black,clr_black[3]);
 		pa.setStroke(clr_white,clr_white[3]);
 	
 		//draw box around graph area
 		pa.drawRect(frameDims);
-		pa.pushMatrix();pa.pushStyle();
+		pa.pushMatState();
 		pa.translate(frameDims[0],frameDims[1]+frameDims[3], 0.0f);
 		//pa.sphere(3.0f);	
 		if(showSpecifiedPlots) {
@@ -167,7 +167,7 @@ public class myDistFuncHistVis extends myVisMgr {
 		else if (showHist) {			distVisObjs.get(histKey).drawMe(pa, false);			} 
 		else {							distVisObjs.get(funcKey).drawMe(pa, false);		}
 
-		pa.popStyle();pa.popMatrix();
+		pa.popMatState();
 	}//_drawVisIndiv
 	
 }//myDistFuncHistVis

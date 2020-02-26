@@ -1,8 +1,8 @@
 package classGradeExperimentsPKG;
 
-import base_ProbTools.*;
+import base_JavaProjTools_IRender.base_Render_Interface.IRenderInterface;
+import base_ProbTools.mySampleObs;
 import base_ProbTools.randVisTools.myVisMgr;
-import base_UI_Objects.*;
 
 
 /**
@@ -92,32 +92,32 @@ public class myGradeDistVisBar extends myVisMgr {
 	public float getAbsYLoc() {return startRect[1]+_barStY;}
 	
 	//translate to where the par part of this par starts, so the lines connecting grades for same students can be drawn
-	public void transToBarStart(my_procApplet pa) {pa.translate(startRect[0]+_barStX,startRect[1]+_barStY,0);}	
+	public void transToBarStart(IRenderInterface pa) {pa.translate(startRect[0]+_barStX,startRect[1]+_barStY,0);}	
 	//draw grade bar and student locations
-	protected void _drawVisIndiv(my_procApplet pa) {
+	protected void _drawVisIndiv(IRenderInterface pa) {
 		if(enabled) {
-			pa.pushMatrix();pa.pushStyle();
+			pa.pushMatState();
 			_drawBoxAndBar(pa,clr_green,barColor);
 			for (myStudent s : owningClass.students.values()) {		s.drawMeTransformed(pa, gradeType, owningClass, s.clr, barWidth);	}
-			pa.popStyle();pa.popMatrix();					
+			pa.popMatState();					
 		} else {							
-			pa.pushMatrix();pa.pushStyle();
+			pa.pushMatState();
 			_drawBoxAndBar(pa,clr_red,clr_grey);
 			for (myStudent s : owningClass.students.values()) {		s.drawMeTransformed(pa, gradeType, owningClass, mySampleObs.greyOff, barWidth);	}		
-			pa.popStyle();pa.popMatrix();
+			pa.popMatState();
 		}
 	}//_drawVisIndiv
 	
 	//draw box and bar with appropriate colors
-	private void _drawBoxAndBar(my_procApplet pa, int[] fClr, int[] _bClr) {
+	private void _drawBoxAndBar(IRenderInterface pa, int[] fClr, int[] _bClr) {
 		pa.setFill(fClr,fClr[3]);
 		pa.setStroke(clr_black,clr_black[3]);
 		pa.drawRect(_clkBox);
 		//move to where bar starts
 		pa.translate(_barStX,_barStY,0);
 		pa.setStroke(_bClr,_bClr[3]);
-		pa.strokeWeight(2.0f);
-		pa.line(0,0,0,barWidth,0,0);		
+		pa.setStrokeWt(2.0f);
+		pa.drawLine(0,0,0,barWidth,0,0);		
 	}
 	
 	//set bar width for bar display

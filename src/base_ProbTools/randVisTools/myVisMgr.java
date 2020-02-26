@@ -1,6 +1,6 @@
 package base_ProbTools.randVisTools;
 
-import base_UI_Objects.*;
+import base_JavaProjTools_IRender.base_Render_Interface.IRenderInterface;
 
 /**
  * this class will provide I/O functionality for graphical representations of distributions
@@ -93,17 +93,17 @@ public abstract class myVisMgr {
 	protected abstract void _mouseReleaseIndiv();
 	protected abstract void _setDispWidthIndiv(float dispWidth);
 	
-	public void drawVis(my_procApplet pa) {
+	public void drawVis(IRenderInterface pa) {
 		if(!getFlag(isVisibleIDX)) {return;}
-		pa.pushMatrix();pa.pushStyle();
+		pa.pushMatState();
 		pa.translate(startRect[0], startRect[1],0);
 		pa.setFill(clr_white, clr_white[3]);
-		pa.text(name, 0, 0);
+		pa.showText(name, 0, 0);
 		_drawVisIndiv(pa);
-		pa.popStyle();pa.popMatrix();			
+		pa.popMatState();			
 	}//drawVis
 	
-	protected abstract void _drawVisIndiv(my_procApplet pa);
+	protected abstract void _drawVisIndiv(IRenderInterface pa);
 	
 	public void setIsVisible(boolean _isVis) {setFlag(isVisibleIDX, _isVis);}
 	

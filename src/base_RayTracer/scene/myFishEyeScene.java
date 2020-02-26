@@ -2,11 +2,10 @@ package base_RayTracer.scene;
 
 import java.util.concurrent.ThreadLocalRandom;
 
+import base_JavaProjTools_IRender.base_Render_Interface.IRenderInterface;
 import base_RayTracer.myColor;
 import base_RayTracer.myRay;
-import base_UI_Objects.my_procApplet;
 import base_Math_Objects.vectorObjs.doubles.myVector;
-import processing.core.PConstants;
 
 public class myFishEyeScene extends myScene{
 	//current field of view
@@ -15,7 +14,7 @@ public class myFishEyeScene extends myScene{
 	//public List<Future<Boolean>> callFishFutures;
 	//public List<myFishCall> callFishCalcs;
 	
-	public myFishEyeScene(my_procApplet _p, String _sceneName, int _numCols, int _numRows) {
+	public myFishEyeScene(IRenderInterface _p, String _sceneName, int _numCols, int _numRows) {
 		super(_p,_sceneName,_numCols,_numRows);	
 	}
 	
@@ -112,7 +111,8 @@ public class myFishEyeScene extends myScene{
 			System.out.println("-");
 			if(scFlags[renderedIDX]){			finishImage();	}	
 		}		
-		pa.imageMode(PConstants.CORNER);
-		pa.image(rndrdImg,0,0);			
+		finalizeDraw();
+//		pa.imageMode(PConstants.CORNER);
+//		pa.image(rndrdImg,0,0);	
 	}//draw
 }//myFishEyeScene

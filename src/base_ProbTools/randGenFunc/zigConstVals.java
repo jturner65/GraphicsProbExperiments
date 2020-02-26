@@ -76,7 +76,7 @@ public class zigConstVals{
 		double integralRes = func.integral_fStd(rVal, Double.POSITIVE_INFINITY);
 		double vol = rVal* funcAtR + integralRes;//Q func == 1 - CDF
 		if (vol < 0) {
-			func.msgObj.dispMessage("zigConstVals", "z_R", func.getShortDesc()+ "| Initial Ziggurat R val chosen to be too high, causing integration to yield a negative volume due to error",MsgCodes.error1,true);
+			myRandVarFunc.msgObj.dispMessage("zigConstVals", "z_R", func.getShortDesc()+ "| Initial Ziggurat R val chosen to be too high, causing integration to yield a negative volume due to error",MsgCodes.error1,true);
 			return new double[] {-rVal*9, 0};
 		}
 		//x values and functional eval of x vals

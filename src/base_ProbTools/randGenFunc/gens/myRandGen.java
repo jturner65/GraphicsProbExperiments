@@ -1,11 +1,9 @@
 package base_ProbTools.randGenFunc.gens;
 
-import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 
+import base_JavaProjTools_IRender.base_Render_Interface.IRenderInterface;
 import base_ProbTools.randGenFunc.RandGenDesc;
-import base_ProbTools.randGenFunc.funcs.myFleishFunc_Uni;
-import base_ProbTools.randGenFunc.funcs.myNormalFunc;
 import base_ProbTools.randGenFunc.funcs.myRandVarFunc;
 import base_ProbTools.randVisTools.myDistFuncHistVis;
 import base_ProbTools.summary.myProbSummary_Dbls;
@@ -114,7 +112,7 @@ public abstract class myRandGen implements Comparable<myRandGen> {
 	public int compareTo(myRandGen othr) {return desc.compareTo(othr.desc);}
 	
 	
-	private final String[] dispMultiStrs = new String[] {"PDF hist",};
+	//private final String[] dispMultiStrsConst = new String[] {"PDF hist",};
 	//build dist and hist and also take passed cosine randgen and superimpose the values for its pdf
 	public void buildFuncHistCosPlot(int numVals, int numBuckets, double low, double high, myBoundedRandGen cosGen) {
 		//first build histogram
@@ -184,7 +182,7 @@ public abstract class myRandGen implements Comparable<myRandGen> {
 	public void updateVisName(String _newName) {distVisObj.updateName(_newName);}	
 	
 	//draw a represntation of this distribution
-	public void drawDist(my_procApplet pa) {
+	public void drawDist(IRenderInterface pa) {
 		if(distVisObj == null) {			System.out.println("NO Vis Obj");		return;}
 		distVisObj.drawVis(pa);
 	}//drawDist

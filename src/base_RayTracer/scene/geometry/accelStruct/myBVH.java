@@ -43,6 +43,7 @@ public class myBVH extends myAccelStruct{
 	
 	//build sorted arrays of the incoming aras of objects, sorted on x,y,z coord - _sortedAra is already in order, idxToSkip is the idx/coord _sortedAra is sorted on
 	public List<myGeomBase>[] buildSortedObjAras( List<myGeomBase> _sortedAra, int idxToSkip){
+		@SuppressWarnings("unchecked")
 		List<myGeomBase>[] resAra = (List<myGeomBase>[]) new List[3];
 		TreeMap<Double, List<myGeomBase>> tmpMap;
 		if(idxToSkip != -1) {resAra[idxToSkip] = new ArrayList<myGeomBase>(_sortedAra);}	

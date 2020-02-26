@@ -1,6 +1,6 @@
 package base_ProbTools.randVisTools;
 
-import base_UI_Objects.my_procApplet;
+import base_JavaProjTools_IRender.base_Render_Interface.IRenderInterface;
 
 //manage the visualization of a single distribution evaluation, either a histogram or a functional evaluation
 public abstract class myBaseDistVisObj{
@@ -117,50 +117,50 @@ public abstract class myBaseDistVisObj{
 	// drawing routines
 
 	//draw axis lines through 0,0 and give tags
-	private void _drawZeroLines(my_procApplet pa) {
-		pa.pushMatrix();pa.pushStyle();
-		pa.strokeWeight(2.0f);
+	private void _drawZeroLines(IRenderInterface pa) {
+		pa.pushMatState();
+		pa.setStrokeWt(2.0f);
 		pa.setFill(myVisMgr.clr_cyan,myVisMgr.clr_cyan[3]);
 		if (drawZeroAxes[0]) {//draw x==0 axis
 			float yVal = zeroAxisVals[0];
 			//draw line @ y Val
 			pa.setStroke(myVisMgr.clr_white,myVisMgr.clr_white[3]);
-			pa.line(-tic, yVal, 0, tic, yVal, 0);
+			pa.drawLine(-tic, yVal, 0, tic, yVal, 0);
 			//draw line to other side
 			pa.setStroke(myVisMgr.clr_cyan,myVisMgr.clr_cyan[3]);
-			pa.line(-tic, yVal, 0, frameDims[2], yVal, 0);
+			pa.drawLine(-tic, yVal, 0, frameDims[2], yVal, 0);
 			//draw text for display
 			pa.setStroke(myVisMgr.clr_white,myVisMgr.clr_white[3]);
-			pa.pushMatrix();pa.pushStyle();
+			pa.pushMatState();
 			pa.translate(-tic-10, yVal+5.0f,0);
 			pa.scale(1.4f);
-			pa.text("0", 0,0);
-			pa.popStyle();pa.popMatrix();
+			pa.showText("0", 0,0);
+			pa.popMatState();
 		}
 		
 		if (drawZeroAxes[1]) {//draw y==0 axis
 			float xVal = zeroAxisVals[1];
 			//draw tick line @ x Val
 			pa.setStroke(myVisMgr.clr_white,myVisMgr.clr_white[3]);
-			pa.line(xVal, -tic, 0, xVal, tic, 0);	
+			pa.drawLine(xVal, -tic, 0, xVal, tic, 0);	
 			//draw line to other side
 			pa.setStroke(myVisMgr.clr_cyan,myVisMgr.clr_cyan[3]);
-			pa.line(xVal, -frameDims[3], 0, xVal, tic, 0);	
+			pa.drawLine(xVal, -frameDims[3], 0, xVal, tic, 0);	
 			//draw text for display
 			pa.setStroke(myVisMgr.clr_white,myVisMgr.clr_white[3]);
-			pa.pushMatrix();pa.pushStyle();
+			pa.pushMatState();
 			pa.translate( xVal - 4.0f, tic+20.0f,0);
 			pa.scale(1.4f);
-			pa.text("0", 0,0);
-			pa.popStyle();pa.popMatrix();
+			pa.showText("0", 0,0);
+			pa.popMatState();
 		}		
-		pa.popStyle();pa.popMatrix();
+		pa.popMatState();
 	}//
 	
 	//draw x and y axis values
 	//offset == 0 for axes on left, offset == frameDims[2] for offset on right
-	protected void drawAxes(my_procApplet pa, float offset) {
-		pa.pushMatrix();pa.pushStyle();
+	protected void drawAxes(IRenderInterface pa, float offset) {
+		pa.pushMatState();
 		pa.setFill(myVisMgr.clr_white,myVisMgr.clr_white[3]);
 		float yAxisTxtXOffset = offset -tic-myDistFuncHistVis.frmBnds[0]+10 ,
 				yAxisTxtYOffset = (offset == 0.0)? 5.0f : -4.0f;
@@ -169,36 +169,36 @@ public abstract class myBaseDistVisObj{
 			String dispX = String.format(fmtXStr, axisDispVals[idx][0]); 
 			//draw tick line @ x Val
 			pa.setStroke(myVisMgr.clr_white,myVisMgr.clr_white[3]);
-			pa.line(xVal, -tic, 0, xVal, tic, 0);	
+			pa.drawLine(xVal, -tic, 0, xVal, tic, 0);	
 			//draw line to other side
 			pa.setStroke(myVisMgr.clr_clearWite,myVisMgr.clr_clearWite[3]);
-			pa.line(xVal, -frameDims[3], 0, xVal, tic, 0);	
+			pa.drawLine(xVal, -frameDims[3], 0, xVal, tic, 0);	
 			//draw text for display
-			pa.text(dispX, xVal - 20.0f, tic+10.0f);
+			pa.showText(dispX, xVal - 20.0f, tic+10.0f);
 			if(idx%2==0) {//only draw every other y tick
 				float yVal = axisVals[idx][1];
 				String dispY = String.format(fmtYStr, axisDispVals[idx][1]);
 				//draw line @ y Val
 				pa.setStroke(myVisMgr.clr_white,myVisMgr.clr_white[3]);
-				pa.line(-tic + offset, yVal, 0, tic + offset, yVal, 0);
+				pa.drawLine(-tic + offset, yVal, 0, tic + offset, yVal, 0);
 				//draw line to other side
 				pa.setStroke(myVisMgr.clr_clearWite,myVisMgr.clr_clearWite[3]);
-				pa.line(-tic, yVal, 0, frameDims[2], yVal, 0);
+				pa.drawLine(-tic, yVal, 0, frameDims[2], yVal, 0);
 				//draw text for display
-				pa.text(dispY, yAxisTxtXOffset, yVal+yAxisTxtYOffset);
+				pa.showText(dispY, yAxisTxtXOffset, yVal+yAxisTxtYOffset);
 			}
 		}
 		_drawZeroLines(pa);
-		pa.popStyle();pa.popMatrix();
+		pa.popMatState();
 	}//drawAxes
 	
-	public final void drawMe(my_procApplet pa, boolean isMulti) {
+	public final void drawMe(IRenderInterface pa, boolean isMulti) {
 		pa.setFill(fillClr, fillClr[3]);
 		pa.setStroke(strkClr, strkClr[3]);
 		_drawCurve(pa,isMulti ? frameDims[2] : 0);
 	}//drawMe
 
-	protected abstract void _drawCurve(my_procApplet pa, float offset);
+	protected abstract void _drawCurve(IRenderInterface pa, float offset);
 	
 }//myBaseDistVisObj
 
@@ -211,13 +211,13 @@ class myFuncVisObj extends myBaseDistVisObj{
 	}
 	
 	@Override
-	protected void _drawCurve(my_procApplet pa, float offset) {
-		pa.point(dispVals[0][0], dispVals[0][1], 0);
+	protected void _drawCurve(IRenderInterface pa, float offset) {
+		pa.drawEllipse2D(dispVals[0][0], dispVals[0][1], 5.0f,5.0f);
 		for (int idx = 1; idx <dispVals.length;++idx) {	
 			//draw point 			
-			pa.point(dispVals[idx][0], dispVals[idx][1], 0);
+			pa.drawEllipse2D(dispVals[idx][0], dispVals[idx][1], 5.0f,5.0f);
 			//draw line between points
-			pa.line(dispVals[idx-1][0], dispVals[idx-1][1], 0, dispVals[idx][0], dispVals[idx][1], 0);
+			pa.drawLine(dispVals[idx-1][0], dispVals[idx-1][1], 0, dispVals[idx][0], dispVals[idx][1], 0);
 		}		
 		drawAxes(pa, 0);
 	}//_drawCurve
@@ -231,9 +231,9 @@ class myHistVisObj extends myBaseDistVisObj{
 		super(_owner, _clrs);
 	}
 	
-	protected void _drawCurve(my_procApplet pa, float offset) {
+	protected void _drawCurve(IRenderInterface pa, float offset) {
 		for (int idx = 0; idx <dispVals.length-1;++idx) {	
-			pa.rect(dispVals[idx][0], 0, (dispVals[idx+1][0]-dispVals[idx][0]), dispVals[idx][1]);			
+			pa.drawRect(dispVals[idx][0], 0, (dispVals[idx+1][0]-dispVals[idx][0]), dispVals[idx][1]);			
 		}		
 		drawAxes(pa, offset);
 	}//_drawCurve

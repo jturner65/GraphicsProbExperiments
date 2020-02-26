@@ -102,21 +102,21 @@ public class RayTracerExperiment extends BaseProbExpMgr {
 	}
 	@Override
 	public void drawExp() {
-		pa.pushMatrix();pa.pushStyle();
-			pa.noLights();
+		pa.pushMatState();
+			pa.disableLights();
 			pa.translate(transLoc[0],transLoc[1],0);
 			myScene s = loadedScenes.get(currDispSceneName);
 			if(s!=null) {s.draw();}		
 			pa.translate(sceneCols,0,0);
 			//TODO needs to be alt scene, using reduced cosine dist
 			if(s!=null) {s.draw();}
-			pa.pushMatrix();pa.pushStyle();
+			pa.pushMatState();
 			pa.translate(-sceneCols,sceneRows,0);
 			//draw diff image
 			pa.scale(2.0f);
 			if(s!=null) {s.draw();}
-			pa.popStyle();pa.popMatrix();
-		pa.popStyle();pa.popMatrix();
+			pa.popMatState();
+		pa.popMatState();
 	}
 
 	/////////////////////////////

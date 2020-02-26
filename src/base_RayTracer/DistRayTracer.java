@@ -5,15 +5,17 @@ package base_RayTracer;
 
 import processing.core.*;
 
-import java.awt.event.KeyEvent;
 import java.io.File;
 import java.util.*;
 
 import base_RayTracer.scene.myScene;
+import base_UI_Objects.GUI_AppManager;
 import base_UI_Objects.my_procApplet;
 
+//TODO this needs to instance a window - cannot use this method anymore with just the single processing window
+
 //this file can act as a stub for the ray tracer and can launch it
-public class DistRayTracer extends my_procApplet {
+public class DistRayTracer extends GUI_AppManager {
 	//project-specific variables
 	public String prjNmLong = "Testbed for base ray tracer", prjNmShrt = "RayTracerBaseExp";
 
@@ -31,8 +33,8 @@ public class DistRayTracer extends my_procApplet {
 	private myRTFileReader rdr; 	
 		
 	public static void main(String[] passedArgs) {		
-		String[] appletArgs = new String[] { "base_RayTracer.DistRayTracer" };
-		my_procApplet._invokedMain(appletArgs, passedArgs);
+		DistRayTracer me = new DistRayTracer();
+		my_procApplet._invokedMain(me, passedArgs);		    
 	}//main
 
 	/**
@@ -46,8 +48,8 @@ public class DistRayTracer extends my_procApplet {
 	protected int setAppWindowDimRestrictions() {	return 1;}	
 	
 	public void setup_indiv() {
-		colorMode(RGB, 1.0f);
-		background(0, 0, 0);
+		((my_procApplet)pa).colorMode(PConstants.RGB, 1.0f);
+		((my_procApplet)pa).background(0, 0, 0);
 		//initialize_table();
 		gCurrentFile = "t01.cli";
 		currentDir = "";		//TODO set different directories
@@ -58,7 +60,7 @@ public class DistRayTracer extends my_procApplet {
 	 * determine which main flags to show at upper left of menu 
 	 */
 	@Override
-	protected void initMainFlags_Priv() {
+	protected void initMainFlags_Indiv() {
 		setMainFlagToShow_debugMode(true);
 		setMainFlagToShow_saveAnim(true); 
 		setMainFlagToShow_runSim(true);
@@ -67,9 +69,12 @@ public class DistRayTracer extends my_procApplet {
 	}
 
 	@Override
-	protected void setBkgrnd() {background(0, 0, 0);}
+	protected void setBkgrnd() {((my_procApplet)pa).background(0, 0, 0);}
 	@Override
-	public void draw() {if(!gCurrentFile.equals("")){loadedScenes.get(gCurrentFile).draw();}}
+	/**
+	 * Overriding main because handling 2d + 3d windows
+	 */
+	public final void drawMe(float modAmtMillis){if(!gCurrentFile.equals("")){loadedScenes.get(gCurrentFile).draw();}}
 	@Override
 	protected String getPrjNmLong() {return prjNmLong;}
 	@Override
@@ -199,14 +204,14 @@ public class DistRayTracer extends my_procApplet {
 	}//setCurDir
 
 	@Override
-	protected void initVisOnce_Priv() {}
+	protected void initVisOnce_Indiv() {}
 	@Override
-	protected void initOnce_Priv() {}
+	protected void initOnce_Indiv() {}
 	@Override
 	protected void initVisProg_Indiv() {}
 	@Override
 	protected void initProgram_Indiv() {
-		rdr = new myRTFileReader(this,".."+File.separator+"data"+File.separator+"txtrs"+File.separator);	
+		rdr = new myRTFileReader((my_procApplet)pa,".."+File.separator+"data"+File.separator+"txtrs"+File.separator);	
 		loadedScenes = new TreeMap<String, myScene>();	
 		myScene tmp = rdr.readRTFile(loadedScenes, gCurrentFile, null, sceneCols, sceneRows);//pass null as scene so that we don't add to an existing scene
 		//returns null means not found
@@ -242,7 +247,7 @@ public class DistRayTracer extends my_procApplet {
 	 * @return
 	 */
 	@Override
-	protected int[] getClr_Custom(int colorVal, int alpha) {
+	public int[] getClr_Custom(int colorVal, int alpha) {
 		// TODO Auto-generated method stub
 		return new int[] {255,255,255,alpha};
 	}
@@ -254,10 +259,7 @@ public class DistRayTracer extends my_procApplet {
 	}
 
 	@Override
-	protected void setSmoothing() {
-		noSmooth();
-		
-	}
+	protected void setSmoothing() {		pa.setSmoothing(0);		}
 
 
 }//DistRayTracer class

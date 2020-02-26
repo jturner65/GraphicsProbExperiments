@@ -38,6 +38,7 @@ public class myCosFuncFromCDF extends myRandVarFunc{
 		buildSlvrFuncs();		
 	}//ctor
 	
+	@SuppressWarnings("unchecked")
 	private void buildSlvrFuncs() {
 		//funcs are CDF functions
 		slvrFuncs = new Function[numSlvrFuncs];
@@ -69,7 +70,7 @@ public class myCosFuncFromCDF extends myRandVarFunc{
 		};		
 	}//buildSlvrFuncs
 
-	private void printXYVals(DoubleMatrix xVals) {		System.out.println("xVals : " + xVals);	}
+	//private void printXYVals(DoubleMatrix xVals) {		System.out.println("xVals : " + xVals);	}
 	
 
 	//for equation 1/2  + 1/2 sin(b*(x-phi)) - this doesn't integrate into an appropriate cosine
@@ -93,7 +94,7 @@ public class myCosFuncFromCDF extends myRandVarFunc{
 		actUBnd = (Math.asin(1))/freqMult  + phi;
 		
 		Theta = thetaLcl;
-		Function func = slvrFuncs[cdf1pSine];
+		Function<Double[], Double> func = slvrFuncs[cdf1pSine];
 		double lbnd = calcActualBnd(func,Theta,0.0),
 		ubnd = calcActualBnd(func,Theta,1.0);//CDFMap.get(CDFMap.lastKey());
 		msgObj.dispMessage("myCosFuncFromCDF","deriveCoeffs_onePSine","# vals : " +mapToUse.size() +" y2 : " + y2 + " x2 : " + x2 + " | Theta values : A : " + Theta.get(0) + " |B : " + Theta.get(1) + " |C : " + Theta.get(2) + " : bnds : act : [" +actLBnd +", "+actUBnd +"] | iter :  [" +lbnd +", "+ubnd +"]",MsgCodes.info1,true);				

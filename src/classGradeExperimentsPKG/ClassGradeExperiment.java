@@ -1,15 +1,12 @@
 package classGradeExperimentsPKG;
 
 import java.util.*;
-import java.util.concurrent.ThreadLocalRandom;
 
 import base_ProbTools.*;
 import base_ProbTools.randGenFunc.gens.myFleishUniVarRandGen;
 import base_ProbTools.randGenFunc.gens.myRandGen;
 import base_ProbTools.summary.myProbSummary_Dbls;
-import base_UI_Objects.*;
 import base_UI_Objects.windowUI.base.myDispWindow;
-import base_Utils_Objects.*;
 import base_Utils_Objects.io.MsgCodes;
 /**
  * this class is a specialized type fo probability experiment manager, specifically for the class grades project
@@ -150,7 +147,7 @@ public class ClassGradeExperiment extends BaseProbExpMgr{
 			if (null == classGrades) {classGrades = new HashMap<Integer, Double>(); perClassStudentGrades.put(className, classGrades);}
 			//to hold for distribution - all students must be built by here
 			double[] vals = new double[students.size()];
-			int idx =0;			
+			//int idx =0;			
 			//TODO get values from file and give to each student
 			//overwrites grade in structure
 	//		for (myStudent s : students.values()) {
@@ -408,7 +405,7 @@ public class ClassGradeExperiment extends BaseProbExpMgr{
 				finalPlotLocSt = new float[] {classPlotStart[0], win.curVisScrDims[1] - heightOfFinalPlot , heightOfFinalPlot}
 				;		
 
-		return new myFinalGradeRoster(win.pa, this, "Final Grades For All Students", new float[][] { finalUniBarLocSt, finalTransBarLocSt,finalPlotLocSt});
+		return new myFinalGradeRoster(myDispWindow.pa, this, "Final Grades For All Students", new float[][] { finalUniBarLocSt, finalTransBarLocSt,finalPlotLocSt});
 	}//buildFinalGradeRoster
 
 	//pass names of students, either from a file or randomly generated
@@ -418,7 +415,8 @@ public class ClassGradeExperiment extends BaseProbExpMgr{
 		students.clear();
 		myStudent stdnt;
 		for (int i=0;i<numStudents;++i) {
-			stdnt = new myStudent(win.pa, studentNames[i]);
+			int[] _clr = myDispWindow.pa.getRndClrBright(255);
+			stdnt = new myStudent(_clr, studentNames[i]);
 			students.put(stdnt.ObjID, stdnt);			
 		}	
 		setStntClassRebuildFlags();			//students have not received current grade distribution;classes have not had students assigned; grades need to be rebuilt
@@ -440,7 +438,7 @@ public class ClassGradeExperiment extends BaseProbExpMgr{
 				plotRectLocSt = new float[] {classPlotStart[0],classPlotStart[1], heightOfPlots};
 		classRosters.clear();
 		for (int i=0;i<numClasses;++i) {
-			cls = new myClassRoster(win.pa, this, _className[i], new float[][] { rawBarLocSt, transBarLocSt,plotRectLocSt});	//build class
+			cls = new myClassRoster(myDispWindow.pa, this, _className[i], new float[][] { rawBarLocSt, transBarLocSt,plotRectLocSt});	//build class
 			cls.setFinalGradeRoster(finalGradeClass);																				//give class final grade "class"
 			classRosters.add(cls);																									//add class to roster
 			//move to next class's bar
@@ -621,18 +619,18 @@ public class ClassGradeExperiment extends BaseProbExpMgr{
 	
 	
 	protected void drawPlotRes() {
-		pa.pushMatrix();pa.pushStyle();
+		pa.pushMatState();
 			for (myClassRoster cls : classRosters) {
 				cls.drawPlotRes();
 			}
 			finalGradeClass.drawPlotRes();
 	
-		pa.popStyle();pa.popMatrix();
+		pa.popMatState();
 		
 	}//drawPlotRes
 	//draw raw and transformed class results
 	protected void drawExpRes() {
-		pa.pushMatrix();pa.pushStyle();
+		pa.pushMatState();
 			for (myClassRoster cls : classRosters) {
 				cls.drawStudentGradesRaw();
 				cls.drawStudentGradesUni();
@@ -643,7 +641,7 @@ public class ClassGradeExperiment extends BaseProbExpMgr{
 			finalGradeClass.drawStudentGradesUni();
 			finalGradeClass.drawRawToUniformLine();
 		
-		pa.popStyle();pa.popMatrix();
+		pa.popMatState();
 	}//drawClassRes
 		
 	/////////////////////////////	

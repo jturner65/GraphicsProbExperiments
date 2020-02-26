@@ -12,6 +12,7 @@ import processing.core.PImage;
 //TODO quartic torus
 public class myTorus extends myImpObject{
 	//bodyRad is radius of entire donut, ringRad is radius of circle making up "arm" of torus
+	@SuppressWarnings("unused")
 	private double bodyRad, ringRad;
 
 	public myTorus(myScene _p, double _bodyRad, double _ringRad, double _xC, double _yC, double _zC){

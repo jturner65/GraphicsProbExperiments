@@ -31,7 +31,7 @@ public class myCosFunc extends myRandVarFunc{
 	protected static double calcFreq(double std) {
 		//qStd is std @ stdFreqMultToUse
 		double stdArea = stdAreaAra[stdFreqMultToUse], twoPiStdArea = stdArea* twoPi;
-		double res = std,sinFreqS,diff, qStd = stdFreqMultToUse * std  ,cosFreqS ;
+		double res = std,sinFreqS,diff, qStd = stdFreqMultToUse * std;//  ,cosFreqS ;
 		boolean done = false;
 		int i = 0;
 		while ((!done) && (i < 1000)){

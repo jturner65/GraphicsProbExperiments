@@ -2,9 +2,9 @@ package classGradeExperimentsPKG;
 
 import java.util.HashMap;
 
+import base_JavaProjTools_IRender.base_Render_Interface.IRenderInterface;
 import base_ProbTools.mySampleSet;
 import base_ProbTools.mySampleObs;
-import base_UI_Objects.my_procApplet;
 import base_Math_Objects.vectorObjs.floats.myPointf;
 
 /**
@@ -28,9 +28,9 @@ public class myStudent implements Comparable<mySampleObs> {
 	//listing of raw grade following some distribution, and uniform grade, from result of mapping, keyed by mapping type
 	private HashMap<String,HashMap<mySampleSet, mySampleObs>> grades;
 	
-	public myStudent(my_procApplet _pa, String _name) {
+	public myStudent(int[] _clr, String _name) {
 		ObjID = IDCnt++;  name=_name;
-		clr = _pa.getRndClr2(255);//should be brighter colors
+		clr = _clr;//should be brighter colors
 		shrtName = ""+(char)((ObjID % 26) + 65) + (ObjID / 26);
 		grades = new HashMap<String,HashMap<mySampleSet, mySampleObs>>();
 	}//ctor
@@ -139,7 +139,7 @@ public class myStudent implements Comparable<mySampleObs> {
 	
 	//////////////////
 	// draw this student on line of width ttlWidth - expected to be at start of line when this is called
-	public void drawMeTransformed(my_procApplet pa, String _type, mySampleSet _class, int[] _drawClr, float ttlWidth) {	
+	public void drawMeTransformed(IRenderInterface pa, String _type, mySampleSet _class, int[] _drawClr, float ttlWidth) {	
 		HashMap<mySampleSet, mySampleObs> classValsForType = grades.get(_type);
 		if (classValsForType==null) {					return;	}// no values for this type for any classes set yet 		
 		mySampleObs smplVal = classValsForType.get(_class);			//grade for class for specified type

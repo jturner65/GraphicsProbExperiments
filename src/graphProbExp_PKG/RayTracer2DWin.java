@@ -3,12 +3,11 @@ package graphProbExp_PKG;
 import java.io.*;
 import java.util.*;
 
+import base_JavaProjTools_IRender.base_Render_Interface.IRenderInterface;
 import base_UI_Objects.*;
-import base_UI_Objects.drawnObjs.myDrawnSmplTraj;
+import base_UI_Objects.windowUI.drawnObjs.myDrawnSmplTraj;
 import base_UI_Objects.windowUI.base.base_UpdateFromUIData;
 import base_UI_Objects.windowUI.base.myDispWindow;
-import base_UI_Objects.windowUI.myGUIObj;
-import base_Utils_Objects.*;
 import base_Math_Objects.vectorObjs.doubles.myPoint;
 import base_Math_Objects.vectorObjs.doubles.myVector;
 
@@ -74,8 +73,8 @@ public class RayTracer2DWin extends myDispWindow {
 	};
 
 		
-	public RayTracer2DWin(my_procApplet _p, String _n, int _flagIdx, int[] fc, int[] sc, float[] rd, float[] rdClosed,String _winTxt) {
-		super(_p, _n, _flagIdx, fc, sc, rd, rdClosed, _winTxt);
+	public RayTracer2DWin(IRenderInterface _p, GUI_AppManager _AppMgr, String _n, int _flagIdx, int[] fc, int[] sc, float[] rd, float[] rdClosed,String _winTxt) {
+		super(_p, _AppMgr, _n, _flagIdx, fc, sc, rd, rdClosed, _winTxt);
 		super.initThisWin(false);
 	}//ctor
 			
@@ -100,7 +99,7 @@ public class RayTracer2DWin extends myDispWindow {
 		RTExp.setRTSceneExpVals(sceneCols, sceneRows, gIDX_CurrSceneCLIList[curSceneCliFileIDX % gIDX_CurrSceneCLIList.length]);
 		RTExp.startRayTrace();
 		//moved from mapMgr ctor, to remove dependence on papplet in that object
-		pa.setAllMenuBtnNames(menuBtnNames);		
+		AppMgr.setAllMenuBtnNames(menuBtnNames);		
 	}//
 	
 	//initialize all UI buttons here
@@ -213,11 +212,11 @@ public class RayTracer2DWin extends myDispWindow {
 	
 	@Override
 	protected void drawMe(float animTimeMod) {
-		pa.pushMatrix();pa.pushStyle();
+		pa.pushMatState();
 		pa.translate(this.rectDim[0],0,0);
 		//all drawing stuff goes here
 		RTExp.drawExp();
-		pa.popStyle();pa.popMatrix();
+		pa.popMatState();
 	}
 
 	@Override
@@ -228,20 +227,20 @@ public class RayTracer2DWin extends myDispWindow {
 	//draw 2d constructs over 3d area on screen - draws behind left menu section
 	//modAmtMillis is in milliseconds
 	protected void drawRightSideInfoBarPriv(float modAmtMillis) {
-		pa.pushMatrix();pa.pushStyle();
+		pa.pushMatState();
 		//display current simulation variables - call sim world through sim exec
 		//simExec.des.drawResultBar(pa, UIrectBox,  yOff);
-		pa.popStyle();pa.popMatrix();					
+		pa.popMatState();					
 	}//drawOnScreenStuff
 	@Override
 	public void drawCustMenuObjs() {
-		pa.pushMatrix();				pa.pushStyle();		
+		pa.pushMatState();
 		//all sub menu drawing within push mat call
 		pa.translate(5,custMenuOffset+yOff);
 		//draw any custom menu stuff here
 		
 		
-		pa.popStyle();					pa.popMatrix();		
+		pa.popMatState();		
 	}//drawCustMenuObjs
 	
 	//manage any functionality specific to this window that needs to be recalced when the visibile dims of the window change
@@ -271,7 +270,7 @@ public class RayTracer2DWin extends myDispWindow {
 	@Override
 	protected void setCustMenuBtnNames() {
 		//menuBtnNames[mySideBarMenu.btnAuxFunc1Idx][loadRawBtnIDX]=menuLdRawFuncBtnNames[(rawDataSource % menuLdRawFuncBtnNames.length) ];
-		pa.setAllMenuBtnNames(menuBtnNames);	
+		AppMgr.setAllMenuBtnNames(menuBtnNames);	
 	}
 	
 	@Override
@@ -315,7 +314,7 @@ public class RayTracer2DWin extends myDispWindow {
 			switch(btn){
 				case 0 : {	
 					//test calculation of inverse fleish function -> derive x such that y = f(x) for fleishman polynomial.  This x is then the value from normal dist that yields y from fleish dist
-					double xDesired = -2.0;
+					//double xDesired = -2.0;
 					resetButtonState();
 					break;}
 				case 1 : {	
@@ -369,7 +368,7 @@ public class RayTracer2DWin extends myDispWindow {
 	@Override
 	protected void setCameraIndiv(float[] camVals){		
 		//, float rx, float ry, float dz are now member variables of every window
-		pa.camera(camVals[0],camVals[1],camVals[2],camVals[3],camVals[4],camVals[5],camVals[6],camVals[7],camVals[8]);      
+		pa.setCameraWinVals(camVals);//(camVals[0],camVals[1],camVals[2],camVals[3],camVals[4],camVals[5],camVals[6],camVals[7],camVals[8]);      
 		// puts origin of all drawn objects at screen center and moves forward/away by dz
 		pa.translate(camVals[0],camVals[1],(float)dz); 
 	    setCamOrient();	

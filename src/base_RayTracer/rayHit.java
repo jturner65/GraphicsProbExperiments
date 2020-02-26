@@ -48,7 +48,7 @@ public class rayHit implements Comparable<rayHit>{
 		CTMara = _ctMtrx;
 		fwdTransHitLoc = transRay.getTransformedPt(hitLoc, CTMara[glblIDX]);
 		myVector norm = obj.getNormalAtPoint(hitLoc,iSectArgs);
-		double[] newNormDir = CTMara[obj.adjIDX].multVert(norm.asHAraVec());//fix for scaling - N' == R . S^-1 . N -> CTMadj  
+		double[] newNormDir = CTMara[myGeomBase.adjIDX].multVert(norm.asHAraVec());//fix for scaling - N' == R . S^-1 . N -> CTMadj  
 		objNorm = new myVector(newNormDir);
 		objNorm._normalize();
 	}

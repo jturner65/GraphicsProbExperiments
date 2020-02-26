@@ -2,6 +2,7 @@ package base_ProbTools;
 
 import java.util.*;
 
+import base_JavaProjTools_IRender.base_Render_Interface.IRenderInterface;
 import base_ProbTools.randGenFunc.gens.myBoundedRandGen;
 import base_ProbTools.randGenFunc.gens.myRandGen;
 import base_UI_Objects.*;
@@ -14,7 +15,7 @@ import base_Utils_Objects.io.MsgCodes;
  *
  */
 public abstract class mySampleSet implements Comparable<mySampleSet> {
-	public static my_procApplet pa;
+	public static IRenderInterface pa;
 	//experiment owning/using this sample set
 	public static MessageObject msgObj;
 	public final int ObjID;
@@ -26,7 +27,7 @@ public abstract class mySampleSet implements Comparable<mySampleSet> {
 	//currently used dist model
 	protected String curDistModel;
 
-	public mySampleSet(my_procApplet _pa, String _name) {
+	public mySampleSet(IRenderInterface _pa, String _name) {
 		pa =_pa;
 		msgObj = MessageObject.buildMe();
 		ObjID = IDCnt++;  name=_name;	

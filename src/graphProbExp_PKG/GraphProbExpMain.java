@@ -2,6 +2,7 @@ package graphProbExp_PKG;
 
 import java.io.File;
 
+import base_Math_Objects.MyMathUtils;
 import processing.core.*;
 
 import base_UI_Objects.*;
@@ -13,7 +14,7 @@ import classGradeExperimentsPKG.Grade2DWindow;
  * Testbed to experiment with synthesizing probablity distributions and displaying the results
  * John Turner 
  */
-public class GraphProbExpMain extends my_procApplet {
+public class GraphProbExpMain extends GUI_AppManager {
 	//project-specific variables
 	public String prjNmLong = "Testbed for Graphical Probability Experiments", prjNmShrt = "GraphProbExp";
 	
@@ -47,8 +48,8 @@ public class GraphProbExpMain extends my_procApplet {
 	
 	//do not modify this
 	public static void main(String[] passedArgs) {		
-		String[] appletArgs = new String[] { "graphProbExp_PKG.GraphProbExpMain" };
-		my_procApplet._invokedMain(appletArgs, passedArgs);
+		GraphProbExpMain me = new GraphProbExpMain();
+		my_procApplet._invokedMain(me, passedArgs);		    
 	}//main
 
 	/**
@@ -73,29 +74,29 @@ public class GraphProbExpMain extends my_procApplet {
 	protected void setup_indiv() {	if(useSphereBKGnd) {			setBkgndSphere();	} else {		setBkgrnd();	}}// setup
 	
 	private void setBkgndSphere() {
-		sphereDetail(100);
+		pa.setSphereDetail(100);
 		//TODO move to window to set up specific background for each different "scene" type
-		PImage bgrndTex = loadImage("bkgrndTex.jpg");
-		bgrndSphere = createShape(SPHERE, 10000);
+		PImage bgrndTex = ((my_procApplet)pa).loadImage("bkgrndTex.jpg");
+		bgrndSphere = ((my_procApplet)pa).createShape(PConstants.SPHERE, 10000);
 		bgrndSphere.setTexture(bgrndTex);
-		bgrndSphere.rotate(HALF_PI,-1,0,0);
+		bgrndSphere.rotate(MyMathUtils.halfPi_f,-1,0,0);
 		bgrndSphere.setStroke(false);	
 		//TODO move to myDispWindow
-		background(bground[0],bground[1],bground[2],bground[3]);		
-		shape(bgrndSphere);	
-		sphereDetail(10);
+		((my_procApplet)pa).background(bground[0],bground[1],bground[2],bground[3]);		
+		((my_procApplet)pa).shape(bgrndSphere);	
+		pa.setSphereDetail(10);
 	}
 	
 	@Override
 	protected void setBkgrnd(){
-		background(bground[0],bground[1],bground[2],bground[3]);		
+		((my_procApplet)pa).background(bground[0],bground[1],bground[2],bground[3]);		
 	}//setBkgrnd
 	
 	/**
 	 * determine which main flags to show at upper left of menu 
 	 */
 	@Override
-	protected void initMainFlags_Priv() {
+	protected void initMainFlags_Indiv() {
 		setMainFlagToShow_debugMode(false);
 		setMainFlagToShow_saveAnim(true); 
 		setMainFlagToShow_runSim(false);
@@ -105,9 +106,8 @@ public class GraphProbExpMain extends my_procApplet {
 
 	@Override
 	//build windows here
-	protected void initVisOnce_Priv() {
+	protected void initVisOnce_Indiv() {
 		showInfo = true;
-		drawnTrajEditWidth = 10;
 		int numWins = numVisFlags;//includes 1 for menu window (never < 1)
 		//titles and descs, need to be set before sidebar menu is defined
 		String[] _winTitles = new String[]{"","3D Exp Win","2D Exp Win","2D Ray Tracer","Grading Exp Win"},
@@ -117,8 +117,8 @@ public class GraphProbExpMain extends my_procApplet {
 		//call for menu window
 		buildInitMenuWin(showUIMenu);
 		//instanced window dimensions when open and closed - only showing 1 open at a time
-		float[] _dimOpen  =  new float[]{menuWidth, 0, width-menuWidth, height}, _dimClosed  =  new float[]{menuWidth, 0, hideWinWidth, height};	
-		System.out.println("Width : " + width + " | Height : " + height);
+		float[] _dimOpen  =  new float[]{menuWidth, 0, pa.getWidth()-menuWidth,  pa.getHeight()}, _dimClosed  =  new float[]{menuWidth, 0, hideWinWidth,  pa.getHeight()};	
+		System.out.println("Width : " + pa.getWidth() + " | Height : " +  pa.getHeight());
 		int wIdx = dispMenuIDX,fIdx=showUIMenu;
 		dispWinFrames[wIdx] = this.buildSideBarMenu(wIdx, fIdx, new String[]{"Special Functions 1","Special Functions 2"}, new int[] {3,5}, 5, true, true);
 		// new mySideBarMenu(this, winTitles[wIdx], fIdx, winFillClrs[wIdx], winStrkClrs[wIdx], winRectDimOpen[wIdx], winRectDimClose[wIdx], winDescr[wIdx]);			
@@ -137,29 +137,29 @@ public class GraphProbExpMain extends my_procApplet {
 		//3D window
 		wIdx = disp1stWinIDX; fIdx = show1stWinIDX;
 		setInitDispWinVals(wIdx, _dimOpen, _dimClosed,new boolean[]{false,true,true,true}, new int[]{255,255,255,255},new int[]{0,0,0,255},new int[]{180,180,180,255},new int[]{100,100,100,255}); 
-		dispWinFrames[wIdx] = new Main3DWindow(this, winTitles[wIdx], fIdx, winFillClrs[wIdx], winStrkClrs[wIdx], winRectDimOpen[wIdx], winRectDimClose[wIdx], winDescr[wIdx]);
+		dispWinFrames[wIdx] = new Main3DWindow(pa, this, winTitles[wIdx], fIdx, winFillClrs[wIdx], winStrkClrs[wIdx], winRectDimOpen[wIdx], winRectDimClose[wIdx], winDescr[wIdx]);
 		//2d window
 		wIdx = disp2ndWinIDX; fIdx = show2ndWinIDX;
 		setInitDispWinVals(wIdx, _dimOpen, _dimClosed,new boolean[]{false,false,false,false}, new int[]{50,40,20,255}, new int[]{255,255,255,255},new int[]{180,180,180,255},new int[]{100,100,100,255});
-		dispWinFrames[wIdx] = new Alt2DWindow(this, winTitles[wIdx], fIdx,winFillClrs[wIdx], winStrkClrs[wIdx], winRectDimOpen[wIdx], winRectDimClose[wIdx], winDescr[wIdx]);
+		dispWinFrames[wIdx] = new Alt2DWindow(pa, this, winTitles[wIdx], fIdx,winFillClrs[wIdx], winStrkClrs[wIdx], winRectDimOpen[wIdx], winRectDimClose[wIdx], winDescr[wIdx]);
 		//ray tracer window
 		wIdx = disp2DRayTracerIDX; fIdx = show2DRayTracerIDX;
 		setInitDispWinVals(wIdx, _dimOpen, _dimClosed,new boolean[]{false,false,false,false}, new int[]{20,30,10,255}, new int[]{255,255,255,255},new int[]{180,180,180,255},new int[]{100,100,100,255}); 
-		dispWinFrames[wIdx] = new RayTracer2DWin(this, winTitles[wIdx], fIdx,winFillClrs[wIdx], winStrkClrs[wIdx], winRectDimOpen[wIdx], winRectDimClose[wIdx], winDescr[wIdx]);
+		dispWinFrames[wIdx] = new RayTracer2DWin(pa, this, winTitles[wIdx], fIdx,winFillClrs[wIdx], winStrkClrs[wIdx], winRectDimOpen[wIdx], winRectDimClose[wIdx], winDescr[wIdx]);
 		//grades experiment window
 		wIdx = dispGradeWinIDX; fIdx = showGradeWinIDX;
 		setInitDispWinVals(wIdx, _dimOpen, _dimClosed,new boolean[]{false,false,false,false}, new int[]{50,20,50,255}, new int[]{255,255,255,255},new int[]{180,180,180,255},new int[]{100,100,100,255}); 
-		dispWinFrames[wIdx] = new Grade2DWindow(this, winTitles[wIdx], fIdx,winFillClrs[wIdx], winStrkClrs[wIdx], winRectDimOpen[wIdx], winRectDimClose[wIdx], winDescr[wIdx]);
+		dispWinFrames[wIdx] = new Grade2DWindow(pa, this, winTitles[wIdx], fIdx,winFillClrs[wIdx], winStrkClrs[wIdx], winRectDimOpen[wIdx], winRectDimClose[wIdx], winDescr[wIdx]);
 
 		//specify windows that cannot be shown simultaneously here
 		initXORWins(new int[]{show1stWinIDX,show2ndWinIDX, show2DRayTracerIDX, showGradeWinIDX},new int[]{disp1stWinIDX, disp2ndWinIDX, disp2DRayTracerIDX, dispGradeWinIDX});
 
 		
-	}//initVisOnce_Priv
+	}//initVisOnce_Indiv
 		
 	@Override
 	//called from base class, once at start of program after vis init is called
-	protected void initOnce_Priv(){
+	protected void initOnce_Indiv(){
 		setVisFlag(showUIMenu, true);					//show input UI menu	
 		//setVisFlag(showGradeWinIDX, true);
 		setVisFlag(show2DRayTracerIDX, true);
@@ -198,7 +198,7 @@ public class GraphProbExpMain extends my_procApplet {
 			case 'a' :
 			case 'A' : {toggleSaveAnim();break;}						//start/stop saving every frame for making into animation
 			case 's' :
-			case 'S' : {saveSS(prjNmShrt);break;}//save picture of current image			
+			case 'S' : {break;}//saveSS(prjNmShrt);break;}//save picture of current image			
 			default : {	}
 		}//switch	
 			
@@ -273,13 +273,10 @@ public class GraphProbExpMain extends my_procApplet {
 	 * @return
 	 */
 	@Override
-	protected int[] getClr_Custom(int colorVal, int alpha) {
-		// TODO Auto-generated method stub
-		return new int[] {255,255,255,alpha};
-	}
+	public int[] getClr_Custom(int colorVal, int alpha) {		return new int[] {255,255,255,alpha};	}
 	@Override
 	protected void setSmoothing() {
-		noSmooth();
+		pa.setSmoothing(0);
 		
 	}
 

@@ -26,7 +26,8 @@ public class mySimpleReflObjShdr extends myObjShader{
 		//incoming angle in radians, critical angle,ray angle upon exiting material
 		//n is ratio of refraction indicies for current material/new material (n1/n2),
 		//use n1 and n2 to denote material refraction indicies - n1 is source material, n2 is destination refraction material
-		double thetaIncident = 0, thetaCrit = 0, thetaExit = 0, n = 1, n1 = 0, n2 = 0;
+		double thetaIncident = 0, thetaCrit = 0, //thetaExit = 0, 
+				n = 1, n1 = 0, n2 = 0;
 		//constant multipliers for reflection perp and parallel - average of rperp and rpar = transreflratio/
 		//ratio of resulting transmission vs reflection at surface point - 0 means complete refraction, 1 means complete reflection
 		//eventually want to implement a method to handle exiting one material to another with a non-unity index of refraction (this is exitMaterialTrans)
@@ -64,7 +65,7 @@ public class mySimpleReflObjShdr extends myObjShader{
 				n1 = currPerm;
 				n2 = exitMaterialTrans;
 				n = (n1/n2); 
-				thetaExit = Math.asin(n * Math.sin(thetaIncident));
+				//thetaExit = Math.asin(n * Math.sin(thetaIncident));
 				double tmpResultC2 = 1.0 - (n*n) * (1.0 - (cosTheta1*cosTheta1));
 				if (tmpResultC2 < 0){System.out.println("\tdanger #1 : refraction bad : " +  tmpResultC2);}
 				cosTheta2 = Math.pow(tmpResultC2,.5);
@@ -79,7 +80,7 @@ public class mySimpleReflObjShdr extends myObjShader{
 			n2 = currPerm;
 			//println("  entering material : " + n2);
 			n = (n1/n2);
-			thetaExit = Math.asin(n  * Math.sin(thetaIncident)); 
+			//thetaExit = Math.asin(n  * Math.sin(thetaIncident)); 
 			double tmpResultC2 = 1.0 - (n*n) * (1.0 - (cosTheta1*cosTheta1));
 			if (tmpResultC2 < 0){System.out.println("\tdanger #2 :  refraction bad : " +  tmpResultC2 + " ray cur idx : " + hit.transRay.currKTrans[1]);}
 			cosTheta2 = Math.pow(tmpResultC2,.5);

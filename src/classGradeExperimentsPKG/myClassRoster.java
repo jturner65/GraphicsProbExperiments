@@ -2,11 +2,11 @@ package classGradeExperimentsPKG;
 
 import java.util.HashMap;
 
+import base_JavaProjTools_IRender.base_Render_Interface.IRenderInterface;
 import base_ProbTools.BaseProbExpMgr;
 import base_ProbTools.mySampleSet;
 import base_ProbTools.randGenFunc.gens.myRandGen;
 import base_ProbTools.summary.myProbSummary_Dbls;
-import base_UI_Objects.*;
 import base_Utils_Objects.io.MsgCodes;
 
 
@@ -57,14 +57,14 @@ public class myClassRoster extends mySampleSet{
 	
 	private myFinalGradeRoster _finalGrades;			//ref to final grade roster
 	
-	public myClassRoster(my_procApplet _pa, BaseProbExpMgr _gradeExp, String _name, float[][] _barLocs) {
+	public myClassRoster(IRenderInterface _pa, BaseProbExpMgr _gradeExp, String _name, float[][] _barLocs) {
 		super(_pa,  _name);
 		initFlags();
 		//visualization stuff
 		distPlotDimRect = new float[] {_barLocs[2][0], _barLocs[2][1],_gradeExp.getVisibleSreenWidth(),ClassGradeExperiment.distBtwnAdjPlots};
 		distBtwnClassBars = ClassGradeExperiment.distBtwnAdjBars;
 		distBtwnRawTransBars =  _barLocs[1][1] - _barLocs[0][1];
-		clsLineClr = pa.getRndClr2(255);//should be brighter colors
+		clsLineClr = pa.getRndClrBright(255);//should be brighter colors
 		gradeBars = new myGradeDistVisBar[transTypes.length];
 		int barLocIDX = 0;
 		for(int i=0;i<gradeBars.length;++i) {
@@ -286,16 +286,16 @@ public class myClassRoster extends mySampleSet{
 		//TODO check if passed trasnformation has occured
 		//if((getFlag(classRawToTransEnabledIDX)) && (getFlag(classRawIsTransformedIDX))) {
 		if(check) {
-			pa.pushMatrix();pa.pushStyle();
+			pa.pushMatState();
 			//first transform to this class's raw grade line
 			stGradeBar.transToBarStart(pa);
 			for (myStudent s : students.values()) {//uses student color
 				double rawXLoc = s.getGradeXLoc(fromTransType, fromCls, gradeBars[GB_rawGradeTypeIDX].barWidth);
 				double transXLoc = s.getGradeXLoc(toTransType, toCls, gradeBars[GB_rawGradeTypeIDX].barWidth);
 				pa.setStroke(s.clr, s.clr[3]);
-				pa.line(rawXLoc, 0, 0, transXLoc,dist,0);				
+				pa.drawLine(rawXLoc, 0, 0, transXLoc,dist,0);				
 			}
-			pa.popStyle();pa.popMatrix();		
+			pa.popMatState();		
 		}		
 	}//drawRawToTransformedLine	
 	
@@ -352,7 +352,7 @@ class myFinalGradeRoster extends myClassRoster {
 	//whether or not to use zscore calc for final grades
 	private boolean useZScore;
 	
-	public myFinalGradeRoster(my_procApplet _pa, ClassGradeExperiment _gradeExp, String _name, float[][] _barLocs) {
+	public myFinalGradeRoster(IRenderInterface _pa, ClassGradeExperiment _gradeExp, String _name, float[][] _barLocs) {
 		super(_pa, _gradeExp, _name, _barLocs);
 		useZScore = false;
 	}//ctor
@@ -459,7 +459,7 @@ class myFinalGradeRoster extends myClassRoster {
 ////special class for uniform mapping just to manage requirement to have all data values set - won't use any transform
 //class myUniformCountFinalGradeRoster extends myFinalGradeRoster {
 //
-//	public myUniformCountFinalGradeRoster(my_procApplet _pa, ClassGradeExperiment _gradeExp, String _name,float[][] _barLocs) {
+//	public myUniformCountFinalGradeRoster(IRenderInterface _pa, ClassGradeExperiment _gradeExp, String _name,float[][] _barLocs) {
 //		super(_pa, _gradeExp, _name, _barLocs);
 //	}
 //	//this is not used to set grades

@@ -1,15 +1,12 @@
 package base_ProbTools.randGenFunc.funcs;
 
-import java.math.*;
 import java.util.TreeMap;
 import java.util.function.Function;
-import base_Utils_Objects.*;
 import base_Utils_Objects.io.MessageObject;
 import base_Utils_Objects.io.MsgCodes;
 
 import org.jblas.*;
 
-import base_ProbTools.BaseProbExpMgr;
 import base_ProbTools.myIntegrator;
 import base_ProbTools.randGenFunc.zigConstVals;
 import base_ProbTools.randVisTools.myDistFuncHistVis;
@@ -96,6 +93,7 @@ public abstract class myRandVarFunc {
 		rebuildFuncs(_summaryObj);
 	}//ctor
 	
+	@SuppressWarnings("unchecked")
 	public void rebuildFuncs(myProbSummary_Dbls _summaryObj) {
 		summary=_summaryObj;
 		rebuildFuncs_Indiv( );
