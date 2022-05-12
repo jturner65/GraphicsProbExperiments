@@ -5,6 +5,7 @@ import java.util.*;
 
 import base_JavaProjTools_IRender.base_Render_Interface.IRenderInterface;
 import base_UI_Objects.windowUI.drawnObjs.myDrawnSmplTraj;
+import base_Utils_Objects.io.MsgCodes;
 import base_UI_Objects.GUI_AppManager;
 import base_UI_Objects.windowUI.base.base_UpdateFromUIData;
 import base_UI_Objects.windowUI.base.myDispWindow;
@@ -268,30 +269,41 @@ public class Alt2DWindow extends myDispWindow {
 		// TODO Auto-generated method stub
 		
 	}
-
+	
 	@Override
-	public void handleSideMenuDebugSel(int btn, int val) {
-		pa.outStr2Scr("Clicked Btn row : Debug | Btn : " + btn);
-		switch(btn){
-			case 0 : {	
-				resetButtonState();
-				break;}//verify priority queue functionality
-			case 1 : {	
-
-				resetButtonState();
-				break;}//verify FEL pq integrity
-			case 2 : {	
-				resetButtonState();
-				break;}
-			case 3 : {	
-				resetButtonState();
-				break;}
-			case 4 : {						
-				resetButtonState();
-				break;}
-			default : {
-				break;}
-		}				
+	public final void handleSideMenuDebugSelEnable(int btn) {
+		msgObj.dispMessage(className, "handleSideMenuDebugSelEnable","Click Debug functionality on in " + name + " : btn : " + btn, MsgCodes.info4);
+		switch (btn) {
+			case 0: {				break;			}
+			case 1: {				break;			}
+			case 2: {				break;			}
+			case 3: {				break;			}
+			case 4: {				break;			}
+			case 5: {				break;			}
+			default: {
+				msgObj.dispMessage(className, "handleSideMenuDebugSelEnable", "Unknown Debug btn : " + btn,MsgCodes.warning2);
+				break;
+			}
+		}
+		msgObj.dispMessage(className, "handleSideMenuDebugSelEnable", "End Debug functionality on selection.",MsgCodes.info4);
+	}
+	
+	@Override
+	public final void handleSideMenuDebugSelDisable(int btn) {
+		msgObj.dispMessage(className, "handleSideMenuDebugSelDisable","Click Debug functionality off in " + name + " : btn : " + btn, MsgCodes.info4);
+		switch (btn) {
+			case 0: {				break;			}
+			case 1: {				break;			}
+			case 2: {				break;			}
+			case 3: {				break;			}
+			case 4: {				break;			}
+			case 5: {				break;			}
+		default: {
+			msgObj.dispMessage(className, "handleSideMenuDebugSelDisable", "Unknown Debug btn : " + btn,MsgCodes.warning2);
+			break;
+			}
+		}
+		msgObj.dispMessage(className, "handleSideMenuDebugSelDisable", "End Debug functionality off selection.",MsgCodes.info4);
 	}
 
 
