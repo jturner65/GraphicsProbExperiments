@@ -47,7 +47,7 @@ public class DistRayTracer extends GUI_AppManager {
 	@Override
 	protected int setAppWindowDimRestrictions() {	return 1;}	
 	
-	public void setup_indiv() {
+	public void setup_Indiv() {
 		((my_procApplet)pa).colorMode(PConstants.RGB, 1.0f);
 		((my_procApplet)pa).background(0, 0, 0);
 		//initialize_table();
@@ -74,7 +74,8 @@ public class DistRayTracer extends GUI_AppManager {
 	/**
 	 * Overriding main because handling 2d + 3d windows
 	 */
-	public final void drawMe(float modAmtMillis){if(!gCurrentFile.equals("")){loadedScenes.get(gCurrentFile).draw();}}
+	
+	public final void drawMePost_Indiv(float modAmtMillis, boolean is3DDraw){if(!gCurrentFile.equals("")){loadedScenes.get(gCurrentFile).draw();}}
 	@Override
 	protected String getPrjNmLong() {return prjNmLong;}
 	@Override

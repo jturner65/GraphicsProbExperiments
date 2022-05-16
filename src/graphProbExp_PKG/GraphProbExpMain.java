@@ -71,7 +71,7 @@ public class GraphProbExpMain extends GUI_AppManager {
 	 * @return
 	 */
 	@Override
-	protected void setup_indiv() {	if(useSphereBKGnd) {			setBkgndSphere();	} else {		setBkgrnd();	}}// setup
+	protected void setup_Indiv() {	if(useSphereBKGnd) {			setBkgndSphere();	} else {		setBkgrnd();	}}// setup
 	
 	private void setBkgndSphere() {
 		pa.setSphereDetail(100);
@@ -176,7 +176,13 @@ public class GraphProbExpMain extends GUI_AppManager {
 		// TODO Auto-generated method stub
 		return new String[0];
 	}
-
+	/**
+	 * Individual extending Application Manager post-drawMe functions
+	 * @param modAmtMillis
+	 * @param is3DDraw
+	 */
+	@Override
+	protected void drawMePost_Indiv(float modAmtMillis, boolean is3DDraw) {}
 
 	//////////////////////////////////////////////////////
 	/// user interaction
