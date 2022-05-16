@@ -106,7 +106,7 @@ public class GraphProbExpMain extends GUI_AppManager {
 
 	@Override
 	//build windows here
-	protected void initVisOnce_Indiv() {
+	protected void initAllDispWindows() {
 		showInfo = true;
 		int numWins = numVisFlags;//includes 1 for menu window (never < 1)
 		//titles and descs, need to be set before sidebar menu is defined
@@ -155,7 +155,7 @@ public class GraphProbExpMain extends GUI_AppManager {
 		initXORWins(new int[]{show1stWinIDX,show2ndWinIDX, show2DRayTracerIDX, showGradeWinIDX},new int[]{disp1stWinIDX, disp2ndWinIDX, disp2DRayTracerIDX, dispGradeWinIDX});
 
 		
-	}//initVisOnce_Indiv
+	}//initAllDispWindows
 		
 	@Override
 	//called from base class, once at start of program after vis init is called

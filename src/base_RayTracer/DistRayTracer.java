@@ -205,7 +205,7 @@ public class DistRayTracer extends GUI_AppManager {
 	}//setCurDir
 
 	@Override
-	protected void initVisOnce_Indiv() {}
+	protected void initAllDispWindows() {}
 	@Override
 	protected void initOnce_Indiv() {}
 	@Override
