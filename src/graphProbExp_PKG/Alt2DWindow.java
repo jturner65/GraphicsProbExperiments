@@ -226,7 +226,7 @@ public class Alt2DWindow extends myDispWindow {
 	protected void launchMenuBtnHndlr(int funcRow, int btn) {
 		switch(funcRow) {
 		case 0 : {
-			pa.outStr2Scr("Clicked Btn row : Aux Func 1 | Btn : " + btn);
+			msgObj.dispInfoMessage(className,"launchMenuBtnHndlr","Clicked Btn row : Aux Func 1 | Btn : " + btn);
 			switch(btn){
 				case 0 : {						
 					tester.testRandGen(10000000);
@@ -244,7 +244,7 @@ public class Alt2DWindow extends myDispWindow {
 			}	
 			break;}//row 1 of menu side bar buttons
 		case 1 : {
-			pa.outStr2Scr("Clicked Btn row : Aux Func 2 | Btn : " + btn);
+			msgObj.dispInfoMessage(className,"launchMenuBtnHndlr","Clicked Btn row : Aux Func 2 | Btn : " + btn);
 			switch(btn){
 				case 0 : {	
 					resetButtonState();
@@ -317,7 +317,7 @@ public class Alt2DWindow extends myDispWindow {
 	}//setCameraIndiv
 
 	@Override
-	protected void stopMe() {pa.outStr2Scr("Stop");}	
+	protected void stopMe() {msgObj.dispInfoMessage(className,"stopMe","Stop");}	
 	
 	@Override
 	public void hndlFileLoad(File file, String[] vals, int[] stIdx) {

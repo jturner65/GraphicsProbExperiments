@@ -258,9 +258,6 @@ public class Grade2DWindow extends myDispWindow {
 		tmpListObjVals.put(gIDX_FuncTypeEval,gIDX_FuncTypeEvalList);
 		tmpListObjVals.put(gIDX_ExpDistType,gIDX_ExpDistTypeList);
 
-		
-		//pa.outStr2Scr("setupGUIObjsAras start");
-
 		tmpUIObjArray.put(gIDX_NumStudents, new Object[] {new double[]{2,100,1},										     1.0*numStudents,        "Number of Students : ", new boolean []{true, false, true}});
 		tmpUIObjArray.put(gIDX_NumClasses, new Object[] {new double[]{1,9,1},												 1.0*numClasses,         "Number of Classes : ",  new boolean []{true, false, true}});
 		tmpUIObjArray.put(gIDX_ExpDistType, new Object[] {new double[]{0,tmpListObjVals.get(gIDX_ExpDistType).length-1,1},   1.0*expTypeIDX,         "Exp Mapping Type : ",	new boolean []{true, true, true}});
@@ -483,7 +480,7 @@ public class Grade2DWindow extends myDispWindow {
 	protected void launchMenuBtnHndlr(int funcRow, int btn) {
 		switch(funcRow) {
 		case 0 : {
-			pa.outStr2Scr("Clicked Btn row : Aux Func 1 | Btn : " + btn);
+			msgObj.dispInfoMessage(className,"launchMenuBtnHndlr","Clicked Btn row : Aux Func 1 | Btn : " + btn);
 			switch(btn){
 				case 0 : {						
 					resetButtonState();
@@ -500,7 +497,7 @@ public class Grade2DWindow extends myDispWindow {
 			}	
 			break;}//row 1 of menu side bar buttons
 		case 1 : {
-			pa.outStr2Scr("Clicked Btn row : Aux Func 2 | Btn : " + btn);
+			msgObj.dispInfoMessage(className,"launchMenuBtnHndlr","Clicked Btn row : Aux Func 2 | Btn : " + btn);
 			switch(btn){
 				case 0 : {	
 					//test calculation of inverse fleish function -> derive x such that y = f(x) for fleishman polynomial.  This x is then the value from normal dist that yields y from fleish dist
@@ -584,7 +581,7 @@ public class Grade2DWindow extends myDispWindow {
 	}//setCameraIndiv
 
 	@Override
-	protected void stopMe() {pa.outStr2Scr("Stop");}	
+	protected void stopMe() {msgObj.dispInfoMessage(className,"stopMe","Stop");}	
 	
 	@Override
 	public void hndlFileLoad(File file, String[] vals, int[] stIdx) {

@@ -2,9 +2,6 @@ package graphProbExp_PKG;
 
 import java.io.File;
 
-import base_Math_Objects.MyMathUtils;
-import processing.core.*;
-
 import base_UI_Objects.*;
 import base_UI_Objects.windowUI.base.myDispWindow;
 import base_UI_Objects.windowUI.sidebar.mySideBarMenu;
@@ -38,7 +35,6 @@ public class GraphProbExpMain extends GUI_AppManager {
 
 	//private boolean cyclModCmp;										//comparison every draw of cycleModDraw			
 	private final int[] bground = new int[]{244,244,244,255};		//bground color
-	private PShape bgrndSphere;										//giant sphere encapsulating entire scene
 
 
 ///////////////
@@ -49,7 +45,7 @@ public class GraphProbExpMain extends GUI_AppManager {
 	//do not modify this
 	public static void main(String[] passedArgs) {		
 		GraphProbExpMain me = new GraphProbExpMain();
-		my_procApplet._invokedMain(me, passedArgs);		    
+		GraphProbExpMain.invokeProcessingMain(me, passedArgs);		    
 	}//main
 
 	/**
@@ -71,25 +67,12 @@ public class GraphProbExpMain extends GUI_AppManager {
 	 * @return
 	 */
 	@Override
-	protected void setup_Indiv() {	if(useSphereBKGnd) {			setBkgndSphere();	} else {		setBkgrnd();	}}// setup
+	protected void setup_Indiv() {	if(useSphereBKGnd) {			pa.loadBkgndSphere("bkgrndTex.jpg");	} else {		setBkgrnd();	}}// setup
 	
-	private void setBkgndSphere() {
-		pa.setSphereDetail(100);
-		//TODO move to window to set up specific background for each different "scene" type
-		PImage bgrndTex = ((my_procApplet)pa).loadImage("bkgrndTex.jpg");
-		bgrndSphere = ((my_procApplet)pa).createShape(PConstants.SPHERE, 10000);
-		bgrndSphere.setTexture(bgrndTex);
-		bgrndSphere.rotate(MyMathUtils.halfPi_f,-1,0,0);
-		bgrndSphere.setStroke(false);	
-		//TODO move to myDispWindow
-		((my_procApplet)pa).background(bground[0],bground[1],bground[2],bground[3]);		
-		((my_procApplet)pa).shape(bgrndSphere);	
-		pa.setSphereDetail(10);
-	}
 	
 	@Override
 	protected void setBkgrnd(){
-		((my_procApplet)pa).background(bground[0],bground[1],bground[2],bground[3]);		
+		if(useSphereBKGnd) { pa.setBkgndSphere();	} else {pa.setRenderBackground(bground[0],bground[1],bground[2],bground[3]);		}	
 	}//setBkgrnd
 	
 	/**

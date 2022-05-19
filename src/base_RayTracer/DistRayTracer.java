@@ -34,7 +34,7 @@ public class DistRayTracer extends GUI_AppManager {
 		
 	public static void main(String[] passedArgs) {		
 		DistRayTracer me = new DistRayTracer();
-		my_procApplet._invokedMain(me, passedArgs);		    
+		DistRayTracer.invokeProcessingMain(me, passedArgs);		    
 	}//main
 
 	/**
@@ -49,7 +49,7 @@ public class DistRayTracer extends GUI_AppManager {
 	
 	public void setup_Indiv() {
 		((my_procApplet)pa).colorMode(PConstants.RGB, 1.0f);
-		((my_procApplet)pa).background(0, 0, 0);
+		pa.setRenderBackground(new int[] {0, 0, 0}, 255);
 		//initialize_table();
 		gCurrentFile = "t01.cli";
 		currentDir = "";		//TODO set different directories

@@ -146,7 +146,7 @@ public class Main3DWindow extends myDispWindow {
 	//initialize structure to hold modifiable menu regions
 	@Override
 	protected void setupGUIObjsAras(TreeMap<Integer, Object[]> tmpUIObjArray, TreeMap<Integer, String[]> tmpListObjVals){		
-		//pa.outStr2Scr("setupGUIObjsAras start");
+		//msgObj.dispInfoMessage(className,"setupGUIObjsAras","start");
 		
 		tmpUIObjArray.put(gIDX_FrameTimeScale , new Object[] {new double[]{1.0f,10000.0f,1.0f},	1.0*frameTimeScale, "Sim Speed Multiplier", new boolean[]{false, false, true}});  				//time scaling - 1 is real time, 1000 is 1000x speedup           		gIDX_FrameTimeScale 
 		tmpUIObjArray.put(gIDX_ExpLength, new Object[] {new double[]{1.0f, 1440, 1.0f}, 720.0, "Experiment Duration",  new boolean[]{true, false, true}}); 					//experiment length
@@ -213,7 +213,7 @@ public class Main3DWindow extends myDispWindow {
 	@Override
 	//modAmtMillis is time passed per frame in milliseconds - returns if done or not
 	protected boolean simMe(float modAmtMillis) {//run simulation
-		//pa.outStr2Scr("took : " + (pa.millis() - stVal) + " millis to simulate");
+		//msgObj.dispInfoMessage(className,"simMe","took : " + (pa.millis() - stVal) + " millis to simulate");
 		//call sim executive, return boolean of whether finished or not
 		boolean done = true;//simExec.simMe(modAmtMillis);
 		if(done) {setPrivFlags(conductExpIDX, false);}
@@ -305,7 +305,7 @@ public class Main3DWindow extends myDispWindow {
 	protected void launchMenuBtnHndlr(int funcRow, int btn) {
 		switch(funcRow) {
 		case 0 : {
-			pa.outStr2Scr("Clicked Btn row : Aux Func 1 | Btn : " + btn);
+			msgObj.dispInfoMessage(className,"launchMenuBtnHndlr","Clicked Btn row : Aux Func 1 | Btn : " + btn);
 			switch(btn){
 				case 0 : {	
 					tester.testRandGen(10000000);
@@ -323,7 +323,7 @@ public class Main3DWindow extends myDispWindow {
 			}	
 			break;}//row 1 of menu side bar buttons
 		case 1 : {
-			pa.outStr2Scr("Clicked Btn row : Aux Func 2 | Btn : " + btn);
+			msgObj.dispInfoMessage(className,"launchMenuBtnHndlr","Clicked Btn row : Aux Func 2 | Btn : " + btn);
 			switch(btn){
 				case 0 : {	
 					resetButtonState();

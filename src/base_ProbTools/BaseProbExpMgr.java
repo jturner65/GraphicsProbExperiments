@@ -21,7 +21,7 @@ public abstract class BaseProbExpMgr {
 	//papplet for visualization
 	public static IRenderInterface pa;
 	//handle communicating via console or logs
-	public static MessageObject msgObj;
+	public MessageObject msgObj;
 	
 	////////////////////////////////////////
 	// gauss quadrature solver structures	
@@ -96,8 +96,8 @@ public abstract class BaseProbExpMgr {
 	
 	public BaseProbExpMgr(myDispWindow _win) {
 		win = _win;
-		pa=myDispWindow.pa;
-		if(msgObj==null) {msgObj = MessageObject.buildMe(pa);}
+		pa=myDispWindow.pa; 
+		if(msgObj==null) {msgObj = win.getMsgObj();}
 		setVisibleScreenWidth();
 		//base class-specific flags, isolated to within this code only
 		initBaseFlags();

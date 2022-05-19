@@ -295,7 +295,7 @@ public class RayTracer2DWin extends myDispWindow {
 	protected void launchMenuBtnHndlr(int funcRow, int btn) {
 		switch(funcRow) {
 		case 0 : {
-			pa.outStr2Scr("Clicked Btn row : Aux Func 1 | Btn : " + btn);
+			msgObj.dispInfoMessage(className,"launchMenuBtnHndlr","Clicked Btn row : Aux Func 1 | Btn : " + btn);
 			switch(btn){
 				case 0 : {						
 					resetButtonState();
@@ -311,7 +311,7 @@ public class RayTracer2DWin extends myDispWindow {
 			}	
 			break;}//row 1 of menu side bar buttons
 		case 1 : {
-			pa.outStr2Scr("Clicked Btn row : Aux Func 2 | Btn : " + btn);
+			msgObj.dispInfoMessage(className,"launchMenuBtnHndlr","Clicked Btn row : Aux Func 2 | Btn : " + btn);
 			switch(btn){
 				case 0 : {	
 					//test calculation of inverse fleish function -> derive x such that y = f(x) for fleishman polynomial.  This x is then the value from normal dist that yields y from fleish dist
@@ -388,14 +388,14 @@ public class RayTracer2DWin extends myDispWindow {
 	}//setCameraIndiv
 
 	@Override
-	protected void stopMe() {pa.outStr2Scr("Stop");}	
+	protected void stopMe() {msgObj.dispInfoMessage(className,"stopMe","Stop");}	
 	
 	@Override
 	public void hndlFileLoad(File file, String[] vals, int[] stIdx) {
 		//if wanting to load/save UI values, uncomment this call and similar in hndlFileSave 
 		//hndlFileLoad_GUI(vals, stIdx);
 		//loading in grade data from grade file - vals holds array of strings, expected to be comma sep values, for a single class, with student names and grades
-		for(String s : vals) {			pa.outStr2Scr(s);}	
+		for(String s : vals) {			msgObj.dispInfoMessage(className,"hndlFileLoad",s);}	
 		String fileName = file.getName();
 		TreeMap<String, String> tmpAra = new TreeMap<String, String>(), valsToIDX = new TreeMap<String, String>();
 		for(String s : gIDX_CurrSceneCLIList) {tmpAra.put(s, "");	}
