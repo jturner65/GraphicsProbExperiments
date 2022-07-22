@@ -62,7 +62,7 @@ public abstract class baseProbSummary {
 	 * @return
 	 */
 	protected final float scaleVal(float val, float min, float max) {
-		if(Math.abs(max-min) < MyMathUtils.eps_f) {return 0.0f;}
+		if(Math.abs(max-min) < MyMathUtils.EPS_F) {return 0.0f;}
 		
 		return (val-min)/(max-min);		
 	}
@@ -76,7 +76,7 @@ public abstract class baseProbSummary {
 	 * @return
 	 */
 	protected final double scaleVal(double val, double min, double max) {
-		if(Math.abs(max-min) < MyMathUtils.eps) {return 0.0;}
+		if(Math.abs(max-min) < MyMathUtils.EPS) {return 0.0;}
 		return (val-min)/(max-min);			
 	}
 	

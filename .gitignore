@@ -4,3 +4,5 @@ bin
 
 /pics.2019.04.28.01.55/*.png
 *.png
+
+gauss_hermite_100pts.c

@@ -79,8 +79,8 @@ public class mySphere extends myImpObject{
 			a0 = (a0 > 1) ? 1 : (a0 < -1) ? -1 : a0;
 			a1 = ( Math.sin(q* Math.PI));
 			a2 = ( Math.abs(a1) < epsVal) ? 1 : a0/a1;
-			u = (z1 <= epsVal) ? ((shWm1 * ( Math.acos(a2))/ (MyMathUtils.twoPi)) + shWm1/2.0f) : 
-						shWm1 - ((shWm1 * ( Math.acos(a2))/ (MyMathUtils.twoPi)) + shWm1/2.0f);
+			u = (z1 <= epsVal) ? ((shWm1 * ( Math.acos(a2))/ (MyMathUtils.TWO_PI)) + shWm1/2.0f) : 
+						shWm1 - ((shWm1 * ( Math.acos(a2))/ (MyMathUtils.TWO_PI)) + shWm1/2.0f);
 			u = (u < 0) ? 0 : (u > shWm1) ? shWm1 : u;
 			return u;	
 		}//method findTexture    
