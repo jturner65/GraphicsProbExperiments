@@ -122,9 +122,6 @@ public class Grade2DWindow extends myDispWindow {
 //		//set this to default to moving distribution
 //		setPrivFlags(rebuildDistOnMove, true);
 //		setPrivFlags(use1pSineCosCDF, true);
-		
-		//moved from mapMgr ctor, to remove dependence on papplet in that object
-		AppMgr.setAllMenuBtnNames(menuBtnNames);	
 	
 	}//
 	
@@ -455,7 +452,6 @@ public class Grade2DWindow extends myDispWindow {
 	//modify menu buttons to display whether using CSV or SQL to access raw data
 	@Override
 	protected void setCustMenuBtnNames() {
-		//menuBtnNames[mySideBarMenu.btnAuxFunc1Idx][loadRawBtnIDX]=menuLdRawFuncBtnNames[(rawDataSource % menuLdRawFuncBtnNames.length) ];
 		AppMgr.setAllMenuBtnNames(menuBtnNames);	
 	}
 	

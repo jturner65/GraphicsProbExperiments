@@ -86,8 +86,6 @@ public class Main3DWindow extends myDispWindow {
 		
 		//called once
 		//initPrivFlags(numPrivFlags);
-		//moved from mapMgr ctor, to remove dependence on papplet in that object
-		AppMgr.setAllMenuBtnNames(menuBtnNames);	
 		tester = new myProbExpMgr(this);
 
 		custMenuOffset = uiClkCoords[3];	//495	
@@ -280,7 +278,6 @@ public class Main3DWindow extends myDispWindow {
 	//modify menu buttons to display whether using CSV or SQL to access raw data
 	@Override
 	protected void setCustMenuBtnNames() {
-		//menuBtnNames[mySideBarMenu.btnAuxFunc1Idx][loadRawBtnIDX]=menuLdRawFuncBtnNames[(rawDataSource % menuLdRawFuncBtnNames.length) ];
 		AppMgr.setAllMenuBtnNames(menuBtnNames);	
 	}
 	

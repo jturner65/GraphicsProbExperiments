@@ -99,8 +99,6 @@ public class RayTracer2DWin extends myDispWindow {
 		//set initial values
 		RTExp.setRTSceneExpVals(sceneCols, sceneRows, gIDX_CurrSceneCLIList[curSceneCliFileIDX % gIDX_CurrSceneCLIList.length]);
 		RTExp.startRayTrace();
-		//moved from mapMgr ctor, to remove dependence on papplet in that object
-		AppMgr.setAllMenuBtnNames(menuBtnNames);		
 	}//
 	
 	//initialize all UI buttons here
@@ -270,7 +268,6 @@ public class RayTracer2DWin extends myDispWindow {
 	//modify menu buttons to display whether using CSV or SQL to access raw data
 	@Override
 	protected void setCustMenuBtnNames() {
-		//menuBtnNames[mySideBarMenu.btnAuxFunc1Idx][loadRawBtnIDX]=menuLdRawFuncBtnNames[(rawDataSource % menuLdRawFuncBtnNames.length) ];
 		AppMgr.setAllMenuBtnNames(menuBtnNames);	
 	}
 	

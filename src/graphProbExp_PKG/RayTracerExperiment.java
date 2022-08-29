@@ -6,9 +6,7 @@ import java.util.TreeMap;
 import base_ProbTools.BaseProbExpMgr;
 import base_RayTracer.myRTFileReader;
 import base_RayTracer.scene.myScene;
-import base_UI_Objects.*;
 import base_UI_Objects.windowUI.base.myDispWindow;
-import base_Utils_Objects.*;
 import base_Utils_Objects.io.MsgCodes;
 
 public class RayTracerExperiment extends BaseProbExpMgr {
@@ -37,7 +35,7 @@ public class RayTracerExperiment extends BaseProbExpMgr {
 
 	@Override
 	public void initExp() {
-		rdr = new myRTFileReader(this.win.pa,".."+File.separator+"data"+File.separator+"txtrs"+File.separator);	
+		rdr = new myRTFileReader(myDispWindow.pa,".."+File.separator+"data"+File.separator+"txtrs"+File.separator);	
 		loadedScenes = new TreeMap<String, myScene>();		
 		
 	}//initExp	

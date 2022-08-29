@@ -102,10 +102,15 @@ public class GraphProbExpMain extends GUI_AppManager {
 		//instanced window dimensions when open and closed - only showing 1 open at a time
 		float[] _dimOpen  =  new float[]{menuWidth, 0, pa.getWidth()-menuWidth,  pa.getHeight()}, _dimClosed  =  new float[]{menuWidth, 0, hideWinWidth,  pa.getHeight()};	
 		System.out.println("Width : " + pa.getWidth() + " | Height : " +  pa.getHeight());
+		//application-wide menu button bar titles and button names
+		String[] menuBtnTitles = new String[]{"Special Functions 1","Special Functions 2"};
+		String[][] menuBtnNames = new String[][] { // each must have literals for every button defined in side bar menu, or ignored
+			{"Test Rand Gen", "Test R Calc","Func 3"},	//row 1
+			{"Func 1", "Func 2", "Func 3", "Func 4"}};	//row 1
+		String[] dbgBtnNames = new String[] {"Debug 0","Debug 1","Debug 2","Debug 3","Debug 4"};
 		int wIdx = dispMenuIDX,fIdx=showUIMenu;
-		dispWinFrames[wIdx] = this.buildSideBarMenu(wIdx, fIdx, new String[]{"Special Functions 1","Special Functions 2"}, new int[] {3,5}, 5, true, true);
-		// new mySideBarMenu(this, winTitles[wIdx], fIdx, winFillClrs[wIdx], winStrkClrs[wIdx], winRectDimOpen[wIdx], winRectDimClose[wIdx], winDescr[wIdx]);			
-		
+		dispWinFrames[wIdx] = buildSideBarMenu(wIdx, fIdx,menuBtnTitles, menuBtnNames, dbgBtnNames, true, true);		
+
 		//define windows
 		//idx 0 is menu, and is ignored	
 		//setInitDispWinVals : use this to define the values of a display window

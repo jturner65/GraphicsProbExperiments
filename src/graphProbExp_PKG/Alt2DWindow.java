@@ -65,8 +65,6 @@ public class Alt2DWindow extends myDispWindow {
 		
 		//set offset to use for custom menu objects
 		custMenuOffset = uiClkCoords[3];	
-		//moved from mapMgr ctor, to remove dependence on papplet in that object
-		AppMgr.setAllMenuBtnNames(menuBtnNames);	
 	}//
 	//initialize all UI buttons here
 	@Override
@@ -86,14 +84,11 @@ public class Alt2DWindow extends myDispWindow {
 	@Override
 	protected void buildUIUpdateStruct_Indiv(TreeMap<Integer, Integer> intValues, TreeMap<Integer, Float> floatValues,
 			TreeMap<Integer, Boolean> boolValues) {
-		// TODO Auto-generated method stub
-		
 	}
 
 
 	@Override
 	protected int[] getFlagIDXsToInitToTrue() {
-		// TODO Auto-generated method stub
 		return null;
 	}
 
@@ -141,7 +136,6 @@ public class Alt2DWindow extends myDispWindow {
 	//check whether the mouse is over a legitimate map location
 	public void setMouseReleaseState2D(){	
 	}//chkMouseOvr
-
 	
 	@Override
 	protected void drawMe(float animTimeMod) {
@@ -187,8 +181,6 @@ public class Alt2DWindow extends myDispWindow {
 	@Override
 	//modAmtMillis is time passed per frame in milliseconds - returns if done or not
 	protected boolean simMe(float modAmtSec) {
-		// TODO Auto-generated method stub
-
 		return true;
 	}
 	
@@ -201,7 +193,6 @@ public class Alt2DWindow extends myDispWindow {
 	//modify menu buttons to display whether using CSV or SQL to access raw data
 	@Override
 	protected void setCustMenuBtnNames() {
-		//menuBtnNames[mySideBarMenu.btnAuxFunc1Idx][loadRawBtnIDX]=menuLdRawFuncBtnNames[(rawDataSource % menuLdRawFuncBtnNames.length) ];
 		AppMgr.setAllMenuBtnNames(menuBtnNames);	
 	}
 	

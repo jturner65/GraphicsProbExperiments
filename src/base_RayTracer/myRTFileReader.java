@@ -202,6 +202,7 @@ public class myRTFileReader {
 //				but we will not implement this due to lack of time. 
 				case "final_gather" : {//final_gather num_rays
 					int numRays = Integer.parseInt(token[1]);
+					//
 					break;}
 			
 			//color commands
