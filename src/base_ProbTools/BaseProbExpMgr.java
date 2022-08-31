@@ -12,8 +12,8 @@ import base_ProbTools.randGenFunc.gens.myFleishUniVarRandGen;
 import base_ProbTools.randGenFunc.gens.myRandGen;
 import base_ProbTools.randGenFunc.gens.myZigRandGen;
 import base_UI_Objects.windowUI.base.myDispWindow;
-import base_Utils_Objects.io.MessageObject;
-import base_Utils_Objects.io.MsgCodes;
+import base_Utils_Objects.io.messaging.MessageObject;
+import base_Utils_Objects.io.messaging.MsgCodes;
 
 public abstract class BaseProbExpMgr {
 	//owning window for this experiment handler

@@ -37,6 +37,9 @@ public class DistRayTracer extends GUI_AppManager {
 		DistRayTracer.invokeProcessingMain(me, passedArgs);		    
 	}//main
 
+	@Override
+	protected void setRuntimeArgsVals(String[] _passedArgs) {
+	}
 	/**
 	 * whether or not we want to restrict window size on widescreen monitors
 	 * 

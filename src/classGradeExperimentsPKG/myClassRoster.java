@@ -7,7 +7,7 @@ import base_ProbTools.BaseProbExpMgr;
 import base_ProbTools.mySampleSet;
 import base_ProbTools.randGenFunc.gens.myRandGen;
 import base_ProbTools.summary.myProbSummary_Dbls;
-import base_Utils_Objects.io.MsgCodes;
+import base_Utils_Objects.io.messaging.MsgCodes;
 
 
 /**

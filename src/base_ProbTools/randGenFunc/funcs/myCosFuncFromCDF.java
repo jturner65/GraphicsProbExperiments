@@ -9,7 +9,7 @@ import org.jblas.Solve;
 import base_ProbTools.BaseProbExpMgr;
 import base_ProbTools.myIntegrator;
 import base_ProbTools.summary.myProbSummary_Dbls;
-import base_Utils_Objects.io.MsgCodes;
+import base_Utils_Objects.io.messaging.MsgCodes;
 
 /**
  * this function will build a pdf/cdf model based on working backward from samples - building cdf from sample data, fitting sin-based CDF function to data, then differentiating to find pdf

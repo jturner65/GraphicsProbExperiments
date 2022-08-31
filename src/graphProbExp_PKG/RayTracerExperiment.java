@@ -7,7 +7,7 @@ import base_ProbTools.BaseProbExpMgr;
 import base_RayTracer.myRTFileReader;
 import base_RayTracer.scene.myScene;
 import base_UI_Objects.windowUI.base.myDispWindow;
-import base_Utils_Objects.io.MsgCodes;
+import base_Utils_Objects.io.messaging.MsgCodes;
 
 public class RayTracerExperiment extends BaseProbExpMgr {
 	//holds references to all loaded scenes

@@ -6,7 +6,7 @@ import java.util.*;
 import base_JavaProjTools_IRender.base_Render_Interface.IRenderInterface;
 import base_UI_Objects.*;
 import base_UI_Objects.windowUI.drawnObjs.myDrawnSmplTraj;
-import base_Utils_Objects.io.MsgCodes;
+import base_Utils_Objects.io.messaging.MsgCodes;
 import base_UI_Objects.windowUI.base.base_UpdateFromUIData;
 import base_UI_Objects.windowUI.base.myDispWindow;
 import base_Math_Objects.vectorObjs.doubles.myPoint;

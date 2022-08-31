@@ -6,7 +6,7 @@ import java.util.function.Function;
 import base_ProbTools.BaseProbExpMgr;
 import base_ProbTools.myIntegrator;
 import base_ProbTools.summary.myProbSummary_Dbls;
-import base_Utils_Objects.io.MsgCodes;
+import base_Utils_Objects.io.messaging.MsgCodes;
 
 /**
  * instancing class for the function describing a gaussian random variable of specified mean and variance

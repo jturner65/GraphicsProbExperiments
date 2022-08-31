@@ -2,8 +2,8 @@ package base_ProbTools.randGenFunc.funcs;
 
 import java.util.TreeMap;
 import java.util.function.Function;
-import base_Utils_Objects.io.MessageObject;
-import base_Utils_Objects.io.MsgCodes;
+import base_Utils_Objects.io.messaging.MessageObject;
+import base_Utils_Objects.io.messaging.MsgCodes;
 
 import org.jblas.*;
 
