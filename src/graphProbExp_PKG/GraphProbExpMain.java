@@ -1,7 +1,5 @@
 package graphProbExp_PKG;
 
-import java.io.File;
-
 import base_UI_Objects.*;
 import base_UI_Objects.windowUI.base.myDispWindow;
 import base_UI_Objects.windowUI.sidebar.mySideBarMenu;
@@ -14,9 +12,7 @@ import classGradeExperimentsPKG.Grade2DWindow;
 public class GraphProbExpMain extends GUI_AppManager {
 	//project-specific variables
 	public String prjNmLong = "Testbed for Graphical Probability Experiments", prjNmShrt = "GraphProbExp";
-	
-	//platform independent path separator
-	public String dirSep = File.separator;
+
 	//don't use sphere background for this program
 	private boolean useSphereBKGnd = false;	
 	private final int
