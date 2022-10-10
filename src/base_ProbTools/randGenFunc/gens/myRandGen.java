@@ -7,7 +7,6 @@ import base_ProbTools.randGenFunc.RandGenDesc;
 import base_ProbTools.randGenFunc.funcs.myRandVarFunc;
 import base_ProbTools.randVisTools.myDistFuncHistVis;
 import base_ProbTools.summary.myProbSummary_Dbls;
-import base_UI_Objects.*;
 
 /**
  * Provides generation of random variables from prob distributions given a uniform distribution

@@ -183,7 +183,6 @@ public class myFleishFunc_Uni extends myRandVarFunc{
 		double[] res = new double[numRoots];
 		
 		
-		
 		return res;
 	}//calcAllRoots
 	

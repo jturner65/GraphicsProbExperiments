@@ -8,7 +8,7 @@ import base_RayTracer.scene.myScene;
 import base_RayTracer.scene.objType;
 import base_Math_Objects.vectorObjs.doubles.myMatrix;
 import base_Math_Objects.vectorObjs.doubles.myVector;
-import processing.core.PConstants;
+import base_Math_Objects.MyMathUtils;
 
 /**
  * spotlight x y z dx dy dz angle_inner angle_outer r g b
@@ -37,9 +37,9 @@ public class mySpotLight extends myLight{
 	
 	public void setSpotlightVals(double inAngle, double outAngle){
 		innerThet = inAngle;
-		innerThetRad = innerThet * PConstants.DEG_TO_RAD;
+		innerThetRad = innerThet * MyMathUtils.DEG_TO_RAD;
 		outerThet = outAngle;
-		outerThetRad = outerThet * PConstants.DEG_TO_RAD;		
+		outerThetRad = outerThet * MyMathUtils.DEG_TO_RAD;		
 		radDiff = outerThetRad - innerThetRad;				//for interpolation 
 		oPhAxis = getOrthoVec(orientation);			//for rotation of dir vector for generating photons
 	}//setSpotlightVals	
@@ -67,7 +67,7 @@ public class mySpotLight extends myLight{
 		tmp.set(orientation.rotMeAroundAxis(oPhAxis,angle));	
 		tmp._normalize();
 		//rotate in phi dir for random direction
-		tmp = tmp.rotMeAroundAxis(orientation,ThreadLocalRandom.current().nextDouble(0,PConstants.TWO_PI));
+		tmp = tmp.rotMeAroundAxis(orientation,ThreadLocalRandom.current().nextDouble(0,MyMathUtils.TWO_PI));
 		
 		return new myRay(scene, getTransformedPt(origin, CTMara[glblIDX]), tmp, 0);
 	}	

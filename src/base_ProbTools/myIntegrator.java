@@ -1,8 +1,5 @@
 package base_ProbTools;
 
-//import static java.lang.Math.PI;
-//import static java.lang.Math.cos;
-
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.function.Function;
