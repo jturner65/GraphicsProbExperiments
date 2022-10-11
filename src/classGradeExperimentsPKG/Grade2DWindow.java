@@ -10,6 +10,7 @@ import base_UI_Objects.GUI_AppManager;
 import base_UI_Objects.windowUI.base.base_UpdateFromUIData;
 import base_UI_Objects.windowUI.base.myDispWindow;
 import base_UI_Objects.windowUI.drawnObjs.myDrawnSmplTraj;
+import base_UI_Objects.windowUI.uiObjs.GUIObj_Type;
 import base_Utils_Objects.io.messaging.MsgCodes;
 import base_Math_Objects.vectorObjs.doubles.myPoint;
 import base_Math_Objects.vectorObjs.doubles.myVector;
@@ -255,19 +256,19 @@ public class Grade2DWindow extends myDispWindow {
 		tmpListObjVals.put(gIDX_FuncTypeEval,gIDX_FuncTypeEvalList);
 		tmpListObjVals.put(gIDX_ExpDistType,gIDX_ExpDistTypeList);
 
-		tmpUIObjArray.put(gIDX_NumStudents, new Object[] {new double[]{2,100,1},										     1.0*numStudents,        "Number of Students : ", new boolean []{true, false, true}});
-		tmpUIObjArray.put(gIDX_NumClasses, new Object[] {new double[]{1,9,1},												 1.0*numClasses,         "Number of Classes : ",  new boolean []{true, false, true}});
-		tmpUIObjArray.put(gIDX_ExpDistType, new Object[] {new double[]{0,tmpListObjVals.get(gIDX_ExpDistType).length-1,1},   1.0*expTypeIDX,         "Exp Mapping Type : ",	new boolean []{true, true, true}});
-		tmpUIObjArray.put(gIDX_FuncTypeEval, new Object[] {new double[]{0,tmpListObjVals.get(gIDX_FuncTypeEval).length-1,1}, 1.0*funcEvalType,       "Plot Eval Func Type : ",new boolean []{true, true, true}});
-		tmpUIObjArray.put(gIDX_FuncEvalLower, new Object[] {new double[]{-10.0, 10.0,.01},			                         1.0*funcEvalLow,        "Plot Eval Func Low : ",new boolean []{false, false, true}});
-		tmpUIObjArray.put(gIDX_FuncEvalHigher, new Object[] {new double[]{-10.0, 10.0,.01},			                         1.0*funcEvalHigh,       "Plot Eval Func High : ",	new boolean []{false, false, true}});
-		tmpUIObjArray.put(gIDX_FuncEvalNumVals, new Object[] {new double[]{10000,1000000,1000},                              1.0*funcEvalNumVals,    "Plot Eval Func # Vals : ", new boolean []{true, false, true}}); 
-		tmpUIObjArray.put(gIDX_FuncEvalNumBkts, new Object[] {new double[]{10,1000,1},                                       1.0*funcEvalNumBuckets, "Plot Eval Func # Bkts (dist) : ",new boolean []{true, false, true}});
-		tmpUIObjArray.put(gIDX_FinalGradeNumMmnts, new Object[] {new double[]{2, 4, .1},			                         1.0*finalGradeNumMmnts, "Final Grade # Momments (2-4) : ",new boolean []{true, false, true}});
-		tmpUIObjArray.put(gIDX_FinalGradeMean, new Object[] {new double[]{0.0, 1.0,.01},			                         1.0*finalGradeMmtns[0], "Final Grade Mean : ", new boolean []{false,false,true}}); 
-		tmpUIObjArray.put(gIDX_FinalGradeSTD, new Object[] {new double[]{0.0, 1.0,.01},				                         1.0*finalGradeMmtns[1], "Final Grade Std Dev : ", new boolean []{false,false,true}}); 
-		tmpUIObjArray.put(gIDX_FinalGradeSkew, new Object[] {new double[]{-5.0,5.0,.01},			                         1.0*finalGradeMmtns[2], "Final Grade Skew : ", new boolean []{false,false,true}}); 
-		tmpUIObjArray.put(gIDX_FinalGradeExKurt, new Object[] {new double[]{0.0, 5.0,.01},			                         1.0*finalGradeMmtns[3],  "Final Grade Ex Kurt : ", new boolean [] {false,false,true}});
+		tmpUIObjArray.put(gIDX_NumStudents, new Object[] {new double[]{2,100,1},										     1.0*numStudents,        "Number of Students : ", GUIObj_Type.IntVal, new boolean[]{true}});
+		tmpUIObjArray.put(gIDX_NumClasses, new Object[] {new double[]{1,9,1},												 1.0*numClasses,         "Number of Classes : ", GUIObj_Type.IntVal, new boolean[]{true}});
+		tmpUIObjArray.put(gIDX_ExpDistType, new Object[] {new double[]{0,tmpListObjVals.get(gIDX_ExpDistType).length-1,1},   1.0*expTypeIDX,         "Exp Mapping Type : ", GUIObj_Type.ListVal, new boolean[]{true}});
+		tmpUIObjArray.put(gIDX_FuncTypeEval, new Object[] {new double[]{0,tmpListObjVals.get(gIDX_FuncTypeEval).length-1,1}, 1.0*funcEvalType,       "Plot Eval Func Type : ", GUIObj_Type.ListVal, new boolean[]{true}});
+		tmpUIObjArray.put(gIDX_FuncEvalLower, new Object[] {new double[]{-10.0, 10.0,.01},			                         1.0*funcEvalLow,        "Plot Eval Func Low : ", GUIObj_Type.FloatVal, new boolean[]{true}});
+		tmpUIObjArray.put(gIDX_FuncEvalHigher, new Object[] {new double[]{-10.0, 10.0,.01},			                         1.0*funcEvalHigh,       "Plot Eval Func High : ", GUIObj_Type.FloatVal, new boolean[]{true}});
+		tmpUIObjArray.put(gIDX_FuncEvalNumVals, new Object[] {new double[]{10000,1000000,1000},                              1.0*funcEvalNumVals,    "Plot Eval Func # Vals : ", GUIObj_Type.IntVal, new boolean[]{true}}); 
+		tmpUIObjArray.put(gIDX_FuncEvalNumBkts, new Object[] {new double[]{10,1000,1},                                       1.0*funcEvalNumBuckets, "Plot Eval Func # Bkts (dist) : ", GUIObj_Type.IntVal, new boolean[]{true}});
+		tmpUIObjArray.put(gIDX_FinalGradeNumMmnts, new Object[] {new double[]{2, 4, .1},			                         1.0*finalGradeNumMmnts, "Final Grade # Momments (2-4) : ", GUIObj_Type.IntVal, new boolean[]{true}});
+		tmpUIObjArray.put(gIDX_FinalGradeMean, new Object[] {new double[]{0.0, 1.0,.01},			                         1.0*finalGradeMmtns[0], "Final Grade Mean : ", GUIObj_Type.FloatVal, new boolean[]{true}}); 
+		tmpUIObjArray.put(gIDX_FinalGradeSTD, new Object[] {new double[]{0.0, 1.0,.01},				                         1.0*finalGradeMmtns[1], "Final Grade Std Dev : ", GUIObj_Type.FloatVal, new boolean[]{true}}); 
+		tmpUIObjArray.put(gIDX_FinalGradeSkew, new Object[] {new double[]{-5.0,5.0,.01},			                         1.0*finalGradeMmtns[2], "Final Grade Skew : ", GUIObj_Type.FloatVal, new boolean[]{true}}); 
+		tmpUIObjArray.put(gIDX_FinalGradeExKurt, new Object[] {new double[]{0.0, 5.0,.01},			                         1.0*finalGradeMmtns[3],  "Final Grade Ex Kurt : ", GUIObj_Type.FloatVal, new boolean[]{true}});
 		//min max modify values for each modifiable UI comp	
 
 	}//setupGUIObjsAras

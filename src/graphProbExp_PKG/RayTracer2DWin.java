@@ -6,6 +6,7 @@ import java.util.*;
 import base_JavaProjTools_IRender.base_Render_Interface.IRenderInterface;
 import base_UI_Objects.*;
 import base_UI_Objects.windowUI.drawnObjs.myDrawnSmplTraj;
+import base_UI_Objects.windowUI.uiObjs.GUIObj_Type;
 import base_Utils_Objects.io.messaging.MsgCodes;
 import base_UI_Objects.windowUI.base.base_UpdateFromUIData;
 import base_UI_Objects.windowUI.base.myDispWindow;
@@ -158,9 +159,9 @@ public class RayTracer2DWin extends myDispWindow {
 		tmpListObjVals.put(gIDX_CurrSceneCLI, gIDX_CurrSceneCLIList);
 
 
-		tmpUIObjArray.put(gIDX_SceneCols, new Object[] {new double[]{200,(int)(rectDim[2]/2),10}, 1.0*sceneCols, "Image Width (pxls)", new boolean[]{true, false, true}});
-		tmpUIObjArray.put(gIDX_SceneRows, new Object[] {new double[]{200,(int)(rectDim[3]/2),10}, 1.0*sceneRows, "Image Height (pxls)", new boolean[]{true, false, true}});
-		tmpUIObjArray.put(gIDX_CurrSceneCLI, new Object[] {new double[]{0,tmpListObjVals.get(gIDX_CurrSceneCLI).length-1,1}, 0.0, "Scene to Display",	new boolean[]{true, true, true}});
+		tmpUIObjArray.put(gIDX_SceneCols, new Object[] {new double[]{200,(int)(rectDim[2]/2),10}, 1.0*sceneCols, "Image Width (pxls)", GUIObj_Type.IntVal, new boolean[]{true}});
+		tmpUIObjArray.put(gIDX_SceneRows, new Object[] {new double[]{200,(int)(rectDim[3]/2),10}, 1.0*sceneRows, "Image Height (pxls)", GUIObj_Type.IntVal, new boolean[]{true}});
+		tmpUIObjArray.put(gIDX_CurrSceneCLI, new Object[] {new double[]{0,tmpListObjVals.get(gIDX_CurrSceneCLI).length-1,1}, 0.0, "Scene to Display", GUIObj_Type.ListVal, new boolean[]{true}});
 	
 
 //		setupGUI_XtraObjs();
