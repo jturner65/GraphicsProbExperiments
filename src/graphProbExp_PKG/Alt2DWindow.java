@@ -75,11 +75,19 @@ public class Alt2DWindow extends myDispWindow {
 		
 	}
 
+	/**
+	 * This function would provide an instance of the override class for base_UpdateFromUIData, which would
+	 * be used to communicate changes in UI settings directly to the value consumers.
+	 */
 	@Override
 	protected base_UpdateFromUIData buildUIDataUpdateObject() {
-		// TODO Auto-generated method stub
 		return null;
 	}
+	/**
+	 * This function is called on ui value update, to pass new ui values on to window-owned consumers
+	 */
+	@Override
+	protected final void updateCalcObjUIVals() {}
 
 	@Override
 	protected int[] getFlagIDXsToInitToTrue() {
