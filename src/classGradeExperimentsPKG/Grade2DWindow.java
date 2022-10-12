@@ -151,10 +151,6 @@ public class Grade2DWindow extends myDispWindow {
 	}
 
 	@Override
-	protected void buildUIUpdateStruct_Indiv(TreeMap<Integer, Integer> intValues, TreeMap<Integer, Float> floatValues,TreeMap<Integer, Boolean> boolValues) {		
-	}
-
-	@Override
 	protected int[] getFlagIDXsToInitToTrue() {
 		// TODO Auto-generated method stub
 		return new int[] {rebuildDistOnMove,use1pSineCosCDF};

@@ -106,12 +106,6 @@ public class Main3DWindow extends myDispWindow {
 	}
 
 	@Override
-	protected void buildUIUpdateStruct_Indiv(TreeMap<Integer, Integer> intValues, TreeMap<Integer, Float> floatValues,
-			TreeMap<Integer, Boolean> boolValues) {
-		// TODO Auto-generated method stub
-		
-	}
-	@Override
 	//set flag values and execute special functionality for this sequencer
 	//skipKnown will allow settings to be reset if passed redundantly
 	public void setPrivFlags(int idx, boolean val){	

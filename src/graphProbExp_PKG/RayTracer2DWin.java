@@ -120,13 +120,6 @@ public class RayTracer2DWin extends myDispWindow {
 	}
 
 	@Override
-	protected void buildUIUpdateStruct_Indiv(TreeMap<Integer, Integer> intValues, TreeMap<Integer, Float> floatValues,
-			TreeMap<Integer, Boolean> boolValues) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
 	protected int[] getFlagIDXsToInitToTrue() {
 		// TODO Auto-generated method stub
 		return null;
