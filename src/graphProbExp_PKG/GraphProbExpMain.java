@@ -160,7 +160,7 @@ public class GraphProbExpMain extends GUI_AppManager {
 	@Override
 	protected void initVisProg_Indiv() {}	
 	@Override
-	public String[] getMouseOverSelBtnNames() {
+	public String[] getMouseOverSelBtnLabels() {
 		// TODO Auto-generated method stub
 		return new String[0];
 	}

@@ -257,8 +257,7 @@ public class DistRayTracer extends GUI_AppManager {
 	}
 
 	@Override
-	public String[] getMouseOverSelBtnNames() {
-		// TODO Auto-generated method stub
+	public String[] getMouseOverSelBtnLabels() {
 		return new String[0];
 	}
 

@@ -1,19 +1,20 @@
 package classGradeExperimentsPKG;
 
 import java.io.File;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.TreeMap;
 
 import base_JavaProjTools_IRender.base_Render_Interface.IRenderInterface;
+import base_Math_Objects.vectorObjs.doubles.myPoint;
+import base_Math_Objects.vectorObjs.doubles.myVector;
 import base_ProbTools.BaseProbExpMgr;
 import base_ProbTools.randGenFunc.funcs.myRandVarFunc;
 import base_UI_Objects.GUI_AppManager;
-import base_UI_Objects.windowUI.base.base_UpdateFromUIData;
 import base_UI_Objects.windowUI.base.myDispWindow;
 import base_UI_Objects.windowUI.drawnObjs.myDrawnSmplTraj;
+import base_UI_Objects.windowUI.uiData.UIDataUpdater;
 import base_UI_Objects.windowUI.uiObjs.GUIObj_Type;
 import base_Utils_Objects.io.messaging.MsgCodes;
-import base_Math_Objects.vectorObjs.doubles.myPoint;
-import base_Math_Objects.vectorObjs.doubles.myVector;
 
 public class Grade2DWindow extends myDispWindow {
 	
@@ -149,8 +150,8 @@ public class Grade2DWindow extends myDispWindow {
 	 * be used to communicate changes in UI settings directly to the value consumers.
 	 */
 	@Override
-	protected base_UpdateFromUIData buildUIDataUpdateObject() {
-		return null;
+	protected UIDataUpdater buildUIDataUpdateObject() {
+		return new Grade2DUIDataUpdater(this);
 	}
 	/**
 	 * This function is called on ui value update, to pass new ui values on to window-owned consumers
@@ -277,76 +278,88 @@ public class Grade2DWindow extends myDispWindow {
 
 	}//setupGUIObjsAras
 	
-	//all ui objects should have an entry here to show how they should interact
+	/**
+	 * Called if int-handling guiObjs[UIidx] (int or list) has new data which updated UI adapter. 
+	 * Intended to support custom per-object handling by owning window.
+	 * Only called if data changed!
+	 * @param UIidx Index of gui obj with new data
+	 * @param ival integer value of new data
+	 * @param oldVal integer value of old data in UIUpdater
+	 */
 	@Override
-	protected void setUIWinVals(int UIidx) {
-		double val = (float)guiObjs[UIidx].getVal();
-		double oldVal = (float)uiVals[UIidx];
-		int ival = (int)val;
-		if(val != uiVals[UIidx]){//if value has changed...
-			uiVals[UIidx] = val;
-			switch(UIidx){		
+	protected final void setUI_IntValsCustom(int UIidx, int ival, int oldVal) {
+		switch(UIidx){	
 			case gIDX_NumStudents 			:{
-				if(ival != numStudents){
-					numStudents = ival;
-					//(boolean rebuildStudents, boolean rebuildClasses,  boolean rebuildGrades, boolean loadFromRosters)
-					setGradeExp(true, false, false, false);
-				}	break;}			
+				numStudents = ival;
+				//(boolean rebuildStudents, boolean rebuildClasses,  boolean rebuildGrades, boolean loadFromRosters)
+				setGradeExp(true, false, false, false);
+				break;}			
 			case gIDX_NumClasses 			:{
-				if(ival != numClasses){
-					numClasses = ival;
-					setGradeExp(false, true, false, false);
-				}	break;}
-			case gIDX_ExpDistType : {
-				if (ival != expTypeIDX) {				
-					expTypeIDX = ival;
-					setGradeExp(false, false, false, false);
-				}	break;}	
+				numClasses = ival;
+				setGradeExp(false, true, false, false);
+				break;}
+			case gIDX_ExpDistType : {							
+				expTypeIDX = ival;
+				setGradeExp(false, false, false, false);
+				break;}	
 			case gIDX_FuncTypeEval : 	{
-				if (ival != funcEvalType) {				funcEvalType = ival;}		
-				break;	}
-
-			case gIDX_FuncEvalLower : 	{						
-				if (val != funcEvalLow) {				funcEvalLow = val;	}				
-				break;	}
-			case gIDX_FuncEvalHigher : 	{
-				if (val != funcEvalHigh) {				funcEvalHigh = val;	}				
+				funcEvalType = ival;		
 				break;	}
 			case gIDX_FuncEvalNumVals : 	{						
-				if (ival != funcEvalNumVals) {			funcEvalNumVals = ival;	}				
+				funcEvalNumVals = ival;					
 				break;	}
 			case gIDX_FuncEvalNumBkts : 	{						
-				if (ival != funcEvalNumBuckets) {		funcEvalNumBuckets = ival;	}				
+				funcEvalNumBuckets = ival;					
 				break;	}			
 			case gIDX_FinalGradeNumMmnts  : 	{
-				if(ival != finalGradeNumMmnts) {		finalGradeNumMmnts = ival;			}
+				finalGradeNumMmnts = ival;			
+				break;}	
+			default : {
+				msgObj.dispWarningMessage(className, "setUI_IntValsCustom", "No int-defined gui object mapped to idx :"+UIidx);
 				break;}
+		}
+	}//setUI_IntValsCustom
+	
+	/**
+	 * Called if float-handling guiObjs[UIidx] has new data which updated UI adapter.  
+	 * Intended to support custom per-object handling by owning window.
+	 * Only called if data changed!
+	 * @param UIidx Index of gui obj with new data
+	 * @param val float value of new data
+	 * @param oldVal float value of old data in UIUpdater
+	 */
+	@Override
+	protected final void setUI_FloatValsCustom(int UIidx, float val, float oldVal) {
+		switch(UIidx){	
+			case gIDX_FuncEvalLower : 	{						
+				funcEvalLow = val;					
+				break;	}
+			case gIDX_FuncEvalHigher : 	{
+				funcEvalHigh = val;					
+				break;	}
 			case gIDX_FinalGradeMean	  : 	{
-				if (val !=finalGradeMmtns[0]) {			finalGradeMmtns[0] = val;	setFinalGradeVals();		}
+				finalGradeMmtns[0] = val;	setFinalGradeVals();		
 				break;}    
 			case gIDX_FinalGradeSTD	      : 	{
-				if (val !=finalGradeMmtns[1]) {			finalGradeMmtns[1] = val;	setFinalGradeVals();		}				
+				finalGradeMmtns[1] = val;	setFinalGradeVals();					
 				break;}
-			case gIDX_FinalGradeSkew	  : 	{
-				if (val !=finalGradeMmtns[2]) {			
-					finalGradeMmtns[2] = val;	
-					double skewSQ = finalGradeMmtns[2] * finalGradeMmtns[2], bound = -1.2264489 + 1.6410373*skewSQ; 
-					guiObjs[gIDX_FinalGradeExKurt].setNewMin((bound > 0 ? bound : 0));
-					guiObjs[gIDX_FinalGradeExKurt].setNewMax((guiObjs[gIDX_FinalGradeExKurt].getMinVal()+1)*10);
-				}				
+			case gIDX_FinalGradeSkew	  : 	{	
+				finalGradeMmtns[2] = val;	
+				double skewSQ = finalGradeMmtns[2] * finalGradeMmtns[2], bound = -1.2264489 + 1.6410373*skewSQ; 
+				guiObjs[gIDX_FinalGradeExKurt].setNewMin((bound > 0 ? bound : 0));
+				guiObjs[gIDX_FinalGradeExKurt].setNewMax((guiObjs[gIDX_FinalGradeExKurt].getMinVal()+1)*10);
 				break;}   
 			case gIDX_FinalGradeExKurt	  : 	{		//Exkurtosis is  skewness vals for fleishman polynomial
-				if (val !=finalGradeMmtns[3]) {	
-					//verify legitimate kurt for fleishman dist
-					double skewSQ = finalGradeMmtns[2] * finalGradeMmtns[2], bound = -1.2264489 + 1.6410373*skewSQ; 
-					finalGradeMmtns[3] = (val < bound ? bound : val) ;
-					guiObjs[UIidx].setVal(finalGradeMmtns[3]);
-				}
+				//verify legitimate kurt for fleishman dist
+				double skewSQ = finalGradeMmtns[2] * finalGradeMmtns[2], bound = -1.2264489 + 1.6410373*skewSQ; 
+				finalGradeMmtns[3] = (val < bound ? bound : val) ;
+				guiObjs[UIidx].setVal(finalGradeMmtns[3]);			
+				break;}	
+			default : {
+				msgObj.dispWarningMessage(className, "setUI_FloatValsCustom", "No float-defined gui object mapped to idx :"+UIidx);
 				break;}
-			}
-		}//if val is different
-	}//setUIWinVals
-	
+		}	
+	}//setUI_FloatValsCustom
 	
 	//called when only final grade mapping changes
 	private void setFinalGradeVals() {
@@ -456,14 +469,14 @@ public class Grade2DWindow extends myDispWindow {
 	}
 	//modify menu buttons to display whether using CSV or SQL to access raw data
 	@Override
-	protected void setCustMenuBtnNames() {
+	protected void setCustMenuBtnLabels() {
 		AppMgr.setAllMenuBtnNames(menuBtnNames);	
 	}
 	
 	@Override
 	protected void showMe() {
 		//things to do when swapping into this window - reinstance released objects, for example.
-		setCustMenuBtnNames();
+		setCustMenuBtnLabels();
 		
 	}
 	//return strings for directory names and for individual file names that describe the data being saved.  used for screenshots, and potentially other file saving

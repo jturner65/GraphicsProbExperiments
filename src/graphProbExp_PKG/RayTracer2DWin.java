@@ -1,17 +1,18 @@
 package graphProbExp_PKG;
 
-import java.io.*;
-import java.util.*;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.TreeMap;
 
 import base_JavaProjTools_IRender.base_Render_Interface.IRenderInterface;
-import base_UI_Objects.*;
-import base_UI_Objects.windowUI.drawnObjs.myDrawnSmplTraj;
-import base_UI_Objects.windowUI.uiObjs.GUIObj_Type;
-import base_Utils_Objects.io.messaging.MsgCodes;
-import base_UI_Objects.windowUI.base.base_UpdateFromUIData;
-import base_UI_Objects.windowUI.base.myDispWindow;
 import base_Math_Objects.vectorObjs.doubles.myPoint;
 import base_Math_Objects.vectorObjs.doubles.myVector;
+import base_UI_Objects.GUI_AppManager;
+import base_UI_Objects.windowUI.base.myDispWindow;
+import base_UI_Objects.windowUI.drawnObjs.myDrawnSmplTraj;
+import base_UI_Objects.windowUI.uiData.UIDataUpdater;
+import base_UI_Objects.windowUI.uiObjs.GUIObj_Type;
+import base_Utils_Objects.io.messaging.MsgCodes;
 
 /**
  * class to hold 2-D ray tracer experiment - bunch of circles, shoot rays and plot their traversal
@@ -116,8 +117,8 @@ public class RayTracer2DWin extends myDispWindow {
 	 * be used to communicate changes in UI settings directly to the value consumers.
 	 */
 	@Override
-	protected base_UpdateFromUIData buildUIDataUpdateObject() {
-		return null;
+	protected UIDataUpdater buildUIDataUpdateObject() {
+		return new GrapProbUIDataUpdater(this);
 	}
 	/**
 	 * This function is called on ui value update, to pass new ui values on to window-owned consumers
@@ -165,34 +166,56 @@ public class RayTracer2DWin extends myDispWindow {
 
 //		setupGUI_XtraObjs();
 	}//setupGUIObjsAras
-	
-	//all ui objects should have an entry here to show how they should interact
+
+
+	/**
+	 * Called if int-handling guiObjs[UIidx] (int or list) has new data which updated UI adapter. 
+	 * Intended to support custom per-object handling by owning window.
+	 * Only called if data changed!
+	 * @param UIidx Index of gui obj with new data
+	 * @param ival integer value of new data
+	 * @param oldVal integer value of old data in UIUpdater
+	 */
 	@Override
-	protected void setUIWinVals(int UIidx) {
-		float val = (float)guiObjs[UIidx].getVal();
-		int ival = (int)val;
-		switch(UIidx){		
+	protected final void setUI_IntValsCustom(int UIidx, int ival, int oldVal) {
+		switch(UIidx) {
 			case gIDX_SceneCols		:{
-				if(ival != sceneCols){
-					sceneCols = ival;		
-					RTExp.setRTSceneExpVals(sceneCols, sceneRows, gIDX_CurrSceneCLIList[curSceneCliFileIDX % gIDX_CurrSceneCLIList.length]);
-				}	
+				sceneCols = ival;		
+				RTExp.setRTSceneExpVals(sceneCols, sceneRows, gIDX_CurrSceneCLIList[curSceneCliFileIDX % gIDX_CurrSceneCLIList.length]);				
 				break;}			
-			case gIDX_SceneRows		:{
-				if(ival != sceneRows){
-					sceneRows = ival;
-					RTExp.setRTSceneExpVals(sceneCols, sceneRows, gIDX_CurrSceneCLIList[curSceneCliFileIDX % gIDX_CurrSceneCLIList.length]);
-				}	
+			case gIDX_SceneRows		:{			
+				sceneRows = ival;
+				RTExp.setRTSceneExpVals(sceneCols, sceneRows, gIDX_CurrSceneCLIList[curSceneCliFileIDX % gIDX_CurrSceneCLIList.length]);					
 				break;}	
 			case gIDX_CurrSceneCLI :{
-				if(ival != curSceneCliFileIDX) {
-					curSceneCliFileIDX = ival;
-					RTExp.setRTSceneExpVals(sceneCols, sceneRows, gIDX_CurrSceneCLIList[curSceneCliFileIDX % gIDX_CurrSceneCLIList.length]);
-				}
+				curSceneCliFileIDX = ival;
+				RTExp.setRTSceneExpVals(sceneCols, sceneRows, gIDX_CurrSceneCLIList[curSceneCliFileIDX % gIDX_CurrSceneCLIList.length]);				
+				break;}		
+			default : {
+				msgObj.dispWarningMessage(className, "setUI_IntValsCustom", "No int-defined gui object mapped to idx :"+UIidx);
 				break;}
-		}//switch
+		}	
+	}
+	
+	/**
+	 * Called if float-handling guiObjs[UIidx] has new data which updated UI adapter.  
+	 * Intended to support custom per-object handling by owning window.
+	 * Only called if data changed!
+	 * @param UIidx Index of gui obj with new data
+	 * @param val float value of new data
+	 * @param oldVal float value of old data in UIUpdater
+	 */
+	@Override
+	protected final void setUI_FloatValsCustom(int UIidx, float val, float oldVal) {
+		switch(UIidx) {
+		
+			default : {
+				msgObj.dispWarningMessage(className, "setUI_FloatValsCustom", "No int-defined gui object mapped to idx :"+UIidx);
+				break;}
+		}	
+	}
 
-	}//setUIWinVals
+	
 	
 	//check whether the mouse is over a legitimate map location
 	public boolean chkMouseClick2D(int mouseX, int mouseY, int btn){		
@@ -267,14 +290,14 @@ public class RayTracer2DWin extends myDispWindow {
 	
 	//modify menu buttons to display whether using CSV or SQL to access raw data
 	@Override
-	protected void setCustMenuBtnNames() {
+	protected void setCustMenuBtnLabels() {
 		AppMgr.setAllMenuBtnNames(menuBtnNames);	
 	}
 	
 	@Override
 	protected void showMe() {
 		//things to do when swapping into this window - reinstance released objects, for example.
-		setCustMenuBtnNames();
+		setCustMenuBtnLabels();
 		
 	}
 	//return strings for directory names and for individual file names that describe the data being saved.  used for screenshots, and potentially other file saving
