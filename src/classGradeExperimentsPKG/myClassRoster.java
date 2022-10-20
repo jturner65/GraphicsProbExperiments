@@ -7,7 +7,8 @@ import base_ProbTools.baseProbExpMgr;
 import base_ProbTools.randGenFunc.gens.base.myRandGen;
 import base_ProbTools.samples.mySampleSet;
 import base_StatsTools.summary.myProbSummary_Dbls;
-import base_Utils_Objects.io.messaging.MsgCodes;
+import base_StatsTools.visualization.myDistFuncHistVisMgr;
+import base_StatsTools.visualization.base.baseVisMgr;
 
 
 /**
@@ -16,6 +17,8 @@ import base_Utils_Objects.io.messaging.MsgCodes;
  * @author john
  */
 public class myClassRoster extends mySampleSet{
+	//
+	public static IRenderInterface pa;
 	//structure holding references to the students in this class - students need to be created external to class and added
 	protected HashMap<Integer,myStudent> students;
 
@@ -58,18 +61,19 @@ public class myClassRoster extends mySampleSet{
 	private myFinalGradeRoster _finalGrades;			//ref to final grade roster
 	
 	public myClassRoster(IRenderInterface _pa, baseProbExpMgr _gradeExp, String _name, float[][] _barLocs) {
-		super(_pa,  _name);
+		super(_name);
+		pa = _pa;
 		initFlags();
 		//visualization stuff
 		distPlotDimRect = new float[] {_barLocs[2][0], _barLocs[2][1],_gradeExp.getVisibleSreenWidth(),ClassGradeExperiment.distBtwnAdjPlots};
 		distBtwnClassBars = ClassGradeExperiment.distBtwnAdjBars;
 		distBtwnRawTransBars =  _barLocs[1][1] - _barLocs[0][1];
-		clsLineClr = pa.getRndClrBright(255);//should be brighter colors
+		clsLineClr = _pa.getRndClrBright(255);//should be brighter colors
 		gradeBars = new myGradeDistVisBar[transTypes.length];
 		int barLocIDX = 0;
 		for(int i=0;i<gradeBars.length;++i) {
 			if(i>0) {barLocIDX=1;}
-			gradeBars[i]=new myGradeDistVisBar(this, new float[] {_barLocs[barLocIDX][0], _barLocs[barLocIDX][1], distBtwnClassBars}, transTypes[i],clsLineClr, "Visualization of "+transTypes[i]+" grades for class :"+name);			
+			gradeBars[i]=new myGradeDistVisBar(this, pa, new float[] {_barLocs[barLocIDX][0], _barLocs[barLocIDX][1], distBtwnClassBars}, transTypes[i],clsLineClr, "Visualization of "+transTypes[i]+" grades for class :"+name);			
 		}
 		gradeBars[GB_scaledUniGradeTypeIDX].setIsVisible(false);
 		students = new HashMap<Integer,myStudent>();		
@@ -80,24 +84,33 @@ public class myClassRoster extends mySampleSet{
 	public void setDispWidth(float _dispWidth) {
 		for(int i=0;i<gradeBars.length;++i) {			gradeBars[i].setDispWidth(_dispWidth);		}
 		//also for plot res object
-		baseDistModels.get(curDistModel).dataVisSetDispWidth(_dispWidth);
+		distModelVis.get(curDistModel).setDispWidth(_dispWidth);
 	}//setBarWidth
+	
+	/**
+	 * Build visualization mgr corresponding to current randGen model
+	 * @return
+	 */
+	@Override
+	protected final myDistFuncHistVisMgr buildVisMgr(String _name) {
+		return new myDistFuncHistVisMgr(pa, distPlotDimRect, _name);
+	}
 	
 	//when new transform added, need to clear out existing transformed grades
 	@Override
 	protected void setBaseDistModel_Indiv() {	
-		baseDistModels.get(curDistModel).buildDistVisObj(distPlotDimRect);
 		updateName();
 		setFlag(rawGradeDistMdlSetIDX, true);
 	}//setRandGenAndType	
 	
 	protected void updateName() {
 		myRandGen baseDistModel = baseDistModels.get(curDistModel);
+		baseVisMgr distMdlViz = distModelVis.get(curDistModel);
 		for(int i=0;i<gradeBars.length;++i) {
 			String newVisName = "Vis of "+transTypes[i]+" grades for class :"+name+"|Dist Mdl :"+ baseDistModel.getDispTransName();
 			gradeBars[i].updateName(newVisName);
 		}
-		baseDistModel.updateVisName("Vis of Dist/Hist for sample grade distribution for class :"+name+"|Dist Mdl :"+ baseDistModel.getDispTransName());
+		distMdlViz.updateName("Vis of Dist/Hist for sample grade distribution for class :"+name+"|Dist Mdl :"+ baseDistModel.getDispTransName());
 		
 	}//updateName
 	
@@ -117,7 +130,7 @@ public class myClassRoster extends mySampleSet{
 			Integer SID = s.ObjID;
 			Double grade = classGrades.get(SID);
 			if(null==grade) {//no grade for student - this is an error
-				msgObj.dispMessage("myClassRoster","setAllStudentRawGrades","In class : " +name + "| No grade found for student ID :"+SID +" | Name : " +s.name+" | Defaulting grade to 0", MsgCodes.info1);
+				msgObj.dispInfoMessage("myClassRoster","setAllStudentRawGrades","In class : " +name + "| No grade found for student ID :"+SID +" | Name : " +s.name+" | Defaulting grade to 0");
 				grade=0.0;
 			}
 			s.setTransformedGrade(transTypes[GB_rawGradeTypeIDX], this, grade);
@@ -288,7 +301,7 @@ public class myClassRoster extends mySampleSet{
 		if(check) {
 			pa.pushMatState();
 			//first transform to this class's raw grade line
-			stGradeBar.transToBarStart(pa);
+			stGradeBar.transToBarStart();
 			for (myStudent s : students.values()) {//uses student color
 				double rawXLoc = s.getGradeXLoc(fromTransType, fromCls, gradeBars[GB_rawGradeTypeIDX].barWidth);
 				double transXLoc = s.getGradeXLoc(toTransType, toCls, gradeBars[GB_rawGradeTypeIDX].barWidth);
@@ -299,13 +312,11 @@ public class myClassRoster extends mySampleSet{
 		}		
 	}//drawRawToTransformedLine	
 	
-	
 	//draw all student grades on line 
 	public void drawStudentGradesRaw() {_drawStudentBar(GB_rawGradeTypeIDX);}//drawStudentGradesRaw	
 	public void drawStudentGradesUni() {_drawStudentBar(GB_uniTransGradeTypeIDX);}
 	
-	private void _drawStudentBar(int idx) {gradeBars[idx].drawVis(pa);}
-	
+	private void _drawStudentBar(int idx) {gradeBars[idx].drawVis();}
 	
 	public void setRebuildDistWhenMove(boolean val) {setFlag(rebuildDistWhenMoveIDX, val);}
 	
@@ -373,7 +384,7 @@ class myFinalGradeRoster extends myClassRoster {
 			}			
 		} else {
 			myRandGen baseDistModel = baseDistModels.get(curDistModel);
-			if(null==baseDistModel) {	msgObj.dispMessage("myFinalGradeRoster","calcTotalGrades","baseDistModel == null", MsgCodes.info1);	return;}
+			if(null==baseDistModel) {	msgObj.dispInfoMessage("myFinalGradeRoster","calcTotalGrades","baseDistModel == null");	return;}
 			//baseDistModel.setFuncSummary(tmpSummary);
 			updateName();
 			for (myStudent s : students.values()) {
@@ -452,7 +463,7 @@ class myFinalGradeRoster extends myClassRoster {
 	//this is not used to set grades
 	@Override
 	public void setAllStudentRawGrades(HashMap<Integer, Double> classGrades) {
-		msgObj.dispMessage("myFinalGradeRoster", "setAllStudentRawGrades", "Final Grades for students are not set via setAllStudentRawGrades method.  Final Grades must be calculated" ,MsgCodes.error2, true);
+		msgObj.dispErrorMessage("myFinalGradeRoster", "setAllStudentRawGrades", "Final Grades for students are not set via setAllStudentRawGrades method.  Final Grades must be calculated.");
 	}
 }//class myFinalGradeRoster
 

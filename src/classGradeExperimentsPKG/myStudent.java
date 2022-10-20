@@ -145,9 +145,18 @@ public class myStudent implements Comparable<mySampleObs> {
 		mySampleObs smplVal = classValsForType.get(_class);			//grade for class for specified type
 		if (smplVal==null) {								return;	}//student has no transformed grade for this class	
 		float gr = smplVal.getFValue();
-		smplVal.drawMe(pa, rad, _drawClr, new myPointf(ttlWidth*gr, 0.0f, 0.0f), shrtName +":"+ String.format("%.1f",gr * 100.0f));		
+		drawSample(pa,smplVal.getTextLoc(), rad, _drawClr, new myPointf(ttlWidth*gr, 0.0f, 0.0f), shrtName +":"+ String.format("%.1f",gr * 100.0f));		
 	}//drawMeTransformed
-
+	public void drawSample(IRenderInterface pa, myPointf textLoc, float rad, int[] _drawClr, myPointf _transLoc, String _dispName) {
+		pa.pushMatState();
+		pa.translate(_transLoc);
+		pa.setFill(_drawClr,255); pa.setStroke(new int[]{0,0,0},255);			
+		pa.drawEllipse2D(0,0,rad,rad); 
+		pa.drawEllipse2D(0.0f,0.0f,2.0f,2.0f);
+		pa.setColorValFill(IRenderInterface.gui_White, 255);pa.setColorValStroke(IRenderInterface.gui_White, 255);
+		pa.showText(_dispName, textLoc.x, textLoc.y, textLoc.z); 
+		pa.popMatState();
+	}//drawMe
 	
 	
 	//compare based on name first, then sort by ObjID

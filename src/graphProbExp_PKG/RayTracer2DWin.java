@@ -434,7 +434,7 @@ public class RayTracer2DWin extends myDispWindow {
 		//loading in grade data from grade file - vals holds array of strings, expected to be comma sep values, for a single class, with student names and grades
 		for(String s : vals) {			msgObj.dispInfoMessage(className,"hndlFileLoad",s);}	
 		String fileName = file.getName();
-		TreeMap<String, String> tmpAra = new TreeMap<String, String>(), valsToIDX = new TreeMap<String, String>();
+		TreeMap<String, String> tmpAra = new TreeMap<String, String>();//, valsToIDX = new TreeMap<String, String>();
 		for(String s : gIDX_CurrSceneCLIList) {tmpAra.put(s, "");	}
 		tmpAra.put(fileName, "");
 		int idx = 0;

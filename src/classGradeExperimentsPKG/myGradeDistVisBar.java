@@ -1,17 +1,15 @@
 package classGradeExperimentsPKG;
 
 import base_JavaProjTools_IRender.base_Render_Interface.IRenderInterface;
-import base_ProbTools.samples.mySampleObs;
 import base_StatsTools.visualization.base.baseVisMgr;
 
 
 /**
- * this class holds the functionality to manage a 1 dimensional 
+ * this class holds the functionality to manage a 1 dimensional visualization of a grade
  * @author john
  */
 
 public class myGradeDistVisBar extends baseVisMgr {
-
 	//class this bar is attached to - if none means overall grade
 	private final myClassRoster owningClass;
 	//string descriptor of type of grades that this bar displays
@@ -35,9 +33,13 @@ public class myGradeDistVisBar extends baseVisMgr {
 	//student being moved by mouse click
 	protected myStudent _modStudent;
 	
+	public static final int[] blkStrk = new int[] {0,0,0,255};
+	//grey for disabled
+	public static final int[] greyOff = new int[] {100,100,100,255};
+	
 	//specific color constructor - used to set up overall grade bar for a single class
-	public myGradeDistVisBar(myClassRoster _owningClass, float[] _dims, String _typ, int[] _barColor, String _name) {
-		super(new float[] {_dims[0],_dims[1], _barStX + (_owningClass.distPlotDimRect[2]*barWidthMult) ,_dims[2]}, _name);
+	public myGradeDistVisBar(myClassRoster _owningClass, IRenderInterface _pa, float[] _dims, String _typ, int[] _barColor, String _name) {
+		super(_pa, new float[] {_dims[0],_dims[1], _barStX + (_owningClass.distPlotDimRect[2]*barWidthMult) ,_dims[2]}, _name);
 		gradeType=_typ;
 		setIsVisible(true);			//default bar to being visible
 		_setDispWidthIndiv(_owningClass.distPlotDimRect[2]);
@@ -92,26 +94,26 @@ public class myGradeDistVisBar extends baseVisMgr {
 	public float getAbsYLoc() {return startRect[1]+_barStY;}
 	
 	//translate to where the par part of this par starts, so the lines connecting grades for same students can be drawn
-	public void transToBarStart(IRenderInterface pa) {pa.translate(startRect[0]+_barStX,startRect[1]+_barStY,0);}	
+	public void transToBarStart() {pa.translate(startRect[0]+_barStX,startRect[1]+_barStY,0);}	
 	//draw grade bar and student locations
-	protected void _drawVisIndiv(IRenderInterface pa) {
+	protected void _drawVisIndiv() {
 		if(enabled) {
 			pa.pushMatState();
-			_drawBoxAndBar(pa,clr_green,barColor);
+			_drawBoxAndBar(clr_green,barColor);
 			for (myStudent s : owningClass.students.values()) {		s.drawMeTransformed(pa, gradeType, owningClass, s.clr, barWidth);	}
 			pa.popMatState();					
 		} else {							
 			pa.pushMatState();
-			_drawBoxAndBar(pa,clr_red,clr_grey);
-			for (myStudent s : owningClass.students.values()) {		s.drawMeTransformed(pa, gradeType, owningClass, mySampleObs.greyOff, barWidth);	}		
+			_drawBoxAndBar(clr_red,clr_grey);
+			for (myStudent s : owningClass.students.values()) {		s.drawMeTransformed(pa, gradeType, owningClass, greyOff, barWidth);	}		
 			pa.popMatState();
 		}
 	}//_drawVisIndiv
 	
 	//draw box and bar with appropriate colors
-	private void _drawBoxAndBar(IRenderInterface pa, int[] fClr, int[] _bClr) {
+	private void _drawBoxAndBar(int[] fClr, int[] _bClr) {
 		pa.setFill(fClr,fClr[3]);
-		pa.setStroke(0,0,0,255);
+		pa.setStroke(blkStrk,255);
 		pa.drawRect(_clkBox);
 		//move to where bar starts
 		pa.translate(_barStX,_barStY,0);
@@ -131,5 +133,8 @@ public class myGradeDistVisBar extends baseVisMgr {
 	public void setType(String _typ) {gradeType=_typ;}
 	public String getType() {return gradeType;}
 
-		
+	@Override
+	public void clearEvalVals() {}
+
+
 }//class my1D_DistVis

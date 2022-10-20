@@ -17,19 +17,19 @@ import base_UI_Objects.my_procApplet;
 import processing.core.PApplet;
 
 public class myRTFileReader {
-	public IRenderInterface p;
+	public IRenderInterface pa;
 	public final String textureDir;
 	private int timer;
 	private int curNumRows, curNumCols;
-	public myRTFileReader(IRenderInterface _p, String _txtrDirs) {
-		p = _p;
+	public myRTFileReader(IRenderInterface _pa, String _txtrDirs) {
+		pa = _pa;
 		textureDir = _txtrDirs;		
 	}
 	
 	//passed scene is for when called recursively - is null on first time in, passes scene to be used otherwise
 	public myScene readRTFile(TreeMap<String, myScene> loadedScenes, String fileName, myScene _scene, int _numCols, int _numRows) {		  
 		//build individual scene for each file		
-		timer = ((my_procApplet)p).millis();			//times rendering
+		timer = ((my_procApplet)pa).millis();			//times rendering
 		curNumRows = _numRows;
 		curNumCols = _numCols;
 		
@@ -41,12 +41,12 @@ public class myRTFileReader {
 		} else {
 			scene = loadedScenes.get(fileName);
 			if(scene != null){return scene;}//if scene exists, don't read in again
-			scene = new myFOVScene(p,fileName,_numCols, _numRows);
+			scene = new myFOVScene(pa,fileName,_numCols, _numRows);
 			scene.setSceneParams(new double[]{60}); 	//set default scene to be FOV with width 60 degrees
 		}
 		String[] str = null;
 		try{
-			str = ((my_procApplet)p).loadStrings("../data/"+fileName);
+			str = ((my_procApplet)pa).loadStrings("../data/"+fileName);
 			System.out.println("File name : " + fileName + " Size : " + str.length);
 		} catch (Exception e) {	System.out.println("myRTFileReader::readRTFile : File Read Error : File name : " + fileName + " not found."); return null;		}	 
 	
@@ -119,11 +119,11 @@ public class myRTFileReader {
 			    	break;}		
 		    //timer stuff
 			    case "reset_timer" : {//Reset a global timer that will be used to determine how long it takes to render a scene. 
-			    	timer = ((my_procApplet)p).millis();
+			    	timer = ((my_procApplet)pa).millis();
 			    	break;
 			    }
 			    case "print_timer" : {//Print the time elapsed since reset_timer was called (in seconds). Use the code snippet 
-			    	int new_timer = ((my_procApplet)p).millis();
+			    	int new_timer = ((my_procApplet)pa).millis();
 			    	int diff = new_timer - timer;
 			    	float seconds = diff / 1000.0f;
 			    	scene.renderTime = seconds;
@@ -153,7 +153,7 @@ public class myRTFileReader {
 					if (token[1].equals("texture")) {
 						//load texture to be used for background
 						String textureName = token[2];
-						scene.currBkgTexture = ((my_procApplet)p).loadImage(textureDir+textureName);
+						scene.currBkgTexture = ((my_procApplet)pa).loadImage(textureDir+textureName);
 						scene.scFlags[myScene.glblTxtrdBkgIDX] = true;
 						System.out.println("Background texture loaded");
 						//build "skydome" - textured sphere encircling scene
@@ -289,11 +289,11 @@ public class myRTFileReader {
 			    		//if not specified then assume texture goes on top
 			    		if (side.toLowerCase().equals("top")){  		  	textureName = token[2];   } 
 			    		else {								         		textureName = token[1];   }
-			    		scene.currTextureTop = ((my_procApplet)p).loadImage("..\\data\\"+textureDir+"\\"+textureName);
+			    		scene.currTextureTop = ((my_procApplet)pa).loadImage("..\\data\\"+textureDir+"\\"+textureName);
 			    		scene.scFlags[myScene.glblTxtrdTopIDX] = true;
 			    		System.out.println("top surface texture loaded");
 			    	} else if (side.toLowerCase().equals("bottom")){
-			    		scene.currTextureBottom = ((my_procApplet)p).loadImage("..\\data\\"+textureDir+"\\"+textureName);
+			    		scene.currTextureBottom = ((my_procApplet)pa).loadImage("..\\data\\"+textureDir+"\\"+textureName);
 			    		scene.scFlags[myScene.glblTxtrdBtmIDX] = true;
 			    		System.out.println("bottom surface texture loaded");      }
 			    	scene.txtrType = 1;		//texture type is set to image/none

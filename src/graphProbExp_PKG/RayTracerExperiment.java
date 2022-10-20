@@ -11,6 +11,7 @@ import base_Utils_Objects.io.messaging.MessageObject;
 import base_Utils_Objects.io.messaging.MsgCodes;
 
 public class RayTracerExperiment extends baseProbExpMgr {
+	public IRenderInterface pa;
 	//holds references to all loaded scenes
 	public TreeMap<String, myScene> loadedScenes;
 	
@@ -31,15 +32,14 @@ public class RayTracerExperiment extends baseProbExpMgr {
 	public static final int numFlags = 1;	
 	
 	public RayTracerExperiment(IRenderInterface _pa, MessageObject _msgObj, float[] _curVisScrDims) {
-		super(_pa, _msgObj, _curVisScrDims);	
-
+		super(_msgObj, _curVisScrDims);	
+		pa = _pa;
+		rdr = new myRTFileReader(pa,".."+File.separator+"data"+File.separator+"txtrs"+File.separator);	
+		loadedScenes = new TreeMap<String, myScene>();	
 	}//ctor
 
 	@Override
-	public void initExp() {
-		rdr = new myRTFileReader(pa,".."+File.separator+"data"+File.separator+"txtrs"+File.separator);	
-		loadedScenes = new TreeMap<String, myScene>();			
-	}//initExp	
+	public void initExp() {}//initExp	
 
 	//set values for RT scene experiment values
 	public void setRTSceneExpVals(int cols, int rows, String _currFileName) {

@@ -13,6 +13,7 @@ import base_Utils_Objects.io.messaging.MessageObject;
  *
  */
 public class myProbExpMgr extends baseProbExpMgr{	
+	public IRenderInterface pa;
 	//random # generator
 	protected myRandGen nrmlGen, gaussGen;
 	
@@ -23,7 +24,8 @@ public class myProbExpMgr extends baseProbExpMgr{
 	
 	
 	public myProbExpMgr(IRenderInterface _pa, MessageObject _msgObj, float[] _curVisScrDims) {
-		super(_pa, _msgObj, _curVisScrDims);
+		super(_msgObj, _curVisScrDims);
+		pa=_pa;
 	}//ctor
 
 	//build solvers specific to this experiment - called after base class solver init

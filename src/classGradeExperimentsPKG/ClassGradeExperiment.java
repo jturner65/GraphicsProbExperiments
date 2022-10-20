@@ -13,9 +13,9 @@ import base_Utils_Objects.io.messaging.MessageObject;
  * this class is a specialized type fo probability experiment manager, specifically for the class grades project
  * @author john
  * @param 
- *
  */
 public class ClassGradeExperiment extends baseProbExpMgr{
+	public IRenderInterface pa;
 	//structure holding all classes
 	private HashSet<myClassRoster> classRosters;
 	private int numClasses;
@@ -63,9 +63,10 @@ public class ClassGradeExperiment extends baseProbExpMgr{
 	private static float[] classPlotStart = new float[] {10,50};
 	
 	public ClassGradeExperiment(IRenderInterface _pa, MessageObject _msgObj, float[] _curVisScrDims) {
-		super(_pa, _msgObj, _curVisScrDims);
-		
+		super(_msgObj, _curVisScrDims);
+		pa = _pa;		
 	}//ctor
+	
 	//called at end of ctor and whenever experiment needs to be re-instanced
 	@Override
 	public void initExp() {
@@ -75,12 +76,6 @@ public class ClassGradeExperiment extends baseProbExpMgr{
 		numStudents = 0;
 		//build initial final grade "class" that is used to aggregate and inverse-map to some target distribution
 		finalGradeClass = buildFinalGradeRoster(getPlotHeight());
-		
-		//gradeInvMapGen = buildAndInitRandGen(ziggRandGen, new myProbSummary(new double[] {0.0,0.1,0,0},2));
-		//build fleishman with data set ultimately
-		//gradeSourceDistGen = buildAndInitRandGen(fleishRandGen_UniVar, new myProbSummary(new double[] {0,1,1,4},4));	
-		//curTransformType = gradeInvMapGen.getTransformName();
-		//finalGPA = new gradeBar(this, new float[] {_barLocs[barLocIDX][0], _barLocs[barLocIDX][1], distBtwnClassBars}, transTypes[i],clsLineClr, "Visualization of "+transTypes[i]+" grades for class :"+name);	
 	}//	initExp
 
 	//called by base class call to buildSolvers, during base class ctor
