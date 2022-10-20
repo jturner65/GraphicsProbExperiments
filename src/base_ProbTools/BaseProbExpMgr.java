@@ -6,11 +6,14 @@ import java.util.*;
 import base_JavaProjTools_IRender.base_Render_Interface.IRenderInterface;
 import base_ProbTools.randGenFunc.transform.*;
 import base_ProbTools.summary.myProbSummary_Dbls;
+import base_ProbTools.quadrature.myGaussLegenQuad;
+import base_ProbTools.quadrature.base.baseQuadrature;
 import base_ProbTools.randGenFunc.funcs.*;
+import base_ProbTools.randGenFunc.funcs.base.baseRandVarFunc;
 import base_ProbTools.randGenFunc.gens.myBoundedRandGen;
 import base_ProbTools.randGenFunc.gens.myFleishUniVarRandGen;
-import base_ProbTools.randGenFunc.gens.myRandGen;
 import base_ProbTools.randGenFunc.gens.myZigRandGen;
+import base_ProbTools.randGenFunc.gens.base.myRandGen;
 import base_UI_Objects.windowUI.base.myDispWindow;
 import base_Utils_Objects.io.messaging.MessageObject;
 import base_Utils_Objects.io.messaging.MsgCodes;
@@ -26,7 +29,7 @@ public abstract class BaseProbExpMgr {
 	////////////////////////////////////////
 	// gauss quadrature solver structures	
 	//integral solvers for gaussian quadrature method used by this experiment
-	protected myIntegrator[] quadSlvrs;	
+	protected baseQuadrature[] quadSlvrs;	
 	//types of solvers for comparison
 	public static final int
 		GL_QuadSlvrIDX 		= 0;			//gaussian legendre solver
@@ -130,8 +133,8 @@ public abstract class BaseProbExpMgr {
 	//build various quadrature solvers to experiment with different formulations
 	private final void buildSolvers() {
 		//build quadrature solvers if not built already
-		quadSlvrs = new  myGaussQuad[numGaussSlvrs];
-		quadSlvrs[GL_QuadSlvrIDX] = new myGaussLegenQuad(this,quadSlvrNames[GL_QuadSlvrIDX],numQuadPoints, quadConvTol, quadBDScale);
+		quadSlvrs = new baseQuadrature[numGaussSlvrs];
+		quadSlvrs[GL_QuadSlvrIDX] = new myGaussLegenQuad(quadSlvrNames[GL_QuadSlvrIDX],numQuadPoints, quadConvTol, quadBDScale);
 		curQuadSolverIDX = 0;
 		//instance specific funcitionality
 		buildSolvers_indiv();
@@ -168,9 +171,9 @@ public abstract class BaseProbExpMgr {
 		return res;
 	}//buildRandVarFuncOpts
 	
-	public myRandVarFunc buildRandVarType (int _pdfType,  int _quadSlvrIdx, myProbSummary_Dbls _summaryObj) {
+	public baseRandVarFunc buildRandVarType (int _pdfType,  int _quadSlvrIdx, myProbSummary_Dbls _summaryObj) {
 		//System.out.println("buildRandVarType : " + _pdfType);
-		myRandVarFunc rvf;
+		baseRandVarFunc rvf;
 		switch (_pdfType) {		
 		   	case normRandVarIDX			: { rvf = new myNormalFunc(quadSlvrs[_quadSlvrIdx]); 		   									break;}
 	    	case gaussRandVarIDX		: { rvf = new myGaussianFunc(quadSlvrs[_quadSlvrIdx], _summaryObj);	    					break;}
@@ -191,17 +194,17 @@ public abstract class BaseProbExpMgr {
 		switch (_randGenType) {
 			case boundedRandGen : {
 				//need to build a random variable generator function
-				myRandVarFunc func = buildRandVarType(_pdfType, _quadSlvrIdx, _summaryObj);				
+				baseRandVarFunc func = buildRandVarType(_pdfType, _quadSlvrIdx, _summaryObj);				
 				return new myBoundedRandGen(func, randGenAlgNames[_randGenType]);}
 			case ziggRandGen : {//ziggurat alg solver - will use zigg algorithm to generate a gaussian of passed momments using a uniform source of RVs
 				//need to build a random variable generator function
-				myRandVarFunc func = buildRandVarType(_pdfType, _quadSlvrIdx, _summaryObj);				
+				baseRandVarFunc func = buildRandVarType(_pdfType, _quadSlvrIdx, _summaryObj);				
 				//_numZigRects must be pwr of 2 - is forced to be if is not.  Should be 256
 				return new myZigRandGen(func, _numZigRects, randGenAlgNames[_randGenType]);}
 			
 			case fleishRandGen_UniVar : {
 				//specify fleishman rand function with either moments or data - if only moments given, then need to provide hull as well
-				myRandVarFunc func = buildRandVarType(_pdfType, _quadSlvrIdx, _summaryObj);		
+				baseRandVarFunc func = buildRandVarType(_pdfType, _quadSlvrIdx, _summaryObj);		
 				return new myFleishUniVarRandGen(func,  randGenAlgNames[_randGenType]);	}
 
 			//these are just transformations and are not described by an underlying pdf
@@ -293,7 +296,7 @@ public abstract class BaseProbExpMgr {
 	@SuppressWarnings("unused")
 	public void testRCalc() {
 		msgObj.dispMessage("BaseProbExpMgr","testRCalc","Start test of r var calc",MsgCodes.info1, true);
-		myRandVarFunc randVar = new myNormalFunc(quadSlvrs[GL_QuadSlvrIDX]);
+		baseRandVarFunc randVar = new myNormalFunc(quadSlvrs[GL_QuadSlvrIDX]);
 		myProbSummary_Dbls analysis = new myProbSummary_Dbls( new double[] {2.0, 3.0}, 2);
 		//myRandVarFunc randGaussVar = new myGaussianFunc(this, quadSlvrs[GL_QuadSlvrIDX], analysis);
 		randVar.dbgTestCalcRVal(256);

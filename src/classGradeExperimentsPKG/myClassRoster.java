@@ -4,8 +4,8 @@ import java.util.HashMap;
 
 import base_JavaProjTools_IRender.base_Render_Interface.IRenderInterface;
 import base_ProbTools.BaseProbExpMgr;
-import base_ProbTools.mySampleSet;
-import base_ProbTools.randGenFunc.gens.myRandGen;
+import base_ProbTools.randGenFunc.gens.base.myRandGen;
+import base_ProbTools.samples.mySampleSet;
 import base_ProbTools.summary.myProbSummary_Dbls;
 import base_Utils_Objects.io.messaging.MsgCodes;
 

@@ -4,7 +4,7 @@ import java.util.*;
 
 import base_ProbTools.*;
 import base_ProbTools.randGenFunc.gens.myFleishUniVarRandGen;
-import base_ProbTools.randGenFunc.gens.myRandGen;
+import base_ProbTools.randGenFunc.gens.base.myRandGen;
 import base_ProbTools.summary.myProbSummary_Dbls;
 import base_UI_Objects.windowUI.base.myDispWindow;
 import base_Utils_Objects.io.messaging.MsgCodes;

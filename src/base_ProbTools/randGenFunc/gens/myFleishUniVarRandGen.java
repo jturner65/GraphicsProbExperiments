@@ -2,7 +2,8 @@ package base_ProbTools.randGenFunc.gens;
 
 import base_ProbTools.randGenFunc.funcs.myFleishFunc_Uni;
 import base_ProbTools.randGenFunc.funcs.myNormalFunc;
-import base_ProbTools.randGenFunc.funcs.myRandVarFunc;
+import base_ProbTools.randGenFunc.funcs.base.baseRandVarFunc;
+import base_ProbTools.randGenFunc.gens.base.myRandGen;
 
 /**
  * class that will model a distribution using first 4 moments via a polynomial transformation
@@ -15,7 +16,7 @@ public class myFleishUniVarRandGen extends myRandGen{
 	
 	
 	//min and max of synthesized
-	public myFleishUniVarRandGen(myRandVarFunc _func, String _name) {
+	public myFleishUniVarRandGen(baseRandVarFunc _func, String _name) {
 		super(_func, _name);
 		//need to build a source of normal random vars
 		zigNormGen = new myZigRandGen(new myNormalFunc(func.getQuadSlvr()), 256, "Ziggurat Algorithm");		

@@ -1,4 +1,4 @@
-package base_ProbTools.randVisTools;
+package base_ProbTools.randVisTools.base;
 
 import base_JavaProjTools_IRender.base_Render_Interface.IRenderInterface;
 
@@ -9,9 +9,8 @@ import base_JavaProjTools_IRender.base_Render_Interface.IRenderInterface;
  * @author john
  *
  */
-public abstract class myVisMgr {
+public abstract class baseVisMgr {
 	//owning probability experiment
-	//public BaseProbExpMgr expMgr;
 	public final int ObjID;
 	private static int IDCnt = 0;
 	//title string to display over visualiztion
@@ -36,7 +35,7 @@ public abstract class myVisMgr {
 			clr_grey = new int[] {100,100,100,255};	
 	
 	
-	public myVisMgr(float[] _startRect, String _name) {
+	public baseVisMgr(float[] _startRect, String _name) {
 		ObjID = IDCnt++; startRect = _startRect;name=_name;
 		initFlags();
 		setDispWidth(startRect[2]);

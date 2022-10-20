@@ -7,7 +7,8 @@ import org.jblas.DoubleMatrix;
 import org.jblas.Solve;
 
 import base_ProbTools.BaseProbExpMgr;
-import base_ProbTools.myIntegrator;
+import base_ProbTools.quadrature.base.baseQuadrature;
+import base_ProbTools.randGenFunc.funcs.base.baseRandVarFunc;
 import base_ProbTools.summary.myProbSummary_Dbls;
 import base_Utils_Objects.io.messaging.MsgCodes;
 
@@ -15,7 +16,7 @@ import base_Utils_Objects.io.messaging.MsgCodes;
  * this function will build a pdf/cdf model based on working backward from samples - building cdf from sample data, fitting sin-based CDF function to data, then differentiating to find pdf
  * @author john
  */
-public class myCosFuncFromCDF extends myRandVarFunc{
+public class myCosFuncFromCDF extends baseRandVarFunc{
 	//TODO Doesn't work
 	//variables that describe the underlying sin PDF : A*(sin(B*x + C) + x)
 	private DoubleMatrix Theta;
@@ -33,7 +34,7 @@ public class myCosFuncFromCDF extends myRandVarFunc{
 		cdf1pSine = 0,
 		cdfXpSine = 1;
 	private static final int numSlvrFuncs = 2;
-	public myCosFuncFromCDF(myIntegrator _quadSlvr, myProbSummary_Dbls _summaryObj) {
+	public myCosFuncFromCDF(baseQuadrature _quadSlvr, myProbSummary_Dbls _summaryObj) {
 		super(_quadSlvr, _summaryObj, "Cosine PDF");
 		buildSlvrFuncs();		
 	}//ctor

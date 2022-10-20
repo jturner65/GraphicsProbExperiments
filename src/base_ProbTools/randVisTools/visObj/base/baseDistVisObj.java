@@ -1,10 +1,15 @@
-package base_ProbTools.randVisTools;
+package base_ProbTools.randVisTools.visObj.base;
 
 import base_JavaProjTools_IRender.base_Render_Interface.IRenderInterface;
+import base_ProbTools.randVisTools.myDistFuncHistVisMgr;
 
-//manage the visualization of a single distribution evaluation, either a histogram or a functional evaluation
-public abstract class myBaseDistVisObj{
-	protected myDistFuncHistVis owner;
+/**
+ * manage the visualization of a single distribution evaluation, either a histogram or a functional evaluation
+ * @author 7strb
+ *
+ */
+public abstract class baseDistVisObj{
+	protected myDistFuncHistVisMgr owner;
 	//location of axis ticks
 	private float[][] axisVals;
 	//axis tick value to display
@@ -30,10 +35,10 @@ public abstract class myBaseDistVisObj{
 	protected int[] fillClr, strkClr;
 
 	
-	public myBaseDistVisObj(myDistFuncHistVis _owner, int[][] _clrs) {
+	public baseDistVisObj(myDistFuncHistVisMgr _owner, int[][] _clrs) {
 		owner=_owner;
 		clearEvalVals();
-		setFrameDims(owner.frameDims);
+		setFrameDims(owner.getFrameDims());
 		fillClr = _clrs[0];
 		strkClr = _clrs[1];
 	}//ctor
@@ -120,17 +125,17 @@ public abstract class myBaseDistVisObj{
 	private void _drawZeroLines(IRenderInterface pa) {
 		pa.pushMatState();
 		pa.setStrokeWt(2.0f);
-		pa.setFill(myVisMgr.clr_cyan,myVisMgr.clr_cyan[3]);
+		pa.setColorValFill(IRenderInterface.gui_Cyan,255);
 		if (drawZeroAxes[0]) {//draw x==0 axis
 			float yVal = zeroAxisVals[0];
 			//draw line @ y Val
-			pa.setStroke(myVisMgr.clr_white,myVisMgr.clr_white[3]);
+			pa.setColorValStroke(IRenderInterface.gui_White,255);
 			pa.drawLine(-tic, yVal, 0, tic, yVal, 0);
 			//draw line to other side
-			pa.setStroke(myVisMgr.clr_cyan,myVisMgr.clr_cyan[3]);
+			pa.setColorValStroke(IRenderInterface.gui_Cyan,255);
 			pa.drawLine(-tic, yVal, 0, frameDims[2], yVal, 0);
 			//draw text for display
-			pa.setStroke(myVisMgr.clr_white,myVisMgr.clr_white[3]);
+			pa.setColorValStroke(IRenderInterface.gui_White,255);
 			pa.pushMatState();
 			pa.translate(-tic-10, yVal+5.0f,0);
 			pa.scale(1.4f);
@@ -141,13 +146,13 @@ public abstract class myBaseDistVisObj{
 		if (drawZeroAxes[1]) {//draw y==0 axis
 			float xVal = zeroAxisVals[1];
 			//draw tick line @ x Val
-			pa.setStroke(myVisMgr.clr_white,myVisMgr.clr_white[3]);
+			pa.setColorValStroke(IRenderInterface.gui_White,255);
 			pa.drawLine(xVal, -tic, 0, xVal, tic, 0);	
 			//draw line to other side
-			pa.setStroke(myVisMgr.clr_cyan,myVisMgr.clr_cyan[3]);
+			pa.setColorValStroke(IRenderInterface.gui_Cyan,255);
 			pa.drawLine(xVal, -frameDims[3], 0, xVal, tic, 0);	
 			//draw text for display
-			pa.setStroke(myVisMgr.clr_white,myVisMgr.clr_white[3]);
+			pa.setColorValStroke(IRenderInterface.gui_White,255);
 			pa.pushMatState();
 			pa.translate( xVal - 4.0f, tic+20.0f,0);
 			pa.scale(1.4f);
@@ -161,17 +166,17 @@ public abstract class myBaseDistVisObj{
 	//offset == 0 for axes on left, offset == frameDims[2] for offset on right
 	protected void drawAxes(IRenderInterface pa, float offset) {
 		pa.pushMatState();
-		pa.setFill(myVisMgr.clr_white,myVisMgr.clr_white[3]);
-		float yAxisTxtXOffset = offset -tic-myDistFuncHistVis.frmBnds[0]+10 ,
+		pa.setColorValFill(IRenderInterface.gui_White,255);
+		float yAxisTxtXOffset = offset -tic-myDistFuncHistVisMgr.frmBnds[0]+10 ,
 				yAxisTxtYOffset = (offset == 0.0)? 5.0f : -4.0f;
 		for (int idx = 0; idx <axisVals.length;++idx) {
 			float xVal = axisVals[idx][0];
 			String dispX = String.format(fmtXStr, axisDispVals[idx][0]); 
 			//draw tick line @ x Val
-			pa.setStroke(myVisMgr.clr_white,myVisMgr.clr_white[3]);
+			pa.setColorValStroke(IRenderInterface.gui_White,255);
 			pa.drawLine(xVal, -tic, 0, xVal, tic, 0);	
 			//draw line to other side
-			pa.setStroke(myVisMgr.clr_clearWite,myVisMgr.clr_clearWite[3]);
+			pa.setColorValStroke(IRenderInterface.gui_White,50);
 			pa.drawLine(xVal, -frameDims[3], 0, xVal, tic, 0);	
 			//draw text for display
 			pa.showText(dispX, xVal - 20.0f, tic+10.0f);
@@ -179,10 +184,10 @@ public abstract class myBaseDistVisObj{
 				float yVal = axisVals[idx][1];
 				String dispY = String.format(fmtYStr, axisDispVals[idx][1]);
 				//draw line @ y Val
-				pa.setStroke(myVisMgr.clr_white,myVisMgr.clr_white[3]);
+				pa.setColorValStroke(IRenderInterface.gui_White,255);
 				pa.drawLine(-tic + offset, yVal, 0, tic + offset, yVal, 0);
 				//draw line to other side
-				pa.setStroke(myVisMgr.clr_clearWite,myVisMgr.clr_clearWite[3]);
+				pa.setColorValStroke(IRenderInterface.gui_White,50);
 				pa.drawLine(-tic, yVal, 0, frameDims[2], yVal, 0);
 				//draw text for display
 				pa.showText(dispY, yAxisTxtXOffset, yVal+yAxisTxtYOffset);
@@ -200,43 +205,5 @@ public abstract class myBaseDistVisObj{
 
 	protected abstract void _drawCurve(IRenderInterface pa, float offset);
 	
-}//myBaseDistVisObj
+}//baseDistVisObj
 
-
-
-//visualize a functional object evaluation - draws a line
-class myFuncVisObj extends myBaseDistVisObj{
-	public myFuncVisObj(myDistFuncHistVis _owner, int[][] _clrs) {
-		super(_owner, _clrs);
-	}
-	
-	@Override
-	protected void _drawCurve(IRenderInterface pa, float offset) {
-		pa.drawEllipse2D(dispVals[0][0], dispVals[0][1], 5.0f,5.0f);
-		for (int idx = 1; idx <dispVals.length;++idx) {	
-			//draw point 			
-			pa.drawEllipse2D(dispVals[idx][0], dispVals[idx][1], 5.0f,5.0f);
-			//draw line between points
-			pa.drawLine(dispVals[idx-1][0], dispVals[idx-1][1], 0, dispVals[idx][0], dispVals[idx][1], 0);
-		}		
-		drawAxes(pa, 0);
-	}//_drawCurve
-
-}//myFuncVisObj
-
-//histogram evaluation of a pdf - draws buckets
-class myHistVisObj extends myBaseDistVisObj{
-	
-	public myHistVisObj(myDistFuncHistVis _owner, int[][] _clrs) {
-		super(_owner, _clrs);
-	}
-	
-	protected void _drawCurve(IRenderInterface pa, float offset) {
-		for (int idx = 0; idx <dispVals.length-1;++idx) {	
-			pa.drawRect(dispVals[idx][0], 0, (dispVals[idx+1][0]-dispVals[idx][0]), dispVals[idx][1]);			
-		}		
-		drawAxes(pa, offset);
-	}//_drawCurve
-
-	
-}//myHistVisObj

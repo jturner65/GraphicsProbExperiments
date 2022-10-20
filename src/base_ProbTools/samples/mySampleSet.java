@@ -1,10 +1,10 @@
-package base_ProbTools;
+package base_ProbTools.samples;
 
 import java.util.*;
 
 import base_JavaProjTools_IRender.base_Render_Interface.IRenderInterface;
 import base_ProbTools.randGenFunc.gens.myBoundedRandGen;
-import base_ProbTools.randGenFunc.gens.myRandGen;
+import base_ProbTools.randGenFunc.gens.base.myRandGen;
 import base_Utils_Objects.io.messaging.MessageObject;
 import base_Utils_Objects.io.messaging.MsgCodes;
 

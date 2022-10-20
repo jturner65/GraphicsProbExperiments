@@ -8,7 +8,7 @@ import base_JavaProjTools_IRender.base_Render_Interface.IRenderInterface;
 import base_Math_Objects.vectorObjs.doubles.myPoint;
 import base_Math_Objects.vectorObjs.doubles.myVector;
 import base_ProbTools.BaseProbExpMgr;
-import base_ProbTools.randGenFunc.funcs.myRandVarFunc;
+import base_ProbTools.randGenFunc.funcs.base.baseRandVarFunc;
 import base_UI_Objects.GUI_AppManager;
 import base_UI_Objects.windowUI.base.myDispWindow;
 import base_UI_Objects.windowUI.drawnObjs.myDrawnSmplTraj;
@@ -59,10 +59,10 @@ public class Grade2DWindow extends myDispWindow {
 	//ui button names -empty will do nothing, otherwise add custom labels for debug and custom functionality names
 	//ddl 
 	public static final String[] 
-			gIDX_FuncTypeEvalList = myRandVarFunc.queryFuncTypes,
+			gIDX_FuncTypeEvalList = baseRandVarFunc.queryFuncTypes,
 			gIDX_ExpDistTypeList = ClassGradeExperiment.expType;	
 	
-	private static final String[] noCosCompExpTypes = new String[] {"Linear", "Uniform Spaced"};
+	//private static final String[] noCosCompExpTypes = new String[] {"Linear", "Uniform Spaced"};
 
 	//////////////
 	// local/ui interactable boolean buttons

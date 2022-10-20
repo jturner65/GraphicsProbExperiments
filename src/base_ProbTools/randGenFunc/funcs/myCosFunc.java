@@ -1,13 +1,14 @@
 package base_ProbTools.randGenFunc.funcs;
 
 import base_ProbTools.BaseProbExpMgr;
-import base_ProbTools.myIntegrator;
+import base_ProbTools.quadrature.base.baseQuadrature;
+import base_ProbTools.randGenFunc.funcs.base.baseRandVarFunc;
 import base_ProbTools.summary.myProbSummary_Dbls;
 import base_Utils_Objects.io.messaging.MsgCodes;
 
 //class to model a pdf via a cosine
 //mean is phase, std is function of frequency
-public class myCosFunc extends myRandVarFunc{
+public class myCosFunc extends baseRandVarFunc{
 	//constants to modify cosine so that we represent desired moment behavior
 	//area under pdf from mean-> x*std corresponding to x val @ 0,1,2,3 - used to determine appropriate frequency values 
 	private static final double[] stdAreaAra = new double[] {0.0,0.3413447460685429485852 ,0.4772498680518207927997 , 0.4986501019683699054734};
@@ -23,7 +24,7 @@ public class myCosFunc extends myRandVarFunc{
 	//amplitude to maintain area == 1 under 1 period of cosine is actually freq/pi but we are using .5 + .5*cos, so make calc easier to use freq/2pi * ( 1 + cos)
 	private double halfAmpl;
 
-	public myCosFunc(myIntegrator _quadSlvr, myProbSummary_Dbls _summaryObj) {
+	public myCosFunc(baseQuadrature _quadSlvr, myProbSummary_Dbls _summaryObj) {
 		super(_quadSlvr, _summaryObj, "Cosine PDF");
 	}
 	

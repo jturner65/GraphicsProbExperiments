@@ -1,11 +1,12 @@
-package base_ProbTools.randGenFunc.gens;
+package base_ProbTools.randGenFunc.gens.base;
 
 import java.util.concurrent.ThreadLocalRandom;
 
 import base_JavaProjTools_IRender.base_Render_Interface.IRenderInterface;
 import base_ProbTools.randGenFunc.RandGenDesc;
-import base_ProbTools.randGenFunc.funcs.myRandVarFunc;
-import base_ProbTools.randVisTools.myDistFuncHistVis;
+import base_ProbTools.randGenFunc.funcs.base.baseRandVarFunc;
+import base_ProbTools.randGenFunc.gens.myBoundedRandGen;
+import base_ProbTools.randVisTools.myDistFuncHistVisMgr;
 import base_ProbTools.summary.myProbSummary_Dbls;
 
 /**
@@ -23,9 +24,9 @@ public abstract class myRandGen implements Comparable<myRandGen> {
 	//descriptor of this random generator
 	public RandGenDesc desc;		
 	//function this rand gen uses
-	protected final myRandVarFunc func;	
+	protected final baseRandVarFunc func;	
 	//visualization tool for this random generator
-	protected myDistFuncHistVis distVisObj; 
+	protected myDistFuncHistVisMgr distVisObj; 
 		
 	//state flags - bits in array holding relevant info about this random variable function
 	private int[] stFlags;						
@@ -34,7 +35,7 @@ public abstract class myRandGen implements Comparable<myRandGen> {
 			funcSetIDX					= 1;		//whether or not this random variable will be used in a ziggurat solver		
 	public static final int numFlags 	= 2;	
    
-	public myRandGen(myRandVarFunc _func, String _name) {
+	public myRandGen(baseRandVarFunc _func, String _name) {
 		ObjID = IDCnt++;  
 		name=_name;
 		initFlags();
@@ -69,7 +70,7 @@ public abstract class myRandGen implements Comparable<myRandGen> {
 	//called whenever summary object is set/reset
 	public abstract void _setFuncSummaryIndiv();	
 	
-	public void buildDistVisObj(float[] _startRect) {		distVisObj = new myDistFuncHistVis(_startRect, this);	}
+	public void buildDistVisObj(float[] _startRect) {		distVisObj = new myDistFuncHistVisMgr(_startRect, this);	}
     //thread-safe queries for uniform values
     protected long getNextLong() {return ThreadLocalRandom.current().nextLong();}  
     protected int getNextInt() {return ThreadLocalRandom.current().nextInt();  }
@@ -84,7 +85,7 @@ public abstract class myRandGen implements Comparable<myRandGen> {
     }
 	
     public myProbSummary_Dbls getSummary() {return summary;}
-    public myRandVarFunc getFunc() {return func;}
+    public baseRandVarFunc getFunc() {return func;}
 	public double getMean() {return summary.mean();}
 	public double getStd() {return summary.std();}
 	public double getVar() {return summary.var();}
@@ -117,13 +118,13 @@ public abstract class myRandGen implements Comparable<myRandGen> {
 		//first build histogram
 		calcHistValsForDisp(numVals, numBuckets);
 		//build and set pdf function values
-		func.buildFuncPlotVals(numVals, low, high, myRandVarFunc.queryPDFIDX, distVisObj);
+		func.buildFuncPlotVals(numVals, low, high, baseRandVarFunc.queryPDFIDX, distVisObj);
 		//now use passed cosGen but populate it into this object's distVisObj
-		cosGen.func.buildFuncPlotVals(numVals, low, high, myRandVarFunc.queryPDFIDX, distVisObj);
+		cosGen.func.buildFuncPlotVals(numVals, low, high, baseRandVarFunc.queryPDFIDX, distVisObj);
 		
 		String histName = funcName+" PDF hist",
-				gaussName = func.getDispFuncName(myRandVarFunc.queryPDFIDX),
-				cosName = cosGen.func.getDispFuncName(myRandVarFunc.queryPDFIDX);
+				gaussName = func.getDispFuncName(baseRandVarFunc.queryPDFIDX),
+				cosName = cosGen.func.getDispFuncName(baseRandVarFunc.queryPDFIDX);
 		
 		//get min and max histogram values and get min/max/diff y values for larger of two dists, either cosine or gauss
 		double[][] minMaxDiffHist = distVisObj.getSpecificMinMaxDiff(histName),//use this for x values		

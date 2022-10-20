@@ -1,13 +1,14 @@
 package base_ProbTools.randGenFunc.gens;
 
-import base_ProbTools.randGenFunc.funcs.myRandVarFunc;
+import base_ProbTools.randGenFunc.funcs.base.baseRandVarFunc;
+import base_ProbTools.randGenFunc.gens.base.myRandGen;
 
 /**
  * rand gen class for bounded pdfs (like cosine) - perhaps use variant of zigguarat instead of iterative convergence method to find inv-CDF?
  */
 public class myBoundedRandGen extends myRandGen{
 
-	public myBoundedRandGen(myRandVarFunc _func, String _name) {
+	public myBoundedRandGen(baseRandVarFunc _func, String _name) {
 		super(_func, _name);
 	}
 

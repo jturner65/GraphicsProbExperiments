@@ -1,4 +1,4 @@
-package base_ProbTools.randGenFunc.funcs;
+package base_ProbTools.randGenFunc.funcs.base;
 
 import java.util.TreeMap;
 import java.util.function.Function;
@@ -7,9 +7,9 @@ import base_Utils_Objects.io.messaging.MsgCodes;
 
 import org.jblas.*;
 
-import base_ProbTools.myIntegrator;
+import base_ProbTools.quadrature.base.baseQuadrature;
 import base_ProbTools.randGenFunc.zigConstVals;
-import base_ProbTools.randVisTools.myDistFuncHistVis;
+import base_ProbTools.randVisTools.myDistFuncHistVisMgr;
 import base_ProbTools.summary.myProbSummary_Dbls;
 
 /**
@@ -19,13 +19,12 @@ import base_ProbTools.summary.myProbSummary_Dbls;
  * @author john
  *
  */
-public abstract class myRandVarFunc {
+public abstract class baseRandVarFunc {
 	public static MessageObject msgObj;
-	//public static BaseProbExpMgr expMgr;
 	//descriptive name of function
 	public final String name;	
 	//quadrature solver for this random variable/function
-	protected myIntegrator quadSlvr;	
+	protected baseQuadrature quadSlvr;	
 	//object to hold descriptive values and statistics for this distribution, and any source data/samples, if they exist
 	protected myProbSummary_Dbls summary;	
 	//convergence limit for iterative calcs
@@ -33,11 +32,13 @@ public abstract class myRandVarFunc {
 	//state flags - bits in array holding relevant info about this random variable function
 	private int[] stFlags;						
 	public static final int
+			//whether to display debug info
+			debugIDX					= 0,
 			//whether to use zig alg for solving	
-			useZigAlgIDX				= 0,		//whether or not this random variable will be used in a ziggurat solver		
+			useZigAlgIDX				= 1,		//whether or not this random variable will be used in a ziggurat solver		
 			//quad solver set
-			quadSlvrSetIDX				= 1;		//whether quadrature solver has been set or not
-	public static final int numFlags 	= 2;	
+			quadSlvrSetIDX				= 2;		//whether quadrature solver has been set or not
+	public static final int numFlags 	= 3;	
 
 	//functional representation of pdfs and inv pdfs, and normalized @ 0 for ziggurat calc
 	protected Function<Double, Double>[] funcs;	
@@ -84,7 +85,7 @@ public abstract class myRandVarFunc {
 	
 	public static final String[] queryFuncTypes = new String[] {"Function Eval", "PDF Eval", "CDF Eval", "Inv CDF Eval","Integral Eval"};	
 	
-	public myRandVarFunc(myIntegrator _quadSlvr, myProbSummary_Dbls _summaryObj, String _name) {
+	public baseRandVarFunc(baseQuadrature _quadSlvr, myProbSummary_Dbls _summaryObj, String _name) {
 		if(null==msgObj) {msgObj = MessageObject.buildMe();}
 		
 		name=_name;
@@ -112,11 +113,11 @@ public abstract class myRandVarFunc {
 	public abstract int getRVFType();
 
 	//set/get quadrature solver to be used to solve any integration for this RV func
-	public void setQuadSolver(myIntegrator _quadSlvr) {
+	public void setQuadSolver(baseQuadrature _quadSlvr) {
 		quadSlvr = _quadSlvr;
 		setFlag(quadSlvrSetIDX, quadSlvr!=null);
 	}//setSolver	
-	public myIntegrator getQuadSolver() {return quadSlvr;}
+	public baseQuadrature getQuadSolver() {return quadSlvr;}
 	public String getQuadSolverName() {
 		if (getFlag(quadSlvrSetIDX)) { return quadSlvr.name;}
 		return "None Set";
@@ -124,7 +125,7 @@ public abstract class myRandVarFunc {
 	//momments
 	
 	public myProbSummary_Dbls getSummary() {return summary;}
-	public myIntegrator getQuadSlvr() {return quadSlvr;}
+	public baseQuadrature getQuadSlvr() {return quadSlvr;}
 	public double getMean() {return summary.mean();}
 	public double getStd() {return summary.std();}
 	public double getVar() {return summary.var();}
@@ -139,7 +140,7 @@ public abstract class myRandVarFunc {
 		case queryInvCDFIDX: {			return CDF_inv(x1);}
 		case queryIntegIDX : {			return integral_f(x1,x2);}		
 		default : {
-			msgObj.dispMessage("myRandVarFunc", "getFuncVal", "Attempting to evaluate unknown func type : " + funcType +" on value(s) : [" + x1 + ", "+ x2 + "] Aborting.",MsgCodes.warning1 , true);
+			msgObj.dispMessage("baseRandVarFunc", "getFuncVal", "Attempting to evaluate unknown func type : " + funcType +" on value(s) : [" + x1 + ", "+ x2 + "] Aborting.",MsgCodes.warning1 , true);
 			return x1;}
 		}
 	}//getFuncVal
@@ -152,7 +153,7 @@ public abstract class myRandVarFunc {
 		case queryInvCDFIDX: {			return name+ " Inverse CDF";}
 		case queryIntegIDX : {			return name+ " Integral";}		
 		default : {
-			msgObj.dispMessage("myRandVarFunc", "getFuncVal", "Attempting to name unknown func type : " + funcType +". Aborting.",MsgCodes.warning1 , true);
+			msgObj.dispMessage("baseRandVarFunc", "getFuncVal", "Attempting to name unknown func type : " + funcType +". Aborting.",MsgCodes.warning1 , true);
 			return name+ " ERROR";}
 		}		
 	}//
@@ -161,7 +162,7 @@ public abstract class myRandVarFunc {
 	public abstract double[] getPlotValBounds(int funcType);
 	
 	//for plotting results, derive all values for plot.  pass pre-built array references from rand gen
-	public void buildFuncPlotVals(int numVals, double low, double high,  int funcType, myDistFuncHistVis distVisObj ) {
+	public void buildFuncPlotVals(int numVals, double low, double high,  int funcType, myDistFuncHistVisMgr distVisObj ) {
 		if(numVals < 2) {		numVals = 2;		}//minimum 2 values
 //		if (low == high) {//ignore if same value
 //			System.out.println("myRandGen : "+name+" :: calcFValsForDisp : Low == High : " +low +" : "+ high +" : Ignored, no values set/changed.");
@@ -283,12 +284,12 @@ public abstract class myRandVarFunc {
 	//if this rand var is going to be accessed via the ziggurat algorithm, this needs to be called w/# of rectangles to use
 	//this must be called after an Quad solver has been set, since finding R and Vol for passed # of ziggurats requires such a solver
 	public void setZigVals(int _nRect) {
-		if (!getFlag(quadSlvrSetIDX)) {	msgObj.dispMessage("myRandVarFunc", "setZigVals", "No quadrature solver has been set, so cannot set ziggurat values for "+_nRect+" rectangles (incl tail).",MsgCodes.warning1,true); return;}
+		if (!getFlag(quadSlvrSetIDX)) {	msgObj.dispMessage("baseRandVarFunc", "setZigVals", "No quadrature solver has been set, so cannot set ziggurat values for "+_nRect+" rectangles (incl tail).",MsgCodes.warning1,true); return;}
 		double checkRect = Math.log(_nRect)/ln2;
 		int nRectCalc = (int)Math.pow(2.0, checkRect);//int drops all decimal values
 		if (_nRect != nRectCalc) {	
 			int numRectToUse = (int)Math.pow(2.0, (int)(checkRect) + 1);
-			msgObj.dispMessage("myRandVarFunc", "setZigVals", "Number of ziggurat rectangles requested " + _nRect + " : " + nRectCalc + " must be an integral power of 2, so forcing requested " + _nRect + " to be " + numRectToUse,MsgCodes.warning1,true);
+			msgObj.dispMessage("baseRandVarFunc", "setZigVals", "Number of ziggurat rectangles requested " + _nRect + " : " + nRectCalc + " must be an integral power of 2, so forcing requested " + _nRect + " to be " + numRectToUse,MsgCodes.warning1,true);
 			numZigRects = numRectToUse;
 		}		
 		zigVals = new zigConstVals(this,numZigRects);
@@ -324,11 +325,18 @@ public abstract class myRandVarFunc {
 		int flIDX = idx/32, mask = 1<<(idx%32);
 		stFlags[flIDX] = (val ?  stFlags[flIDX] | mask : stFlags[flIDX] & ~mask);
 		switch (idx) {//special actions for each flag		
-			case useZigAlgIDX 	: 	{break;}
-			case quadSlvrSetIDX	: 	{break;}
+			case debugIDX		: {break;}
+			case useZigAlgIDX 	: {break;}
+			case quadSlvrSetIDX	: {break;}
 		}
 	}//setFlag		
 	public boolean getFlag(int idx){int bitLoc = 1<<(idx%32);return (stFlags[idx/32] & bitLoc) == bitLoc;}	
+	
+	/**
+	 * Whether or not to enter debug mode for this random variable
+	 * @param _dbg
+	 */
+	public void setDebugMode(boolean _dbg) {setFlag(debugIDX, _dbg);}
 	
 	//describes data
 	public String getFuncDataStr(){
@@ -339,15 +347,19 @@ public abstract class myRandVarFunc {
 	
 	public String getShortDesc() {
 		String res = "Name : " +name + "|"+summary.getMinNumMmntsDesc();
-		return res;
+		return res; 
 	}
-	//get minimal string description, useful for key for map
+	
+	/**
+	 * get minimal string description, useful for key for map
+	 * @return
+	 */
 	public String getMinDescString() {
 		String res = name+summary.getMinNumMmnts();
 		return res;
 	}
 	
-}//class myRandVariable
+}//class baseRandVarFunc
 
 
 

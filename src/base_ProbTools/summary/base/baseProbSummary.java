@@ -62,8 +62,7 @@ public abstract class baseProbSummary {
 	 * @return
 	 */
 	protected final float scaleVal(float val, float min, float max) {
-		if(Math.abs(max-min) < MyMathUtils.EPS_F) {return 0.0f;}
-		
+		if(Math.abs(max-min) < MyMathUtils.EPS_F) {return 0.0f;}		
 		return (val-min)/(max-min);		
 	}
 	
@@ -107,4 +106,4 @@ public abstract class baseProbSummary {
 	public boolean getFlag(int idx){int bitLoc = 1<<(idx%32);return (stFlags[idx/32] & bitLoc) == bitLoc;}		
 
 
-}
+}//abstract class baseProbSummary 

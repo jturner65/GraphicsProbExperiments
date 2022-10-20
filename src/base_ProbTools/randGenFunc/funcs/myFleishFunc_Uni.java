@@ -4,7 +4,8 @@ import org.jblas.DoubleMatrix;
 import org.jblas.Solve;
 
 import base_ProbTools.BaseProbExpMgr;
-import base_ProbTools.myIntegrator;
+import base_ProbTools.quadrature.base.baseQuadrature;
+import base_ProbTools.randGenFunc.funcs.base.baseRandVarFunc;
 import base_ProbTools.randGenFunc.gens.myZigRandGen;
 import base_ProbTools.summary.myProbSummary_Dbls;
 import base_Utils_Objects.io.messaging.MsgCodes;
@@ -16,7 +17,7 @@ import base_Utils_Objects.io.messaging.MsgCodes;
  * @author john
  *
  */
-public class myFleishFunc_Uni extends myRandVarFunc{
+public class myFleishFunc_Uni extends baseRandVarFunc{
 	//polynomial coefficients
 	private double[] coeffs;
 	//quantities related to underlying cubic function
@@ -29,7 +30,7 @@ public class myFleishFunc_Uni extends myRandVarFunc{
 	//roots of cubic - will always have at least 1 root (y==0)
 	private double[] roots;
 	//whether this is ready to use or not - all values have been set and calculated
-	private boolean ready;
+	//private boolean ready;
 	//maximum iterations
 	private final int maxIter = 10000;
 	//alpha
@@ -39,7 +40,7 @@ public class myFleishFunc_Uni extends myRandVarFunc{
 	private myZigRandGen zigNormGen;
 	
 	
-	public myFleishFunc_Uni(myIntegrator _quadSlvr, myProbSummary_Dbls _summaryObj, String _name) {
+	public myFleishFunc_Uni(baseQuadrature _quadSlvr, myProbSummary_Dbls _summaryObj, String _name) {
 		super(_quadSlvr,_summaryObj, _name);		
 	}//ctor
 
@@ -48,14 +49,17 @@ public class myFleishFunc_Uni extends myRandVarFunc{
 		//build internal normal used to generate input to fleishman polynomial
 		//normFunc = new myNormalFunc(expMgr, quadSlvr);
 		if(zigNormGen == null) {	zigNormGen = new myZigRandGen(new myNormalFunc(quadSlvr), 256, "Ziggurat Algorithm");}	//don't rebuild if present
-		ready = false;
+		//ready = false;
 		lrnRateAra = new double[] {.1,.1,.1};
 		coeffs = calcCoeffs();
-		minMax2ndDerivs = calcQuadraticDerivRoots();
+		msgObj.dispInfoMessage("myFleishFunc_Uni", "rebuildFuncs_Indiv", "Coeffs calculated : ["+_getCoeffsStr() +"]");			
+		//calculate mins and maxes of derivative of fl function
+		minMax2ndDerivs = calcQuadDerivRoots();
 		roots = calcAllRoots();		
-		msgObj.dispMessage("myFleishFunc_Uni", "calcCoeffs", "Coeffs calculated :  ["+getCoeffsStr() +"]",MsgCodes.info1,true);		
-		
-		//set summary builds functions - need to specify required elements before it is called
+		//set summary builds functions - need to specify required elements before it is called 
+		if(getFlag(debugIDX)) {
+			msgObj.dispInfoMessage("myFleishFunc_Uni", "rebuildFuncs_Indiv", "Roots calculated : ["+_getRootsStr() +"]");		
+		}
 	}//rebuildFunc
 	
 	@Override
@@ -93,15 +97,23 @@ public class myFleishFunc_Uni extends myRandVarFunc{
         //solve with newton-raphson
         double[] tmpC = newtonMethod(c1, c2, c3, skew, exKurt);
 		coeffs = new double[] {-tmpC[1], tmpC[0],tmpC[1],tmpC[2]};
-		msgObj.dispMessage("myFleishFunc_Uni", "calcCoeffs","Finished calc coefficients.",MsgCodes.info1,true);
+		msgObj.dispMessage("myFleishFunc_Uni", "calcCoeffs","Finished calc coefficients : [" +_getCoeffsStr() + "]",MsgCodes.info1,true);
 		return coeffs;
 	}//calcCoeffs
 	
-	//for when func has not yet been specified
+	/**
+	 * for when func has not yet been specified
+	 * @param x
+	 * @return
+	 */
 	private double calcBaseEQ(double x) {return coeffs[0] + x *(coeffs[1] + x*(coeffs[2] + x *coeffs[3]));}
 	
-	//find roots described by ax^2 + bx + c ==0; if 2 roots are returned idx 0 is lowest root, idx 1 is max root
-	private double[][] calcQuadraticDerivRoots() {	
+	/**
+	 * find roots of flfunc(a + bx + cx2 + dx3)'s derivative, described by dx^2 + cx + b ==0; 
+	 * if 2 roots are returned idx 0 is lowest root, idx 1 is max root
+	 * @return
+	 */
+	private double[][] calcQuadDerivRoots() {	
 		//double mu = summary.mean(), std = summary.std();
 		//double a = coeffs[0]*std + mu, b=coeffs[1]*std,c = coeffs[2]*std,d=coeffs[3]*std;
 		double a = coeffs[0], b=coeffs[1],c = coeffs[2],d=coeffs[3];
@@ -110,31 +122,31 @@ public class myFleishFunc_Uni extends myRandVarFunc{
 		
 		double discr = derivB*derivB - 4 * derivA * derivC, ta = (2*derivA), axisOfSym = -derivB/ta;
 		if(discr < 0) {//means imaginary roots and no mins/maxs in underlying cubic (?)
-			msgObj.dispMessage("myFleishFunc_Uni", "calcQuadRoots", "Cubic deriv (quadratic) of " +getCoeffsStr() + " has negative discriminant : " + String.format("%3.8f",discr) + " -> means no mins/maxs.",MsgCodes.info1,true);
+			msgObj.dispMessage("myFleishFunc_Uni", "calcQuadDerivRoots", "Cubic deriv (quadratic) of " +_getCoeffsStr() + " has negative discriminant : " + String.format("%3.8f",discr) + " -> means no mins/maxs.",MsgCodes.info1,true);
 			return new double[][] {{},{},{},{}};
 		} else if(discr == 0) {//double root
-			msgObj.dispMessage("myFleishFunc_Uni", "calcQuadRoots", "Cubic deriv (quadratic) of " +getCoeffsStr() + " has 0 discriminant  : " + String.format("%3.8f",discr) + " -> means double root.",MsgCodes.info1,true);
+			msgObj.dispMessage("myFleishFunc_Uni", "calcQuadDerivRoots", "Cubic deriv (quadratic) of " +_getCoeffsStr() + " has 0 discriminant  : " + String.format("%3.8f",discr) + " -> means double root.",MsgCodes.info1,true);
 			double tderivTest = ta*axisOfSym + b;
 			//double val = calcBaseEQ(axisOfSym)*std + mu;
 			double val = calcBaseEQ(axisOfSym);
 			return new double[][] {{axisOfSym},{tderivTest},{2*a},{val}};
 		}//else 2 real roots
-		msgObj.dispMessage("myFleishFunc_Uni", "calcQuadRoots", "Cubic deriv (quadratic) of " +getCoeffsStr() + " has positive discriminant  : " + String.format("%3.8f",discr) + " means 2 roots.",MsgCodes.info1,true);
+		msgObj.dispMessage("myFleishFunc_Uni", "calcQuadDerivRoots", "Cubic deriv (quadratic) of " +_getCoeffsStr() + " has positive discriminant  : " + String.format("%3.8f",discr) + " means 2 roots.",MsgCodes.info1,true);
 		double axisDist = Math.sqrt(discr)/ta;
 		double zp = axisOfSym + axisDist, zm = axisOfSym - axisDist;
 		//double valZP = calcBaseEQ(zp)*std + mu,valZM = calcBaseEQ(zm)*std + mu;
 		double valZP = calcBaseEQ(zp),valZM = calcBaseEQ(zm);
 		double tdZP = ta*zp + derivB, tdZM = ta*zm + derivB;
 		return ((zp<zm) ? new double[][] {{zp, zm},{tdZP, tdZM},{ta,ta},{valZP, valZM}} : new double[][] {{zm, zp},{tdZM, tdZP},{ta,ta},{valZM, valZP}} );			
-	}//calcQuadRoots
+	}//calcQuadDerivRoots
 	
-	//display the results of minMax2ndDerivs
-	//quantities related to underlying cubic function
-	//derivative quadratic coefficients : b + 2*cx + 3*dx^2 - find roots of deriv to determine min/maxs
-	//[0][0] : lower x min/max, [0][1] : higher valued min/max
-	//[1][-] : 2nd deriv test for idx0 and idx1 pts (>0 == min, <0 == max, ==0 may indicate inflection point
-	//[2][-] : 3rd deriv test for sign
-	//[3][-] : func eval for idx0 and idx1 pts 
+	/**
+	 * display the results of minMax2ndDerivs quantities related to underlying cubic function derivative quadratic coefficients : b + 2*cx + 3*dx^2 - find roots of deriv to determine min/maxs
+	 * [0][0] : lower x min/max, [0][1] : higher valued min/max
+	 * [1][-] : 2nd deriv test for idx0 and idx1 pts (>0 == min, <0 == max, ==0 may indicate inflection point
+	 * [2][-] : 3rd deriv test for sign
+	 * [3][-] : func eval for idx0 and idx1 pts 
+	 */
 	private void _dispDerivRootsVals() {
 		double mu = summary.mean(), std = summary.std();	
 		if(minMax2ndDerivs[0].length < 2) {return;}
@@ -150,23 +162,25 @@ public class myFleishFunc_Uni extends myRandVarFunc{
 		++idx;
 	}//_dispDerivRootsVals
 	
-	//calculate roots of cubic via discriminant and using derive vals
+	/**
+	 * calculate roots of cubic via discriminant and using derived vals
+	 * @return
+	 */
 	private double[] calcAllRoots() {
-		double mu = summary.mean(), std = summary.std();
+		//double mu = summary.mean(), std = summary.std();
 		//double a = coeffs[0]*std + mu, b=coeffs[1]*std, b3 = b*b*b,c = coeffs[2]*std,d=coeffs[3]*std,ad = a*d, bc = b*c, ad27 = 27*ad;
 		double a = coeffs[0], b=coeffs[1], b3 = b*b*b,c = coeffs[2],d=coeffs[3],ad = a*d, bc = b*c, ad27 = 27*ad;
 		//descriminant of cubic
 		double discr = 18*ad*bc - 4*b3*d + bc*bc - 4*a*c*c*c - ad27*ad;
 		//precalc to find roots 
-		double del1 = 2 * b3 - 9*a*b*c + ad27*a, a27NegDiscr = -27*a*a*discr;
+		//double del1 = 2 * b3 - 9*a*b*c + ad27*a, a27NegDiscr = -27*a*a*discr;
 		//minMax2ndDerivs : check min/max values in function - if sign changes, then there is a zero between them
 		//[0][0] : lower x min/max, [0][1] : higher valued min/max
 		//[1][-] : 2nd deriv test for idx0 and idx1 pts (>0 == min, <0 == max, ==0 may indicate inflection point
 		//[2][-] : 3rd deriv test for sign
 		//[3][-] : func eval for idx0 and idx1 pts - if this changes signs then cubic root lies between points, otherwise root lies 
 		//minMax2ndDerivs;
-		//_dispDerivRootsVals();
-	
+		if(getFlag(debugIDX)) {_dispDerivRootsVals();}
 		int numRoots = 0;
 		if(discr < 0) {//1 real, 2 non-real complex-conjugate roots
 			msgObj.dispMessage("myFleishFunc_Uni", "calcAllRoots", "Cubic Root calc : discr : " + String.format("%3.8f",discr) + " -> means 1 real and 2 non-real cmplx roots.",MsgCodes.info1,true);
@@ -181,16 +195,25 @@ public class myFleishFunc_Uni extends myRandVarFunc{
 			numRoots = 2;
 		}
 		double[] res = new double[numRoots];
-		
+		//TODO Need to derive actual roots of cubic
 		
 		return res;
 	}//calcAllRoots
 	
-	//Given the fleishman coefficients, and a target skew and kurtois 
-    //this function will have a root if the coefficients give the desired skew and kurtosis
-    //F = -c + bZ + cZ^2 + dZ^3, where Z ~ N(0,1)
+	/**
+	 * Given the fleishman coefficients, and a target skew and kurtois, this function will have a root if the 
+	 * coefficients give the desired skew and kurtosis : F = -c + bZ + cZ^2 + dZ^3, where Z ~ N(0,1)
+	 * @param b
+	 * @param c
+	 * @param d
+	 * @param skew desired skew
+	 * @param exKurt desired kurtosis
+	 * @return jBlas double matrix holding v-1, s-skew, k-execess kurtosis
+	 */
 	private DoubleMatrix flfunc(double b, double c, double d, double skew, double exKurt) {
+		//precalcs
         double b2 = b*b, c2 = c*c, d2 = d*d, bd = b*d, t4bd = 24*bd;
+        
         double _v = b2 + 6*bd + 2*c2 + 15*d2;
         double _s = 2 * c * (b2 + t4bd + 105*d2 + 2);
         //24*b*d + 24*c^2 + 24*c^2*b^2 + 672*c^2*b*d +  
@@ -198,8 +221,13 @@ public class myFleishFunc_Uni extends myRandVarFunc{
         return new DoubleMatrix(new double[] {_v - 1, _s - skew, _k - exKurt});		
 	}//flfunc
 
-	//The deriviative of the flfunc above
-    //returns jacobian
+	/**
+	 * The deriviative of flfunc above, used for Newton method calc; returns jacobian
+	 * @param b
+	 * @param c
+	 * @param d
+	 * @return 3x3 jacobian of flfunc
+	 */
 	private DoubleMatrix flDeriv(double b, double c, double d) {
 		double b2 = b*b, c22 = 2.0*c*c, d2 = d*d, bd = b*d;
 		//matrix coeffs
@@ -286,8 +314,9 @@ public class myFleishFunc_Uni extends myRandVarFunc{
 	
 	//simple newton method solver
 	private double[] newtonMethod(double b,double c,double d,double skew,double exKurtosis) {
-        //Implements newtons method to find a root of flfunc
-		DoubleMatrix f = flfunc(b,c, d, skew, exKurtosis), delta, oldf = f.mul(2.0), olderF = oldf.mul(2.0);
+        //Implements Newton's method to find a root of flfunc
+		DoubleMatrix f = flfunc(b,c, d, skew, exKurtosis), delta, oldf = f.mul(2.0);
+		//DoubleMatrix olderF = oldf.mul(2.0);
         DoubleMatrix J;
         double mult = 1.0, oldfMag=0, fMag = 0;
         int i = 0;
@@ -312,32 +341,42 @@ public class myFleishFunc_Uni extends myRandVarFunc{
 	            d += mult*lrnRateAra[2] * delta.data[2];
 	            f = oldf;
 	            mult *=.5;
-            }	            
-            //msgObj.dispMessage("myFleishFunc_Uni", "newtonMethod", "Newton iters to find coeffs : " + i + " : final f : " +getNewtonFStr(f) ,MsgCodes.info1,true);
+            }
+            if(getFlag(debugIDX)) {msgObj.dispInfoMessage("myFleishFunc_Uni", "newtonMethod", "Newton iters to find coeffs : " + i + " : final f : " +_getNewtonFStr(f));}
         }
-        //msgObj.dispMessage("myFleishFunc_Uni", "newtonMethod", "Newton iters to find coeffs : " + i + " : final f : " +getNewtonFStr(f) ,MsgCodes.info1,true);
+        if(getFlag(debugIDX)) {msgObj.dispInfoMessage("myFleishFunc_Uni", "newtonMethod", "Newton iters to find coeffs : " + i + " : final f : " +_getNewtonFStr(f));}
         return new double[] {b,c, d};
 	}//newton
 	
-	private String getCoeffsStr() {
+	private String _getCoeffsStr() {
 		if(coeffs==null) {return "";}
 		return String.format("%3.8f",coeffs[0])+","+ String.format("%3.8f",coeffs[1])+","+ String.format("%3.8f",coeffs[2])+","+ String.format("%3.8f",coeffs[3]);
-	}
-	
-	private String getNewtonFStr(DoubleMatrix f) {
+	}//_getCoeffsStr
+	private String _getRootsStr() {
+		if((roots == null)||(roots.length == 0)){return "";}
+		String res = "";
+		for(int i=0;i<roots.length-1;++i) {	res+=String.format("%3.8f",roots[i])+",";}
+		res+=String.format("%3.8f",roots[roots.length-1]);
+		return res;
+	}//_getRootsStr	
+	private String _getNewtonFStr(DoubleMatrix f) {
 		String res = "[";
 		for(int i=0;i<f.data.length-1;++i) {			res+= String.format("%3.8f", f.data[i])+", " ;		}
 		res +=String.format("%3.8f", f.data[f.data.length-1])+"]" ;		
 		return res;
-	}
+	}//_getNewtonFStr
 	
-	//find functional inverse - given specific y value, find x such that y = func(x) -> x = func^-1(y)
-	//i.e. find x value that will give f(x)==y - note y should not be shifted by mean and std
+	/**
+	 * find functional inverse - given specific y value, find x such that y = func(x) -> x = func^-1(y) 
+	 * i.e. find x value that will give f(x)==y - note y should not be shifted by mean and std
+	 * @param yRaw
+	 * @return
+	 */
 	public double calcInvF(double yRaw) {
 		double mu = summary.mean(), std = summary.std();
 		double y=(yRaw-mu)/std;
-		double res = (y-coeffs[0])/coeffs[1], diff, diffSq, fRes = 0, dfRes = 0;
-		//double convLimSq = convLim*convLim;
+		double res = (y-coeffs[0])/coeffs[1], diff, fRes = 0, dfRes = 0;
+		//double diffSq, convLimSq = convLim*convLim;
 		//use newton method to find value
 		int i = 0;
 		int maxInvIter = 100;
@@ -345,14 +384,17 @@ public class myFleishFunc_Uni extends myRandVarFunc{
 			fRes = funcs[fStdIDX].apply(res);
 			dfRes = funcs[fStdDeriveIDX].apply(res);
 			diff = (fRes - y);
-			diffSq = diff * diff;
-			if(Math.abs(diff) < convLim) {break;}
+			//diffSq = diff * diff;
+			if(Math.abs(diff) < convLim) {
 			//if(Math.abs(oldDiff) < Math.abs(diff)) {System.out.println("iter " + i + " DIVERGING! : diff : " + String.format("%3.8f", diff) + " | oldDiff : " + String.format("%3.8f", oldDiff));	}
-			//{System.out.println("iter " + i + " diff : " + String.format("%3.8f", diff) + "\ty :"+ y + " res : " + String.format("%3.8f", res) + " f(res) : "+ String.format("%3.8f", fRes)+ " dfRes : "+ String.format("%3.8f", dfRes) + "| coeffs :["+getCoeffsStr()+"]" );}//+ "\t f'(res) : " + String.format("%3.8f", dfRes));}
+				if(getFlag(debugIDX)){
+					msgObj.dispInfoMessage("myFleishFunc_Uni", "calcInvF", "iter " + i + " diff : " + String.format("%3.8f", diff) + "\ty :"+ y + " res : " + String.format("%3.8f", res) + " f(res) : "+ String.format("%3.8f", fRes)+ " dfRes : "+ String.format("%3.8f", dfRes) + "| coeffs :["+_getCoeffsStr()+"]" );//+ "\t f'(res) : " + String.format("%3.8f", dfRes));}
+				}
+				break;
+			}
 			res -= (fRes-y)/dfRes;
-
 		}	
-		//System.out.println("myFleishFunc_Uni::calcInvF : iters to find inverse : " + i + " result : " + res + " y : " + y + " f(res) : "+ fRes + "| coeffs :["+getCoeffsStr()+"]" );//+ "\t f'(res) : " + String.format("%3.8f", dfRes));
+		//msgObj.dispMessage("myFleishFunc_Uni", "calcInvF", "iters to find inverse : " + i + " result : " + res + " y : " + y + " f(res) : "+ fRes + "| coeffs :["+_getCoeffsStr()+"]" );//+ "\t f'(res) : " + String.format("%3.8f", dfRes));
 		return res;
 		
 	}//calcInvF
@@ -414,6 +456,7 @@ public class myFleishFunc_Uni extends myRandVarFunc{
 	//evaluate integral
 	@Override
 	public double integral_f(Double x1, Double x2) {
+		//TODO
 		//definite integral of polynomial along with normal pdf - should we use gauss-hermite? only for infinite	
 		double res = 0; 
 		

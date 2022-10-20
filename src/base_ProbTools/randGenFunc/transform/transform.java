@@ -1,7 +1,7 @@
 package base_ProbTools.randGenFunc.transform;
 
 import base_ProbTools.randGenFunc.RandGenDesc;
-import base_ProbTools.randGenFunc.gens.myRandGen;
+import base_ProbTools.randGenFunc.gens.base.myRandGen;
 import base_ProbTools.summary.myProbSummary_Dbls;
 
 //////////////////////////////////

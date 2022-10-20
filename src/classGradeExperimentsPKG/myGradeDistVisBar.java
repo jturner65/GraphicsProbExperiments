@@ -1,8 +1,8 @@
 package classGradeExperimentsPKG;
 
 import base_JavaProjTools_IRender.base_Render_Interface.IRenderInterface;
-import base_ProbTools.mySampleObs;
-import base_ProbTools.randVisTools.myVisMgr;
+import base_ProbTools.randVisTools.base.baseVisMgr;
+import base_ProbTools.samples.mySampleObs;
 
 
 /**
@@ -10,7 +10,7 @@ import base_ProbTools.randVisTools.myVisMgr;
  * @author john
  */
 
-public class myGradeDistVisBar extends myVisMgr {
+public class myGradeDistVisBar extends baseVisMgr {
 
 	//class this bar is attached to - if none means overall grade
 	private final myClassRoster owningClass;
@@ -111,7 +111,7 @@ public class myGradeDistVisBar extends myVisMgr {
 	//draw box and bar with appropriate colors
 	private void _drawBoxAndBar(IRenderInterface pa, int[] fClr, int[] _bClr) {
 		pa.setFill(fClr,fClr[3]);
-		pa.setStroke(clr_black,clr_black[3]);
+		pa.setStroke(0,0,0,255);
 		pa.drawRect(_clkBox);
 		//move to where bar starts
 		pa.translate(_barStX,_barStY,0);

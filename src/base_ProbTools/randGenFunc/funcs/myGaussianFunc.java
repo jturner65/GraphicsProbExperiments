@@ -4,7 +4,8 @@ import java.math.BigDecimal;
 import java.util.function.Function;
 
 import base_ProbTools.BaseProbExpMgr;
-import base_ProbTools.myIntegrator;
+import base_ProbTools.quadrature.base.baseQuadrature;
+import base_ProbTools.randGenFunc.funcs.base.baseRandVarFunc;
 import base_ProbTools.summary.myProbSummary_Dbls;
 import base_Utils_Objects.io.messaging.MsgCodes;
 
@@ -13,7 +14,7 @@ import base_Utils_Objects.io.messaging.MsgCodes;
  * @author john
  *
  */
-public class myGaussianFunc extends myRandVarFunc{	
+public class myGaussianFunc extends baseRandVarFunc{	
 	//////////////////////////////
 	//zig algorithm fields for scaled normal - all myRandVarFuncs need their own impelemtnations of this map, independent of base class
 	//////////////////////////////
@@ -29,10 +30,10 @@ public class myGaussianFunc extends myRandVarFunc{
 	
     protected double gaussSclFact, meanStd, invStdSclFact;
     //summary object needs to exist before ctor is called
-	public myGaussianFunc(myIntegrator _quadSlvr, myProbSummary_Dbls _summaryObj, String _name) {
+	public myGaussianFunc(baseQuadrature _quadSlvr, myProbSummary_Dbls _summaryObj, String _name) {
 		super(_quadSlvr, _summaryObj, _name);	
 	}//ctor
-	public myGaussianFunc(myIntegrator _quadSlvr, myProbSummary_Dbls _summaryObj) {this(_quadSlvr,  _summaryObj, "Gaussian");}
+	public myGaussianFunc(baseQuadrature _quadSlvr, myProbSummary_Dbls _summaryObj) {this(_quadSlvr,  _summaryObj, "Gaussian");}
 	
 	//rebuild function with new summary object - establish instance-class specific requirements before rebuilding
 	@Override

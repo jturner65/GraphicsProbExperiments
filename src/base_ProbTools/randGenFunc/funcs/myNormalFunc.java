@@ -1,7 +1,7 @@
 package base_ProbTools.randGenFunc.funcs;
 
 import base_ProbTools.BaseProbExpMgr;
-import base_ProbTools.myIntegrator;
+import base_ProbTools.quadrature.base.baseQuadrature;
 import base_ProbTools.summary.myProbSummary_Dbls;
 
 /**
@@ -13,7 +13,7 @@ public class myNormalFunc extends myGaussianFunc{
 	//////////////////////////////
 	//zig algorithm fields for scaled normal - all myRandVarFuncs need their own impelemtnations of this map, independent of base class
 	//////////////////////////////	
-	public myNormalFunc(myIntegrator _quadSlvr) {
+	public myNormalFunc(baseQuadrature _quadSlvr) {
 		super(_quadSlvr, new myProbSummary_Dbls(new double[] {0.0, 1.0},2), "Normal");			
 	}//ctor	
 	

@@ -3,8 +3,8 @@ package classGradeExperimentsPKG;
 import java.util.HashMap;
 
 import base_JavaProjTools_IRender.base_Render_Interface.IRenderInterface;
-import base_ProbTools.mySampleSet;
-import base_ProbTools.mySampleObs;
+import base_ProbTools.samples.mySampleObs;
+import base_ProbTools.samples.mySampleSet;
 import base_Math_Objects.vectorObjs.floats.myPointf;
 
 /**

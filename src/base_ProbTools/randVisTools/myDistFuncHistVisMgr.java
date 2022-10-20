@@ -3,32 +3,36 @@ package base_ProbTools.randVisTools;
 import java.util.TreeMap;
 
 import base_JavaProjTools_IRender.base_Render_Interface.IRenderInterface;
-import base_ProbTools.randGenFunc.gens.myRandGen;
+import base_ProbTools.randGenFunc.gens.base.myRandGen;
+import base_ProbTools.randVisTools.base.baseVisMgr;
+import base_ProbTools.randVisTools.visObj.myFuncVisObj;
+import base_ProbTools.randVisTools.visObj.myHistVisObj;
+import base_ProbTools.randVisTools.visObj.base.baseDistVisObj;
 
 /**
  * this class will display the results of a random variable function/generator
  * @author john
  *
  */
-public class myDistFuncHistVis extends myVisMgr {
+public class myDistFuncHistVisMgr extends baseVisMgr {
 	//the func to draw that owns this visMgr
 	@SuppressWarnings("unused")
 	private final myRandGen randGen;
 	//graph frame dims
 	protected float[] frameDims = new float[4];
 	//bounds for graph box - left, top, right, bottom
-	protected static final float[] frmBnds = new float[] {60.0f, 30.0f, 20.0f, 20.0f};
+	public static final float[] frmBnds = new float[] {60.0f, 30.0f, 20.0f, 20.0f};
 		
 	//whether this is currently display function values or histogram values; show specific plots
 	private boolean showHist, showSpecifiedPlots;
 	//which plots to show
 	private String[] specifiedPlots;
 	//vis objects to render each function/histogram graph
-	private TreeMap<String, myBaseDistVisObj> distVisObjs;
+	private TreeMap<String, baseDistVisObj> distVisObjs;
 	//string keys representing current function and hist keys for plots to show
 	private String funcKey, histKey;
 	
-	public myDistFuncHistVis(float[] _dims, myRandGen _gen) {
+	public myDistFuncHistVisMgr(float[] _dims, myRandGen _gen) {
 		super(new float[] {_dims[0],_dims[1],_dims[2], _dims[3]},"Vis of " + _gen.name);
 		initDistVisObjs();		
 		setGraphFrameDims();
@@ -37,7 +41,7 @@ public class myDistFuncHistVis extends myVisMgr {
 	}//ctor
 	
 	private void initDistVisObjs() {
-		distVisObjs = new TreeMap<String, myBaseDistVisObj>();
+		distVisObjs = new TreeMap<String, baseDistVisObj>();
 		specifiedPlots = new String[0];
 	}//initDistVisObjs
 
@@ -72,7 +76,7 @@ public class myDistFuncHistVis extends myVisMgr {
 	//_minMaxDiffFuncVals : min, max, diff y values of function to be plotted, for scaling
 	public void setValuesFunc(String _funcKey, int[][] dispClrs, double[][] _funcVals, double[][] _minMaxDiffFuncVals) {
 		funcKey = _funcKey;
-		myBaseDistVisObj funcObj = distVisObjs.get(funcKey);
+		baseDistVisObj funcObj = distVisObjs.get(funcKey);
 		if(funcObj == null) { 
 			funcObj = new myFuncVisObj(this, dispClrs);distVisObjs.put(funcKey,funcObj);
 		} 		
@@ -94,7 +98,7 @@ public class myDistFuncHistVis extends myVisMgr {
 	//_minMaxFuncVals : 1st array is x min,max, diff; 2nd array is y axis min, max, diff
 	public void setValuesHist(String _histKey, int[][] dispClrs, double[][] _bucketVals, double[][] _minMaxDiffHistVals) {
 		histKey = _histKey;
-		myBaseDistVisObj histObj = distVisObjs.get(histKey);
+		baseDistVisObj histObj = distVisObjs.get(histKey);
 		if(histObj == null) { histObj = new myHistVisObj(this, dispClrs);distVisObjs.put(histKey,histObj);} 		
 		histObj.setVals(_bucketVals, _minMaxDiffHistVals);
 		showHist = true;
@@ -137,21 +141,21 @@ public class myDistFuncHistVis extends myVisMgr {
 	}//_setDispWidthIndiv
 	
 	public void setSpecificMinMaxDiff(String key, double[][] _minMaxDiff) {
-		myBaseDistVisObj obj = distVisObjs.get(key);
+		baseDistVisObj obj = distVisObjs.get(key);
 		if(null==obj) {System.out.println("Error attempting to set minMaxDiff ara for vis obj key "+ key +" : Object doesn't exist.  Aborting"); return;}
 		obj.setMinMaxDiffVals(_minMaxDiff);
 	}
 	
 	public double[][] getSpecificMinMaxDiff(String key){
-		myBaseDistVisObj obj = distVisObjs.get(key);
+		baseDistVisObj obj = distVisObjs.get(key);
 		if(null==obj) {System.out.println("Error attempting to get minMaxDiff ara for vis obj key "+ key +" : Object doesn't exist.  Aborting"); return new double[0][];}
 		return obj.getMinMaxDiffVals();
 	}
 		
 	@Override
 	public void _drawVisIndiv(IRenderInterface pa) {
-		pa.setFill(clr_black,clr_black[3]);
-		pa.setStroke(clr_white,clr_white[3]);
+		pa.setColorValFill(IRenderInterface.gui_Black,255);
+		pa.setColorValStroke(IRenderInterface.gui_White,255);
 	
 		//draw box around graph area
 		pa.drawRect(frameDims);
@@ -169,6 +173,8 @@ public class myDistFuncHistVis extends myVisMgr {
 
 		pa.popMatState();
 	}//_drawVisIndiv
+	
+	public float[] getFrameDims() {return frameDims;}
 	
 }//myDistFuncHistVis
 

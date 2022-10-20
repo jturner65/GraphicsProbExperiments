@@ -1,4 +1,4 @@
-package base_ProbTools;
+package base_ProbTools.samples;
 
 
 import base_JavaProjTools_IRender.base_Render_Interface.IRenderInterface;

@@ -1,6 +1,6 @@
 package base_ProbTools.randGenFunc;
 
-import base_ProbTools.randGenFunc.gens.myRandGen;
+import base_ProbTools.randGenFunc.gens.base.myRandGen;
 
 /**
  * this class holds a description of a random number generator, including the momments and algorithms it uses

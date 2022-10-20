@@ -4,13 +4,9 @@ import java.util.*;
 
 import base_ProbTools.summary.base.baseProbSummary;
 
-
-
-
 /**
  * instances of this class will analyze and display statistical results relating to a data set;  this will also provide an easy-access container to manage moments
  * @author john
- *
  */
 public class myProbSummary_Flts extends baseProbSummary{
 	public final String name;
