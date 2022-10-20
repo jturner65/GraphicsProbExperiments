@@ -23,5 +23,6 @@
 	<classpathentry kind="lib" path="libs/processing/jogl-all-natives-macos-aarch64.jar"/>
 	<classpathentry kind="lib" path="libs/processing/jogl-all-natives-macos-x86_64.jar"/>
 	<classpathentry kind="lib" path="libs/processing/jogl-all-natives-windows-amd64.jar"/>
+	<classpathentry kind="lib" path="libs/base_JavaProjTools_Stats.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

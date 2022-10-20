@@ -6,8 +6,8 @@ import base_JavaProjTools_IRender.base_Render_Interface.IRenderInterface;
 import base_ProbTools.randGenFunc.RandGenDesc;
 import base_ProbTools.randGenFunc.funcs.base.baseRandVarFunc;
 import base_ProbTools.randGenFunc.gens.myBoundedRandGen;
-import base_ProbTools.randVisTools.myDistFuncHistVisMgr;
-import base_ProbTools.summary.myProbSummary_Dbls;
+import base_StatsTools.summary.myProbSummary_Dbls;
+import base_StatsTools.visualization.myDistFuncHistVisMgr;
 
 /**
  * Provides generation of random variables from prob distributions given a uniform distribution
@@ -70,7 +70,7 @@ public abstract class myRandGen implements Comparable<myRandGen> {
 	//called whenever summary object is set/reset
 	public abstract void _setFuncSummaryIndiv();	
 	
-	public void buildDistVisObj(float[] _startRect) {		distVisObj = new myDistFuncHistVisMgr(_startRect, this);	}
+	public void buildDistVisObj(float[] _startRect) {		distVisObj = new myDistFuncHistVisMgr(_startRect, name);	}
     //thread-safe queries for uniform values
     protected long getNextLong() {return ThreadLocalRandom.current().nextLong();}  
     protected int getNextInt() {return ThreadLocalRandom.current().nextInt();  }
@@ -181,7 +181,10 @@ public abstract class myRandGen implements Comparable<myRandGen> {
 	//update the visualization name
 	public void updateVisName(String _newName) {distVisObj.updateName(_newName);}	
 	
-	//draw a represntation of this distribution
+	/**
+	 * draw a representation of this distribution
+	 * @param pa
+	 */
 	public void drawDist(IRenderInterface pa) {
 		if(distVisObj == null) {			System.out.println("NO Vis Obj");		return;}
 		distVisObj.drawVis(pa);

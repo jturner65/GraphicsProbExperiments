@@ -5,7 +5,7 @@ import java.util.*;
 
 import base_JavaProjTools_IRender.base_Render_Interface.IRenderInterface;
 import base_ProbTools.randGenFunc.transform.*;
-import base_ProbTools.summary.myProbSummary_Dbls;
+import base_StatsTools.summary.myProbSummary_Dbls;
 import base_ProbTools.quadrature.myGaussLegenQuad;
 import base_ProbTools.quadrature.base.baseQuadrature;
 import base_ProbTools.randGenFunc.funcs.*;
@@ -14,13 +14,11 @@ import base_ProbTools.randGenFunc.gens.myBoundedRandGen;
 import base_ProbTools.randGenFunc.gens.myFleishUniVarRandGen;
 import base_ProbTools.randGenFunc.gens.myZigRandGen;
 import base_ProbTools.randGenFunc.gens.base.myRandGen;
-import base_UI_Objects.windowUI.base.myDispWindow;
 import base_Utils_Objects.io.messaging.MessageObject;
-import base_Utils_Objects.io.messaging.MsgCodes;
 
-public abstract class BaseProbExpMgr {
+public abstract class baseProbExpMgr {
 	//owning window for this experiment handler
-	protected myDispWindow win;
+	//protected myDispWindow win;
 	//papplet for visualization
 	public static IRenderInterface pa;
 	//handle communicating via console or logs
@@ -96,12 +94,15 @@ public abstract class BaseProbExpMgr {
 	//width of display space - used to shrink things if necessary when right sidebar menu is added
 	protected float visScreenWidth;
 	
+	//current visible screen width and height, from owning window
+	protected float[] curVisScrDims;
 	
-	public BaseProbExpMgr(myDispWindow _win) {
-		win = _win;
-		pa=myDispWindow.pa; 
-		if(msgObj==null) {msgObj = win.getMsgObj();}
-		setVisibleScreenWidth();
+	
+	public baseProbExpMgr(IRenderInterface _pa, MessageObject _msgObj, float[] _curVisScrDims) {
+		//win = _win;
+		pa=_pa; 
+		msgObj = _msgObj;
+		setVisibleScreenDims(_curVisScrDims);
 		//base class-specific flags, isolated to within this code only
 		initBaseFlags();
 		//init experiment-specific flags
@@ -217,7 +218,7 @@ public abstract class BaseProbExpMgr {
 				return new uniformCountTransform(_summaryObj);}
 			
 			default	:	{		
-				msgObj.dispMessage("BaseProbExpMgr","buildAndInitRandGen","Unknown random generator type : " + _randGenType + ".  Aborting.",MsgCodes.warning1, true);
+				msgObj.dispWarningMessage("BaseProbExpMgr","buildAndInitRandGen","Unknown random generator type : " + _randGenType + ".  Aborting.");
 				return null;
 			}
 		}//switch
@@ -235,8 +236,9 @@ public abstract class BaseProbExpMgr {
 	}//setSolverVals
 	
 	//called whenever screen width changes due to showing/hiding the right side menu
-	public void setVisibleScreenWidth() {
-		visScreenWidth = win.curVisScrDims[0];
+	public void setVisibleScreenDims(float[] _curVisScrDims) {
+		curVisScrDims = _curVisScrDims;
+		visScreenWidth = curVisScrDims[0];
 		setVisWidth_Priv();
 	}//setVisibleScreenWidth
 	public float getVisibleSreenWidth() {return visScreenWidth;}
@@ -264,44 +266,43 @@ public abstract class BaseProbExpMgr {
 	//conduct a simple test on the passed random number generator - it will get a sample based on the pdf function given to generator
 	//uses 64 bit random uniform val
 	protected void smplTestRandNumGen(myRandGen gen, int numVals) {
-		msgObj.dispMessage("BaseProbExpMgr","testRandGen","Start synthesizing " + numVals+ " values using Gen : \n\t" + gen.getFuncDataStr(),MsgCodes.info1, true);
+		msgObj.dispInfoMessage("BaseProbExpMgr","testRandGen","Start synthesizing " + numVals+ " values using Gen : \n\t" + gen.getFuncDataStr());
 		double[] genVals = new double[numVals];
 		for(int i=0;i<genVals.length;++i) {	
 			//msgObj.dispMessage("BaseProbExpMgr","testRandGen","Generating val : " + i);
 			genVals[i] = gen.getSample();	
 		}
 		//now calculate mean value and
-		msgObj.dispMessage("BaseProbExpMgr","testRandGen","Finished synthesizing " + numVals+ " values using Gen : " + gen.name + " | Begin analysis of values.",MsgCodes.info1, true);
+		msgObj.dispInfoMessage("BaseProbExpMgr","testRandGen","Finished synthesizing " + numVals+ " values using Gen : " + gen.name + " | Begin analysis of values.");
 		myProbSummary_Dbls analysis = new myProbSummary_Dbls(genVals);
-		msgObj.dispMessage("BaseProbExpMgr","testRandGen","Analysis res of " + gen.name + " : " + analysis.getMomentsVals(),MsgCodes.info1, true);
+		msgObj.dispInfoMessage("BaseProbExpMgr","testRandGen","Analysis res of " + gen.name + " : " + analysis.getMomentsVals());
 	}//testGen
 	
 	//conduct a simple test on the passed random number generator - it will get a sample based on the pdf function given to generator
 	//uses the "fast" implementation - 32 bit random uniform value
 	protected void smplTestFastRandNumGen(myRandGen gen, int numVals) {
-		msgObj.dispMessage("BaseProbExpMgr","testRandGen","Start synthesizing " + numVals+ " values using Gen : \n\t" + gen.getFuncDataStr(),MsgCodes.info1, true);
+		msgObj.dispInfoMessage("BaseProbExpMgr","testRandGen","Start synthesizing " + numVals+ " values using Gen : \n\t" + gen.getFuncDataStr());
 		double[] genVals = new double[numVals];
 		for(int i=0;i<genVals.length;++i) {	
 			//msgObj.dispMessage("BaseProbExpMgr","testRandGen","Generating val : " + i);
 			genVals[i] = gen.getSampleFast();	
 		}
 		//now calculate mean value and
-		msgObj.dispMessage("BaseProbExpMgr","testRandGen","Finished synthesizing " + numVals+ " values using Gen : " + gen.name + " | Begin analysis of values.",MsgCodes.info1, true);
+		msgObj.dispInfoMessage("BaseProbExpMgr","testRandGen","Finished synthesizing " + numVals+ " values using Gen : " + gen.name + " | Begin analysis of values.");
 		myProbSummary_Dbls analysis = new myProbSummary_Dbls(genVals);
-		msgObj.dispMessage("BaseProbExpMgr","testRandGen","Analysis res of " + gen.name + " : " + analysis.getMomentsVals(),MsgCodes.info1, true);
+		msgObj.dispInfoMessage("BaseProbExpMgr","testRandGen","Analysis res of " + gen.name + " : " + analysis.getMomentsVals());
 	}//testGen
 	
 	
 	//test method for calculating r for rand var function (used in ziggurat algorithm)
 	@SuppressWarnings("unused")
 	public void testRCalc() {
-		msgObj.dispMessage("BaseProbExpMgr","testRCalc","Start test of r var calc",MsgCodes.info1, true);
+		msgObj.dispInfoMessage("BaseProbExpMgr","testRCalc","Start test of r var calc");
 		baseRandVarFunc randVar = new myNormalFunc(quadSlvrs[GL_QuadSlvrIDX]);
 		myProbSummary_Dbls analysis = new myProbSummary_Dbls( new double[] {2.0, 3.0}, 2);
 		//myRandVarFunc randGaussVar = new myGaussianFunc(this, quadSlvrs[GL_QuadSlvrIDX], analysis);
-		randVar.dbgTestCalcRVal(256);
-		
-		msgObj.dispMessage("BaseProbExpMgr","testRCalc","End test of r var calc",MsgCodes.info1,true);
+		randVar.dbgTestCalcRVal(256);		
+		msgObj.dispInfoMessage("BaseProbExpMgr","testRCalc","End test of r var calc");
 		
 	}//testRCalc
 	
@@ -309,7 +310,7 @@ public abstract class BaseProbExpMgr {
 	//we want to make sure that feeding a uniform value in order will generate increasing random variables
 	public void testSeqZigGen() {
 		double numVals = 200.0;
-		msgObj.dispMessage("BaseProbExpMgr","testSeqZigGen","Start synthesizing " + numVals+ " sequential values to test zig gen.",MsgCodes.info1, true);
+		msgObj.dispInfoMessage("BaseProbExpMgr","testSeqZigGen","Start synthesizing " + numVals+ " sequential values to test zig gen.");
 		myZigRandGen ziggen = new myZigRandGen(new myNormalFunc(quadSlvrs[GL_QuadSlvrIDX]), "Ziggurat Algorithm");
 		
 		boolean done = false;
@@ -324,14 +325,14 @@ public abstract class BaseProbExpMgr {
 				res = ziggen.getFuncValFromLong(val);
 				done = (res==res);
 				if(!done) {
-					msgObj.dispMessage("BaseProbExpMgr","testSeqZigGen","i: " + i+ " possible error with : " + prob + " | in : " + val + " | rnd out : " + res +" returns not done." ,MsgCodes.info1, true);
+					msgObj.dispInfoMessage("BaseProbExpMgr","testSeqZigGen","i: " + i+ " possible error with : " + prob + " | in : " + val + " | rnd out : " + res +" returns not done." );
 					System.exit(0);
 				}
 			}
-			msgObj.dispMessage("BaseProbExpMgr","testSeqZigGen","i: " + i+ " ratio/prob : " + String.format("%.8f",prob) + " | in : " + val + " | rnd out : " + res ,MsgCodes.info1, true);
+			msgObj.dispInfoMessage("BaseProbExpMgr","testSeqZigGen","i: " + i+ " ratio/prob : " + String.format("%.8f",prob) + " | in : " + val + " | rnd out : " + res );
 			resMap.put(val,  res);
 		}
-		msgObj.dispMessage("BaseProbExpMgr","testSeqZigGen","Finished synthesizing " + numVals+ " values using Gen : " + ziggen.name,MsgCodes.info1, true);
+		msgObj.dispInfoMessage("BaseProbExpMgr","testSeqZigGen","Finished synthesizing " + numVals+ " values using Gen : " + ziggen.name);
 	}//testZigGen
 	
 	//////////////////////////////

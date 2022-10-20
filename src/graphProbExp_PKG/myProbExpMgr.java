@@ -2,17 +2,17 @@ package graphProbExp_PKG;
 
 import java.util.concurrent.ThreadLocalRandom;
 
-import base_ProbTools.BaseProbExpMgr;
+import base_JavaProjTools_IRender.base_Render_Interface.IRenderInterface;
+import base_ProbTools.baseProbExpMgr;
 import base_ProbTools.randGenFunc.gens.base.myRandGen;
-import base_ProbTools.summary.myProbSummary_Dbls;
-import base_UI_Objects.windowUI.base.myDispWindow;
-import base_Utils_Objects.io.messaging.MsgCodes;
+import base_StatsTools.summary.myProbSummary_Dbls;
+import base_Utils_Objects.io.messaging.MessageObject;
 /**
  * this class will manage probability-based graphical experiments
  * @author john
  *
  */
-public class myProbExpMgr extends BaseProbExpMgr{	
+public class myProbExpMgr extends baseProbExpMgr{	
 	//random # generator
 	protected myRandGen nrmlGen, gaussGen;
 	
@@ -22,8 +22,8 @@ public class myProbExpMgr extends BaseProbExpMgr{
 	public static final int numFlags = 1;	
 	
 	
-	public myProbExpMgr(myDispWindow _win) {
-		super(_win);
+	public myProbExpMgr(IRenderInterface _pa, MessageObject _msgObj, float[] _curVisScrDims) {
+		super(_pa, _msgObj, _curVisScrDims);
 	}//ctor
 
 	//build solvers specific to this experiment - called after base class solver init
@@ -70,23 +70,21 @@ public class myProbExpMgr extends BaseProbExpMgr{
 	}
 	
 	@Override
-	public void drawExp() {
-		// TODO Auto-generated method stub
-		
+	public void drawExp() {		
 	}
 
 	public void testRandGen(int numVals) {
-		msgObj.dispMessage("myProbExpMgr","testRandGen","Start test of random normal gen of " +numVals + " vals from rand gen with momments : " + nrmlGen.getFuncDataStr(),MsgCodes.info1,true);
+		msgObj.dispInfoMessage("myProbExpMgr","testRandGen","Start test of random normal gen of " +numVals + " vals from rand gen with momments : " + nrmlGen.getFuncDataStr());
 		smplTestRandNumGen(nrmlGen, numVals);
 		smplTestRandNumGen(gaussGen, numVals);
-		msgObj.dispMessage("myProbExpMgr","testRandGen","Start test of ThreadLocalRandom random gaussian gen of " +numVals + " vals.",MsgCodes.info1,true);
+		msgObj.dispInfoMessage("myProbExpMgr","testRandGen","Start test of ThreadLocalRandom random gaussian gen of " +numVals + " vals.");
 		double[] genVals = new double[numVals];
 		//now test standard distribution of same # of values
 		double mean = gaussGen.getMean(), std = gaussGen.getStd();
 		for(int i=0;i<genVals.length;++i) {	genVals[i] = mean + (std*ThreadLocalRandom.current().nextGaussian());		}
-		msgObj.dispMessage("myProbExpMgr","testRandGen","Finished synthesizing " + numVals +" gaussian vals ~ N(" + mean + ","+std +") using ThreadLocalRandom random gaussian",MsgCodes.info1,true);
+		msgObj.dispInfoMessage("myProbExpMgr","testRandGen","Finished synthesizing " + numVals +" gaussian vals ~ N(" + mean + ","+std +") using ThreadLocalRandom random gaussian");
 		myProbSummary_Dbls analysis = new myProbSummary_Dbls(genVals);
-		msgObj.dispMessage("myProbExpMgr","testRandGen","Analysis res of TLR.nextGauss : " + analysis.getMomentsVals(),MsgCodes.info1,true);
+		msgObj.dispInfoMessage("myProbExpMgr","testRandGen","Analysis res of TLR.nextGauss : " + analysis.getMomentsVals());
 	}//testRandGen
 		
 	

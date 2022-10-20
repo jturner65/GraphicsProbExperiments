@@ -7,7 +7,7 @@ import java.util.TreeMap;
 import base_JavaProjTools_IRender.base_Render_Interface.IRenderInterface;
 import base_Math_Objects.vectorObjs.doubles.myPoint;
 import base_Math_Objects.vectorObjs.doubles.myVector;
-import base_ProbTools.BaseProbExpMgr;
+import base_ProbTools.baseProbExpMgr;
 import base_ProbTools.randGenFunc.funcs.base.baseRandVarFunc;
 import base_UI_Objects.GUI_AppManager;
 import base_UI_Objects.windowUI.base.myDispWindow;
@@ -114,7 +114,7 @@ public class Grade2DWindow extends myDispWindow {
 		setFlags(drawRightSideMenu, true);
 		
 		//grade experiments
-		gradeAvgExperiment = new ClassGradeExperiment(this);
+		gradeAvgExperiment = new ClassGradeExperiment(pa, msgObj, curVisScrDims);
 		setGradeExp(true,true,true, false);
 		
 		//set visibility width and send to experiments - experiment must be built first
@@ -386,8 +386,8 @@ public class Grade2DWindow extends myDispWindow {
 	//_descVals : idx 0 : # of moments final grade mapping dist should use, idx 1 : type of myRandGen ; idx 2 : type of myRandFunc to use
 	private void _buildFinalGradeArrays(double [][] _mmntsAndMinMax, int[] _descVals) {
 		_descVals[0]= finalGradeNumMmnts; 
-		_descVals[1]= (finalGradeNumMmnts == 2 ? BaseProbExpMgr.ziggRandGen : BaseProbExpMgr.fleishRandGen_UniVar);		
-		_descVals[2]= (finalGradeNumMmnts == 2 ? BaseProbExpMgr.gaussRandVarIDX : BaseProbExpMgr.fleishRandVarIDX);
+		_descVals[1]= (finalGradeNumMmnts == 2 ? baseProbExpMgr.ziggRandGen : baseProbExpMgr.fleishRandGen_UniVar);		
+		_descVals[2]= (finalGradeNumMmnts == 2 ? baseProbExpMgr.gaussRandVarIDX : baseProbExpMgr.fleishRandVarIDX);
 		_mmntsAndMinMax[0] = new double[] {finalGradeMmtns[0],finalGradeMmtns[1],finalGradeMmtns[2],finalGradeMmtns[3]};
 		_mmntsAndMinMax[1] = new double[] {0.0,1.0};
 	}//buildFinalGradeArrays
@@ -461,8 +461,7 @@ public class Grade2DWindow extends myDispWindow {
 	//manage any functionality specific to this window that needs to be recalced when the visibile dims of the window change
 	@Override
 	protected void setVisScreenDimsPriv() {	
-		gradeAvgExperiment.setVisibleScreenWidth();
-		
+		gradeAvgExperiment.setVisibleScreenDims(curVisScrDims);		
 	}//setVisScreenDimsPriv
 
 	

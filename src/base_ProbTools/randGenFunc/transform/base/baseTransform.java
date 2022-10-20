@@ -1,16 +1,16 @@
-package base_ProbTools.randGenFunc.transform;
+package base_ProbTools.randGenFunc.transform.base;
 
 import base_ProbTools.randGenFunc.RandGenDesc;
 import base_ProbTools.randGenFunc.gens.base.myRandGen;
-import base_ProbTools.summary.myProbSummary_Dbls;
+import base_StatsTools.summary.myProbSummary_Dbls;
 
 //////////////////////////////////
 //linear and uniform transformation classes
 //	these are just mappers and will not be used to synthesize random values
 
-public abstract class transform extends myRandGen{
+public abstract class baseTransform extends myRandGen{
 	//func will be null for these, so all functionality that is dependent on func variable needs to be overridden
-	public transform(String _name, myProbSummary_Dbls _summary) {
+	public baseTransform(String _name, myProbSummary_Dbls _summary) {
 		super(null, _name);
 		setFuncSummary(_summary);
 	}

@@ -2,17 +2,21 @@ package base_ProbTools.randGenFunc.transform;
 
 import java.util.TreeMap;
 
-import base_ProbTools.summary.myProbSummary_Dbls;
+import base_ProbTools.randGenFunc.transform.base.baseTransform;
+import base_StatsTools.summary.myProbSummary_Dbls;
 
-//maps each grade to a specific location based on its order - does not care about original grade value, just uses rank
-public class uniformCountTransform extends transform{
+/**
+ * maps each grade to a specific location based on its order - does not care about original grade value, just uses rank
+ * @author 7strb
+ *
+ */
+public class uniformCountTransform extends baseTransform{
 	//# of -unique- grades
 	int count;
 	//grades sorted in ascending order
 	TreeMap<Double, Integer> sortedGrades;
 	//ranks and actual grade values
-	TreeMap<Integer, Double> rankedGrades;
-	
+	TreeMap<Integer, Double> rankedGrades;	
 	//summary must be built by data and have data vals
 	public uniformCountTransform(myProbSummary_Dbls _summary) {
 		super("Uniform Count Transform Mapping", _summary);
@@ -54,8 +58,6 @@ public class uniformCountTransform extends transform{
 		return val;}
 	@Override
 	public double getSampleFast() {return getSample();}
-
-	
 	
 	//provides mapping from rank/n to original grade
 	@Override
@@ -67,16 +69,18 @@ public class uniformCountTransform extends transform{
 //		}
 		//update every time?
 		_setFuncSummaryIndiv();
-		return rankedGrades.get(desKey);	}
+		return rankedGrades.get(desKey);	
+	}
 	//provides mapping from original grade to rank/n (0->1)
+	
 	@Override
-	public double CDF(double _val) {
-		
+	public double CDF(double _val) {		
 		//update every time?
 		_setFuncSummaryIndiv();
 		Integer retRank = sortedGrades.get(_val);
 		if(null==retRank) {	retRank = sortedGrades.get(sortedGrades.ceilingKey(_val));	}
-		return (1.0 * retRank+1)/count;	}
+		return (1.0 * retRank+1)/count;	
+	}
 	
 	@Override
 	public String _getTransformNameIndiv() {return "Uniformly Ranked | # of unique grades : " + count;	}	

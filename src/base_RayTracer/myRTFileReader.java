@@ -202,6 +202,9 @@ public class myRTFileReader {
 //				but we will not implement this due to lack of time. 
 				case "final_gather" : {//final_gather num_rays
 					int numRays = Integer.parseInt(token[1]);
+					
+					//TODO handle final gather ray count
+					System.out.println("Final gather ray count : "+numRays);
 					//
 					break;}
 			

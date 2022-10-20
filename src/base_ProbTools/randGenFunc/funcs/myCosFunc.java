@@ -1,10 +1,9 @@
 package base_ProbTools.randGenFunc.funcs;
 
-import base_ProbTools.BaseProbExpMgr;
+import base_ProbTools.baseProbExpMgr;
 import base_ProbTools.quadrature.base.baseQuadrature;
 import base_ProbTools.randGenFunc.funcs.base.baseRandVarFunc;
-import base_ProbTools.summary.myProbSummary_Dbls;
-import base_Utils_Objects.io.messaging.MsgCodes;
+import base_StatsTools.summary.myProbSummary_Dbls;
 
 //class to model a pdf via a cosine
 //mean is phase, std is function of frequency
@@ -58,7 +57,7 @@ public class myCosFunc extends baseRandVarFunc{
 		} else {
 			freqMult = calcFreq(std);	//solve based on std	
 			double freqMult2 = Math.PI/std;
-			msgObj.dispMessage("myCosFunc","rebuildFuncs_Indiv","freq1StdMult : " + String.format("%3.8f",freq1StdMult)+ " | Calced freqMult : " + String.format("%3.8f",freqMult) + " | pi/s : " + String.format("%3.8f",freqMult2) + " | s :"+String.format("%3.8f",std) + " | calc ov pi/s : " + String.format("%3.8f",freqMult/freqMult2),MsgCodes.info1,true);
+			msgObj.dispInfoMessage("myCosFunc","rebuildFuncs_Indiv","freq1StdMult : " + String.format("%3.8f",freq1StdMult)+ " | Calced freqMult : " + String.format("%3.8f",freqMult) + " | pi/s : " + String.format("%3.8f",freqMult2) + " | s :"+String.format("%3.8f",std) + " | calc ov pi/s : " + String.format("%3.8f",freqMult/freqMult2));
 		}
 		xBnd = Math.PI/freqMult;		//values need to be between mu - xBnd and mu + xBnd
 		actLBnd = mu - xBnd;
@@ -173,6 +172,6 @@ public class myCosFunc extends baseRandVarFunc{
 	}
 
 	@Override
-	public int getRVFType() {return BaseProbExpMgr.raisedCosRandVarIDX;}
+	public int getRVFType() {return baseProbExpMgr.raisedCosRandVarIDX;}
 
 }//myCosFunc

@@ -3,10 +3,10 @@ package classGradeExperimentsPKG;
 import java.util.HashMap;
 
 import base_JavaProjTools_IRender.base_Render_Interface.IRenderInterface;
-import base_ProbTools.BaseProbExpMgr;
+import base_ProbTools.baseProbExpMgr;
 import base_ProbTools.randGenFunc.gens.base.myRandGen;
 import base_ProbTools.samples.mySampleSet;
-import base_ProbTools.summary.myProbSummary_Dbls;
+import base_StatsTools.summary.myProbSummary_Dbls;
 import base_Utils_Objects.io.messaging.MsgCodes;
 
 
@@ -57,7 +57,7 @@ public class myClassRoster extends mySampleSet{
 	
 	private myFinalGradeRoster _finalGrades;			//ref to final grade roster
 	
-	public myClassRoster(IRenderInterface _pa, BaseProbExpMgr _gradeExp, String _name, float[][] _barLocs) {
+	public myClassRoster(IRenderInterface _pa, baseProbExpMgr _gradeExp, String _name, float[][] _barLocs) {
 		super(_pa,  _name);
 		initFlags();
 		//visualization stuff

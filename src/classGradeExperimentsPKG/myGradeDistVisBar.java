@@ -1,8 +1,8 @@
 package classGradeExperimentsPKG;
 
 import base_JavaProjTools_IRender.base_Render_Interface.IRenderInterface;
-import base_ProbTools.randVisTools.base.baseVisMgr;
 import base_ProbTools.samples.mySampleObs;
+import base_StatsTools.visualization.base.baseVisMgr;
 
 
 /**

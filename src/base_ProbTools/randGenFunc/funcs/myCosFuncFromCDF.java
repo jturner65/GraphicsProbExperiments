@@ -6,11 +6,10 @@ import java.util.function.Function;
 import org.jblas.DoubleMatrix;
 import org.jblas.Solve;
 
-import base_ProbTools.BaseProbExpMgr;
+import base_ProbTools.baseProbExpMgr;
 import base_ProbTools.quadrature.base.baseQuadrature;
 import base_ProbTools.randGenFunc.funcs.base.baseRandVarFunc;
-import base_ProbTools.summary.myProbSummary_Dbls;
-import base_Utils_Objects.io.messaging.MsgCodes;
+import base_StatsTools.summary.myProbSummary_Dbls;
 
 /**
  * this function will build a pdf/cdf model based on working backward from samples - building cdf from sample data, fitting sin-based CDF function to data, then differentiating to find pdf
@@ -98,7 +97,7 @@ public class myCosFuncFromCDF extends baseRandVarFunc{
 		Function<Double[], Double> func = slvrFuncs[cdf1pSine];
 		double lbnd = calcActualBnd(func,Theta,0.0),
 		ubnd = calcActualBnd(func,Theta,1.0);//CDFMap.get(CDFMap.lastKey());
-		msgObj.dispMessage("myCosFuncFromCDF","deriveCoeffs_onePSine","# vals : " +mapToUse.size() +" y2 : " + y2 + " x2 : " + x2 + " | Theta values : A : " + Theta.get(0) + " |B : " + Theta.get(1) + " |C : " + Theta.get(2) + " : bnds : act : [" +actLBnd +", "+actUBnd +"] | iter :  [" +lbnd +", "+ubnd +"]",MsgCodes.info1,true);				
+		msgObj.dispInfoMessage("myCosFuncFromCDF","deriveCoeffs_onePSine","# vals : " +mapToUse.size() +" y2 : " + y2 + " x2 : " + x2 + " | Theta values : A : " + Theta.get(0) + " |B : " + Theta.get(1) + " |C : " + Theta.get(2) + " : bnds : act : [" +actLBnd +", "+actUBnd +"] | iter :  [" +lbnd +", "+ubnd +"]");				
 	}//deriveCoeffs
 	
 	//calculate residual values
@@ -162,7 +161,7 @@ public class myCosFuncFromCDF extends baseRandVarFunc{
 		actLBnd = calcActualBnd(slvrFuncs[slvrIDX],Theta,0.0);
 		actUBnd = calcActualBnd(slvrFuncs[slvrIDX],Theta,1.0);//CDFMap.get(CDFMap.lastKey());
 		if(actLBnd > actUBnd) {actLBnd -= twoPi/Theta.get(1);}
-		msgObj.dispMessage("myCosFuncFromCDF","deriveCoeffs","# vals : " +mapToUse.size() +" | Final Iters :  " + iter + " Theta values : A : " + Theta.get(0) + " |B : " + Theta.get(1) + " |C : " + Theta.get(2)+" | lbnd : " + actLBnd + " | ubnd : " + actUBnd,MsgCodes.info1,true);	
+		msgObj.dispInfoMessage("myCosFuncFromCDF","deriveCoeffs","# vals : " +mapToUse.size() +" | Final Iters :  " + iter + " Theta values : A : " + Theta.get(0) + " |B : " + Theta.get(1) + " |C : " + Theta.get(2)+" | lbnd : " + actLBnd + " | ubnd : " + actUBnd);	
 			
 	}//deriveCoeffs
 	
@@ -261,7 +260,7 @@ public class myCosFuncFromCDF extends baseRandVarFunc{
 			integrals[fIntegIDX] = x -> {double a = Theta.get(0), b = Theta.get(1), c = Theta.get(2); return (a * (Math.sin(b * (x[1] - c)) - Math.sin(b * (x[0] - c))) );};
 			
 		}
-		msgObj.dispMessage("myCosFuncFromCDF","buildFuncs","LBnd : " + actLBnd + " UBnd : " + actUBnd,MsgCodes.info1,true);	
+		msgObj.dispInfoMessage("myCosFuncFromCDF","buildFuncs","LBnd : " + actLBnd + " UBnd : " + actUBnd);	
 	}//
 
 	@Override
@@ -280,12 +279,12 @@ public class myCosFuncFromCDF extends baseRandVarFunc{
 	//CDF is integral from -inf to x of pdf - can be solved analytically 
 	@Override
 	public double CDF(double x) {
-		//expMgr.dispMessage("myRandVarFunc", "CDF", "Begin CDF calc for val : " + String.format("%3.8f", x) , true);
+		//expMgr.dispInfoMessage("myRandVarFunc", "CDF", "Begin CDF calc for val : " + String.format("%3.8f", x));
 		double newX = x;//forceInBounds(x,actLBnd, actUBnd);
 		
 		double  res = integrals[fIntegIDX].apply(new Double[] {actLBnd, newX});
 		//double res = integral_f(actLBnd, x);		 
-		//expMgr.dispMessage("myRandVarFunc", "CDF", "End CDF calc for val : " + String.format("%3.8f", x) , true);
+		//expMgr.dispInfoMessage("myRandVarFunc", "CDF", "End CDF calc for val : " + String.format("%3.8f", x));
 		return res;
 	}//CDF
 	
@@ -312,10 +311,10 @@ public class myCosFuncFromCDF extends baseRandVarFunc{
 	//given probability p find value x such that CDF(X<= x) == p
 	@Override
 	public double CDF_inv(double p) {
-		//expMgr.dispMessage("myCosFunc", "CDF_inv", "Begin CDF_inv calc for prob : " + String.format("%3.8f", p), true);
+		//expMgr.dispInfoMessage("myCosFunc", "CDF_inv", "Begin CDF_inv calc for prob : " + String.format("%3.8f", p), true);
 		double res = calcInvCDF(this.slvrFuncs[CDFToUse],p,Theta, actLBnd);
 		//double res = calcInvCDF(p, halfAmpl, freqMult,  actLBnd, summary.mean());
-		//expMgr.dispMessage("myCosFunc", "CDF_inv", "Finish CDF_inv calc for prob : " + String.format("%3.8f", p) + "\t stdzd res : " + String.format("%3.8f",res)+ "\t low xBnd1Std : " + String.format("%3.8f", -xBnd1Std), true);			
+		//expMgr.dispInfoMessage("myCosFunc", "CDF_inv", "Finish CDF_inv calc for prob : " + String.format("%3.8f", p) + "\t stdzd res : " + String.format("%3.8f",res)+ "\t low xBnd1Std : " + String.format("%3.8f", -xBnd1Std), true);			
 		return res;//processResValByMmnts(res);
 	}//CDF_inv
 	
@@ -334,7 +333,7 @@ public class myCosFuncFromCDF extends baseRandVarFunc{
 	private Double forceInBounds(Double x, double lBnd, double uBnd) {return forceInBounds(x, lBnd, uBnd, true);}
 	@Override
 	public double integral_f(Double x1, Double x2) {
-		//expMgr.dispMessage("myRandVarFunc", "integral_f", "Begin integral_f calc for vals : " + String.format("%3.8f", x1) +","+ String.format("%3.8f", x2) , true);
+		//expMgr.dispInfoMessage("myRandVarFunc", "integral_f", "Begin integral_f calc for vals : " + String.format("%3.8f", x1) +","+ String.format("%3.8f", x2));
 		if(x1 == Double.NEGATIVE_INFINITY) {x1 = actLBnd;}
 		if(x2 == Double.POSITIVE_INFINITY) {x2 = actUBnd;}
 		
@@ -343,13 +342,13 @@ public class myCosFuncFromCDF extends baseRandVarFunc{
 		
 		double  resEval = integrals[fIntegIDX].apply(new Double[] {newX1, newX2});
 		//double res = quadSlvr.evalIntegral(funcs[fIDX], newX1, newX2).doubleValue();
-		//expMgr.dispMessage("myRandVarFunc", "integral_f", "End integral_f calc for vals : " + String.format("%3.8f", x1) +","+ String.format("%3.8f", x2)+ " : res = " +  String.format("%3.8f", quadSlvr.evalIntegral(funcs[fIDX], newX1, newX2).doubleValue()) + " Analytic eval : " +  String.format("%3.8f", resEval) , true);
+		//expMgr.dispInfoMessage("myRandVarFunc", "integral_f", "End integral_f calc for vals : " + String.format("%3.8f", x1) +","+ String.format("%3.8f", x2)+ " : res = " +  String.format("%3.8f", quadSlvr.evalIntegral(funcs[fIDX], newX1, newX2).doubleValue()) + " Analytic eval : " +  String.format("%3.8f", resEval));
 		return resEval;
 	}
 
 	@Override
 	public double integral_fStd(Double x1, Double x2) {
-//		//expMgr.dispMessage("myRandVarFunc", "integral_fStd", "Begin integral_fStd calc for vals : " + String.format("%3.8f", x1) +","+ String.format("%3.8f", x2) , true);
+//		//expMgr.dispInfoMessage("myRandVarFunc", "integral_fStd", "Begin integral_fStd calc for vals : " + String.format("%3.8f", x1) +","+ String.format("%3.8f", x2));
 //		if(x1 == Double.NEGATIVE_INFINITY) {x1 = -xBnd1Std;}
 //		if(x2 == Double.POSITIVE_INFINITY) {x2 = xBnd1Std;}
 //		//must only use 
@@ -358,10 +357,10 @@ public class myCosFuncFromCDF extends baseRandVarFunc{
 //		double newX2 = forceInBounds(x2,-xBnd1Std, xBnd1Std); 
 //		
 //		
-//		//expMgr.dispMessage("myRandVarFunc", "integral_fStd", "New Integral Bounds : " + String.format("%3.8f", newX1) +","+ String.format("%3.8f", newX2) , true);
+//		//expMgr.dispInfoMessage("myRandVarFunc", "integral_fStd", "New Integral Bounds : " + String.format("%3.8f", newX1) +","+ String.format("%3.8f", newX2));
 //		double resEval = integrals[fStdIntegIDX].apply(new Double[] {newX1, newX2});
 //		//double res = quadSlvr.evalIntegral(funcs[fStdIDX], newX1, newX2).doubleValue(); 
-		//expMgr.dispMessage("myRandVarFunc", "integral_fStd", "End integral_fStd calc for vals : " + String.format("%3.8f", x1) +","+ String.format("%3.8f", x2)+ " : res = " +  String.format("%3.8f", quadSlvr.evalIntegral(funcs[fStdIDX], newX1, newX2).doubleValue()) + " Analytic eval : " +  String.format("%3.8f", resEval) , true);
+		//expMgr.dispInfoMessage("myRandVarFunc", "integral_fStd", "End integral_fStd calc for vals : " + String.format("%3.8f", x1) +","+ String.format("%3.8f", x2)+ " : res = " +  String.format("%3.8f", quadSlvr.evalIntegral(funcs[fStdIDX], newX1, newX2).doubleValue()) + " Analytic eval : " +  String.format("%3.8f", resEval));
 		return 0;//resEval;
 	}
 
@@ -375,7 +374,7 @@ public class myCosFuncFromCDF extends baseRandVarFunc{
 		CDFToUse = (_opts[0] == 0 ? 0 : 1);//restrict to be 0 or 1
 	}//setOptionFlags
 	@Override
-	public int getRVFType() {return BaseProbExpMgr.cosCDFRandVarIDX;}
+	public int getRVFType() {return baseProbExpMgr.cosCDFRandVarIDX;}
 
 		
 }//myCosFuncFromCDF

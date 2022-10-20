@@ -3,12 +3,11 @@ package base_ProbTools.randGenFunc.funcs;
 import org.jblas.DoubleMatrix;
 import org.jblas.Solve;
 
-import base_ProbTools.BaseProbExpMgr;
+import base_ProbTools.baseProbExpMgr;
 import base_ProbTools.quadrature.base.baseQuadrature;
 import base_ProbTools.randGenFunc.funcs.base.baseRandVarFunc;
 import base_ProbTools.randGenFunc.gens.myZigRandGen;
-import base_ProbTools.summary.myProbSummary_Dbls;
-import base_Utils_Objects.io.messaging.MsgCodes;
+import base_StatsTools.summary.myProbSummary_Dbls;
 
 /**
  * instancing class for a univariate fleishman polynomial-based distribution function
@@ -69,14 +68,14 @@ public class myFleishFunc_Uni extends baseRandVarFunc{
 		double mu = summary.mean();//, std = summary.std();
 		// TODO Auto-generated method stub
 		//return new double[] {mu-(3.5*std), mu+(3.5*std)};
-		//msgObj.dispMessage("myFleishFunc_Uni", "getPlotValBounds","Bounds eval @ -/+ 3.5 : [" + f(-3.5)+","+ f(3.5)+"]",MsgCodes.info1,true);		
+		//msgObj.dispMessage("myFleishFunc_Uni", "getPlotValBounds","Bounds eval @ -/+ 3.5 : [" + f(-3.5)+","+ f(3.5)+"]");		
 		return new double[] {mu-5.0, mu+5.0};//{f(-3.5), f(3.5)};
 	}//getPlotValBounds
 	
 	//calculate the coefficients for the fleishman polynomial considering the given skew and excess kurtosis specified in summary object
 	//will generate data with mean ==0 and std == 1; if ex kurtosis lies outside of feasible region will return all 0's for coefficients
 	private double[] calcCoeffs() {		
-		msgObj.dispMessage("myFleishFunc_Uni", "calcCoeffs","Start calc coefficients.",MsgCodes.info1,true);
+		msgObj.dispInfoMessage("myFleishFunc_Uni", "calcCoeffs","Start calc coefficients.");
 		double[] coeffs = new double[summary.numMmntsGiven];
 		double exKurt = summary.exKurt(), skew = summary.skew(), skewSQ = skew*skew;
         //first verify exkurt lies within feasible bound vs skew
@@ -84,7 +83,7 @@ public class myFleishFunc_Uni extends baseRandVarFunc{
         //bound = -1.13168 + 1.58837 * skew**2
         double bound = -1.2264489 + 1.6410373*skewSQ;
         if (exKurt < bound) { 
-        	msgObj.dispMessage("myFleishFunc_Uni", "calcCoeffs", "!!!! Coefficient error : ex kurt : " + String.format("%3.8f",exKurt)+ " is not feasible with skew :" + String.format("%3.8f",skew) +" | forcing exKurt to lower bound @ skew "+String.format("%3.8f",bound)+" DANGER this is not going to reflect the sample quantities",MsgCodes.error1,true);
+        	msgObj.dispErrorMessage("myFleishFunc_Uni", "calcCoeffs", "!!!! Coefficient error : ex kurt : " + String.format("%3.8f",exKurt)+ " is not feasible with skew :" + String.format("%3.8f",skew) +" | forcing exKurt to lower bound @ skew "+String.format("%3.8f",bound)+" DANGER this is not going to reflect the sample quantities");
         	summary.forceExKurt(bound);
         	exKurt = summary.exKurt();
         }
@@ -97,7 +96,7 @@ public class myFleishFunc_Uni extends baseRandVarFunc{
         //solve with newton-raphson
         double[] tmpC = newtonMethod(c1, c2, c3, skew, exKurt);
 		coeffs = new double[] {-tmpC[1], tmpC[0],tmpC[1],tmpC[2]};
-		msgObj.dispMessage("myFleishFunc_Uni", "calcCoeffs","Finished calc coefficients : [" +_getCoeffsStr() + "]",MsgCodes.info1,true);
+		msgObj.dispInfoMessage("myFleishFunc_Uni", "calcCoeffs","Finished calc coefficients : [" +_getCoeffsStr() + "]");
 		return coeffs;
 	}//calcCoeffs
 	
@@ -122,16 +121,16 @@ public class myFleishFunc_Uni extends baseRandVarFunc{
 		
 		double discr = derivB*derivB - 4 * derivA * derivC, ta = (2*derivA), axisOfSym = -derivB/ta;
 		if(discr < 0) {//means imaginary roots and no mins/maxs in underlying cubic (?)
-			msgObj.dispMessage("myFleishFunc_Uni", "calcQuadDerivRoots", "Cubic deriv (quadratic) of " +_getCoeffsStr() + " has negative discriminant : " + String.format("%3.8f",discr) + " -> means no mins/maxs.",MsgCodes.info1,true);
+			msgObj.dispInfoMessage("myFleishFunc_Uni", "calcQuadDerivRoots", "Cubic deriv (quadratic) of " +_getCoeffsStr() + " has negative discriminant : " + String.format("%3.8f",discr) + " -> means no mins/maxs.");
 			return new double[][] {{},{},{},{}};
 		} else if(discr == 0) {//double root
-			msgObj.dispMessage("myFleishFunc_Uni", "calcQuadDerivRoots", "Cubic deriv (quadratic) of " +_getCoeffsStr() + " has 0 discriminant  : " + String.format("%3.8f",discr) + " -> means double root.",MsgCodes.info1,true);
+			msgObj.dispInfoMessage("myFleishFunc_Uni", "calcQuadDerivRoots", "Cubic deriv (quadratic) of " +_getCoeffsStr() + " has 0 discriminant  : " + String.format("%3.8f",discr) + " -> means double root.");
 			double tderivTest = ta*axisOfSym + b;
 			//double val = calcBaseEQ(axisOfSym)*std + mu;
 			double val = calcBaseEQ(axisOfSym);
 			return new double[][] {{axisOfSym},{tderivTest},{2*a},{val}};
 		}//else 2 real roots
-		msgObj.dispMessage("myFleishFunc_Uni", "calcQuadDerivRoots", "Cubic deriv (quadratic) of " +_getCoeffsStr() + " has positive discriminant  : " + String.format("%3.8f",discr) + " means 2 roots.",MsgCodes.info1,true);
+		msgObj.dispInfoMessage("myFleishFunc_Uni", "calcQuadDerivRoots", "Cubic deriv (quadratic) of " +_getCoeffsStr() + " has positive discriminant  : " + String.format("%3.8f",discr) + " means 2 roots.");
 		double axisDist = Math.sqrt(discr)/ta;
 		double zp = axisOfSym + axisDist, zm = axisOfSym - axisDist;
 		//double valZP = calcBaseEQ(zp)*std + mu,valZM = calcBaseEQ(zm)*std + mu;
@@ -150,15 +149,15 @@ public class myFleishFunc_Uni extends baseRandVarFunc{
 	private void _dispDerivRootsVals() {
 		double mu = summary.mean(), std = summary.std();	
 		if(minMax2ndDerivs[0].length < 2) {return;}
-		msgObj.dispMessage("myFleishFunc_Uni", "_dispDerivRootsVals", "Values in minMax2ndDerivs : ",MsgCodes.info1,true);
+		msgObj.dispInfoMessage("myFleishFunc_Uni", "_dispDerivRootsVals", "Values in minMax2ndDerivs : ");
 		int idx = 0;
-		msgObj.dispMessage("myFleishFunc_Uni", "_dispDerivRootsVals", "\t min/max (deriv) : lower x minMax2ndDerivs["+idx+"][0] = "+minMax2ndDerivs[idx][0] + " | higher x minMax2ndDerivs["+idx+"][1] = "+minMax2ndDerivs[idx][1],MsgCodes.info1,true);
+		msgObj.dispInfoMessage("myFleishFunc_Uni", "_dispDerivRootsVals", "\t min/max (deriv) : lower x minMax2ndDerivs["+idx+"][0] = "+minMax2ndDerivs[idx][0] + " | higher x minMax2ndDerivs["+idx+"][1] = "+minMax2ndDerivs[idx][1]);
 		++idx;
-		msgObj.dispMessage("myFleishFunc_Uni", "_dispDerivRootsVals", "\t 2nd deriv test : lower x minMax2ndDerivs["+idx+"][0] = "+minMax2ndDerivs[idx][0] + " | higher x minMax2ndDerivs["+idx+"][1] = "+minMax2ndDerivs[idx][1],MsgCodes.info1,true);
+		msgObj.dispInfoMessage("myFleishFunc_Uni", "_dispDerivRootsVals", "\t 2nd deriv test : lower x minMax2ndDerivs["+idx+"][0] = "+minMax2ndDerivs[idx][0] + " | higher x minMax2ndDerivs["+idx+"][1] = "+minMax2ndDerivs[idx][1]);
 		++idx;
-		msgObj.dispMessage("myFleishFunc_Uni", "_dispDerivRootsVals", "\t 3rd deriv test : lower x minMax2ndDerivs["+idx+"][0] = "+minMax2ndDerivs[idx][0] + " | higher x minMax2ndDerivs["+idx+"][1] = "+minMax2ndDerivs[idx][1],MsgCodes.info1,true);
+		msgObj.dispInfoMessage("myFleishFunc_Uni", "_dispDerivRootsVals", "\t 3rd deriv test : lower x minMax2ndDerivs["+idx+"][0] = "+minMax2ndDerivs[idx][0] + " | higher x minMax2ndDerivs["+idx+"][1] = "+minMax2ndDerivs[idx][1]);
 		++idx;
-		msgObj.dispMessage("myFleishFunc_Uni", "_dispDerivRootsVals", "\t func eval : lower x minMax2ndDerivs["+idx+"][0] = "+(minMax2ndDerivs[idx][0]*std + mu) + " | higher x minMax2ndDerivs["+idx+"][1] = "+(minMax2ndDerivs[idx][1]*std + mu),MsgCodes.info1,true);
+		msgObj.dispInfoMessage("myFleishFunc_Uni", "_dispDerivRootsVals", "\t func eval : lower x minMax2ndDerivs["+idx+"][0] = "+(minMax2ndDerivs[idx][0]*std + mu) + " | higher x minMax2ndDerivs["+idx+"][1] = "+(minMax2ndDerivs[idx][1]*std + mu));
 		++idx;
 	}//_dispDerivRootsVals
 	
@@ -183,15 +182,15 @@ public class myFleishFunc_Uni extends baseRandVarFunc{
 		if(getFlag(debugIDX)) {_dispDerivRootsVals();}
 		int numRoots = 0;
 		if(discr < 0) {//1 real, 2 non-real complex-conjugate roots
-			msgObj.dispMessage("myFleishFunc_Uni", "calcAllRoots", "Cubic Root calc : discr : " + String.format("%3.8f",discr) + " -> means 1 real and 2 non-real cmplx roots.",MsgCodes.info1,true);
+			msgObj.dispInfoMessage("myFleishFunc_Uni", "calcAllRoots", "Cubic Root calc : discr : " + String.format("%3.8f",discr) + " -> means 1 real and 2 non-real cmplx roots.");
 			numRoots = 1;
 		} 
 		else if (discr > 0) {//has 3 distinct real roots
-			msgObj.dispMessage("myFleishFunc_Uni", "calcAllRoots", "Cubic Root calc : discr : " + String.format("%3.8f",discr) + " -> means 3 distinct real roots.",MsgCodes.info1,true);
+			msgObj.dispInfoMessage("myFleishFunc_Uni", "calcAllRoots", "Cubic Root calc : discr : " + String.format("%3.8f",discr) + " -> means 3 distinct real roots.");
 			numRoots = 3;
 		} 
 		else {//discr == 0 - has a multiple root and all roots are real
-			msgObj.dispMessage("myFleishFunc_Uni", "calcAllRoots", "Cubic Root calc : discr : " + String.format("%3.8f",discr) + " -> means multiple root and all roots are real.",MsgCodes.info1,true);
+			msgObj.dispInfoMessage("myFleishFunc_Uni", "calcAllRoots", "Cubic Root calc : discr : " + String.format("%3.8f",discr) + " -> means multiple root and all roots are real.");
 			numRoots = 2;
 		}
 		double[] res = new double[numRoots];
@@ -499,7 +498,7 @@ public class myFleishFunc_Uni extends baseRandVarFunc{
 	}
 
 	@Override
-	public int getRVFType() {return BaseProbExpMgr.fleishRandVarIDX;}
+	public int getRVFType() {return baseProbExpMgr.fleishRandVarIDX;}
 
 
 }//class myFleishFunc

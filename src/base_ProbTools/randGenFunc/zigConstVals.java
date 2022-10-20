@@ -1,7 +1,6 @@
 package base_ProbTools.randGenFunc;
 
 import base_ProbTools.randGenFunc.funcs.base.baseRandVarFunc;
-import base_Utils_Objects.io.messaging.MsgCodes;
 
 //class holding ziggurat pre-calced values (in tabular form) for a particular prob function and # of rectangles
 //this needs to have no memory so multiple functions can use it
@@ -76,7 +75,7 @@ public class zigConstVals{
 		double integralRes = func.integral_fStd(rVal, Double.POSITIVE_INFINITY);
 		double vol = rVal* funcAtR + integralRes;//Q func == 1 - CDF
 		if (vol < 0) {
-			baseRandVarFunc.msgObj.dispMessage("zigConstVals", "z_R", func.getShortDesc()+ "| Initial Ziggurat R val chosen to be too high, causing integration to yield a negative volume due to error",MsgCodes.error1,true);
+			baseRandVarFunc.msgObj.dispErrorMessage("zigConstVals", "z_R", func.getShortDesc()+ "| Initial Ziggurat R val chosen to be too high, causing integration to yield a negative volume due to error");
 			return new double[] {-rVal*9, 0};
 		}
 		//x values and functional eval of x vals

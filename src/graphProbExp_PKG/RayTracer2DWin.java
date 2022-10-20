@@ -93,7 +93,7 @@ public class RayTracer2DWin extends myDispWindow {
 		setFlags(drawRightSideMenu, true);
 		
 		//build exps before visible screen with set
-		RTExp = new RayTracerExperiment(this);
+		RTExp = new RayTracerExperiment(pa, msgObj, curVisScrDims);
 		//set visibility width and send to experiments
 		setVisScreenDimsPriv();			
 		//set offset to use for custom menu objects
@@ -280,7 +280,7 @@ public class RayTracer2DWin extends myDispWindow {
 	//manage any functionality specific to this window that needs to be recalced when the visibile dims of the window change
 	@Override
 	protected void setVisScreenDimsPriv() {	
-		RTExp.setVisibleScreenWidth();
+		RTExp.setVisibleScreenDims(curVisScrDims);
 		
 	}//setVisScreenDimsPriv
 

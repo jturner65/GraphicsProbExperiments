@@ -1,8 +1,8 @@
 package base_ProbTools.randGenFunc.funcs;
 
-import base_ProbTools.BaseProbExpMgr;
+import base_ProbTools.baseProbExpMgr;
 import base_ProbTools.quadrature.base.baseQuadrature;
-import base_ProbTools.summary.myProbSummary_Dbls;
+import base_StatsTools.summary.myProbSummary_Dbls;
 
 /**
  * instancing class for the function describing a normal random variable - explicitly mean == 0, var==std==1
@@ -48,7 +48,7 @@ public class myNormalFunc extends myGaussianFunc{
 		return normRes;
 	}//CDF_inv
 	@Override
-	public int getRVFType() {return BaseProbExpMgr.normRandVarIDX;}
+	public int getRVFType() {return baseProbExpMgr.normRandVarIDX;}
 	@Override
 	public void setOptionFlags(int[] _opts) {}
 

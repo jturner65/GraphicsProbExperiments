@@ -2,19 +2,20 @@ package classGradeExperimentsPKG;
 
 import java.util.*;
 
+import base_JavaProjTools_IRender.base_Render_Interface.IRenderInterface;
 import base_ProbTools.*;
 import base_ProbTools.randGenFunc.gens.myFleishUniVarRandGen;
 import base_ProbTools.randGenFunc.gens.base.myRandGen;
-import base_ProbTools.summary.myProbSummary_Dbls;
+import base_StatsTools.summary.myProbSummary_Dbls;
 import base_UI_Objects.windowUI.base.myDispWindow;
-import base_Utils_Objects.io.messaging.MsgCodes;
+import base_Utils_Objects.io.messaging.MessageObject;
 /**
  * this class is a specialized type fo probability experiment manager, specifically for the class grades project
  * @author john
  * @param 
  *
  */
-public class ClassGradeExperiment extends BaseProbExpMgr{
+public class ClassGradeExperiment extends baseProbExpMgr{
 	//structure holding all classes
 	private HashSet<myClassRoster> classRosters;
 	private int numClasses;
@@ -32,7 +33,7 @@ public class ClassGradeExperiment extends BaseProbExpMgr{
 	private HashMap<String,HashMap<Integer, Double>> perClassStudentGrades;
 	//summary objects for each class, based on loaded grades
 	private HashMap<String, myProbSummary_Dbls> perClassSummaryObjMap;
-	
+		
 	//types of different transformed grades
 	public static final int
 		rawGradeIDX					= 0,
@@ -61,8 +62,9 @@ public class ClassGradeExperiment extends BaseProbExpMgr{
 	private static float[] classBarStart = new float[] {10,50};
 	private static float[] classPlotStart = new float[] {10,50};
 	
-	public ClassGradeExperiment(myDispWindow _win) {
-		super(_win);
+	public ClassGradeExperiment(IRenderInterface _pa, MessageObject _msgObj, float[] _curVisScrDims) {
+		super(_pa, _msgObj, _curVisScrDims);
+		
 	}//ctor
 	//called at end of ctor and whenever experiment needs to be re-instanced
 	@Override
@@ -102,7 +104,7 @@ public class ClassGradeExperiment extends BaseProbExpMgr{
 	//_finalGradeVals : idx 0 : up to first 4 moments of final grade target mapping; idx 1 : min/max of target mapping
 	//_finalGradeDescs : idx 0 : # of moments final grade mapping dist should use, idx 1 : type of myRandGen ; idx 2 : type of myRandFunc to use
 	public void buildFileBasedGradeExp(String _studentFileName, String[] _classRosterFileNames, int expType, double[][] _finalGradeVals, int[] _finalGradeDescs) {	//1 roster per class
-		msgObj.dispMessage("ClassGradeExperiment","buildFileBasedGradeExp","Start loading students from " + _studentFileName+" and all grades for " + _classRosterFileNames.length+" classes.",MsgCodes.info1,true);
+		msgObj.dispInfoMessage("ClassGradeExperiment","buildFileBasedGradeExp","Start loading students from " + _studentFileName+" and all grades for " + _classRosterFileNames.length+" classes.");
 		//reset class and student structures
 		//build students
 		String [] studentNames = loadSpecifiedStudents(_studentFileName);
@@ -125,18 +127,18 @@ public class ClassGradeExperiment extends BaseProbExpMgr{
 		//assign desired transformation/description distribution to each class
 		assignGradeTransformation(expType);
 		
-		msgObj.dispMessage("ClassGradeExperiment","buildFileBasedGradeExp","Finished loading students from " + _studentFileName+" and all grades for " + _classRosterFileNames.length+" classes.",MsgCodes.info1,true);		
+		msgObj.dispInfoMessage("ClassGradeExperiment","buildFileBasedGradeExp","Finished loading students from " + _studentFileName+" and all grades for " + _classRosterFileNames.length+" classes.");		
 	}//buildFileBasedGradeExp
 	
 	//load individual class's grades into per-class map
 	private void loadAllClassData(String[] _classRosterFileNames) {
-		msgObj.dispMessage("ClassGradeExperiment","loadSpecifiedStudentGrades","Start loading grades from all  " + _classRosterFileNames.length + " classes.",MsgCodes.info1,true);
+		msgObj.dispInfoMessage("ClassGradeExperiment","loadSpecifiedStudentGrades","Start loading grades from all  " + _classRosterFileNames.length + " classes.");
 		//all student grades for each class
 		perClassStudentGrades = new HashMap<String,HashMap<Integer, Double>>();
 		//object describing class distribution
 		perClassSummaryObjMap = new HashMap<String, myProbSummary_Dbls>();
 		for(String clsFileName : _classRosterFileNames) {
-			msgObj.dispMessage("ClassGradeExperiment","loadSpecifiedStudentGrades","Start loading grades for class from " + clsFileName,MsgCodes.info1,true);
+			msgObj.dispInfoMessage("ClassGradeExperiment","loadSpecifiedStudentGrades","Start loading grades for class from " + clsFileName);
 			//perClassStudentGrades and perClassSummaryObjMap gets populated here
 			//results from reading file clsFileName from FileIO object
 			String[] classFileRes = new String[1];
@@ -159,11 +161,11 @@ public class ClassGradeExperiment extends BaseProbExpMgr{
 	//		}//for each student assign a random grade and add them to class roster			
 			//build summary object from vals
 			myProbSummary_Dbls summaryObj = new myProbSummary_Dbls(vals);
-			msgObj.dispMessage("ClassGradeExperiment","loadAllClassData","Built Summary object with following stats : " + summaryObj.getMinNumMmntsDesc(),MsgCodes.info1,true);
+			msgObj.dispInfoMessage("ClassGradeExperiment","loadAllClassData","Built Summary object with following stats : " + summaryObj.getMinNumMmntsDesc());
 			perClassSummaryObjMap.put(className, summaryObj);
-			msgObj.dispMessage("ClassGradeExperiment","loadAllClassData","Finished loading grades for class from " + clsFileName,MsgCodes.info1,true);
+			msgObj.dispInfoMessage("ClassGradeExperiment","loadAllClassData","Finished loading grades for class from " + clsFileName);
 		}
-		msgObj.dispMessage("ClassGradeExperiment","loadAllClassData","Finished loading grades from all  " + _classRosterFileNames.length + " classes.",MsgCodes.info1,true);
+		msgObj.dispInfoMessage("ClassGradeExperiment","loadAllClassData","Finished loading grades from all  " + _classRosterFileNames.length + " classes.");
 	}//loadSpecifiedStudentGrades
 	
 	private String[] loadSpecifiedStudents(String _studentFileName) {
@@ -197,7 +199,7 @@ public class ClassGradeExperiment extends BaseProbExpMgr{
 			}//for each student assign a random grade and add them to class roster			
 			//build summary object from vals
 			myProbSummary_Dbls summaryObj = new myProbSummary_Dbls(vals);
-			msgObj.dispMessage("ClassGradeExperiment","updateGlblGrades","Built Summary object for class : " + _cls.name+ " with following stats  : " + summaryObj.getMinNumMmntsDesc(),MsgCodes.info1,true);
+			msgObj.dispInfoMessage("ClassGradeExperiment","updateGlblGrades","Built Summary object for class : " + _cls.name+ " with following stats  : " + summaryObj.getMinNumMmntsDesc());
 			perClassSummaryObjMap.put(_cls.name, summaryObj);
 		}
 	}//updateGlblGrades
@@ -212,8 +214,8 @@ public class ClassGradeExperiment extends BaseProbExpMgr{
 	//_finalGradeVals : idx 0 : up to first 4 moments of final grade target mapping; idx 1 : min/max of target mapping
 	//_finalGradeDescs : idx 0 : # of moments final grade mapping dist should use, idx 1 : type of myRandGen ; idx 2 : type of myRandFunc to use
 	public void buildRandGradeExp(boolean[] flags, int[] counts, int expType, double[][] _finalGradeVals, int[] _finalGradeDescs) {
-		String dispMessage = (flags[0] ? "rebuild "+ counts[0] + " random students" : "map "+ numStudents + " current students to ") + (flags[1] ? ""+ counts[1] + "rebuilt classes" : numClasses+ " current classes") + " using "+ (flags[2] ? "new random generated grades" : "existing grades") ;
-		msgObj.dispMessage("ClassGradeExperiment","buildRandGradeExp","Start " + dispMessage,MsgCodes.info1,true);		
+		String dispInfoMessage = (flags[0] ? "rebuild "+ counts[0] + " random students" : "map "+ numStudents + " current students to ") + (flags[1] ? ""+ counts[1] + "rebuilt classes" : numClasses+ " current classes") + " using "+ (flags[2] ? "new random generated grades" : "existing grades") ;
+		msgObj.dispInfoMessage("ClassGradeExperiment","buildRandGradeExp","Start " + dispInfoMessage);		
 		//idx 0 == students rebuilt
 		if(flags[0]) {											buildNewRandomStudents(counts[0]);}//new students
 		//idx 1 == classes rebuilt
@@ -230,7 +232,7 @@ public class ClassGradeExperiment extends BaseProbExpMgr{
 		//assign desired transformation/description distribution to each class
 		assignGradeTransformation(expType);		
 		
-		msgObj.dispMessage("ClassGradeExperiment","buildRandGradeExp","Finished " + dispMessage,MsgCodes.info1,true);
+		msgObj.dispInfoMessage("ClassGradeExperiment","buildRandGradeExp","Finished " + dispInfoMessage);
 	}//buildRandomGradeExperiment
 	
 	//build list of students with randomly assigned names - to be replaced by file loading all student names
@@ -242,24 +244,24 @@ public class ClassGradeExperiment extends BaseProbExpMgr{
 		
 	//build set of random students
 	private void buildNewRandomStudents(int _numStudents) {
-		msgObj.dispMessage("ClassGradeExperiment","buildNewRandomStudents","Start Building "  +_numStudents + " random students.",MsgCodes.info1,true);
+		msgObj.dispInfoMessage("ClassGradeExperiment","buildNewRandomStudents","Start Building "  +_numStudents + " random students.");
 		String[] studentNames = _buildRandStudentNameList(_numStudents);
 		_buildNewStudents(studentNames);
-		msgObj.dispMessage("ClassGradeExperiment","buildNewRandomStudents","Finished Building "  +_numStudents + " random students.",MsgCodes.info1,true);
+		msgObj.dispInfoMessage("ClassGradeExperiment","buildNewRandomStudents","Finished Building "  +_numStudents + " random students.");
 	}//buildNewRandomStudents	
 
 	//random classes
 	private void buildNewRandomClasses(int _numClasses) {
-		msgObj.dispMessage("ClassGradeExperiment","buildNewRandomClasses","Start Building "  +_numClasses + " random classes.",MsgCodes.info1,true);
+		msgObj.dispInfoMessage("ClassGradeExperiment","buildNewRandomClasses","Start Building "  +_numClasses + " random classes.");
 		String[] classNames = new String[_numClasses];
 		for (int i=0;i<classNames.length;++i) {classNames[i]="Class : " + (i+1);}
 		_buildNewClasses(classNames);		
-		msgObj.dispMessage("ClassGradeExperiment","buildNewRandomClasses","Finished Building "  +_numClasses + " random classes.",MsgCodes.info1,true);
+		msgObj.dispInfoMessage("ClassGradeExperiment","buildNewRandomClasses","Finished Building "  +_numClasses + " random classes.");
 	}//buildNewRandomClasses
 		
 	//derive random student grades for each class and build prob summary objs of grade sample dists per class
 	private void buildRandomStudentGrades() {
-		msgObj.dispMessage("ClassGradeExperiment","buildRandomStudentGrades","Start sampling "  +students.size() + " random student grades for " + classRosters.size() +" classes",MsgCodes.info1,true);
+		msgObj.dispInfoMessage("ClassGradeExperiment","buildRandomStudentGrades","Start sampling "  +students.size() + " random student grades for " + classRosters.size() +" classes");
 		perClassStudentGrades = new HashMap<String,HashMap<Integer, Double>>();
 		perClassSummaryObjMap = new HashMap<String, myProbSummary_Dbls>();
 		
@@ -287,13 +289,13 @@ public class ClassGradeExperiment extends BaseProbExpMgr{
 			}//for each student assign a random grade and add them to class roster			
 			//build summary object from vals
 			myProbSummary_Dbls summaryObj = new myProbSummary_Dbls(vals);
-			msgObj.dispMessage("ClassGradeExperiment","buildRandomStudentGrades","Built Summary object for class : " + _cls.name+ " with following stats : " + summaryObj.getMinNumMmntsDesc(),MsgCodes.info1,true);
+			msgObj.dispInfoMessage("ClassGradeExperiment","buildRandomStudentGrades","Built Summary object for class : " + _cls.name+ " with following stats : " + summaryObj.getMinNumMmntsDesc());
 			perClassSummaryObjMap.put(_cls.name, summaryObj);
 		}
 		setStntClassRebuildFlags();			//students have not received current grade distribution;classes have not had students assigned; grades need to be rebuilt <- last one we counteract
 		//grades have been recalced
 		setFlag(gradesNeedRecalcIDX, false);
-		msgObj.dispMessage("ClassGradeExperiment","buildRandomStudentGrades","Finished sampling "  +students.size() + " random student grades for " + classRosters.size() +" classes",MsgCodes.info1,true);
+		msgObj.dispInfoMessage("ClassGradeExperiment","buildRandomStudentGrades","Finished sampling "  +students.size() + " random student grades for " + classRosters.size() +" classes");
 	}//buildRandomStudentGrades
 	
 	/////////////////////////////////////
@@ -305,7 +307,7 @@ public class ClassGradeExperiment extends BaseProbExpMgr{
 		String mmtntsStr = "[";
 		for(int i=0;i<_descVals[0]-1;++i) {			mmtntsStr += ""+_mmntsAndMinMax[0][i]+", ";		}
 		mmtntsStr += ""+_mmntsAndMinMax[0][_descVals[0]-1]+"]";
-		msgObj.dispMessage("ClassGradeExperiment","setDesiredFinalGradeSummaryObj","Start setting final grade summary object with "+_descVals[0]+" moments : " + mmtntsStr+".",MsgCodes.info1,true);
+		msgObj.dispInfoMessage("ClassGradeExperiment","setDesiredFinalGradeSummaryObj","Start setting final grade summary object with "+_descVals[0]+" moments : " + mmtntsStr+".");
 		
 		//int _numMmnts = _descVals[0];int _randGenType = _descVals[1];int _randVarType = _descVals[2];
 		double[] mmnts = new double[_descVals[0]], minMax =  new double[_mmntsAndMinMax[1].length] ;
@@ -317,7 +319,7 @@ public class ClassGradeExperiment extends BaseProbExpMgr{
 		perClassSummaryObjMap.put(finalGradeClass.name, tmpFinal);			
 		myRandGen tmpFinalRandGen = buildAndInitRandGen(_descVals[1], _descVals[2], perClassSummaryObjMap.get(finalGradeClass.name));
 		finalGradeClass.setBaseDistModel(tmpFinalRandGen);		
-		msgObj.dispMessage("ClassGradeExperiment","setDesiredFinalGradeSummaryObj","Finished setting final grade summary object with "+_descVals[0]+" moments : " + mmtntsStr+".",MsgCodes.info1,true);
+		msgObj.dispInfoMessage("ClassGradeExperiment","setDesiredFinalGradeSummaryObj","Finished setting final grade summary object with "+_descVals[0]+" moments : " + mmtntsStr+".");
 		
 	}//buildNewDesiredFinalGradeRandGen
 	
@@ -328,9 +330,9 @@ public class ClassGradeExperiment extends BaseProbExpMgr{
 	public void rebuildDesFinalGradeMapping(double[][] _mmntsAndMinMax, int[] _descVals) {
 		setDesiredFinalGradeSummaryObj(_mmntsAndMinMax,_descVals);
 		//now must reperform mapping from uniform for each class
-		msgObj.dispMessage("ClassGradeExperiment","rebuildDesFinalGradeMapping","Start calculating final grade mapping of student grades.",MsgCodes.info1,true);
+		msgObj.dispInfoMessage("ClassGradeExperiment","rebuildDesFinalGradeMapping","Start calculating final grade mapping of student grades.");
 		finalGradeClass.calcTotalGrades();
-		msgObj.dispMessage("ClassGradeExperiment","rebuildDesFinalGradeMapping","Finished calculating final grade mapping of student grades.",MsgCodes.info1,true);
+		msgObj.dispInfoMessage("ClassGradeExperiment","rebuildDesFinalGradeMapping","Finished calculating final grade mapping of student grades.");
 	}//rebuildDesFinalGradeMapping	
 	
 	/**
@@ -338,8 +340,8 @@ public class ClassGradeExperiment extends BaseProbExpMgr{
 	 * @param expTypeIDX : index of experimental list we are using : "Linear", "Uniform Spaced","Gaussian","Fleishman Poly","Cosine Mmnts derived","Cosine CDF derived"
 	 */
 	private void assignGradeTransformation(int _expTypeIDX) {		
-		if((_expTypeIDX < 0) || (_expTypeIDX >= expType.length)){			msgObj.dispMessage("ClassGradeExperiment","buildClassGradeExperiment","Attempting to build experiment for unknown transformational model type IDX : " + _expTypeIDX + ". Aborting.",MsgCodes.error2,true);return;}
-		msgObj.dispMessage("ClassGradeExperiment","buildClassGradeExperiment","Start assigning students to classes, grades to students, and "+ expType[_expTypeIDX]+" model of grades distribution to each grade.",MsgCodes.info1,true);
+		if((_expTypeIDX < 0) || (_expTypeIDX >= expType.length)){			msgObj.dispErrorMessage("ClassGradeExperiment","buildClassGradeExperiment","Attempting to build experiment for unknown transformational model type IDX : " + _expTypeIDX + ". Aborting.");return;}
+		msgObj.dispInfoMessage("ClassGradeExperiment","buildClassGradeExperiment","Start assigning students to classes, grades to students, and "+ expType[_expTypeIDX]+" model of grades distribution to each grade.");
 		//Final Grades mappings have to be specified first, before this function has been called
 		switch(_expTypeIDX) {
 			case 0 : { 		//gaussian model - inverse CDF to map to uniform space
@@ -363,7 +365,7 @@ public class ClassGradeExperiment extends BaseProbExpMgr{
 			default : {}		//unknown type
 		}//switch
 		refreshBuildStateFlags();
-		msgObj.dispMessage("ClassGradeExperiment","buildClassGradeExperiment","Finished assigning students to classes, grades to students, and "+ expType[_expTypeIDX]+" model of grades distribution to each grade.",MsgCodes.info1,true);
+		msgObj.dispInfoMessage("ClassGradeExperiment","buildClassGradeExperiment","Finished assigning students to classes, grades to students, and "+ expType[_expTypeIDX]+" model of grades distribution to each grade.");
 	}//buildClassGradeExperiment
 	
 	
@@ -388,7 +390,7 @@ public class ClassGradeExperiment extends BaseProbExpMgr{
 			setFlag(classesHaveCurStdntsIDX, true);		//classes have current students
 		}
 		if(getFlag(gradesNeedRecalcIDX)) {//need to rebuild grades before attempting to assign them
-			msgObj.dispMessage("ClassGradeExperiment","assignGradesToStudentsAndStudentsToClasses","Need to rebuild grades before attempting to assign them to students.",MsgCodes.warning1,true);
+			msgObj.dispWarningMessage("ClassGradeExperiment","assignGradesToStudentsAndStudentsToClasses","Need to rebuild grades before attempting to assign them to students.");
 			return;
 		}
 		if (!getFlag(stdntsHaveCurGradesIDX)) {//students have not received current grade distribution;
@@ -400,9 +402,9 @@ public class ClassGradeExperiment extends BaseProbExpMgr{
 	
 	private myFinalGradeRoster buildFinalGradeRoster(float heightOfFinalPlot) {
 		//build final grade roster
-		float[] finalUniBarLocSt = new float[] {classBarStart[0], win.curVisScrDims[1]- distBtwnAdjBars},
-				finalTransBarLocSt = new float[] {classBarStart[0], win.curVisScrDims[1] - 3*distBtwnAdjBars}, 
-				finalPlotLocSt = new float[] {classPlotStart[0], win.curVisScrDims[1] - heightOfFinalPlot , heightOfFinalPlot}
+		float[] finalUniBarLocSt = new float[] {classBarStart[0], curVisScrDims[1]- distBtwnAdjBars},
+				finalTransBarLocSt = new float[] {classBarStart[0], curVisScrDims[1] - 3*distBtwnAdjBars}, 
+				finalPlotLocSt = new float[] {classPlotStart[0], curVisScrDims[1] - heightOfFinalPlot , heightOfFinalPlot}
 				;		
 
 		return new myFinalGradeRoster(myDispWindow.pa, this, "Final Grades For All Students", new float[][] { finalUniBarLocSt, finalTransBarLocSt,finalPlotLocSt});
@@ -411,7 +413,7 @@ public class ClassGradeExperiment extends BaseProbExpMgr{
 	//pass names of students, either from a file or randomly generated
 	private void _buildNewStudents(String[] studentNames) {
 		numStudents = studentNames.length;
-		msgObj.dispMessage("ClassGradeExperiment","_buildNewStudents","Start building " + numStudents +" students",MsgCodes.info1,true);	
+		msgObj.dispInfoMessage("ClassGradeExperiment","_buildNewStudents","Start building " + numStudents +" students");	
 		students.clear();
 		myStudent stdnt;
 		for (int i=0;i<numStudents;++i) {
@@ -420,13 +422,13 @@ public class ClassGradeExperiment extends BaseProbExpMgr{
 			students.put(stdnt.ObjID, stdnt);			
 		}	
 		setStntClassRebuildFlags();			//students have not received current grade distribution;classes have not had students assigned; grades need to be rebuilt
-		msgObj.dispMessage("ClassGradeExperiment","_buildNewStudents","Finished building " + numStudents +" students",MsgCodes.info1,true);				
+		msgObj.dispInfoMessage("ClassGradeExperiment","_buildNewStudents","Finished building " + numStudents +" students");				
 	}//_buildNewStudents	
 	
 	//build new class structures, if called for - requires new grade derivation and assignment, as well as assigning students to classes
 	private void _buildNewClasses(String[] _className) {
 		numClasses = _className.length;
-		msgObj.dispMessage("ClassGradeExperiment","_buildNewClasses","Start building " + numClasses + " new classes and final grade \"class\".",MsgCodes.info1,true);	
+		msgObj.dispInfoMessage("ClassGradeExperiment","_buildNewClasses","Start building " + numClasses + " new classes and final grade \"class\".");	
 		//set up final grade "class"
 		float heightOfPlots =  getPlotHeight();
 		finalGradeClass = buildFinalGradeRoster(heightOfPlots);	
@@ -448,7 +450,7 @@ public class ClassGradeExperiment extends BaseProbExpMgr{
 		}//for numClasses
 		
 		setStntClassRebuildFlags();			//students have not received current grade distribution;classes have not had students assigned; grades need to be rebuilt
-		msgObj.dispMessage("ClassGradeExperiment","_buildNewClasses","Finished building " + numClasses + " new classes and final grade \"class\".",MsgCodes.info1,true);	
+		msgObj.dispInfoMessage("ClassGradeExperiment","_buildNewClasses","Finished building " + numClasses + " new classes and final grade \"class\".");	
 	}//buildNewClasses
 
 	
@@ -463,18 +465,18 @@ public class ClassGradeExperiment extends BaseProbExpMgr{
 		_testFlTransform(gradeSourceDistGen, 10000);
 		double min = -1, max = 1;
 		double area = gradeSourceDistGen.testInteg(min,max);
-		msgObj.dispMessage("ClassGradeExperiment","testFleishTransform","area under fleish poly from "+min+"->"+max+" : " + area,MsgCodes.info1,true);
+		msgObj.dispInfoMessage("ClassGradeExperiment","testFleishTransform","area under fleish poly from "+min+"->"+max+" : " + area);
 	}//
 	
 	private void _testFlTransform(myRandGen flRandGen, int numVals) {
 		//test fleishman polynomial-based transformation
-		msgObj.dispMessage("ClassGradeExperiment","_testFlTransform","Specified summary for fleishman polynomial : " + flRandGen.getSummary().getMomentsVals(),MsgCodes.info1,true);
+		msgObj.dispInfoMessage("ClassGradeExperiment","_testFlTransform","Specified summary for fleishman polynomial : " + flRandGen.getSummary().getMomentsVals());
 		double[] testData = new double[numVals];
 		for(int i=0;i<testData.length;++i) {
 			testData[i] = flRandGen.getSample();
 		}
 		myProbSummary_Dbls testSummary = new myProbSummary_Dbls(testData);
-		msgObj.dispMessage("ClassGradeExperiment","_testFlTransform","Analysis res of testSummary for fleishman polynomial : " + testSummary.getMomentsVals(),MsgCodes.info1,true);
+		msgObj.dispInfoMessage("ClassGradeExperiment","_testFlTransform","Analysis res of testSummary for fleishman polynomial : " + testSummary.getMomentsVals());
 		
 	}
 	
@@ -484,9 +486,9 @@ public class ClassGradeExperiment extends BaseProbExpMgr{
 	        double bound = -1.2264489 + 1.6410373*skew*skew;
 			for (double exKurt=0.0; exKurt<1.0;exKurt+=.1) {
 		        if (exKurt < bound) { 
-		        	msgObj.dispMessage("ClassGradeExperiment", "testFleishRangeOfVals", "!!!! Coefficient error : ex kurt : " + exKurt+ " is not feasible with skew :" + skew + " | Bounds is :"+bound,MsgCodes.warning1,true);
+		        	msgObj.dispWarningMessage("ClassGradeExperiment", "testFleishRangeOfVals", "!!!! Coefficient error : ex kurt : " + exKurt+ " is not feasible with skew :" + skew + " | Bounds is :"+bound);
 		        } else {		        	
-		        	msgObj.dispMessage("ClassGradeExperiment", "testFleishRangeOfVals", "ex kurt : " + exKurt+ " is feasible with skew :" + skew + " | Bounds is :"+bound,MsgCodes.info1,true);
+		        	msgObj.dispInfoMessage("ClassGradeExperiment", "testFleishRangeOfVals", "ex kurt : " + exKurt+ " is feasible with skew :" + skew + " | Bounds is :"+bound);
 		        }
 //				myRandGen flRandGen = buildAndInitRandGen(fleishRandGen_Uni, GL_QuadSlvrIDX, 256,new myProbSummary(new double[] {0,1,skew,exKurt},4, true));
 //				_testFlTransform(flRandGen, 10000);
@@ -495,18 +497,18 @@ public class ClassGradeExperiment extends BaseProbExpMgr{
 	}//testFleishRangeOfVals	
 	
 	public void testCosFunction() {//generate cdf values given uniform input
-    	msgObj.dispMessage("ClassGradeExperiment", "testCosFunction", "Starting test cosine function : generate CDF values given uniform values.",MsgCodes.info1,true);
+    	msgObj.dispInfoMessage("ClassGradeExperiment", "testCosFunction", "Starting test cosine function : generate CDF values given uniform values.");
     	myRandGen cosFuncTestGen = buildAndInitRandGen(boundedRandGen, raisedCosRandVarIDX, new myProbSummary_Dbls(new double[] {0,1,0,0},2));
     	TreeMap<Double,Double> genVals = new TreeMap<Double,Double>();
-    	msgObj.dispMessage("ClassGradeExperiment", "testCosFunction", "p \t\t| val",MsgCodes.info1,true);
+    	msgObj.dispInfoMessage("ClassGradeExperiment", "testCosFunction", "p \t\t| val");
     		
     	for(Double i = 0.0; i<=1.0f;i+=.00001) {
     		genVals.put(i, cosFuncTestGen.inverseCDF(i));
-    		msgObj.dispMessage("ClassGradeExperiment", "testCosFunction", String.format("%.8f",i)+"," + String.format("%.8f",genVals.get(i)),MsgCodes.info1,true);
+    		msgObj.dispInfoMessage("ClassGradeExperiment", "testCosFunction", String.format("%.8f",i)+"," + String.format("%.8f",genVals.get(i)));
     	}
     	
 		
-    	msgObj.dispMessage("ClassGradeExperiment", "testCosFunction", "Finished test cosine function: generate CDF values given uniform values.",MsgCodes.info1,true);
+    	msgObj.dispInfoMessage("ClassGradeExperiment", "testCosFunction", "Finished test cosine function: generate CDF values given uniform values.");
 	}//testCosFunction
 	
 	
@@ -514,14 +516,14 @@ public class ClassGradeExperiment extends BaseProbExpMgr{
 	public void testInvFleishCalc(double xDesired) {
 		myRandGen gradeSourceDistGen = buildAndInitRandGen(fleishRandGen_UniVar, fleishRandVarIDX, new myProbSummary_Dbls(new double[] {0,1,1,4},4));
 		double val = ((myFleishUniVarRandGen)gradeSourceDistGen).calcInvFuncVal(xDesired);
-
+		msgObj.dispInfoMessage("ClassGradeExperiment", "testInvFleishCalc", "Finished test Fleishman Inverse Function Val Calc : "+val);
 	}//testInvFleishCalc
 	
 	//////////////////////////
 	// plots
 	
 	//return estimate of individual plot value height based on # of classes
-	private float getPlotHeight() {return .95f * win.curVisScrDims[1]/(numClasses + 1);}
+	private float getPlotHeight() {return .95f * curVisScrDims[1]/(numClasses + 1);}
 
 	
 	public void clearAllPlotEval() {
@@ -542,7 +544,7 @@ public class ClassGradeExperiment extends BaseProbExpMgr{
 	public void evalCosAndNormWithHist(int numVals, int numBuckets, double low, double high) {
 		for (myClassRoster _cls : classRosters) {		
 			//build cosine rand gen and assign to class but restore appropriate current rand gen
-			msgObj.dispMessage("ClassGradeExperiment", "evalCosAndNormWithHist", "Class : " + _cls.name,MsgCodes.info1,true);
+			msgObj.dispInfoMessage("ClassGradeExperiment", "evalCosAndNormWithHist", "Class : " + _cls.name);
 			_buildCosRandGenForTest(_cls);	
 			_cls.evalCosAndNormWithHist(numVals, numBuckets, low, high);	
 		}
@@ -552,7 +554,7 @@ public class ClassGradeExperiment extends BaseProbExpMgr{
 		
 	}//
 	public void dbgTestStuff() {
-		msgObj.dispMessage("ClassGradeExperiment", "dbgTestStuff", "Start test",MsgCodes.info1,true);
+		msgObj.dispInfoMessage("ClassGradeExperiment", "dbgTestStuff", "Start test");
 		//myRandGen gen = buildAndInitRandGen(linearTransformMap, -1, new myProbSummary(new double[] {0,1,1,4},2));		
 		myRandGen gen = buildAndInitRandGen(uniformTransformMap, -1, new myProbSummary_Dbls(new double[] {0,1,1,4},2));
 		double[] vals = gen.getMultiFastSamples(100000);
@@ -560,7 +562,7 @@ public class ClassGradeExperiment extends BaseProbExpMgr{
 		myProbSummary_Dbls tmpSummary = new myProbSummary_Dbls(vals); 
 		
 		
-		msgObj.dispMessage("ClassGradeExperiment", "dbgTestStuff", "Finish test : summary : "+ tmpSummary.toString(),MsgCodes.info1,true);
+		msgObj.dispInfoMessage("ClassGradeExperiment", "dbgTestStuff", "Finish test : summary : "+ tmpSummary.toString());
 	}
 
 	//derive and show plots of different distributions behind each class calc

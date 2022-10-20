@@ -88,7 +88,7 @@ public class Main3DWindow extends myDispWindow {
 		
 		//called once
 		//initPrivFlags(numPrivFlags);
-		tester = new myProbExpMgr(this);
+		tester = new myProbExpMgr(pa, msgObj, curVisScrDims);
 
 		custMenuOffset = uiClkCoords[3];	//495	
 	}//initMe	
@@ -292,9 +292,8 @@ public class Main3DWindow extends myDispWindow {
 
 	//manage any functionality specific to this window that needs to be recalced when the visibile dims of the window change
 	@Override
-	protected void setVisScreenDimsPriv() {
-		
-		
+	protected void setVisScreenDimsPriv() {		
+		tester.setVisibleScreenDims(curVisScrDims);
 	}//setVisScreenDimsPriv
 
 

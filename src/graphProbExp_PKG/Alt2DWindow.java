@@ -62,7 +62,7 @@ public class Alt2DWindow extends myDispWindow {
 		setFlags(useCustCam, true);
 		//this window uses right side info window
 		setFlags(drawRightSideMenu, true);
-		tester = new myProbExpMgr(this);
+		tester = new myProbExpMgr(pa, msgObj, curVisScrDims);
 		
 		//set offset to use for custom menu objects
 		custMenuOffset = uiClkCoords[3];	
@@ -213,7 +213,7 @@ public class Alt2DWindow extends myDispWindow {
 	//manage any functionality specific to this window that needs to be recalced when the visibile dims of the window change
 	@Override
 	protected void setVisScreenDimsPriv() {
-
+		tester.setVisibleScreenDims(curVisScrDims);
 		
 	}//setVisScreenDimsPriv
 

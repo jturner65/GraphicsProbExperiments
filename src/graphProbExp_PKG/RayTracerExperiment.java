@@ -3,13 +3,14 @@ package graphProbExp_PKG;
 import java.io.File;
 import java.util.TreeMap;
 
-import base_ProbTools.BaseProbExpMgr;
+import base_JavaProjTools_IRender.base_Render_Interface.IRenderInterface;
+import base_ProbTools.baseProbExpMgr;
 import base_RayTracer.myRTFileReader;
 import base_RayTracer.scene.myScene;
-import base_UI_Objects.windowUI.base.myDispWindow;
+import base_Utils_Objects.io.messaging.MessageObject;
 import base_Utils_Objects.io.messaging.MsgCodes;
 
-public class RayTracerExperiment extends BaseProbExpMgr {
+public class RayTracerExperiment extends baseProbExpMgr {
 	//holds references to all loaded scenes
 	public TreeMap<String, myScene> loadedScenes;
 	
@@ -29,15 +30,15 @@ public class RayTracerExperiment extends BaseProbExpMgr {
 			debugIDX 			= 0;		
 	public static final int numFlags = 1;	
 	
-	public RayTracerExperiment(myDispWindow _win) {
-		super(_win);		
+	public RayTracerExperiment(IRenderInterface _pa, MessageObject _msgObj, float[] _curVisScrDims) {
+		super(_pa, _msgObj, _curVisScrDims);	
+
 	}//ctor
 
 	@Override
 	public void initExp() {
-		rdr = new myRTFileReader(myDispWindow.pa,".."+File.separator+"data"+File.separator+"txtrs"+File.separator);	
-		loadedScenes = new TreeMap<String, myScene>();		
-		
+		rdr = new myRTFileReader(pa,".."+File.separator+"data"+File.separator+"txtrs"+File.separator);	
+		loadedScenes = new TreeMap<String, myScene>();			
 	}//initExp	
 
 	//set values for RT scene experiment values
@@ -53,7 +54,7 @@ public class RayTracerExperiment extends BaseProbExpMgr {
 		//with 3rd image beneath showing difference (upsized by 2)
 		int stLocX = (int) ((visScreenWidth- (2*sceneCols))/2.0f);
 		transLoc[0] = (0>stLocX ? 0 : stLocX);
-		int stLocY = (int) ((win.rectDim[3]-sceneRows)/6.0f);	
+		int stLocY = (int) ((curVisScrDims[1]-sceneRows)/6.0f);	
 		transLoc[1] = (0 > stLocY ? 0 : stLocY);
 	}
 	

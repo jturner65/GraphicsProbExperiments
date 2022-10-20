@@ -3,11 +3,10 @@ package base_ProbTools.randGenFunc.funcs;
 import java.math.BigDecimal;
 import java.util.function.Function;
 
-import base_ProbTools.BaseProbExpMgr;
+import base_ProbTools.baseProbExpMgr;
 import base_ProbTools.quadrature.base.baseQuadrature;
 import base_ProbTools.randGenFunc.funcs.base.baseRandVarFunc;
-import base_ProbTools.summary.myProbSummary_Dbls;
-import base_Utils_Objects.io.messaging.MsgCodes;
+import base_StatsTools.summary.myProbSummary_Dbls;
 
 /**
  * instancing class for the function describing a gaussian random variable of specified mean and variance
@@ -82,18 +81,18 @@ public class myGaussianFunc extends baseRandVarFunc{
 	@Override
 	public double integral_f(Double x1, Double x2) {
 		double res = 0;
-		if (!getFlag(quadSlvrSetIDX)) {	msgObj.dispMessage("myGaussianFunc", "integral_f", "No quadrature solver has been set, so cannot integrate f",MsgCodes.warning1,true);return res;}
-		//expMgr.dispMessage("myGaussianFunc", "integral_f", "Integrating for : x1 : "+x1 + " and  x2 : " + x2);
+		if (!getFlag(quadSlvrSetIDX)) {	msgObj.dispWarningMessage("myGaussianFunc", "integral_f", "No quadrature solver has been set, so cannot integrate f");return res;}
+		//expMgr.dispInfoMessage("myGaussianFunc", "integral_f", "Integrating for : x1 : "+x1 + " and  x2 : " + x2);
 		
 		//if x1 is -inf... gauss-legendre quad - use error function via gaussian quad - calculating cdf
 		if(x1==Double.NEGATIVE_INFINITY) {				//cdf of x2 == .5 + .5 * error function x2/sqrt(2) 
-			//expMgr.dispMessage("myGaussianFunc", "integral_f", "CDF : x1 : "+x1 + " and  x2 : " + x2 + " Using x2");
+			//expMgr.dispInfoMessage("myGaussianFunc", "integral_f", "CDF : x1 : "+x1 + " and  x2 : " + x2 + " Using x2");
 			BigDecimal erroFuncVal = quadSlvr.evalIntegral(errorFunc, 0.0, (x2 - summary.mean())*invStdSclFact);
 			//cdf == .5*(1+erf(x/sqrt(2))) 
 			//res = halfVal.add(halfVal.multiply(erroFuncVal));		
 			res = .5 + .5 * erroFuncVal.doubleValue();			
 		} else if (x2==Double.POSITIVE_INFINITY) {		//pos inf -> this is 1- CDF == Q function
-			//expMgr.dispMessage("myGaussianFunc", "integral_f", "Q func : x1 : "+x1 + " and  x2 : " + x2 + " Using x1");
+			//expMgr.dispInfoMessage("myGaussianFunc", "integral_f", "Q func : x1 : "+x1 + " and  x2 : " + x2 + " Using x1");
 			BigDecimal erroFuncVal = quadSlvr.evalIntegral(errorFunc, 0.0, (x1 - summary.mean())*invStdSclFact);
 			//Q function is == 1 - (.5*(1+erf(x/sqrt(2))))
 			//res = BigDecimal.ONE.subtract(halfVal.add(halfVal.multiply(erroFuncVal)));		
@@ -101,7 +100,7 @@ public class myGaussianFunc extends baseRandVarFunc{
 		} else {
 			res = quadSlvr.evalIntegral(funcs[fIDX], x1, x2).doubleValue();
 		}
-		//expMgr.dispMessage("myGaussianFunc", "integral_f", "Integrating for : x1 : "+x1 + " and  x2 : " + x2 + " Res : \n" + res);
+		//expMgr.dispInfoMessage("myGaussianFunc", "integral_f", "Integrating for : x1 : "+x1 + " and  x2 : " + x2 + " Res : \n" + res);
 		return res;
 	}//integral_f
 
@@ -109,17 +108,17 @@ public class myGaussianFunc extends baseRandVarFunc{
 	@Override
 	public double integral_fStd(Double x1, Double x2) {
 		double res = 0;
-		if (!getFlag(quadSlvrSetIDX)) {	msgObj.dispMessage("myGaussianFunc", "integral_fStd", "No quadrature solver has been set, so cannot integrate f",MsgCodes.warning1,true);return res;}
-		//expMgr.dispMessage("myGaussianFunc", "integral_f", "Integrating for : x1 : "+x1 + " and  x2 : " + x2);		
+		if (!getFlag(quadSlvrSetIDX)) {	msgObj.dispWarningMessage("myGaussianFunc", "integral_fStd", "No quadrature solver has been set, so cannot integrate f");return res;}
+		//expMgr.dispInfoMessage("myGaussianFunc", "integral_f", "Integrating for : x1 : "+x1 + " and  x2 : " + x2);		
 		//if x1 is -inf... gauss-legendre quad - use error function via gaussian quad - calculating cdf
 		if(x1==Double.NEGATIVE_INFINITY) {				//cdf of x2 == .5 + .5 * error function x2/sqrt(2) 
-			//expMgr.dispMessage("myGaussianFunc", "integral_f", "CDF : x1 : "+x1 + " and  x2 : " + x2 + " Using x2");
+			//expMgr.dispInfoMessage("myGaussianFunc", "integral_f", "CDF : x1 : "+x1 + " and  x2 : " + x2 + " Using x2");
 			BigDecimal erroFuncVal = quadSlvr.evalIntegral(errorFunc, 0.0, x2*invSqrt2);
 			//cdf == .5*(1+erf(x/sqrt(2))) 
 			//res = halfVal.add(halfVal.multiply(erroFuncVal));		
 			res = .5 + .5 * erroFuncVal.doubleValue();			
 		} else if (x2==Double.POSITIVE_INFINITY) {		//pos inf -> this is 1- CDF == Q function
-			//expMgr.dispMessage("myGaussianFunc", "integral_f", "Q func : x1 : "+x1 + " and  x2 : " + x2 + " Using x1");
+			//expMgr.dispInfoMessage("myGaussianFunc", "integral_f", "Q func : x1 : "+x1 + " and  x2 : " + x2 + " Using x1");
 			BigDecimal erroFuncVal = quadSlvr.evalIntegral(errorFunc, 0.0, x1*invSqrt2);
 			//Q function is == 1 - (.5*(1+erf(x/sqrt(2))))
 			//res = BigDecimal.ONE.subtract(halfVal.add(halfVal.multiply(erroFuncVal)));		
@@ -127,7 +126,7 @@ public class myGaussianFunc extends baseRandVarFunc{
 		} else {
 			res = quadSlvr.evalIntegral(funcs[fStdIDX], x1, x2).doubleValue();
 		}
-		//expMgr.dispMessage("myGaussianFunc", "integral_f", "Integrating for : x1 : "+x1 + " and  x2 : " + x2 + " Res : \n" + res);
+		//expMgr.dispInfoMessage("myGaussianFunc", "integral_f", "Integrating for : x1 : "+x1 + " and  x2 : " + x2 + " Res : \n" + res);
 		return 1.0/normalSclFact * res;		//must have 1.0/normalSclFact to normalize integration results (i.e. scale CDF for function with p(0) == 1
 		//return (1.0/gaussSclFact) *  integral_f(x1, x2);
 		//return inGaussSclFactBD.multiply( integral_f(x1, x2));
@@ -190,6 +189,6 @@ public class myGaussianFunc extends baseRandVarFunc{
 	@Override
 	public void setOptionFlags(int[] _opts) {}
 	@Override
-	public int getRVFType() {return BaseProbExpMgr.gaussRandVarIDX;}
+	public int getRVFType() {return baseProbExpMgr.gaussRandVarIDX;}
 
 }//class myGaussianFunc

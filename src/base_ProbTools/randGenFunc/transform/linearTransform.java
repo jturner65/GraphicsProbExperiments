@@ -1,11 +1,12 @@
 package base_ProbTools.randGenFunc.transform;
 
-import base_ProbTools.summary.myProbSummary_Dbls;
+import base_ProbTools.randGenFunc.transform.base.baseTransform;
+import base_StatsTools.summary.myProbSummary_Dbls;
 
 //min/max to 0->1 -> using this method to facilitate implementing structure for trivial examples - 
 //will never generate values, nor will it ever access a random variable function.
 //only maps values via affine transformation to 0->1
-public class linearTransform extends transform{
+public class linearTransform extends baseTransform{
 	//these are of given data
 	double min, max, diff;
 	//summary must have min and max

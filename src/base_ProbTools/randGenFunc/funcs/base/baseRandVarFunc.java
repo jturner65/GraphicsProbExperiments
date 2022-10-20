@@ -3,14 +3,13 @@ package base_ProbTools.randGenFunc.funcs.base;
 import java.util.TreeMap;
 import java.util.function.Function;
 import base_Utils_Objects.io.messaging.MessageObject;
-import base_Utils_Objects.io.messaging.MsgCodes;
 
 import org.jblas.*;
 
 import base_ProbTools.quadrature.base.baseQuadrature;
 import base_ProbTools.randGenFunc.zigConstVals;
-import base_ProbTools.randVisTools.myDistFuncHistVisMgr;
-import base_ProbTools.summary.myProbSummary_Dbls;
+import base_StatsTools.summary.myProbSummary_Dbls;
+import base_StatsTools.visualization.myDistFuncHistVisMgr;
 
 /**
  * classes to provide the functionality of a random variable to be consumed by the random number generators.
@@ -140,7 +139,7 @@ public abstract class baseRandVarFunc {
 		case queryInvCDFIDX: {			return CDF_inv(x1);}
 		case queryIntegIDX : {			return integral_f(x1,x2);}		
 		default : {
-			msgObj.dispMessage("baseRandVarFunc", "getFuncVal", "Attempting to evaluate unknown func type : " + funcType +" on value(s) : [" + x1 + ", "+ x2 + "] Aborting.",MsgCodes.warning1 , true);
+			msgObj.dispWarningMessage("baseRandVarFunc", "getFuncVal", "Attempting to evaluate unknown func type : " + funcType +" on value(s) : [" + x1 + ", "+ x2 + "] Aborting.");
 			return x1;}
 		}
 	}//getFuncVal
@@ -153,7 +152,7 @@ public abstract class baseRandVarFunc {
 		case queryInvCDFIDX: {			return name+ " Inverse CDF";}
 		case queryIntegIDX : {			return name+ " Integral";}		
 		default : {
-			msgObj.dispMessage("baseRandVarFunc", "getFuncVal", "Attempting to name unknown func type : " + funcType +". Aborting.",MsgCodes.warning1 , true);
+			msgObj.dispWarningMessage("baseRandVarFunc", "getFuncVal", "Attempting to name unknown func type : " + funcType +". Aborting.");
 			return name+ " ERROR";}
 		}		
 	}//
@@ -284,12 +283,12 @@ public abstract class baseRandVarFunc {
 	//if this rand var is going to be accessed via the ziggurat algorithm, this needs to be called w/# of rectangles to use
 	//this must be called after an Quad solver has been set, since finding R and Vol for passed # of ziggurats requires such a solver
 	public void setZigVals(int _nRect) {
-		if (!getFlag(quadSlvrSetIDX)) {	msgObj.dispMessage("baseRandVarFunc", "setZigVals", "No quadrature solver has been set, so cannot set ziggurat values for "+_nRect+" rectangles (incl tail).",MsgCodes.warning1,true); return;}
+		if (!getFlag(quadSlvrSetIDX)) {	msgObj.dispWarningMessage("baseRandVarFunc", "setZigVals", "No quadrature solver has been set, so cannot set ziggurat values for "+_nRect+" rectangles (incl tail)."); return;}
 		double checkRect = Math.log(_nRect)/ln2;
 		int nRectCalc = (int)Math.pow(2.0, checkRect);//int drops all decimal values
 		if (_nRect != nRectCalc) {	
 			int numRectToUse = (int)Math.pow(2.0, (int)(checkRect) + 1);
-			msgObj.dispMessage("baseRandVarFunc", "setZigVals", "Number of ziggurat rectangles requested " + _nRect + " : " + nRectCalc + " must be an integral power of 2, so forcing requested " + _nRect + " to be " + numRectToUse,MsgCodes.warning1,true);
+			msgObj.dispWarningMessage("baseRandVarFunc", "setZigVals", "Number of ziggurat rectangles requested " + _nRect + " : " + nRectCalc + " must be an integral power of 2, so forcing requested " + _nRect + " to be " + numRectToUse);
 			numZigRects = numRectToUse;
 		}		
 		zigVals = new zigConstVals(this,numZigRects);
@@ -314,8 +313,8 @@ public abstract class baseRandVarFunc {
 	
 	//display results from cdf map of values, where key is cdf and value is value
 	protected void dbgDispCDF(TreeMap<Double,Double> map, String callingClass) {
-		msgObj.dispMessage(callingClass,"dbgDispCDF","CDF Values : ",MsgCodes.warning1,true);
-		for(Double key : map.keySet()) {msgObj.dispMessage(callingClass,"dbgDispCDF","\tKey : " + key +" | CDF Val : " + map.get(key),MsgCodes.warning1,true);}
+		msgObj.dispWarningMessage(callingClass,"dbgDispCDF","CDF Values : ");
+		for(Double key : map.keySet()) {msgObj.dispWarningMessage(callingClass,"dbgDispCDF","\tKey : " + key +" | CDF Val : " + map.get(key));}
 		
 	}//dbgDispCDF
 
