@@ -21,8 +21,10 @@ import base_RayTracer.scene.shaders.myObjShader;
 import base_RayTracer.scene.shaders.mySimpleReflObjShdr;
 import base_RayTracer.scene.textures.*;
 import base_UI_Objects.*;
-import processing.core.*;
 import base_Utils_Objects.io.messaging.MessageObject;
+import processing.core.PConstants;
+import processing.core.PImage;
+import base_Math_Objects.MyMathUtils;
 import base_Math_Objects.vectorObjs.doubles.myMatStack;
 import base_Math_Objects.vectorObjs.doubles.myMatrix;
 import base_Math_Objects.vectorObjs.doubles.myVector;
@@ -43,8 +45,8 @@ public abstract class myScene {
 	//used for determining refinement array
 	public static final int[] pow2 = new int[]{1,2,4,8,16,32,64,128,256,512,1024,2048,4096,8192,16384,32768};
 	protected static final double log10_2 = Math.log10(2.0);//div to get base 2 log
-	public static final float sqrt3 = PApplet.sqrt(3.0f),
-	sqrt66 = PApplet.sqrt(6.0f)/6.0f, 
+	public static final float //sqrt3 = Math.sqrt(3.0f),
+	sqrt66 = (float) (Math.sqrt(6.0f)/6.0f), 
 	sqrt612 = .5f*sqrt66;
 
 	////
@@ -445,7 +447,7 @@ public abstract class myScene {
 		startTmpObjList();
 		buildSierpSubTri(8,scVal, name,0,depth,useShdr);
 		endTmpObjList(1);			//bvh of sierp objs
-		System.out.println("total buns : "+((PApplet.pow(4, depth)-1)/3.0f));
+		System.out.println("total buns : "+((Math.pow(4, depth)-1)/3.0f));
 	}	
 	//remove most recent object from list of objects and instead add to instance object struct.
 	public void setObjectAsNamedObject(String name){
@@ -713,7 +715,7 @@ public abstract class myScene {
 			pdMult = new myVector(Double.parseDouble(vals[4]),Double.parseDouble(vals[5]),Double.parseDouble(vals[6]));
 			myVector pyMult = new myVector(Double.parseDouble(vals[7]),Double.parseDouble(vals[8]),Double.parseDouble(vals[9]));
 			if(pyMult.sqMagn > 0){									//if vector values specified
-				pyMult._mult(PConstants.TWO_PI-1.0);				//change 0|1 to 0|2pi-1 vector
+				pyMult._mult(MyMathUtils.TWO_PI_F-1.0);				//change 0|1 to 0|2pi-1 vector
 				pyMult._add(1.0,1.0,1.0);							//change 0|2pi-1 vector to 1|2pi vector
 				pdMult = myVector._elemMult(pdMult, pyMult);
 			}
@@ -786,7 +788,7 @@ public abstract class myScene {
 					setProcTxtrVals(new int[]{txtrType, 4, 1, 2, 1,1}, 				//int[] ints =  txtrType,  numOctaves,  numOverlays,  numPtsDist,distFunc (not used for perlin), roiFunc (not used for perlin)
 							new boolean[]{true,useCustClrs,false}, 					//boolean[] bools = rndColors , useCustClrs, useFwdTrans -> useFwdTrans needs to be specified in command in cli
 							new double[]{2.0, .4, 25.0, .2, 1.0, 0.05}, 			//double[] dbls = noiseScale, turbMult , colorScale , colorMult, avgNumPerCell,mortarThresh
-							new myVector[]{new myVector(PConstants.TWO_PI* 2.7,3.6,4.3)}, 	//myVector[] vecs = pdMult
+							new myVector[]{new myVector(MyMathUtils.TWO_PI_F* 2.7,3.6,4.3)}, 	//myVector[] vecs = pdMult
 							noiseColors, 											//myColor[] clrs = noiseColors
 							clrWts);												//Double[] wts = clrWts					
 				} break;}		
@@ -799,7 +801,7 @@ public abstract class myScene {
 					setProcTxtrVals(new int[]{txtrType, 8, 1, 2, 1, 1}, 			//int[] ints =  txtrType,  numOctaves,  numOverlays,  numPtsDist,distFunc (not used), roiFunc (not used)
 							new boolean[]{true,useCustClrs,false}, 					//boolean[] bools = rndColors , useCustClrs, useFwdTrans -> useFwdTrans needs to be specified in command in cli
 							new double[]{1.0, .4, 25.0, .3, 1.0, 0.05}, 			//double[] dbls = noiseScale, turbMult , colorScale , colorMult, avgNumPerCell
-							new myVector[]{new myVector(PConstants.TWO_PI*3.5,7.9,6.2)}, 	//myVector[] vecs = pdMult
+							new myVector[]{new myVector(MyMathUtils.TWO_PI_F*3.5,7.9,6.2)}, 	//myVector[] vecs = pdMult
 							noiseColors, 											//myColor[] clrs = noiseColors
 							clrWts);												//Double[] wts = clrWts					
 				} break;}		
@@ -812,7 +814,7 @@ public abstract class myScene {
 				setProcTxtrVals(new int[]{txtrType, 16, 1, 2, 1, 1}, 				//int[] ints =  txtrType,  numOctaves,  numOverlays,  numPtsDist,distFunc (not used), roiFunc (not used)
 							new boolean[]{true,useCustClrs,false}, 					//boolean[] bools = rndColors , useCustClrs, useFwdTrans -> useFwdTrans needs to be specified in command in cli
 							new double[]{1.0, 15.0, 24.0, .1, 1.0, 0.05}, 			//double[] dbls = noiseScale, turbMult , colorScale , colorMult, avgNumPerCell
-							new myVector[]{new myVector(PConstants.TWO_PI * 0.1,PConstants.TWO_PI * 31.4,PConstants.TWO_PI *4.1)}, 	//myVector[] vecs = pdMult
+							new myVector[]{new myVector(MyMathUtils.TWO_PI_F * 0.1,MyMathUtils.TWO_PI_F * 31.4,MyMathUtils.TWO_PI_F *4.1)}, 	//myVector[] vecs = pdMult
 							noiseColors, 											//myColor[] clrs = noiseColors
 							clrWts);												//Double[] wts = clrWts					
 				} break;}			
@@ -995,9 +997,9 @@ public abstract class myScene {
 	///////	
 	//get random location within "lens" for depth of field calculation - consider loc to be center, pick random point in constant z plane within some radius of loc point
 	public myVector getDpthOfFldEyeLoc(myVector loc){
-		//myVector tmp = p.rotVecAroundAxis(new myVector(0,1,0),new myVector(0,0,-1),ThreadLocalRandom.current().nextDouble(0,PConstants.TWO_PI));				//rotate surfTangent by random angle
+		//myVector tmp = p.rotVecAroundAxis(new myVector(0,1,0),new myVector(0,0,-1),ThreadLocalRandom.current().nextDouble(0,MyMathUtils.TWO_PI_F));				//rotate surfTangent by random angle
 		myVector tmp1 = new myVector(0,1,0);
-		myVector tmp = tmp1.rotMeAroundAxis(new myVector(0,0,-1),ThreadLocalRandom.current().nextDouble(0,PConstants.TWO_PI));				//rotate surfTangent by random angle
+		myVector tmp = tmp1.rotMeAroundAxis(new myVector(0,0,-1),ThreadLocalRandom.current().nextDouble(0,MyMathUtils.TWO_PI_F));				//rotate surfTangent by random angle
 		tmp._normalize();
 		double mult = ThreadLocalRandom.current().nextDouble(0,lens_radius);			//find displacement radius from origin
 		tmp._mult(mult);
@@ -1270,8 +1272,8 @@ public abstract class myScene {
 		a0 = (a0 > 1) ? 1 : (a0 < -1) ? -1 : a0;
 		a1 = ( Math.sin(q* Math.PI));
 		a2 = ( fastAbs(a1) < epsVal) ? 1 : a0/a1;
-		u = (z1 <= epsVal) ? ((shWm1 * ( Math.acos(a2))/ (PConstants.TWO_PI)) + shWm1/2.0f) : 
-					shWm1 - ((shWm1 * ( Math.acos(a2))/ (PConstants.TWO_PI)) + shWm1/2.0f);
+		u = (z1 <= epsVal) ? ((shWm1 * ( Math.acos(a2))/ (MyMathUtils.TWO_PI_F)) + shWm1/2.0f) : 
+					shWm1 - ((shWm1 * ( Math.acos(a2))/ (MyMathUtils.TWO_PI_F)) + shWm1/2.0f);
 		u = (u < 0) ? 0 : (u > shWm1) ? shWm1 : u;
 		return u;
 	} 

@@ -29,7 +29,6 @@ public class GraphProbExpMain extends GUI_AppManager {
 							disp2DRayTracerIDX = 3,
 							dispGradeWinIDX = 4;
 
-	//private boolean cyclModCmp;										//comparison every draw of cycleModDraw			
 	private final int[] bground = new int[]{244,244,244,255};		//bground color
 
 
@@ -140,7 +139,9 @@ public class GraphProbExpMain extends GUI_AppManager {
 		dispWinFrames[wIdx] = new Grade2DWindow(pa, this, wIdx, fIdx);
 
 		//specify windows that cannot be shown simultaneously here
-		initXORWins(new int[]{show1stWinIDX,show2ndWinIDX, show2DRayTracerIDX, showGradeWinIDX},new int[]{disp1stWinIDX, disp2ndWinIDX, disp2DRayTracerIDX, dispGradeWinIDX});
+		initXORWins(
+				new int[]{show1stWinIDX,show2ndWinIDX, show2DRayTracerIDX, showGradeWinIDX},
+				new int[]{disp1stWinIDX, disp2ndWinIDX, disp2DRayTracerIDX, dispGradeWinIDX});
 
 		
 	}//initAllDispWindows
