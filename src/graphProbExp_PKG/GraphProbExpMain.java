@@ -1,8 +1,8 @@
 package graphProbExp_PKG;
 
 import base_UI_Objects.*;
-import base_UI_Objects.windowUI.base.myDispWindow;
-import base_UI_Objects.windowUI.sidebar.mySideBarMenu;
+import base_UI_Objects.windowUI.base.Base_DispWindow;
+import base_UI_Objects.windowUI.sidebar.SidebarMenu;
 import classGradeExperimentsPKG.Grade2DWindow;
 
 /**
@@ -214,7 +214,7 @@ public class GraphProbExpMain extends GUI_AppManager {
 	@Override
 	public void handleShowWin(int btn, int val, boolean callFlags){//display specific windows - multi-select/ always on if sel
 		if(!callFlags){//called from setflags - only sets button state in UI to avoid infinite loop
-			setMenuBtnState(mySideBarMenu.btnShowWinIdx,btn, val);
+			setMenuBtnState(SidebarMenu.btnShowWinIdx,btn, val);
 		} else {//called from clicking on buttons in UI
 			//val is btn state before transition 
 			boolean bVal = (val == 1?  false : true);
@@ -252,7 +252,7 @@ public class GraphProbExpMain extends GUI_AppManager {
 	//address all flag-setting here, so that if any special cases need to be addressed they can be
 	protected void setVisFlag_Indiv(int idx, boolean val ){
 		switch (idx){
-			case showUIMenu 	    : { dispWinFrames[dispMenuIDX].setFlags(myDispWindow.showIDX,val);    break;}											//whether or not to show the main ui window (sidebar)			
+			case showUIMenu 	    : { dispWinFrames[dispMenuIDX].setFlags(Base_DispWindow.showIDX,val);    break;}											//whether or not to show the main ui window (sidebar)			
 			case show1stWinIDX			: {setWinFlagsXOR(disp1stWinIDX, val); break;}
 			case show2ndWinIDX			: {setWinFlagsXOR(disp2ndWinIDX, val); break;}
 			case show2DRayTracerIDX		: {setWinFlagsXOR(disp2DRayTracerIDX, val); break;}		

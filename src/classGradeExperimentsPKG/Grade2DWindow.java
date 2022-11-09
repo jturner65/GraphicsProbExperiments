@@ -10,13 +10,13 @@ import base_Math_Objects.vectorObjs.doubles.myVector;
 import base_ProbTools.baseProbExpMgr;
 import base_ProbTools.randGenFunc.funcs.base.baseRandVarFunc;
 import base_UI_Objects.GUI_AppManager;
-import base_UI_Objects.windowUI.base.myDispWindow;
-import base_UI_Objects.windowUI.drawnObjs.myDrawnSmplTraj;
+import base_UI_Objects.windowUI.base.Base_DispWindow;
+import base_UI_Objects.windowUI.drawnObjs.DrawnSimpleTraj;
 import base_UI_Objects.windowUI.uiData.UIDataUpdater;
-import base_UI_Objects.windowUI.uiObjs.GUIObj_Type;
+import base_UI_Objects.windowUI.uiObjs.base.GUIObj_Type;
 import base_Utils_Objects.io.messaging.MsgCodes;
 
-public class Grade2DWindow extends myDispWindow {
+public class Grade2DWindow extends Base_DispWindow {
 	
 	/////////////
 	// ui objects 
@@ -633,10 +633,6 @@ public class Grade2DWindow extends myDispWindow {
 	}
 
 	@Override
-	public void processTrajIndiv(myDrawnSmplTraj drawnNoteTraj){	}
-	
-	
-	@Override
 	protected boolean hndlMouseMoveIndiv(int mouseX, int mouseY, myPoint mseClckInWorld){
 		boolean res = chkMouseMoveDragState2D(mouseX, mouseY, -1);
 		return res;
@@ -684,5 +680,11 @@ public class Grade2DWindow extends myDispWindow {
 
 	@Override
 	protected myPoint getMsePtAs3DPt(myPoint mseLoc){return new myPoint(mseLoc.x,mseLoc.y,0);}
+
+	@Override
+	public void processTrajIndiv(DrawnSimpleTraj drawnTraj) {
+		// TODO Auto-generated method stub
+		
+	}
 
 }

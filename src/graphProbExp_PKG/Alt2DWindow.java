@@ -8,12 +8,12 @@ import base_JavaProjTools_IRender.base_Render_Interface.IRenderInterface;
 import base_Math_Objects.vectorObjs.doubles.myPoint;
 import base_Math_Objects.vectorObjs.doubles.myVector;
 import base_UI_Objects.GUI_AppManager;
-import base_UI_Objects.windowUI.base.myDispWindow;
-import base_UI_Objects.windowUI.drawnObjs.myDrawnSmplTraj;
+import base_UI_Objects.windowUI.base.Base_DispWindow;
+import base_UI_Objects.windowUI.drawnObjs.DrawnSimpleTraj;
 import base_UI_Objects.windowUI.uiData.UIDataUpdater;
 import base_Utils_Objects.io.messaging.MsgCodes;
 
-public class Alt2DWindow extends myDispWindow {
+public class Alt2DWindow extends Base_DispWindow {
 	
 	/////////////
 	// ui objects 
@@ -371,10 +371,6 @@ public class Alt2DWindow extends myDispWindow {
 
 		return res;
 	}
-
-	@Override
-	public void processTrajIndiv(myDrawnSmplTraj drawnNoteTraj){	}
-	
 	
 	@Override
 	protected boolean hndlMouseMoveIndiv(int mouseX, int mouseY, myPoint mseClckInWorld){
@@ -426,6 +422,12 @@ public class Alt2DWindow extends myDispWindow {
 	protected myPoint getMsePtAs3DPt(myPoint mseLoc) {
 		// TODO Auto-generated method stub
 		return null;
+	}
+
+	@Override
+	public void processTrajIndiv(DrawnSimpleTraj drawnTraj) {
+		// TODO Auto-generated method stub
+		
 	}
 
 

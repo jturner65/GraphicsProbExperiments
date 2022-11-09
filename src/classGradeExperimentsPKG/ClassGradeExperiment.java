@@ -7,7 +7,7 @@ import base_ProbTools.*;
 import base_ProbTools.randGenFunc.gens.myFleishUniVarRandGen;
 import base_ProbTools.randGenFunc.gens.base.myRandGen;
 import base_StatsTools.summary.myProbSummary_Dbls;
-import base_UI_Objects.windowUI.base.myDispWindow;
+import base_UI_Objects.windowUI.base.Base_DispWindow;
 import base_Utils_Objects.io.messaging.MessageObject;
 /**
  * this class is a specialized type fo probability experiment manager, specifically for the class grades project
@@ -402,7 +402,7 @@ public class ClassGradeExperiment extends baseProbExpMgr{
 				finalPlotLocSt = new float[] {classPlotStart[0], curVisScrDims[1] - heightOfFinalPlot , heightOfFinalPlot}
 				;		
 
-		return new myFinalGradeRoster(myDispWindow.pa, this, "Final Grades For All Students", new float[][] { finalUniBarLocSt, finalTransBarLocSt,finalPlotLocSt});
+		return new myFinalGradeRoster(Base_DispWindow.pa, this, "Final Grades For All Students", new float[][] { finalUniBarLocSt, finalTransBarLocSt,finalPlotLocSt});
 	}//buildFinalGradeRoster
 
 	//pass names of students, either from a file or randomly generated
@@ -412,7 +412,7 @@ public class ClassGradeExperiment extends baseProbExpMgr{
 		students.clear();
 		myStudent stdnt;
 		for (int i=0;i<numStudents;++i) {
-			int[] _clr = myDispWindow.pa.getRndClrBright(255);
+			int[] _clr = Base_DispWindow.pa.getRndClrBright(255);
 			stdnt = new myStudent(_clr, studentNames[i]);
 			students.put(stdnt.ObjID, stdnt);			
 		}	
@@ -435,7 +435,7 @@ public class ClassGradeExperiment extends baseProbExpMgr{
 				plotRectLocSt = new float[] {classPlotStart[0],classPlotStart[1], heightOfPlots};
 		classRosters.clear();
 		for (int i=0;i<numClasses;++i) {
-			cls = new myClassRoster(myDispWindow.pa, this, _className[i], new float[][] { rawBarLocSt, transBarLocSt,plotRectLocSt});	//build class
+			cls = new myClassRoster(Base_DispWindow.pa, this, _className[i], new float[][] { rawBarLocSt, transBarLocSt,plotRectLocSt});	//build class
 			cls.setFinalGradeRoster(finalGradeClass);																				//give class final grade "class"
 			classRosters.add(cls);																									//add class to roster
 			//move to next class's bar
