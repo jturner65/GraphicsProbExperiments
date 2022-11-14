@@ -6,13 +6,14 @@ import base_RayTracer.myColor;
 import base_RayTracer.myRay;
 import base_RayTracer.rayHit;
 import base_RayTracer.scene.myScene;
-import base_RayTracer.scene.geometry.myGeomBase;
+import base_RayTracer.scene.geometry.base.Base_Geometry;
 import base_RayTracer.scene.geometry.sceneObjects.myInstance;
-import base_RayTracer.scene.geometry.sceneObjects.lights.myLight;
 import base_RayTracer.scene.geometry.sceneObjects.lights.myPhoton;
-import base_RayTracer.scene.textures.myImageTexture;
-import base_RayTracer.scene.textures.myTextureHandler;
+import base_RayTracer.scene.geometry.sceneObjects.lights.base.Base_Light;
+import base_RayTracer.scene.textures.base.Base_TextureHandler;
+import base_RayTracer.scene.textures.imageTextures.myImageTexture;
 import processing.core.PConstants;
+import base_Math_Objects.MyMathUtils;
 import base_Math_Objects.vectorObjs.doubles.myVector;
 
 public class myObjShader {
@@ -22,9 +23,8 @@ public class myObjShader {
 	//number of times a color is looked up on this object
 	public int dbgRayHits;  
 	
-	public myTextureHandler txtr;
-	public static final double epsVal = myScene.epsVal;//.0000001;
-
+	public Base_TextureHandler txtr;
+	
 	 //phong exponent, reflective and transimitted contants
 	public double phongExp, KRefl, KTrans, currPerm, diffConst;
 	//set values of color contants
@@ -115,16 +115,16 @@ public class myObjShader {
   		  				hitLoc = hit.fwdTransHitLoc,						//point on inv-obj-transformed ray where hit occurs, transformed to world coords
   				hNorm = new myVector(0,0,0);
   		//find contributions for each light
-  		for (myGeomBase lightObj : scene.lightList){
-  			myLight light;
-  			if(lightObj instanceof myLight){light = (myLight)lightObj;} 
-  			else {							light = (myLight)((myInstance)lightObj).obj;}			//possibly an instance of a light
+  		for (Base_Geometry lightObj : scene.lightList){
+  			Base_Light light;
+  			if(lightObj instanceof Base_Light){light = (Base_Light)lightObj;} 
+  			else {							light = (Base_Light)((myInstance)lightObj).obj;}			//possibly an instance of a light
   			//lightnormal is light origin minus ray-object intersection point normalized, in direction of object to light 
   			//transform the light's origin (fwd), use this object's fwd transformed hit location
   			//uncomment below for instances of bvh - need to fix this TODO
   			//lightNorm.set(hit.transRay.getTransformedPt(hit.transRay.getTransformedPt(light.getOrigin(hit.transRay.time),light.CTMara[light.glblIDX]), hit.CTMara[hit.obj.invIDX]));		
   			//comment below for instances of bvh - need to fix this TODO  			
-  			lightNorm.set(hit.transRay.getTransformedPt(light.getOrigin(hit.transRay.getTime()),light.CTMara[myGeomBase.glblIDX]));		
+  			lightNorm.set(hit.transRay.getTransformedPt(light.getOrigin(hit.transRay.getTime()),light.CTMara[Base_Geometry.glblIDX]));		
   			lightNorm._sub(hitLoc);				//this is point on transformed ray 
   			lightNorm._normalize();
   			//to calculate shadows at this spot, need to check for intersections again making a new ray out of light norm
@@ -140,7 +140,7 @@ public class myObjShader {
   				//get contribution from light by taking dotproduct of light's normal with surface normal
   				shadowRay.direction._normalize();
   				double lightDotProd = shadowRay.direction._dot(hit.objNorm)*ltMult;		//ltMult handles spot light penumbra
-  				if (lightDotProd > epsVal){//hitting top of object
+  				if (lightDotProd > MyMathUtils.EPS){//hitting top of object
   					r += texTopColor[R] * light.lightColor.RGB.x * lightDotProd;
   					g += texTopColor[G] * light.lightColor.RGB.y * lightDotProd;
   					b += texTopColor[B] * light.lightColor.RGB.z * lightDotProd;
@@ -153,7 +153,7 @@ public class myObjShader {
   				hNorm._sub(hit.fwdTransRayDir);
   				hNorm._normalize();
   				double hDotProd = hNorm._dot(hit.objNorm)*ltMult;
-  				if (hDotProd > epsVal){
+  				if (hDotProd > MyMathUtils.EPS){
   					double  phHdotSq = Math.pow(hDotProd * hDotProd,phongExp);
   					//double phong exponent since we're using the half-angle vector formula
   					r += specularColor.RGB.x * light.lightColor.RGB.x * phHdotSq;
@@ -196,7 +196,7 @@ public class myObjShader {
   		//then the "eye"dir would form an angle greater than 90 degrees.  the only way this can happen is from inside the object
   		//this means the normal is pointing the same direction as the refrsurfdir (i.e. we are leaving a transparent object)
   		//we need to reverse the direction of the normal in this case
-  		if (cosTheta1 < epsVal){
+  		if (cosTheta1 < MyMathUtils.EPS){
   			//flip direction of normal used for detecting reflection if theta incident greater than 90 degrees - use this to reverse the direction of the final refracted vector
   			refractNormMult = -1.0; 
   			N._mult(-1);
@@ -243,12 +243,12 @@ public class myObjShader {
   			rPar = calcFresPlel(n1, n2, cosTheta1,resCosThetT);
   			transReflRatio = (rPerp + rPar)/2.0;    
   			oneMTransReflRatio = 1 - transReflRatio;
-  			if (oneMTransReflRatio < epsVal) { System.out.println("one minus tr = 1");}      
+  			if (oneMTransReflRatio < MyMathUtils.EPS) { System.out.println("one minus tr = 1");}      
   		}        
   		//sanity check
   		if (transReflRatio > 1){ System.out.println("impossible result - treflRat, rPerp, rPar : " + transReflRatio + " | " + rPerp + " | " + rPar);}
       
-  		if (oneMTransReflRatio > epsVal){//if 1 then no refraction
+  		if (oneMTransReflRatio > MyMathUtils.EPS){//if 1 then no refraction
   			//incident ray is in direction u, normal is in direction n, 
   			//refracted direction is (ni/nr) u + ((ni/nr)cos(incident angle) - cos(refelcted angle))n
   			//Rr = (n * V) + (n * c1 - c2) * N 
@@ -271,7 +271,7 @@ public class myObjShader {
   	      	scene.refrRays++;
   		}//if refracting
       
-  		if (transReflRatio > epsVal) {         
+  		if (transReflRatio > MyMathUtils.EPS) {         
   			//reflecting ray off surface
   			//add more than 1 for ray generation to decrease number of internal reflection rays
   	  		reflDir = compReflDir(backToEyeDir, N);
@@ -309,7 +309,11 @@ public class myObjShader {
   		return new double[]{r,g,b};	
   	}//calcReflClr
  	
-	//calculate transmitted ray
+	/**
+	 * calculate transmitted ray
+	 * @param hit
+	 * @return
+	 */
   	protected myRay calcTransRay(rayHit hit){
   		myVector hitLoc = hit.fwdTransHitLoc,
   				backToEyeDir = new myVector(hit.fwdTransRayDir);
@@ -338,7 +342,7 @@ public class myObjShader {
   		//then the "eye"dir would form an angle greater than 90 degrees.  the only way this can happen is from inside the object
   		//this means the normal is pointing the same direction as the refrsurfdir (i.e. we are leaving a transparent object)
   		//we need to reverse the direction of the normal in this case
-  		if (cosTheta1 < epsVal){
+  		if (cosTheta1 < MyMathUtils.EPS){
   			//flip direction of normal used for detecting reflection if theta incident greater than 90 degrees - use this to reverse the direction of the final refracted vector
   			refractNormMult = -1.0; 
   			N._mult(-1);
@@ -385,12 +389,12 @@ public class myObjShader {
   			rPar = calcFresPlel(n1, n2, cosTheta1,resCosThetT);
   			transReflRatio = (rPerp + rPar)/2.0;    
   			oneMTransReflRatio = 1 - transReflRatio;
-  			if (oneMTransReflRatio < epsVal) { System.out.println("one minus tr = 1");}      
+  			if (oneMTransReflRatio < MyMathUtils.EPS) { System.out.println("one minus tr = 1");}      
   		}        
   		//sanity check
   		if (transReflRatio > 1){ System.out.println("impossible result - treflRat, rPerp, rPar : " + transReflRatio + " | " + rPerp + " | " + rPar);}
       
-  		if (oneMTransReflRatio > epsVal){//if transReflRatio = 1 then no refraction
+  		if (oneMTransReflRatio > MyMathUtils.EPS){//if transReflRatio = 1 then no refraction
   			//incident ray is in direction u, normal is in direction n, 
   			//refracted direction is (ni/nr) u + ((ni/nr)cos(incident angle) - cos(refelcted angle))n
   			//Rr = (n * V) + (n * c1 - c2) * N 
@@ -427,7 +431,7 @@ public class myObjShader {
   	//this returns the color value at a particular point on the object, based on where the incident view ray hits it. 
   	public myColor getColorAtPos(rayHit hit){
   		//need to get color from photon map
-  		dbgRayHits++;		
+  		++dbgRayHits;		
   		double r = ambientColor.RGB.x, g = ambientColor.RGB.y, b = ambientColor.RGB.z;
   		double[] phtnIrr;
   		//TODO separate caustics and indirect into 2 processes
@@ -456,11 +460,15 @@ public class myObjShader {
   		return new myColor(r,g,b);
   	}//getcoloratpos method  	
   	
-	//find irradiance of a particular location from photon tree using neighborhood  
+	/**
+	 * find irradiance of a particular location from photon tree using neighborhood  
+	 * @param hit
+	 * @return
+	 */
 	protected double[] getIrradianceFromPhtnTree(rayHit hit){
 		//idx 0 is photon dir, idx 1 is phtn pwr
 		double[] res = new double[]{0,0,0};		
-		ArrayList<myPhoton> hood = scene.photonTree.find_near(hit.fwdTransHitLoc.x, hit.fwdTransHitLoc.y, hit.fwdTransHitLoc.z);//location in world coords
+		ArrayList<myPhoton> hood = scene.photonTree.findNeighborhood(hit.fwdTransHitLoc.x, hit.fwdTransHitLoc.y, hit.fwdTransHitLoc.z);//location in world coords
 		//ArrayList<Photon> hood = scene.photonTree.find_near((float)hit.fwdTransHitLoc.x, (float)hit.fwdTransHitLoc.y, (float)hit.fwdTransHitLoc.z, scene.kNhood, scene.ph_max_near_dist);//location in world coords
 		int hoodSize = hood.size();
 		if ((hoodSize == 0) || (hood.get(0) == null)){return res;}

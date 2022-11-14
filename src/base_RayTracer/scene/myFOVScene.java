@@ -6,7 +6,7 @@ import base_JavaProjTools_IRender.base_Render_Interface.IRenderInterface;
 import base_RayTracer.myColor;
 import base_RayTracer.myRay;
 import base_RayTracer.rayHit;
-import base_RayTracer.scene.geometry.myGeomBase;
+import base_RayTracer.scene.geometry.base.Base_Geometry;
 import base_Math_Objects.vectorObjs.doubles.myVector;
 
 public class myFOVScene extends myScene {
@@ -59,7 +59,7 @@ public class myFOVScene extends myScene {
 		lensCtrPoint._normalize();
 		myRay ray = new myRay(this, eyeOrigin, lensCtrPoint, 0);					//initial ray - find intersection with focal plane
 		//find intersection point with focal plane, use this point to build lens rays
-		rayHit hit = focalPlane.intersectCheck( ray, ray.getTransformedRay(ray, focalPlane.CTMara[myGeomBase.invIDX]),focalPlane.CTMara);						//should always hit
+		rayHit hit = focalPlane.intersectCheck( ray, ray.getTransformedRay(ray, focalPlane.CTMara[Base_Geometry.invIDX]),focalPlane.CTMara);						//should always hit
 		myVector rayOrigin,														//
 			focalPt = hit.hitLoc;
 		for(int rayNum = 0; rayNum < numRaysPerPixel; ++rayNum){

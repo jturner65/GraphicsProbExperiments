@@ -3,11 +3,11 @@ package base_RayTracer.scene.geometry.sceneObjects.implicit;
 import processing.core.PImage;
 import base_RayTracer.myRay;
 import base_RayTracer.scene.myScene;
-import base_RayTracer.scene.geometry.sceneObjects.mySceneObject;
+import base_RayTracer.scene.geometry.sceneObjects.base.Base_SceneObject;
 import base_Math_Objects.vectorObjs.doubles.myVector;
 
 //scene object described by implicit equations
-public abstract class myImpObject extends mySceneObject {
+public abstract class myImpObject extends Base_SceneObject {
 	public double radX, radY, radZ;  
 
 	public myImpObject(myScene _p, double _x, double _y, double _z) {

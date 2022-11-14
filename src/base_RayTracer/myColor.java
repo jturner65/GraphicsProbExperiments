@@ -1,13 +1,13 @@
 package base_RayTracer;
 
+import base_Math_Objects.MyMathUtils;
 import base_Math_Objects.vectorObjs.doubles.myVector;
 
 public class myColor {
 	public myVector RGB;
-	public myColor(double _r, double _g, double _b) {					RGB = new myVector( Math.min(1, _r), Math.min(1,_g), Math.min(1,_b) );	}//alpha = Math.min(1,_alpha);	}
-//	public myColor(myColor _c){											RGB = new myVector(Math.min(1, _c.RGB.x), Math.min(1,_c.RGB.y), Math.min(1,_c.RGB.z)); }//alpha  = Math.min(1,_c.alpha);}
-	public myColor(int _color){											this(((_color >> 16) & 0xFF)/255.0,((_color >> 8) & 0xFF)/255.0,(_color & 0xFF)/255.0);}
-	public myColor(){													this(0,0,0);}
+	public myColor(double _r, double _g, double _b) {					RGB = new myVector( MyMathUtils.min(1.0, _r), MyMathUtils.min(1.0,_g), MyMathUtils.min(1.0,_b) );	}//alpha = Math.min(1,_alpha);	}
+	public myColor(int _color){											RGB = new myVector(((_color >> 16) & 0xFF)/255.0,((_color >> 8) & 0xFF)/255.0,(_color & 0xFF)/255.0);}
+	public myColor(){													RGB = new myVector(0,0,0);}
 	
 	//interpolate this color with passed color
 	public myColor interpColor(double t, myColor B){	return new myColor((RGB.x + t*(B.RGB.x - RGB.x)), (RGB.y + t*(B.RGB.y - RGB.y)), (RGB.z + t*(B.RGB.z - RGB.z)));}

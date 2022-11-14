@@ -5,20 +5,25 @@ import base_RayTracer.myRay;
 import base_RayTracer.rayHit;
 import base_RayTracer.scene.myScene;
 import base_RayTracer.scene.objType;
-import base_RayTracer.scene.geometry.myGeomBase;
 import base_RayTracer.scene.geometry.accelStruct.*;
+import base_RayTracer.scene.geometry.accelStruct.base.Base_AccelStruct;
+import base_RayTracer.scene.geometry.base.Base_Geometry;
 import base_Math_Objects.vectorObjs.doubles.myMatrix;
 import base_Math_Objects.vectorObjs.doubles.myVector;
 import processing.core.PImage;
 
-//an instance of an instanced object - used to minimize memory footprint - only have a reference of the object, and then the relevant transformation matrices
-public class myInstance extends myGeomBase{
-	public myGeomBase obj;						//object this is instance of
+/**
+ * an instance of an instanced object - used to minimize memory footprint - only have a reference of the object, and then the relevant transformation matrices
+ * @author 7strb
+ *
+ */
+public class myInstance extends Base_Geometry{
+	public Base_Geometry obj;						//object this is instance of
 	public boolean useShader, isAccel;					//whether to use instance shader or base object shader
-	public myInstance(myScene scene, myGeomBase _obj){
+	public myInstance(myScene scene, Base_Geometry _obj){
 		super(scene, 0,0,0);
 		obj = _obj;										//owning object
-		isAccel = (obj instanceof myAccelStruct);
+		isAccel = (obj instanceof Base_AccelStruct);
 		CTMara = buildCTMara(scene, obj.CTMara[glblIDX]);//build this object's transformation matrix - since this is instancing the owning object, pass the owning object's matrix
 	    //CTMara = scene.p.buildCTMara(scene);//build this object's transformation matrix		    
 	    type = objType.Instance;//"Instance of "+obj.objType;

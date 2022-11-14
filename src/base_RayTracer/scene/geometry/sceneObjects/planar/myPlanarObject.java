@@ -5,11 +5,11 @@ import java.util.*;
 import base_RayTracer.myRay;
 import base_RayTracer.rayHit;
 import base_RayTracer.scene.myScene;
-import base_RayTracer.scene.geometry.sceneObjects.mySceneObject;
+import base_RayTracer.scene.geometry.sceneObjects.base.Base_SceneObject;
 import base_Math_Objects.vectorObjs.doubles.myMatrix;
 import base_Math_Objects.vectorObjs.doubles.myVector;
 
-public abstract class myPlanarObject extends mySceneObject{
+public abstract class myPlanarObject extends Base_SceneObject{
 	//objects used for both square and triangle
 	protected double[] vertX, vertY, vertZ,
 						vertU, vertV;			//texture coordinates corresponding to each vertex of this poly

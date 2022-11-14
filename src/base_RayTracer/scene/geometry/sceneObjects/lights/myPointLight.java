@@ -3,9 +3,10 @@ package base_RayTracer.scene.geometry.sceneObjects.lights;
 import base_RayTracer.myRay;
 import base_RayTracer.scene.myScene;
 import base_RayTracer.scene.objType;
+import base_RayTracer.scene.geometry.sceneObjects.lights.base.Base_Light;
 import base_Math_Objects.vectorObjs.doubles.myVector;
 
-public class myPointLight extends myLight{
+public class myPointLight extends Base_Light{
  
 	public myPointLight(myScene _scn, int _lightID, double _r, double _g, double _b, double _x, double _y, double _z){
 		super(_scn,_lightID, _r, _g, _b, _x,_y,_z,0,0,0);

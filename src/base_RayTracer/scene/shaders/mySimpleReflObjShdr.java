@@ -4,6 +4,7 @@ import base_RayTracer.myColor;
 import base_RayTracer.myRay;
 import base_RayTracer.rayHit;
 import base_RayTracer.scene.myScene;
+import base_Math_Objects.MyMathUtils;
 import base_Math_Objects.vectorObjs.doubles.myVector;
 
 //simplified transparent shader, for project 1
@@ -46,7 +47,7 @@ public class mySimpleReflObjShdr extends myObjShader{
 		//then the "eye"dir would form an angle greater than 90 degrees.  the only way this can happen is from inside the object
 		//this means the normal is pointing the same direction as the refrsurfdir (i.e. we are leaving a transparent object)
 		//we need to reverse the direction of the normal in this case
-		if (cosTheta1 < epsVal){
+		if (cosTheta1 < MyMathUtils.EPS){
 			//flip direction of normal used for detecting reflection if theta incident greater than 90 degrees
 			//use this to reverse the direction of the final refracted vector
 			refractNormMult = -1.0; 
@@ -93,7 +94,7 @@ public class mySimpleReflObjShdr extends myObjShader{
 			rPar = calcFresPlel(n1, n2, cosTheta1,resCosThetT);
 			transReflRatio = (rPerp + rPar)/2.0;    
 			oneMTransReflRatio = 1 - transReflRatio;
-			if (oneMTransReflRatio < epsVal) { System.out.println("tr = 1");}      
+			if (oneMTransReflRatio < MyMathUtils.EPS) { System.out.println("tr = 1");}      
 		}        
 		//sanity check
 		if (transReflRatio > 1){ System.out.println("impossible result - treflRat, rPerp, rPar : " + transReflRatio + " | " + rPerp + " | " + rPar);}

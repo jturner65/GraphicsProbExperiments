@@ -7,12 +7,12 @@ import base_RayTracer.scene.myFOVScene;
 import base_RayTracer.scene.myFishEyeScene;
 import base_RayTracer.scene.myOrthoScene;
 import base_RayTracer.scene.myScene;
-import base_RayTracer.scene.geometry.sceneObjects.mySceneObject;
+import base_RayTracer.scene.geometry.sceneObjects.base.Base_SceneObject;
 import base_RayTracer.scene.geometry.sceneObjects.implicit.mySphere;
 import base_RayTracer.scene.geometry.sceneObjects.planar.myPlanarObject;
 import base_RayTracer.scene.geometry.sceneObjects.planar.myQuad;
 import base_RayTracer.scene.geometry.sceneObjects.planar.myTriangle;
-import base_RayTracer.scene.textures.myImageTexture;
+import base_RayTracer.scene.textures.imageTextures.myImageTexture;
 import base_UI_Objects.my_procApplet;
 import processing.core.PApplet;
 
@@ -61,7 +61,7 @@ public class myRTFileReader {
 		String vertType = "triangle";    		//assume default object type is triangle
 		int myVertCount = 0;		
 		//temp objects intended to hold 
-		mySceneObject myPoly = null;
+		Base_SceneObject myPoly = null;
 		int curNumRaysPerPxl = scene.numRaysPerPixel;
 		//reinitializes the image so that any previous values from other images are not saved
 		//if (str == null) {System.out.println("Error! Failed to read the file.");}
@@ -213,7 +213,7 @@ public class myRTFileReader {
 					myColor cDiff = readColor(token,1);//new myColor(Double.parseDouble(token[1]),Double.parseDouble(token[2]),Double.parseDouble(token[3]));
 					myColor cAmb = readColor(token,4);//new myColor(Double.parseDouble(token[4]),Double.parseDouble(token[5]),Double.parseDouble(token[6]));
 					myColor cSpec = new myColor(0,0,0);
-					scene.scFlags[myScene.glblTxtrdTopIDX]  = false;
+					scene.scFlags[myScene.glblTxtrdTopIDX] = false;
 					scene.scFlags[myScene.glblTxtrdBtmIDX] = false;
 					scene.setSurface(cDiff,cAmb,cSpec,0,0);					
 					break;}
@@ -237,7 +237,7 @@ public class myRTFileReader {
 					myColor cDiff = readColor(token,1);//new myColor(Double.parseDouble(token[1]),Double.parseDouble(token[2]),Double.parseDouble(token[3]));
 					myColor cAmb = readColor(token,4);//new myColor(Double.parseDouble(token[4]),Double.parseDouble(token[5]),Double.parseDouble(token[6]));
 					myColor cSpec = new myColor(0,0,0);
-					scene.scFlags[myScene.glblTxtrdTopIDX]  = false;
+					scene.scFlags[myScene.glblTxtrdTopIDX] = false;
 					scene.scFlags[myScene.glblTxtrdBtmIDX] = false;
 					double kRefl = Double.parseDouble(token[7]);
 					scene.setSurface(cDiff,cAmb,cSpec,0,kRefl);		
@@ -284,18 +284,20 @@ public class myRTFileReader {
 			    case "image_texture" :
 			    case "texture" : {//load texture to be used for subsequent objects.  will be overridden by a surface command			    	
 			    	String side = token[1];
-			    	String textureName = token[1];
-			    	if (side.toLowerCase().equals("top") || !side.toLowerCase().equals("bottom")){
-			    		//if not specified then assume texture goes on top
-			    		if (side.toLowerCase().equals("top")){  		  	textureName = token[2];   } 
-			    		else {								         		textureName = token[1];   }
-			    		scene.currTextureTop = ((my_procApplet)pa).loadImage("..\\data\\"+textureDir+"\\"+textureName);
-			    		scene.scFlags[myScene.glblTxtrdTopIDX] = true;
-			    		System.out.println("top surface texture loaded");
-			    	} else if (side.toLowerCase().equals("bottom")){
+			    	String textureName = token[1];			    	
+			    	if (side.toLowerCase().equals("bottom")){
+			    		textureName = token[2]; 
+			    		//if specified as bottom, assume bottom texture
 			    		scene.currTextureBottom = ((my_procApplet)pa).loadImage("..\\data\\"+textureDir+"\\"+textureName);
 			    		scene.scFlags[myScene.glblTxtrdBtmIDX] = true;
 			    		System.out.println("bottom surface texture loaded");      }
+			    	else {
+			    		//if not specified then assume texture goes on top and texture name is specified in first token
+			    		if (side.toLowerCase().equals("top")){  		  	textureName = token[2];   }
+			    		scene.currTextureTop = ((my_procApplet)pa).loadImage("..\\data\\"+textureDir+"\\"+textureName);
+			    		scene.scFlags[myScene.glblTxtrdTopIDX] = true;
+			    		System.out.println("top surface texture loaded");
+			    	} 
 			    	scene.txtrType = 1;		//texture type is set to image/none
 			    	break;}			    
 			    

@@ -6,6 +6,7 @@ import base_RayTracer.myRay;
 import base_RayTracer.rayHit;
 import base_RayTracer.scene.myScene;
 import base_RayTracer.scene.objType;
+import base_RayTracer.scene.geometry.sceneObjects.lights.base.Base_Light;
 import base_Math_Objects.vectorObjs.doubles.myMatrix;
 import base_Math_Objects.vectorObjs.doubles.myVector;
 import base_Math_Objects.MyMathUtils;
@@ -19,7 +20,7 @@ import base_Math_Objects.MyMathUtils;
  * Note that the angle to a given point can be calculated based on the dot product between the (normalized) spotlight direction and a (normalized) vector from the light to the point in question. 
 */
 
-public class mySpotLight extends myLight{
+public class mySpotLight extends Base_Light{
 	
 	public double innerThet, outerThet, innerThetRad, outerThetRad, radDiff;
 

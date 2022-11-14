@@ -7,19 +7,30 @@ import base_JavaProjTools_IRender.base_Render_Interface.IRenderInterface;
 import base_RayTracer.myColor;
 import base_RayTracer.myRay;
 import base_RayTracer.rayHit;
-import base_RayTracer.scene.geometry.myGeomBase;
 import base_RayTracer.scene.geometry.accelStruct.*;
+import base_RayTracer.scene.geometry.accelStruct.base.Base_AccelStruct;
+import base_RayTracer.scene.geometry.base.Base_Geometry;
 import base_RayTracer.scene.geometry.sceneObjects.myInstance;
-import base_RayTracer.scene.geometry.sceneObjects.mySceneObject;
+import base_RayTracer.scene.geometry.sceneObjects.base.Base_SceneObject;
 import base_RayTracer.scene.geometry.sceneObjects.implicit.myCylinder;
 import base_RayTracer.scene.geometry.sceneObjects.implicit.myHollow_Cylinder;
+import base_RayTracer.scene.geometry.sceneObjects.implicit.myMovingSphere;
 import base_RayTracer.scene.geometry.sceneObjects.implicit.mySphere;
 import base_RayTracer.scene.geometry.sceneObjects.lights.*;
+import base_RayTracer.scene.geometry.sceneObjects.lights.base.Base_Light;
 import base_RayTracer.scene.geometry.sceneObjects.planar.myPlane;
 import base_RayTracer.scene.geometry.sceneObjects.planar.myRndrdBox;
 import base_RayTracer.scene.shaders.myObjShader;
 import base_RayTracer.scene.shaders.mySimpleReflObjShdr;
 import base_RayTracer.scene.textures.*;
+import base_RayTracer.scene.textures.base.Base_TextureHandler;
+import base_RayTracer.scene.textures.imageTextures.myImageTexture;
+import base_RayTracer.scene.textures.miscTextures.myNonTexture;
+import base_RayTracer.scene.textures.noiseTextures.myBaseWoodTexture;
+import base_RayTracer.scene.textures.noiseTextures.myMarbleTexture;
+import base_RayTracer.scene.textures.noiseTextures.myNoiseTexture;
+import base_RayTracer.scene.textures.noiseTextures.myWoodTexture;
+import base_RayTracer.scene.textures.noiseTextures.cellularTextures.myCellularTexture;
 import base_UI_Objects.*;
 import base_Utils_Objects.io.messaging.MessageObject;
 import processing.core.PConstants;
@@ -38,13 +49,11 @@ public abstract class myScene {
 	//multi-threaded stuff
 	public ExecutorService th_exec;
 	
-	public static final double epsVal = .0000001;
 	//max # of prims per leaf of accel structure 
 	public final int maxPrimsPerLeaf = 5;
 
 	//used for determining refinement array
 	public static final int[] pow2 = new int[]{1,2,4,8,16,32,64,128,256,512,1024,2048,4096,8192,16384,32768};
-	protected static final double log10_2 = Math.log10(2.0);//div to get base 2 log
 	public static final float //sqrt3 = Math.sqrt(3.0f),
 	sqrt66 = (float) (Math.sqrt(6.0f)/6.0f), 
 	sqrt612 = .5f*sqrt66;
@@ -82,16 +91,16 @@ public abstract class myScene {
 	public PImage currTextureTop, currTextureBottom, currBkgTexture, rndrdImg;
 	
 	//an array list of all the objects in the scene : objList does not include lights, objAndLightList includes all lights
-	public ArrayList<myGeomBase> allObjsToFind;
+	public ArrayList<Base_Geometry> allObjsToFind;
 	//the following to facilitate faster light lookup and instancing
-	public ArrayList<myGeomBase> objList;
-	public ArrayList<myGeomBase> lightList; 	
+	public ArrayList<Base_Geometry> objList;
+	public ArrayList<Base_Geometry> lightList; 	
 	
 	//objects to be put in accel structure - temp storage as list is being built
-	public ArrayList<myGeomBase> tmpObjList;
+	public ArrayList<Base_Geometry> tmpObjList;
 
 	//named objects - to be instanced later
-	public TreeMap<String, myGeomBase> namedObjs;
+	public TreeMap<String, Base_Geometry> namedObjs;
 	public TreeMap<String, Integer> numInstances;
 	
 	//background texture-holding sphere.
@@ -121,7 +130,7 @@ public abstract class myScene {
 		glblRefineIDX 		= 11,		//whether scene should be rendered using iterative refinement technique
 		useFGColorIDX		= 12,		//whether or not to use a foregroundcolor in this scene
 
-		//currenlty-loading object level flags
+		//currently-loading object level flags
 		glblTxtrdTopIDX		= 13,		//whether the currently loading object should be txtred on the top
 		glblTxtrdBtmIDX		= 14,		//whether the currently loading object should be txtred on the bottom
 	
@@ -226,9 +235,9 @@ public abstract class myScene {
 		folderName = "pics." +getDateTimeString(); 
 		setImageSize(_numCols, _numRows);		
 		initialize_table();
-		allObjsToFind = new ArrayList<myGeomBase>();
-		lightList = new ArrayList<myGeomBase>();
-		objList = new ArrayList<myGeomBase>();
+		allObjsToFind = new ArrayList<Base_Geometry>();
+		lightList = new ArrayList<Base_Geometry>();
+		objList = new ArrayList<Base_Geometry>();
 		
 		srcFileNames = new ArrayDeque<String>();
 		eyeOrigin = new myVector(0,0,0);
@@ -237,10 +246,10 @@ public abstract class myScene {
 		scFlags[saveImageIDX] = true;    												//default to saving image
 		scFlags[saveImgInDirIDX] = true;    											//save to timestamped directories, to keep track of changing images
 		scFlags[showObjInfoIDX] = true;    												//default to showing info
-		namedObjs = new TreeMap<String,myGeomBase>();
+		namedObjs = new TreeMap<String,Base_Geometry>();
 		numInstances = new TreeMap<String,Integer>();
 
-		tmpObjList = new ArrayList<myGeomBase>();										//list to hold objects being built to be put into acceleration structure	
+		tmpObjList = new ArrayList<Base_Geometry>();										//list to hold objects being built to be put into acceleration structure	
 		initVars(_sceneName);
 	}
 	
@@ -357,22 +366,22 @@ public abstract class myScene {
 	public abstract void setSceneParams(double[] args);	
 
 	public void startTmpObjList(){
-		tmpObjList = new ArrayList<myGeomBase>();
+		tmpObjList = new ArrayList<Base_Geometry>();
 		scFlags[addToTmpListIDX] = true;
 	}
 	//end building the accel struct - if is list just build arraylist object, otherwise build acceleration struct
 	public void endTmpObjList(int lstType){
 		scFlags[addToTmpListIDX] = false;
-		myAccelStruct accelObjList = null;
+		Base_AccelStruct accelObjList = null;
 		if(lstType == 0){//flat geomlist
-			accelObjList = new myGeomList(this);
+			accelObjList = new GeoList_AccelStruct(this);
 			//int objAdded = 1;
-			for(myGeomBase obj : tmpObjList){		((myGeomList)accelObjList).addObj(obj);	}
+			for(Base_Geometry obj : tmpObjList){		((GeoList_AccelStruct)accelObjList).addObj(obj);	}
 		} else if(lstType == 1){//bvh tree
 			System.out.println("begin adding to BVH structure - # objs : " + tmpObjList.size());
-			accelObjList = new myBVH(this);
-			List<myGeomBase>[] _tmpCtr_ObjList = ((myBVH)accelObjList).buildSortedObjAras(tmpObjList,-1);
-			((myBVH)accelObjList).addObjList(_tmpCtr_ObjList, 0, _tmpCtr_ObjList[0].size()-1);
+			accelObjList = new BVH_AccelStruct(this);
+			List<Base_Geometry>[] _tmpCtr_ObjList = ((BVH_AccelStruct)accelObjList).buildSortedObjAras(tmpObjList,-1);
+			((BVH_AccelStruct)accelObjList).addObjList(_tmpCtr_ObjList, 0, _tmpCtr_ObjList[0].size()-1);
 			System.out.println("");
 			System.out.println("Done Adding to BVH structure");
 		} else if(lstType == 2){//KDtree/octree TODO
@@ -385,11 +394,11 @@ public abstract class myScene {
 	//build miniTet - call recursively to build successively smaller tets
 	//set shader for object based on current level - pastel bunnies
 	private void setSierpShdr(int level, int maxLevel){
-		float bVal = 1.0f - Math.min(1,(1.5f*level/maxLevel)), 
+		float bVal = 1.0f - MyMathUtils.min(1.0f,(1.5f*level/maxLevel)), 
 				rVal = 1.0f - bVal, 
-				tmp = Math.min((1.2f*(level-(maxLevel/2)))/(1.0f*maxLevel),1), 
+				tmp = MyMathUtils.min((1.2f*(level-(maxLevel/2)))/(1.0f*maxLevel),1.0f), 
 				gVal = (tmp*tmp);
-		myColor cDiff = new myColor(Math.min(1,rVal+.5f), Math.min(1,gVal+.5f), Math.min(1,bVal+.5f));
+		myColor cDiff = new myColor(MyMathUtils.min(1.0f,rVal+.5f), MyMathUtils.min(1.0f,gVal+.5f), MyMathUtils.min(1.0f,bVal+.5f));
 		scFlags[glblTxtrdTopIDX]  = false;
 		scFlags[glblTxtrdBtmIDX] = false;
 		setSurface(cDiff,new myColor(0,0,0),new myColor(0,0,0),0,0);
@@ -451,9 +460,9 @@ public abstract class myScene {
 	}	
 	//remove most recent object from list of objects and instead add to instance object struct.
 	public void setObjectAsNamedObject(String name){
-		myGeomBase _obj = allObjsToFind.remove(allObjsToFind.size()-1);
+		Base_Geometry _obj = allObjsToFind.remove(allObjsToFind.size()-1);
 		objCount--;
-		if(_obj instanceof myLight){												lightList.remove(lightList.size()-1);	numLights--;	} 
+		if(_obj instanceof Base_Light){												lightList.remove(lightList.size()-1);	numLights--;	} 
 		else { 																		objList.remove(objList.size()-1); 		numNonLights--;	}	
 		namedObjs.put(name, _obj);
 		numInstances.put(name, 0);			//keep count of specific instances
@@ -461,7 +470,7 @@ public abstract class myScene {
 	}//setObjectAsNamedObject
 	
 	public void addInstance(String name, boolean addShdr){
-		myGeomBase baseObj = namedObjs.get(name);
+		Base_Geometry baseObj = namedObjs.get(name);
 		myInstance _inst = new myInstance(this, baseObj);
 		if(addShdr){		_inst.useInstShader();	}
 		addObjectToScene(_inst, baseObj);			
@@ -504,23 +513,34 @@ public abstract class myScene {
 	//max and min of array of doubles
 	protected double max(double[] valAra) {double maxVal = -Double.MAX_VALUE;for (double val : valAra){	if(val > maxVal){maxVal = val;}	}return maxVal;}
 	protected double min(double[] valAra) {double minVal = Double.MAX_VALUE;for (double val : valAra){	if(val < minVal){minVal = val;}	}return minVal;}
-
+	
+	/**
+	 * Return a 2 element double array with min(idx0) and max(idx1) values in passed array
+	 * @param valAra array of elements to find min and max
+	 * @return array of {min,max} values;
+	 */
+	protected double[] minAndMax(double[] valAra) {
+		double[] res = new double[] {valAra[0], valAra[0]};
+		for (int i=1;i<valAra.length;++i) {	
+			if(valAra[i] < res[0]){res[0] = valAra[i];}	//min value
+			if(valAra[i] > res[1]){res[1] = valAra[i];}	//max value
+		}
+		return res;
+	}//minAndMax
+	
 	//read in prim data from txt file and create object
 	public void readPrimData(String[] token){
-		mySceneObject tmp = null;
+		Base_SceneObject tmp = null;
 		switch(token[0]){
 		    case "box" : {//box xmin ymin zmin xmax ymax zmax :
-		    	double minX = min(new double[]{Double.parseDouble(token[1]),Double.parseDouble(token[4])}),
-		    		maxX = max(new double[]{Double.parseDouble(token[1]),Double.parseDouble(token[4])}),
-		    		ctrX = (minX + maxX)*.5,
-					minY = min(new double[]{Double.parseDouble(token[2]),Double.parseDouble(token[5])}),
-		    		maxY = max(new double[]{Double.parseDouble(token[2]),Double.parseDouble(token[5])}),
-		    		ctrY = (minY + maxY)*.5,
-					minZ = min(new double[]{Double.parseDouble(token[3]),Double.parseDouble(token[6])}),
-		    		maxZ = max(new double[]{Double.parseDouble(token[3]),Double.parseDouble(token[6])}),
-		    		ctrZ = (minZ + maxZ)*.5;
+		    	double[] xAra = minAndMax(new double[]{Double.parseDouble(token[1]),Double.parseDouble(token[4])}),
+		    			yAra = minAndMax(new double[]{Double.parseDouble(token[2]),Double.parseDouble(token[5])}),
+		    			zAra = minAndMax(new double[]{Double.parseDouble(token[3]),Double.parseDouble(token[6])});
+		    	double ctrX = (xAra[0] + xAra[1])*.5,
+		    		ctrY = (yAra[0] + yAra[1])*.5,
+		    		ctrZ = (zAra[0] + zAra[1])*.5;
 		    	//putting box as a rendered bbox to minimize size of pure bboxes - rendered bbox is a bbox + shdr ref + some shdr-related functions and vars.
-		    	tmp = new myRndrdBox(this,ctrX, ctrY, ctrZ, new myVector(minX, minY, minZ),	new myVector(maxX, maxY, maxZ));
+		    	tmp = new myRndrdBox(this,ctrX, ctrY, ctrZ, new myVector(xAra[0], yAra[0], zAra[0]),	new myVector(xAra[1], yAra[1], zAra[1]));
 		    	break;}			    
 		    case "plane" : {			//infinite plane shape
 		    	tmp = new myPlane(this);
@@ -564,7 +584,7 @@ public abstract class myScene {
 		    case "sphereIn" : {
 		    	//create sphere with internal reflections - normals point in
 		    	tmp = new mySphere(this, Double.parseDouble(token[1]),Double.parseDouble(token[2]),Double.parseDouble(token[3]),Double.parseDouble(token[4]),true);
-		    	tmp.rFlags[mySceneObject.invertedIDX] = true;
+		    	tmp.rFlags[Base_SceneObject.invertedIDX] = true;
 		    	break;}	
 		    case "ellipsoid" : {//create elliptical sphere with 3 radii elements in each of 3 card directions			    	
 		    	tmp = new mySphere(this, 
@@ -590,7 +610,7 @@ public abstract class myScene {
 	}//getCurShader
 	
 	//return appropriate texture handler
-	public myTextureHandler getCurTexture(myObjShader tmp){
+	public Base_TextureHandler getCurTexture(myObjShader tmp){
 		switch (txtrType){
 			case 0 : {	return new myNonTexture(this,tmp);}						//diffuse/shiny only
 			case 1 : { 	return new myImageTexture(this,tmp);}					//has an image texture
@@ -617,10 +637,10 @@ public abstract class myScene {
 	}//myTextureHandler
 	
 	//entry point
-	public void addObjectToScene(myGeomBase _obj){addObjectToScene(_obj,_obj);}
-	public void addObjectToScene(myGeomBase _obj, myGeomBase _cmpObj){
+	public void addObjectToScene(Base_Geometry _obj){addObjectToScene(_obj,_obj);}
+	public void addObjectToScene(Base_Geometry _obj, Base_Geometry _cmpObj){
 		if(scFlags[addToTmpListIDX]){tmpObjList.add(_obj); return;}
-		if(_cmpObj instanceof myLight){			lightList.add(_obj);	numLights++;} 
+		if(_cmpObj instanceof Base_Light){			lightList.add(_obj);	numLights++;} 
 		else {									objList.add(_obj);		numNonLights++;}
 		allObjsToFind.add(_obj);
 		objCount++;
@@ -915,7 +935,7 @@ public abstract class myScene {
 		rayYOffset = sceneRows/2.0;
 		rayXOffset = sceneCols/2.0;
 		
-		maxDim = Math.max(sceneRows,sceneCols);
+		maxDim = MyMathUtils.max(sceneRows,sceneCols);
 		yStart = ((maxDim - sceneRows)/2.0) - rayYOffset;	
 		xStart = ((maxDim - sceneCols)/2.0) - rayXOffset;			//compensate for # rows or # cols not being max - make sure projection is centered in non-square images
 		fishMult = 2.0/maxDim; 
@@ -928,7 +948,7 @@ public abstract class myScene {
     	curRefineStep = 0;
 		scFlags[myScene.glblRefineIDX] = refState.toLowerCase().equals("on");
 		//build refinement #pxls array dynamically by finding average dim of image and then math.
-		int refIDX = (int)(Math.log10(.5*(this.sceneCols + this.sceneRows)/16.0)/ log10_2);
+		int refIDX = (int)(Math.log((this.sceneCols + this.sceneRows)/32.0)/ MyMathUtils.LOG_2);
 		RefineIDX = new int[(refIDX+1)];
 		for(int i =refIDX; i >=0; --i){	RefineIDX[refIDX-i]=pow2[i];}
 	}//setRefine
@@ -1011,8 +1031,8 @@ public abstract class myScene {
 	
 	public int calcShadow(myRay _ray, double distToLight){
 		//for each object in scene, check if intersecting any objects before hitting light
-		for (myGeomBase obj : objList){
-			if(obj.calcShadowHit(_ray, _ray.getTransformedRay(_ray, obj.CTMara[myGeomBase.invIDX]), obj.CTMara, distToLight) == 1){	return 1;}
+		for (Base_Geometry obj : objList){
+			if(obj.calcShadowHit(_ray, _ray.getTransformedRay(_ray, obj.CTMara[Base_Geometry.invIDX]), obj.CTMara, distToLight) == 1){	return 1;}
 		}//for each object in scene
 		return 0;
 	}//findLight method
@@ -1020,16 +1040,16 @@ public abstract class myScene {
 	//eventually multithread/shdr per object?
 	public rayHit findClosestRayHit(myRay _ray){
 		//objList does not hold lights - no need to check pointlights - TODO need to check lights for non-point lights- ?	
-		TreeMap<rayHit, myGeomBase>objsAtRayHits = new TreeMap<rayHit,myGeomBase>();
+		TreeMap<rayHit, Base_Geometry>objsAtRayHits = new TreeMap<rayHit,Base_Geometry>();
 		objsAtRayHits.put(new rayHit(false), null);
 		//myRay transRay;
-		for (myGeomBase obj : objList){	
-			rayHit _hit = null;
-			try{
-				_hit = obj.intersectCheck(_ray,_ray.getTransformedRay(_ray, obj.CTMara[myGeomBase.invIDX]),obj.CTMara);		
-			} catch (Exception e){
-				System.out.println("find closest ray hit exception :"+e);
-			}
+		for (Base_Geometry obj : objList){	
+//			rayHit _hit = null;
+//			try{
+			rayHit _hit = obj.intersectCheck(_ray,_ray.getTransformedRay(_ray, obj.CTMara[Base_Geometry.invIDX]),obj.CTMara);		
+//			} catch (Exception e){
+//				System.out.println("find closest ray hit exception :"+e);
+//			}
 			if(_hit.isHit){			objsAtRayHits.put(_hit, _hit.obj);		}
 		}//for obj in scenelist
 		return objsAtRayHits.firstKey();
@@ -1040,9 +1060,9 @@ public abstract class myScene {
 	public myColor reflectRay(myRay _ray){
 		rayHit hitChk = findClosestRayHit(_ray);
 		//if ((hitChk.isHit)) {												return(hitChk.obj.getColorAtPos(hitChk));}//to debug BVH use this - displays colors of leaf boxes (red/blue)
-		if ((hitChk.isHit)) {												return(hitChk.shdr.getColorAtPos(hitChk));}
+		if (hitChk.isHit) {													return(hitChk.shdr.getColorAtPos(hitChk));}
 		else if (scFlags[glblTxtrdBkgIDX]) {								return getBackgroundTextureColor(_ray);	} 	//using skydome
-//		else if ((_ray.direction.z > epsVal) && (scFlags[useFGColorIDX])){	return foregroundColor;	} 					//for getting color reflected from behind viewer
+//		else if ((_ray.direction.z > MyMathUtils.EPS) && (scFlags[useFGColorIDX])){	return foregroundColor;	} 					//for getting color reflected from behind viewer
 		else {																return backgroundColor;	}
 	}//reflectRay	
 	
@@ -1084,24 +1104,24 @@ public abstract class myScene {
 	//need different photon configurations/processes for caustic photons and indirect illumination (diffuse)photons
 	protected void sendCausticPhotons(){
 		int numDiv = 100,lastCastCnt = 0, starCount = 0, pctCastCnt = numDiv/10;
-		int numCastPerDisp = photonTree.num_Cast/numDiv;
-		myLight tmpLight; 
-		double pwrMult = causticsLightPwrMult/photonTree.num_Cast;
+		int numCastPerDisp = photonTree.numCast/numDiv;
+		Base_Light tmpLight; 
+		double pwrMult = causticsLightPwrMult/photonTree.numCast;
 		myRay reflRefrRay;
-		double[] tmpPwr,photon_pwr, d;
+		double[] tmpPwr,photonPwr;
 		rayHit hitChk;
 		myPhoton phn;
 		//TODO scale # of photons sent into scene by light intensity
-		for(myGeomBase light : lightList){//either a light or an instance of a light
-			tmpLight = (light instanceof myLight) ? tmpLight = (myLight)light : ((myLight)((myInstance)light).obj);
-			System.out.print("Casting " + photonTree.num_Cast + " Caustic photons for light ID " + tmpLight.ID + ": Progress:");			
-			for(int i =0; i<photonTree.num_Cast; ++i){
-				photon_pwr = new double[]{tmpLight.lightColor.RGB.x * pwrMult,tmpLight.lightColor.RGB.y * pwrMult,tmpLight.lightColor.RGB.z * pwrMult };
+		for(Base_Geometry light : lightList){//either a light or an instance of a light
+			tmpLight = (light instanceof Base_Light) ? tmpLight = (Base_Light)light : ((Base_Light)((myInstance)light).obj);
+			System.out.print("Casting " + photonTree.numCast + " Caustic photons for light ID " + tmpLight.ID + ": Progress:");			
+			for(int i =0; i<photonTree.numCast; ++i){
+				photonPwr = new double[]{tmpLight.lightColor.RGB.x * pwrMult,tmpLight.lightColor.RGB.y * pwrMult,tmpLight.lightColor.RGB.z * pwrMult };
 				hitChk = findClosestRayHit(tmpLight.genRndPhtnRay());//first hit
 				if((!hitChk.isHit) || (!hitChk.shdr.shdrFlags[myObjShader.hasCaustic])){continue;}			//either hit background or 1st hit is diffuse object - caustic has to hit spec first
 				//System.out.println("hit obj : " + hitChk.obj.ID);
 				//we have first hit here at caustic-generating surface.  need to propagate through to first diffuse surface
-				hitChk.phtnPwr = photon_pwr;
+				hitChk.phtnPwr = photonPwr;
 				do{
 		 			reflRefrRay = hitChk.shdr.findCausticRayHit(hitChk,hitChk.phtnPwr);
 		 			if(reflRefrRay != null){	
@@ -1114,7 +1134,7 @@ public abstract class myScene {
 				
 				//d = hitChk.fwdTransRayDir._normalized().getAsAra();				
 				//phn = new myPhoton(photonTree, hitChk.phtnPwr, hitChk.fwdTransHitLoc, Math.acos(d[2]), PConstants.PI + Math.atan2(d[1], d[0])); 	
-				//phn = new myPhoton(photonTree, photon_pwr, hitChk.fwdTransHitLoc.x,  hitChk.fwdTransHitLoc.y,  hitChk.fwdTransHitLoc.z); 	
+				//phn = new myPhoton(photonTree, photonPwr, hitChk.fwdTransHitLoc.x,  hitChk.fwdTransHitLoc.y,  hitChk.fwdTransHitLoc.z); 	
 				phn = new myPhoton(photonTree, hitChk.phtnPwr, hitChk.fwdTransHitLoc.x,  hitChk.fwdTransHitLoc.y,  hitChk.fwdTransHitLoc.z); 	
 				photonTree.add_photon(phn);
 				//this just calcs when to display progress bar, can be deleted
@@ -1127,7 +1147,7 @@ public abstract class myScene {
 			System.out.println("100.0%");
 			starCount = 0;lastCastCnt=0;
 		}//for each light
-		photonTree.build_tree();
+		photonTree.buildKDTree();
 	}//sendCausticPhotons
 	
 	protected void sendDiffusePhotons(){
@@ -1136,25 +1156,25 @@ public abstract class myScene {
 		//for every object
 		//check if hit, save where lands
 		int numDiv = 100,lastCastCnt = 0, starCount = 0, pctCastCnt = numDiv/10;
-		int numCastPerDisp = photonTree.num_Cast/numDiv;
-		myLight tmpLight; 
-		double pwrMult = diffuseLightPwrMult/photonTree.num_Cast;
+		int numCastPerDisp = photonTree.numCast/numDiv;
+		Base_Light tmpLight; 
+		double pwrMult = diffuseLightPwrMult/photonTree.numCast;
 		myRay reflRefrRay;
-		double[] tmpPwr,photon_pwr, d;
+		double[] tmpPwr,photonPwr;
 		rayHit hitChk;
 		myPhoton phn;
 		//TODO scale # of photons sent into scene by light intensity
-		for(myGeomBase light : lightList){//either a light or an instance of a light
-			tmpLight = (light instanceof myLight) ? tmpLight = (myLight)light : ((myLight)((myInstance)light).obj);
-			System.out.print("Casting " + photonTree.num_Cast + " Diffuse (indirect) photons for light ID " + tmpLight.ID + ": Progress:");			
-			for(int i =0; i<photonTree.num_Cast; ++i){
-				photon_pwr = new double[]{tmpLight.lightColor.RGB.x * pwrMult,tmpLight.lightColor.RGB.y * pwrMult,tmpLight.lightColor.RGB.z * pwrMult };
+		for(Base_Geometry light : lightList){//either a light or an instance of a light
+			tmpLight = (light instanceof Base_Light) ? tmpLight = (Base_Light)light : ((Base_Light)((myInstance)light).obj);
+			System.out.print("Casting " + photonTree.numCast + " Diffuse (indirect) photons for light ID " + tmpLight.ID + ": Progress:");			
+			for(int i =0; i<photonTree.numCast; ++i){
+				photonPwr = new double[]{tmpLight.lightColor.RGB.x * pwrMult,tmpLight.lightColor.RGB.y * pwrMult,tmpLight.lightColor.RGB.z * pwrMult };
 				hitChk = findClosestRayHit(tmpLight.genRndPhtnRay());//first hit
 				if(!hitChk.isHit){continue;}							//hit background - ignore
 				//now we hit an object, spec or diffuse - if specular, bounce without storing, if diffuse store and bounce with prob based on avg color				
 				//System.out.println("hit obj : " + hitChk.obj.ID);
 				//we have first hit here at caustic-generating surface.  need to propagate through to first diffuse surface
-				hitChk.phtnPwr = photon_pwr;
+				hitChk.phtnPwr = photonPwr;
 				boolean done = false, firstDiff = true;
 				do{
 					if(hitChk.shdr.KRefl == 0){//diffuse, store and maybe bounce
@@ -1177,8 +1197,8 @@ public abstract class myScene {
 								y = ThreadLocalRandom.current().nextDouble(-1.0,1.0);			
 								sqmag = (x*x) + (y*y);
 							}
-							while ((sqmag >= 1.0) || (sqmag < epsVal));
-							z = Math.sqrt(1 - ((x*x) + (y*y)));							//cosine weighting preserved by projecting up to sphere
+							while ((sqmag >= 1.0) || (sqmag < MyMathUtils.EPS));
+							z = Math.sqrt(1 - sqmag);							//cosine weighting preserved by projecting up to sphere
 							
 							
 					  		//then build ortho basis from normal - n' , q' , r' 
@@ -1188,7 +1208,7 @@ public abstract class myScene {
 							myVector tmpV = (((nxSq > nySq) && (nxSq > nzSq))  ? new myVector(0,0,1)  : new myVector(1,0,0));//find vector not close to n or -n to use to find tangent
 					  		//set _p to be tangent, _q to be binorm
 					  		_p = n._cross(tmpV);	_q = _p._cross(n);
-					  		//if(_p.sqMagn < p.epsVal){System.out.println("bad _p : " + _p + " | n : " + n + " | tmpV : " + tmpV);}
+					  		//if(_p.sqMagn < p.MyMathUtils.EPS){System.out.println("bad _p : " + _p + " | n : " + n + " | tmpV : " + tmpV);}
 					  		//lastly multiply ortho basis vectors by x,y,z : x * p, y * q', z*n', and then sum these products - z is projection/hemisphere dir, so should coincide with normal
 					  		
 					  		n._mult(z);	_p._mult(x);_q._mult(y);
@@ -1215,7 +1235,7 @@ public abstract class myScene {
 				
 				//d = hitChk.fwdTransRayDir._normalized().getAsAra();			//direction of ray hit, for anisotropic materials (TODO)			
 				//phn = new myPhoton(photonTree, hitChk.phtnPwr, hitChk.fwdTransHitLoc, Math.acos(d[2]), PConstants.PI + Math.atan2(d[1], d[0])); 	
-				//phn = new myPhoton(photonTree, photon_pwr, hitChk.fwdTransHitLoc.x,  hitChk.fwdTransHitLoc.y,  hitChk.fwdTransHitLoc.z); 	
+				//phn = new myPhoton(photonTree, photonPwr, hitChk.fwdTransHitLoc.x,  hitChk.fwdTransHitLoc.y,  hitChk.fwdTransHitLoc.z); 	
 				//this just calcs when to display progress bar, can be deleted
 				if(i > lastCastCnt){
 					lastCastCnt += numCastPerDisp;					
@@ -1226,7 +1246,7 @@ public abstract class myScene {
 			System.out.println("100.0%");
 			starCount = 0;lastCastCnt=0;
 		}
-		photonTree.build_tree();
+		photonTree.buildKDTree();
 	}//sendDiffusePhotons
 	
 	//initialize drawing routine - build photon map if it exists
@@ -1248,7 +1268,7 @@ public abstract class myScene {
 		//quadratic - check first if imaginary - if so then no intersection
 		if (discr > 0){     
 			double discr1 = Math.pow(discr,.5), t1 = (-1*b + discr1)/ (2*a), t2 = (-1*b - discr1)/ (2*a), tVal = Math.min(t1,t2);
-			if (tVal < epsVal){tVal = Math.max(t1,t2);}//if the min t val is less than 0
+			if (tVal < MyMathUtils.EPS){tVal = Math.max(t1,t2);}//if the min t val is less than 0
 			t = tVal;
 		}//if positive t
 		else {System.out.println ("error - non-colliding ray doesn't hit sky dome.  b^2 - 4ac , eval : "+ b + "^2 - 4 " + a + "*" + c + " : " + discr);}//should never get here - any ray that is sent to this function hasn't intersected with any other
@@ -1271,8 +1291,8 @@ public abstract class myScene {
 		a0 = (isctPt.x - mySkyDome.origin.x)/ (mySkyDome.radX);
 		a0 = (a0 > 1) ? 1 : (a0 < -1) ? -1 : a0;
 		a1 = ( Math.sin(q* Math.PI));
-		a2 = ( fastAbs(a1) < epsVal) ? 1 : a0/a1;
-		u = (z1 <= epsVal) ? ((shWm1 * ( Math.acos(a2))/ (MyMathUtils.TWO_PI_F)) + shWm1/2.0f) : 
+		a2 = ( fastAbs(a1) < MyMathUtils.EPS) ? 1 : a0/a1;
+		u = (z1 <= MyMathUtils.EPS) ? ((shWm1 * ( Math.acos(a2))/ (MyMathUtils.TWO_PI_F)) + shWm1/2.0f) : 
 					shWm1 - ((shWm1 * ( Math.acos(a2))/ (MyMathUtils.TWO_PI_F)) + shWm1/2.0f);
 		u = (u < 0) ? 0 : (u > shWm1) ? shWm1 : u;
 		return u;
@@ -1295,9 +1315,9 @@ public abstract class myScene {
 		reflRays = 0;
 		refrRays = 0;
 		globRayCount = 0;
-		for (myGeomBase obj : objList){//set for all scene objects or instances of sceneobjects
-			if(obj instanceof mySceneObject){((mySceneObject)obj).setFlags(mySceneObject.invertedIDX, scFlags[flipNormsIDX]);}//either a scene object or an instance of a scene object
-			else {if(obj instanceof myInstance && ((myInstance)obj).obj instanceof mySceneObject){((mySceneObject)((myInstance)obj).obj).setFlags(mySceneObject.invertedIDX, scFlags[flipNormsIDX]);}}
+		for (Base_Geometry obj : objList){//set for all scene objects or instances of sceneobjects
+			if(obj instanceof Base_SceneObject){((Base_SceneObject)obj).setFlags(Base_SceneObject.invertedIDX, scFlags[flipNormsIDX]);}//either a scene object or an instance of a scene object
+			else {if(obj instanceof myInstance && ((myInstance)obj).obj instanceof Base_SceneObject){((Base_SceneObject)((myInstance)obj).obj).setFlags(Base_SceneObject.invertedIDX, scFlags[flipNormsIDX]);}}
 		}
 	}//flipNormal	
 	//return abs vals of vector as vector
@@ -1315,14 +1335,19 @@ public abstract class myScene {
 		// Wrap the integer cells at 255 (smaller integer period can be introduced here)
 		X = X & 255;	Y = Y & 255;	Z = Z & 255;		
 		// Calculate a set of eight hashed gradient indices
-		int gi000 = perm[X+perm[Y+perm[Z]]] % 12;
-		int gi001 = perm[X+perm[Y+perm[Z+1]]] % 12;
-		int gi010 = perm[X+perm[Y+1+perm[Z]]] % 12;
+		int pYpZ = perm[Y+perm[Z]];
+		int pYpZ1 = perm[Y+perm[Z+1]];
+		int pY1pZ = perm[Y+1+perm[Z]];
+		int pY1pZ1 = perm[Y+1+perm[Z+1]];
+		
+		int gi000 = perm[X+pYpZ] % 12;
+		int gi001 = perm[X+pYpZ1] % 12;
+		int gi010 = perm[X+pY1pZ] % 12;
 		int gi011 = perm[X+perm[Y+1+perm[Z+1]]] % 12;
-		int gi100 = perm[X+1+perm[Y+perm[Z]]] % 12;
-		int gi101 = perm[X+1+perm[Y+perm[Z+1]]] % 12;
-		int gi110 = perm[X+1+perm[Y+1+perm[Z]]] % 12;
-		int gi111 = perm[X+1+perm[Y+1+perm[Z+1]]] % 12;
+		int gi100 = perm[X+1+pYpZ] % 12;
+		int gi101 = perm[X+1+pYpZ1] % 12;
+		int gi110 = perm[X+1+pY1pZ] % 12;
+		int gi111 = perm[X+1+pY1pZ1] % 12;
 		
 		// The gradients of each corner are now:
 		// gXXX = grad3[giXXX];
@@ -1432,18 +1457,18 @@ public abstract class myScene {
 	protected void finishImage(){
 		if (scFlags[saveImageIDX]){		saveFile();	}//if savefile is true, save the file
 		if (scFlags[showObjInfoIDX]){
-			for (myGeomBase obj : allObjsToFind){
+			for (Base_Geometry obj : allObjsToFind){
 	     		System.out.println(obj.toString());
 	     		System.out.println();
-	     		if(obj instanceof mySceneObject){
-		     		if (((mySceneObject)obj).shdr.txtr.txtFlags[myTextureHandler.txtrdTopIDX]){
-		     			System.out.println("" + ((mySceneObject)obj).showUV());
+	     		if(obj instanceof Base_SceneObject){
+		     		if (((Base_SceneObject)obj).shdr.txtr.txtFlags[Base_TextureHandler.txtrdTopIDX]){
+		     			System.out.println("" + ((Base_SceneObject)obj).showUV());
 		     		}//if textured
 	     		}
 		     	else if(obj instanceof myInstance){
 		     		myInstance inst = (myInstance)obj;
-		     		if ((inst.obj instanceof mySceneObject) && (((mySceneObject)inst.obj).shdr.txtr.txtFlags[myTextureHandler.txtrdTopIDX])){			//TODO need to modify this when using instanced polys having textures - each instance will need a notion of where it should sample from
-		     			System.out.println("" + ((mySceneObject)inst.obj).showUV());
+		     		if ((inst.obj instanceof Base_SceneObject) && (((Base_SceneObject)inst.obj).shdr.txtr.txtFlags[Base_TextureHandler.txtrdTopIDX])){			//TODO need to modify this when using instanced polys having textures - each instance will need a notion of where it should sample from
+		     			System.out.println("" + ((Base_SceneObject)inst.obj).showUV());
 		     		}	     	
 		     	}
 	     	}

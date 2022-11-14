@@ -5,6 +5,7 @@ import java.util.concurrent.ThreadLocalRandom;
 import base_RayTracer.myRay;
 import base_RayTracer.scene.myScene;
 import base_RayTracer.scene.objType;
+import base_RayTracer.scene.geometry.sceneObjects.lights.base.Base_Light;
 import base_Math_Objects.vectorObjs.doubles.myVector;
 import processing.core.PConstants;
 
@@ -13,7 +14,7 @@ import processing.core.PConstants;
  * As with point lights, there is also a color associated with the light (r, g, b). Since this light source has a non-zero area, 
  * it sould cast a shadow that is soft on the edges. For each shadow ray that is cast at this light source, you should select a random position on this disk. 
  */
-public class myDiskLight extends myLight{	
+public class myDiskLight extends Base_Light{	
 	public double radius;
 	public int lightDistType;		//TODO support more than just normal light distribution (i.e. gaussian)
 	public myVector surfTangent,	//unit vector tangent to surface of light - randomly rotate around normal and extend from 0->radius to get random position	

@@ -4,13 +4,13 @@ import base_RayTracer.myRay;
 import base_RayTracer.rayHit;
 import base_RayTracer.scene.myScene;
 import base_RayTracer.scene.objType;
-import base_RayTracer.scene.geometry.sceneObjects.mySceneObject;
+import base_RayTracer.scene.geometry.sceneObjects.base.Base_SceneObject;
 import base_Math_Objects.vectorObjs.doubles.myMatrix;
 import base_Math_Objects.vectorObjs.doubles.myVector;
 import processing.core.PImage;
 
 //a scene object representing a box - basically a bounding box + a shader
-public class myRndrdBox extends mySceneObject{
+public class myRndrdBox extends Base_SceneObject{
 
 	public myRndrdBox(myScene _scn, double _x, double _y, double _z, myVector _minVals, myVector _maxVals) {
 		super(_scn, _x, _y, _z);

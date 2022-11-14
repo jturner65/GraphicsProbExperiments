@@ -3,7 +3,7 @@ package base_RayTracer;
 import java.util.concurrent.ThreadLocalRandom;
 
 import base_RayTracer.scene.myScene;
-import base_RayTracer.scene.geometry.myGeomBase;
+import base_RayTracer.scene.geometry.base.Base_Geometry;
 import base_Math_Objects.vectorObjs.doubles.myMatrix;
 import base_Math_Objects.vectorObjs.doubles.myVector;
 
@@ -19,11 +19,14 @@ public class myRay{
 	
 	public double[] originAra;
 	public double[] dirAra;
-	//public double scale;
-	//for motion blur - ray has a time value
+	/**
+	 * for motion blur - ray has a time value
+	 */
 	private double time = -1;
 		
-	//what generation is this ray?  primary rays are 0, reflected rays increase generation by 1 for every reflection
+	/**
+	 * what generation is this ray?  primary rays are 0, reflected rays increase generation by 1 for every reflection
+	 */
 	public int gen;
 
 	public myRay(myScene _scn, myVector _origin, myVector _direction, int _gen){
@@ -88,9 +91,14 @@ public class myRay{
 		result._add(origin);
 	    return result;  
 	}
-	//these are placed here for potential multi-threading - will pivot threads on rays
-	//this will apply the inverse of the current transformation matrix to the ray passed as a parameter and return the transformed ray
-	//pass correct matrix to use for transformation
+	/**
+	 * these are placed here for potential multi-threading - will pivot threads on rays 
+	 * this will apply the inverse of the current transformation matrix to the ray passed as a parameter and return the transformed ray 
+	 * pass correct matrix to use for transformation
+	 * @param ray
+	 * @param trans
+	 * @return
+	 */
 	public myRay getTransformedRay(myRay ray, myMatrix trans){
 		double[] rayOrigin,rayDirection;
 		ray.direction._normalize();
@@ -111,17 +119,31 @@ public class myRay{
 		return newPt;
 	}
 	
-	//get transformed/inverse transformed vector - homogeneous coords
+	/**
+	 * get transformed/inverse transformed vector - homogeneous coords
+	 * @param vec
+	 * @param trans
+	 * @return
+	 */
 	public myVector getTransformedVec(myVector vec, myMatrix trans){
 		double[] newVecAra = trans.multVert(vec.asHAraVec());		
 		myVector newVec = new myVector(newVecAra[0],newVecAra[1],newVecAra[2]);
 		return newVec;
 	}	
-	//build object for hit - contains all relevant info from intersection, including CTM matrix array
-	//args ara : idx 0 is cylinder stuff, idx 1 is bound box plane idx (0-5) args is used only in normal calc
-	public rayHit objHit(myGeomBase _obj, myVector _rawRayDir, myMatrix[] _ctMtrx, myVector pt, int[] args, double _t){
-		myVector fwdTransPt = getTransformedPt(pt, _ctMtrx[myGeomBase.glblIDX]);		//hit location in world space		
-		myVector _newNorm = getTransformedVec(_obj.getNormalAtPoint(pt,args), _ctMtrx[myGeomBase.adjIDX]);
+	/**
+	 * build object for hit - contains all relevant info from intersection, including CTM matrix array 
+	 * args ara : idx 0 is cylinder stuff, idx 1 is bound box plane idx (0-5) args is used only in normal calc
+	 * @param _obj
+	 * @param _rawRayDir
+	 * @param _ctMtrx
+	 * @param pt
+	 * @param args
+	 * @param _t
+	 * @return
+	 */
+	public rayHit objHit(Base_Geometry _obj, myVector _rawRayDir, myMatrix[] _ctMtrx, myVector pt, int[] args, double _t){
+		myVector fwdTransPt = getTransformedPt(pt, _ctMtrx[Base_Geometry.glblIDX]);		//hit location in world space		
+		myVector _newNorm = getTransformedVec(_obj.getNormalAtPoint(pt,args), _ctMtrx[Base_Geometry.adjIDX]);
 		_newNorm._normalize();
  		rayHit _hit = new rayHit(this, _rawRayDir, _obj,  _ctMtrx, _newNorm, pt,fwdTransPt,  _t,args);
  		return _hit;
