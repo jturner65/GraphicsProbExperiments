@@ -6,8 +6,8 @@ import base_RayTracer.myColor;
 import base_RayTracer.myRay;
 import base_RayTracer.rayHit;
 import base_RayTracer.scene.myScene;
-import base_RayTracer.scene.geometry.accelStruct.myKD_Tree;
 import base_RayTracer.scene.geometry.sceneObjects.base.Base_SceneObject;
+import base_RayTracer.scene.photonMapping.Photon_KDTree;
 import processing.core.PImage;
 import base_Math_Objects.vectorObjs.doubles.myMatrix;
 import base_Math_Objects.vectorObjs.doubles.myVector;
@@ -16,7 +16,7 @@ import base_Math_Objects.vectorObjs.doubles.myVector;
 public abstract class Base_Light extends Base_SceneObject{
 	public myColor lightColor;            //does not use super's color vals
 	public int lightID;
-	public myKD_Tree photonTree;
+	public Photon_KDTree photonTree;
 	public myVector orientation;
 	
 	//TODO light intensity should fall off by inverse sq dist

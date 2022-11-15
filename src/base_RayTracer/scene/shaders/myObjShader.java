@@ -8,8 +8,8 @@ import base_RayTracer.rayHit;
 import base_RayTracer.scene.myScene;
 import base_RayTracer.scene.geometry.base.Base_Geometry;
 import base_RayTracer.scene.geometry.sceneObjects.myInstance;
-import base_RayTracer.scene.geometry.sceneObjects.lights.myPhoton;
 import base_RayTracer.scene.geometry.sceneObjects.lights.base.Base_Light;
+import base_RayTracer.scene.photonMapping.myPhoton;
 import base_RayTracer.scene.textures.base.Base_TextureHandler;
 import base_RayTracer.scene.textures.imageTextures.myImageTexture;
 import processing.core.PConstants;
@@ -468,14 +468,14 @@ public class myObjShader {
 	protected double[] getIrradianceFromPhtnTree(rayHit hit){
 		//idx 0 is photon dir, idx 1 is phtn pwr
 		double[] res = new double[]{0,0,0};		
-		ArrayList<myPhoton> hood = scene.photonTree.findNeighborhood(hit.fwdTransHitLoc.x, hit.fwdTransHitLoc.y, hit.fwdTransHitLoc.z);//location in world coords
+		myPhoton[] hood = scene.photonTree.findNeighborhood(hit.fwdTransHitLoc.x, hit.fwdTransHitLoc.y, hit.fwdTransHitLoc.z);//location in world coords
 		//ArrayList<Photon> hood = scene.photonTree.find_near((float)hit.fwdTransHitLoc.x, (float)hit.fwdTransHitLoc.y, (float)hit.fwdTransHitLoc.z, scene.kNhood, scene.ph_max_near_dist);//location in world coords
-		int hoodSize = hood.size();
-		if ((hoodSize == 0) || (hood.get(0) == null)){return res;}
-		double rSq = hood.get(0).pos[3];				//furthest photon is in first idx of hood, sqdist is 3rd position of pos ara
-		double area = PConstants.PI * rSq;// * Math.sqrt(rSq) * 1.33333;//vol of differential hemi-sphere
+		int hoodSize = hood.length;
+		if ((hoodSize == 0) || (hood[0] == null)){return res;}
+		double rSq = hood[0].getSqDist();				//furthest photon is in first idx of hood, sqdist is 3rd position of pos ara
+		double area = MyMathUtils.PI * rSq;// * Math.sqrt(rSq) * 1.33333;//vol of differential hemi-sphere
 		for(int i=0;i<hoodSize;++i){
-			myPhoton phtn = hood.get(i);
+			myPhoton phtn = hood[i];
 			res[0] += phtn.pwr[0];
 			res[1] += phtn.pwr[1];
 			res[2] += phtn.pwr[2];

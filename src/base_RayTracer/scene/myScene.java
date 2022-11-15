@@ -20,6 +20,9 @@ import base_RayTracer.scene.geometry.sceneObjects.lights.*;
 import base_RayTracer.scene.geometry.sceneObjects.lights.base.Base_Light;
 import base_RayTracer.scene.geometry.sceneObjects.planar.myPlane;
 import base_RayTracer.scene.geometry.sceneObjects.planar.myRndrdBox;
+import base_RayTracer.scene.photonMapping.KDTree;
+import base_RayTracer.scene.photonMapping.Photon_KDTree;
+import base_RayTracer.scene.photonMapping.myPhoton;
 import base_RayTracer.scene.shaders.myObjShader;
 import base_RayTracer.scene.shaders.mySimpleReflObjShdr;
 import base_RayTracer.scene.textures.*;
@@ -143,10 +146,10 @@ public abstract class myScene {
 	
 	////////////////
 	//indirect illumination/caustics stuff
-	public myKD_Tree photonTree;		//TODO make two of these, one for caustics, one for indirect illum
+	public Photon_KDTree photonTree;		//TODO make two of these, one for caustics, one for indirect illum
 	public int numGatherRays;
 	public int numPhotons, kNhood;
-	public float ph_max_near_dist;
+	public float photonMaxNearDist;
 	//recursive depth for photons
 	public int numPhotonRays = 4;	
 	//to correct for light power oddness
@@ -288,7 +291,7 @@ public abstract class myScene {
 		numGatherRays = 0;
 		numPhotons =0;
 		kNhood = 0;
-		ph_max_near_dist = 0;
+		photonMaxNearDist = 0;
 		
 		saveName = _saveName;
 		txtrType = 0;
@@ -331,7 +334,7 @@ public abstract class myScene {
 		photonTree = _old.photonTree;	
 		numPhotons = _old.numPhotons;
 		kNhood = _old.kNhood;
-		ph_max_near_dist = _old.ph_max_near_dist;
+		photonMaxNearDist = _old.photonMaxNearDist;
 		
 		numNonLights = _old.numNonLights;
 		numLights = _old.numLights;
@@ -1078,9 +1081,10 @@ public abstract class myScene {
 		//caustic_photons 80000000  80 0.05
 		numPhotons = Integer.parseInt(token[1]);
 		kNhood = Integer.parseInt(token[2]);
-		ph_max_near_dist = Float.parseFloat(token[3]);
+		photonMaxNearDist = Float.parseFloat(token[3]);
+		float sqDist = photonMaxNearDist*photonMaxNearDist;
 		//build photon tree
-		photonTree = new myKD_Tree(this, numPhotons, kNhood, ph_max_near_dist);
+		photonTree = new Photon_KDTree(numPhotons, kNhood, sqDist);
 	}
 	//final gather procedure
 	public void setFinalGather(String[] token){
@@ -1136,7 +1140,7 @@ public abstract class myScene {
 				//phn = new myPhoton(photonTree, hitChk.phtnPwr, hitChk.fwdTransHitLoc, Math.acos(d[2]), PConstants.PI + Math.atan2(d[1], d[0])); 	
 				//phn = new myPhoton(photonTree, photonPwr, hitChk.fwdTransHitLoc.x,  hitChk.fwdTransHitLoc.y,  hitChk.fwdTransHitLoc.z); 	
 				phn = new myPhoton(photonTree, hitChk.phtnPwr, hitChk.fwdTransHitLoc.x,  hitChk.fwdTransHitLoc.y,  hitChk.fwdTransHitLoc.z); 	
-				photonTree.add_photon(phn);
+				photonTree.addKDObject(phn);
 				//this just calcs when to display progress bar, can be deleted
 				if(i > lastCastCnt){
 					lastCastCnt += numCastPerDisp;					
@@ -1147,7 +1151,9 @@ public abstract class myScene {
 			System.out.println("100.0%");
 			starCount = 0;lastCastCnt=0;
 		}//for each light
+		System.out.println("Building KD Tree for Caustic Photons");
 		photonTree.buildKDTree();
+		System.out.println("KD Tree Built for Caustic Photons");
 	}//sendCausticPhotons
 	
 	protected void sendDiffusePhotons(){
@@ -1181,7 +1187,7 @@ public abstract class myScene {
 						double prob = 0;
 						if(!firstDiff){//don't store first
 							phn = new myPhoton(photonTree, hitChk.phtnPwr, hitChk.fwdTransHitLoc.x,  hitChk.fwdTransHitLoc.y,  hitChk.fwdTransHitLoc.z); 	
-							photonTree.add_photon(phn);
+							photonTree.addKDObject(phn);
 							prob = ThreadLocalRandom.current().nextDouble(0,1.0);//russian roulette to see if casting
 						}
 						firstDiff = false;
@@ -1189,8 +1195,6 @@ public abstract class myScene {
 							//get new bounce dir
 							myVector hitLoc = hitChk.fwdTransHitLoc;
 					  		//first calc random x,y,z
-							
-							
 					  		double x=0,y=0,z=0, sqmag;
 							do{
 								x = ThreadLocalRandom.current().nextDouble(-1.0,1.0);
@@ -1199,9 +1203,7 @@ public abstract class myScene {
 							}
 							while ((sqmag >= 1.0) || (sqmag < MyMathUtils.EPS));
 							z = Math.sqrt(1 - sqmag);							//cosine weighting preserved by projecting up to sphere
-							
-							
-					  		//then build ortho basis from normal - n' , q' , r' 
+							//then build ortho basis from normal - n' , q' , r' 
 					  		myVector n = new myVector(hitChk.objNorm),_p = new myVector(),_q = new myVector(); 
 					  				//tmpV = (((n.x > n.y) && (n.x > n.z)) || ((-n.x > -n.y) && (-n.x > -n.z))  ? new myVector(0,0,1)  : new myVector(1,0,0));//find vector not close to n or -n to use to find tangent
 							double nxSq = n.x * n.x, nySq = n.y * n.y, nzSq = n.z * n.z;
@@ -1210,9 +1212,7 @@ public abstract class myScene {
 					  		_p = n._cross(tmpV);	_q = _p._cross(n);
 					  		//if(_p.sqMagn < p.MyMathUtils.EPS){System.out.println("bad _p : " + _p + " | n : " + n + " | tmpV : " + tmpV);}
 					  		//lastly multiply ortho basis vectors by x,y,z : x * p, y * q', z*n', and then sum these products - z is projection/hemisphere dir, so should coincide with normal
-					  		
 					  		n._mult(z);	_p._mult(x);_q._mult(y);
-					  		
 					  		myVector bounceDir = new myVector(n.x + _p.x + _q.x,n.y + _p.y + _q.y,n.z + _p.z + _q.z);
 					  		bounceDir._normalize();
 					 		//save power before finding ray hit, to reset it after ray hit
@@ -1246,7 +1246,9 @@ public abstract class myScene {
 			System.out.println("100.0%");
 			starCount = 0;lastCastCnt=0;
 		}
+		System.out.println("Building KD Tree for Diffuse Photons");
 		photonTree.buildKDTree();
+		System.out.println("KD Tree Built for Diffuse Photons");
 	}//sendDiffusePhotons
 	
 	//initialize drawing routine - build photon map if it exists
