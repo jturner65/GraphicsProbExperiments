@@ -1,7 +1,7 @@
 package base_RayTracer.scene.photonMapping;
 
 /**
- * Photon class
+ * Photon class, holds photon power.  Placed in KDNode upon construction of KDTree
  * @author 7strb
  *
  */

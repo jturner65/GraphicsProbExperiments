@@ -20,12 +20,10 @@ import base_RayTracer.scene.geometry.sceneObjects.lights.*;
 import base_RayTracer.scene.geometry.sceneObjects.lights.base.Base_Light;
 import base_RayTracer.scene.geometry.sceneObjects.planar.myPlane;
 import base_RayTracer.scene.geometry.sceneObjects.planar.myRndrdBox;
-import base_RayTracer.scene.photonMapping.KDTree;
 import base_RayTracer.scene.photonMapping.Photon_KDTree;
 import base_RayTracer.scene.photonMapping.myPhoton;
 import base_RayTracer.scene.shaders.myObjShader;
 import base_RayTracer.scene.shaders.mySimpleReflObjShdr;
-import base_RayTracer.scene.textures.*;
 import base_RayTracer.scene.textures.base.Base_TextureHandler;
 import base_RayTracer.scene.textures.imageTextures.myImageTexture;
 import base_RayTracer.scene.textures.miscTextures.myNonTexture;
@@ -1396,7 +1394,12 @@ public abstract class myScene {
 	//end given code, 3d perlin noise
 	
 	//utility functions
-	//find signed area of enclosed poly, with given points and normal N
+	/**
+	 * find signed area of enclosed poly, with given points and normal N
+	 * @param _pts
+	 * @param N
+	 * @return
+	 */
 	public double calcArea(myVector[] _pts, myVector N){
 	    double res = 0;	    
 	    if (_pts.length < 3) return 0; 
@@ -1504,7 +1507,7 @@ public abstract class myScene {
 	public void gtPushMatrix() {
 		if (currMatrixDepthIDX < matStackMaxHeight){
 	    	matrixStack.push();
-	    	currMatrixDepthIDX++;
+	    	++currMatrixDepthIDX;
 		} else {	System.out.println("Error, matrix depth maximum " + matStackMaxHeight + " exceeded");	}	  
 	}//gtPushMatrix method
 
@@ -1512,7 +1515,7 @@ public abstract class myScene {
 		if (matrixStack.top == 0){System.out.println("Error : Cannot pop the last matrix in the matrix stack");} 
 		else {		//temp was last matrix at top of stack - referencing only for debugging purposes
 			myMatrix temp = matrixStack.pop();
-			currMatrixDepthIDX--;
+			--currMatrixDepthIDX;
 		}
 	}//gtPopMatrix method
 

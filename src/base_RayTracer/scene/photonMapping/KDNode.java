@@ -1,6 +1,5 @@
 package base_RayTracer.scene.photonMapping;
 
-
 public class KDNode <T extends Base_KDObject<T>> {
 	protected T nodeObject;
 	protected int splitAxis;   		// which axis separates children: 0, 1 or 2 (-1 signals we are at a leaf node)

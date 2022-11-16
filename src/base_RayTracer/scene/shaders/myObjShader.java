@@ -1,6 +1,5 @@
 package base_RayTracer.scene.shaders;
 
-import java.util.*;
 
 import base_RayTracer.myColor;
 import base_RayTracer.myRay;
@@ -12,10 +11,14 @@ import base_RayTracer.scene.geometry.sceneObjects.lights.base.Base_Light;
 import base_RayTracer.scene.photonMapping.myPhoton;
 import base_RayTracer.scene.textures.base.Base_TextureHandler;
 import base_RayTracer.scene.textures.imageTextures.myImageTexture;
-import processing.core.PConstants;
 import base_Math_Objects.MyMathUtils;
 import base_Math_Objects.vectorObjs.doubles.myVector;
 
+/**
+ * 
+ * @author 7strb
+ *
+ */
 public class myObjShader {
 	public myScene scene;
 	
@@ -86,18 +89,37 @@ public class myObjShader {
 	    phongExp = scene.currPhongExp;
   	}  	
   	
-  	//calculate the perpendicular component of the reflected amount of light (fresnel equations) - multiplied by the color from the recursive ray reflect equations
+  /**
+   * calculate the perpendicular component of the reflected amount of light (fresnel equations) - multiplied by the color from the recursive ray reflect equations
+   * @param n1
+   * @param n2
+   * @param cosThetaI
+   * @param cosThetaT
+   * @return
+   */
   	protected double calcFresPerp(double n1, double n2, double cosThetaI, double cosThetaT){
   		double n1cthI = n1*cosThetaI, n2cthT = n2*cosThetaT, nd = (n1cthI - n2cthT)/(n1cthI + n2cthT);
   		return nd*nd;
   	}
-  	//calculate the parallel component of the refracted amount of light (fresnel equations) - multiplied by the color from the recursive ray refract equations
+  	/**
+  	 * calculate the parallel component of the refracted amount of light (fresnel equations) - multiplied by the color from the recursive ray refract equations
+  	 * @param n1
+  	 * @param n2
+  	 * @param cosThetaI
+  	 * @param cosThetaT
+  	 * @return
+  	 */
   	protected double calcFresPlel(double n1, double n2, double cosThetaI, double cosThetaT){
   		double  n1cthT = n1*cosThetaT, n2cthI = n2*cosThetaI, nd = (n1cthT - n2cthI)/(n1cthT + n2cthI);
   		return  nd*nd;
   	}
   	
-  	// computes the reflected vector - assumes the incoming eye/light vector is pointed away from the point of intersection (same dir as normal)
+  	/**
+  	 * computes the reflected vector - assumes the incoming eye/light vector is pointed away from the point of intersection (same dir as normal)
+  	 * @param eyeDir
+  	 * @param objNorm
+  	 * @return
+  	 */
   	public myVector compReflDir (myVector eyeDir, myVector objNorm ) {
   		myVector reflDir = new myVector(0,0,0);
   		double dotProd = 2 * (eyeDir._dot(objNorm));
@@ -166,7 +188,12 @@ public class myObjShader {
   	}//calcShadowColor
   	
  	
-  	//calculate transparent/transmitted color and reflected color at surface
+  	/**
+  	 * calculate transparent/transmitted color and reflected color at surface
+  	 * @param hit
+  	 * @param permClr
+  	 * @return
+  	 */
   	protected double[] calcTransClr(rayHit hit, myVector permClr){
   		double r=0,g=0,b=0;  		
   		myVector hitLoc = hit.fwdTransHitLoc,

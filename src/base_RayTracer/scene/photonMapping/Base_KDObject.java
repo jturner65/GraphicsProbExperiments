@@ -1,7 +1,7 @@
 package base_RayTracer.scene.photonMapping;
 
 /**
- * This class defines an object held in the node of a KD tree, as well as the comparison function
+ * This class defines an object held in the KDnode of a KDTree, as well as the comparison function to compare between two KDObjects
  * @author 7strb
  *
  */
@@ -9,7 +9,7 @@ public abstract class Base_KDObject <T extends Base_KDObject<T>> implements Comp
 	/**
 	 * Values to partition for KD Tree
 	 */
-	protected double[] posVals;
+	protected final double[] posVals;
 	/**
 	 * Tree that owns the hierarchy this object will be placed within+
 	 */
@@ -46,10 +46,11 @@ public abstract class Base_KDObject <T extends Base_KDObject<T>> implements Comp
 	 *    2) for comparing distances when locating nearby objects (sortAxis is posVals.length -1)
 	 */
 	@Override
-	public final int compareTo(Base_KDObject<T> o) {		
-		return ((posVals[owningTree.sortAxis] < o.posVals[owningTree.sortAxis]) ? 
+	public final int compareTo(Base_KDObject<T> o) {
+		int sortAxis = owningTree.getSortAxis();
+		return ((posVals[sortAxis] < o.posVals[sortAxis]) ? 
 				-1 : 
-					((posVals[owningTree.sortAxis] > o.posVals[owningTree.sortAxis]) ? 
+					((posVals[sortAxis] > o.posVals[sortAxis]) ? 
 							1 : 0));}
 
 }//class Base_KDObject

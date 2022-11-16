@@ -6,7 +6,6 @@ import base_RayTracer.rayHit;
 import base_RayTracer.scene.myScene;
 import base_RayTracer.scene.objType;
 import base_RayTracer.scene.geometry.BoundingBox;
-import base_RayTracer.scene.geometry.accelStruct.*;
 import base_RayTracer.scene.shaders.myObjShader;
 import processing.core.PImage;
 import base_Math_Objects.MyMathUtils;
@@ -28,7 +27,7 @@ public abstract class Base_Geometry {
 			glblIDX = 0,
 			invIDX = 1,
 			transIDX = 2,
-			adjIDX = 3;
+			invTransIDX = 3;
 
 	public BoundingBox _bbox;						//everything has a bounding box
 	
@@ -48,7 +47,7 @@ public abstract class Base_Geometry {
 		trans_origin =  getTransformedPt(origin, CTMara[glblIDX]).asArray();
 	}
 	
-	//inv mat idx : 1; transpose mat idx : 2; adjoint mat idx : 3
+	//inv mat idx : 1; transpose mat idx : 2; transpose of inverse : 3
 	private myMatrix[] buildMatExt(myMatrix[] CTMara){CTMara[1] = CTMara[0].inverse();CTMara[2] = CTMara[0].transpose();CTMara[3] = CTMara[1].transpose();return CTMara;}
 	//passing Mat so that can instance transformed prims like distorted spheres
 	public myMatrix[] buildCTMara(myScene scene, myMatrix _mat){myMatrix[] CTMara = new myMatrix[4];CTMara[0] = _mat.multMat(scene.matrixStack.peek());return buildMatExt(CTMara);}	
@@ -117,7 +116,7 @@ public abstract class Base_Geometry {
 	    for (int row = 0; row < 4; ++row){
 	    	result += "[";
 	    	for (int col = 0; col < 4; ++col){   tmp2str = (CTMara[transIDX].m[row][col] < 0 ? "" : " ") + String.format("%.2f", CTMara[transIDX].m[row][col]); if (col != 3) {tmp2str += ", ";} result += tmp2str;}    	tmpString = "]";result += tmpString + "      [";
-	    	for (int col = 0; col < 4; ++col){   tmp2str = (CTMara[adjIDX].m[row][col] < 0 ? "" : " ")+String.format("%.2f", CTMara[adjIDX].m[row][col]); if (col != 3) {tmp2str += ", ";} result += tmp2str;}    	tmpString = "]";  if (row != 3) { tmpString += "\n"; }
+	    	for (int col = 0; col < 4; ++col){   tmp2str = (CTMara[invTransIDX].m[row][col] < 0 ? "" : " ")+String.format("%.2f", CTMara[invTransIDX].m[row][col]); if (col != 3) {tmp2str += ", ";} result += tmp2str;}    	tmpString = "]";  if (row != 3) { tmpString += "\n"; }
 	    	result += tmpString;
 	    }
 	    if(_bbox != null){		result += "\nBounding box : " + _bbox.toString();}
