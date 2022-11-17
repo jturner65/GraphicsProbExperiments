@@ -10,6 +10,7 @@ import base_RayTracer.scene.shaders.myObjShader;
 import processing.core.PImage;
 import base_Math_Objects.MyMathUtils;
 import base_Math_Objects.vectorObjs.doubles.myMatrix;
+import base_Math_Objects.vectorObjs.doubles.myPoint;
 import base_Math_Objects.vectorObjs.doubles.myVector;
 //abstract base class from which scene objects, instances, bounding boxes and acceleration structures all inherit
 //make this very skinny since we may have thousands of them
@@ -18,7 +19,7 @@ public abstract class Base_Geometry {
 	public final int ID;
 	public objType type;    //what kind of object this is
 	//first 2 vectors of object, center of object,the orientation vector of this object, the min and max values in xyz that this object spans, for bounding box
-	public myVector origin;
+	public myPoint origin;
 	public double[] trans_origin;		//used only to speed up initial calcs for bvh structure
 	public myObjShader shdr;
 
@@ -33,17 +34,17 @@ public abstract class Base_Geometry {
 	
 	public static final double epsVal = MyMathUtils.EPS;//.0000001;
 	
-	public myVector minVals, maxVals;
+	public myPoint minVals, maxVals;
 	
 	public Base_Geometry(myScene _scn, double _x, double _y, double _z) {
 		scene = _scn;
 	    ID = scene.objCnt++;
 	    type = objType.None;
 	    //build this object's transformation matrix - since this is the base/owning object, pass the identity for "prev obj matrix"
-		minVals = new myVector(100000,100000,100000);
-		maxVals = new myVector(-100000,-100000,-100000);
+		minVals = new myPoint(100000,100000,100000);
+		maxVals = new myPoint(-100000,-100000,-100000);
 	    CTMara = buildCTMara(scene);	
-	    origin = new myVector(_x,_y,_z);
+	    origin = new myPoint(_x,_y,_z);
 		trans_origin =  getTransformedPt(origin, CTMara[glblIDX]).asArray();
 	}
 	
@@ -66,9 +67,9 @@ public abstract class Base_Geometry {
 	protected double min(double[] valAra) {double minVal = Double.MAX_VALUE;for (double val : valAra){	if(val < minVal){minVal = val;}	}return minVal;}
 
 	//get transformed/inverse transformed point - homogeneous coords
-	protected myVector getTransformedPt(myVector pt, myMatrix trans){
+	protected myPoint getTransformedPt(myPoint pt, myMatrix trans){
 		double[] newPtAra = trans.multVert(new double[]{pt.x, pt.y, pt.z, 1});	
-		myVector newPt = new myVector(newPtAra[0],newPtAra[1],newPtAra[2]);
+		myPoint newPt = new myVector(newPtAra[0],newPtAra[1],newPtAra[2]);
 		return newPt;
 	}	
 	//get transformed/inverse transformed vector - homogeneous coords
@@ -84,22 +85,25 @@ public abstract class Base_Geometry {
 	protected int fastfloor(double x) { return x>0 ? (int)x : (int)x-1;}
 
 	//to implement motion blur - t is interpolant between two set values
-	public abstract myVector getOrigin(double t);
+	public abstract myPoint getOrigin(double t);
 	//for both below, CALLER MUST FWD TRANSFORM! - to support instances of objects
-	//return vector with maximum x/y/z coords of this object
-	public abstract myVector getMaxVec();	
-	//return vector with minimum x/y/z coords of this object
-	public abstract myVector getMinVec();
+	//return point with maximum x/y/z coords of this object
+	public abstract myPoint getMaxVec();	
+	//return point with minimum x/y/z coords of this object
+	public abstract myPoint getMinVec();
 	//intersection check for shadows 
 	public abstract int calcShadowHit(myRay _ray,myRay _trans, myMatrix[] _ctAra, double distToLight);
 	//find rayhit value for hitting this geometry object
 	public abstract rayHit intersectCheck(myRay _ray,myRay transRay, myMatrix[] _ctAra);
 	//find the appropriate normal for the hit on this object
-	public abstract myVector getNormalAtPoint(myVector point, int[] args);
+	public abstract myVector getNormalAtPoint(myPoint point, int[] args);
 	//everything should be able to handle a get color query
 	public abstract myColor getColorAtPos(rayHit transRay);
 	//get texture coordinates
-	public abstract double[] findTxtrCoords(myVector isctPt, PImage myTexture, double time);
+	public abstract double[] findTxtrCoords(myPoint isctPt, PImage myTexture, double time);
+	protected abstract double findTextureU(myPoint isctPt, double v, PImage myTexture, double time);  
+	protected abstract double findTextureV(myPoint isctPt, PImage myTexture, double time); 
+	
 	
 	public String toString(){
 		String result = "Object Type : " + type + " ID:"+ID+" origin : " + origin;

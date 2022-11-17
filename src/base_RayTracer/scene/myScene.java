@@ -39,6 +39,7 @@ import processing.core.PImage;
 import base_Math_Objects.MyMathUtils;
 import base_Math_Objects.vectorObjs.doubles.myMatStack;
 import base_Math_Objects.vectorObjs.doubles.myMatrix;
+import base_Math_Objects.vectorObjs.doubles.myPoint;
 import base_Math_Objects.vectorObjs.doubles.myVector;
 
 //class to hold all objects within a desired scene
@@ -1016,8 +1017,12 @@ public abstract class myScene {
 	///////
 	//RT functionality
 	///////	
-	//get random location within "lens" for depth of field calculation - consider loc to be center, pick random point in constant z plane within some radius of loc point
-	public myVector getDpthOfFldEyeLoc(myVector loc){
+	/**
+	 * get random location within "lens" for depth of field calculation - consider loc to be center, pick random point in constant z plane within some radius of loc point
+	 * @param loc
+	 * @return
+	 */
+	public myPoint getDpthOfFldEyeLoc(myPoint loc){
 		//myVector tmp = p.rotVecAroundAxis(new myVector(0,1,0),new myVector(0,0,-1),ThreadLocalRandom.current().nextDouble(0,MyMathUtils.TWO_PI_F));				//rotate surfTangent by random angle
 		myVector tmp1 = new myVector(0,1,0);
 		myVector tmp = tmp1.rotMeAroundAxis(new myVector(0,0,-1),ThreadLocalRandom.current().nextDouble(0,MyMathUtils.TWO_PI_F));				//rotate surfTangent by random angle
@@ -1081,6 +1086,7 @@ public abstract class myScene {
 		kNhood = Integer.parseInt(token[2]);
 		photonMaxNearDist = Float.parseFloat(token[3]);
 		float sqDist = photonMaxNearDist*photonMaxNearDist;
+		System.out.println("# photons : "+ numPhotons+ " Hood size :"+kNhood+" Max Near Dist :" +photonMaxNearDist);
 		//build photon tree
 		photonTree = new Photon_KDTree(numPhotons, kNhood, sqDist);
 	}
@@ -1191,7 +1197,7 @@ public abstract class myScene {
 						firstDiff = false;
 						if(prob < hitChk.shdr.avgDiffClr){	//reflect in new random dir, scale phtn power by diffClr/avgClr
 							//get new bounce dir
-							myVector hitLoc = hitChk.fwdTransHitLoc;
+							myPoint hitLoc = hitChk.fwdTransHitLoc;
 					  		//first calc random x,y,z
 					  		double x=0,y=0,z=0, sqmag;
 							do{
@@ -1276,7 +1282,7 @@ public abstract class myScene {
 	}//findSkjDomeT func
 	
 	// find corresponding u and v values for background texture
-	public double findBkgTextureV(myVector isctPt, double t){
+	public double findBkgTextureV(myPoint isctPt, double t){
 		double v = 0.0;
 		double a0 = isctPt.y - mySkyDome.origin.y;
 		double a1 = a0 /(mySkyDome.radY);
@@ -1285,7 +1291,7 @@ public abstract class myScene {
 	  return v;
 	}
 
-	public double findBkgTextureU(myVector isctPt, double v, double t){
+	public double findBkgTextureU(myPoint isctPt, double v, double t){
 		double u = 0.0, q,a0, a1, a2, shWm1 = ((myImageTexture)mySkyDome.shdr.txtr).myTextureBottom.width-1, z1 = (isctPt.z - mySkyDome.origin.z);	  
 		q = v/(((myImageTexture)mySkyDome.shdr.txtr).myTextureBottom.height-1);//normalize v to be 0-1
 		a0 = (isctPt.x - mySkyDome.origin.x)/ (mySkyDome.radX);
@@ -1300,7 +1306,7 @@ public abstract class myScene {
 
 	public myColor getBackgroundTextureColor(myRay ray){
 		double t = findSkyDomeT(ray);
-		myVector isctPt = ray.pointOnRay(t);
+		myPoint isctPt = ray.pointOnRay(t);
 		double v = findBkgTextureV(isctPt, t), u = findBkgTextureU(isctPt, v, t);
 		return new myColor(((myImageTexture)mySkyDome.shdr.txtr).myTextureBottom.pixels[(int)v * ((myImageTexture)mySkyDome.shdr.txtr).myTextureBottom.width + (int)u]);
 	}//getBackgroundTexturecolor

@@ -4,6 +4,7 @@ import base_RayTracer.myRay;
 import base_RayTracer.scene.myScene;
 import base_RayTracer.scene.objType;
 import base_RayTracer.scene.geometry.sceneObjects.lights.base.Base_Light;
+import base_Math_Objects.vectorObjs.doubles.myPoint;
 import base_Math_Objects.vectorObjs.doubles.myVector;
 
 public class myPointLight extends Base_Light{
@@ -14,7 +15,7 @@ public class myPointLight extends Base_Light{
 	}//myPointLight constructor(7)
  
 	@Override//normal is meaningless for pointlight
-	public myVector getNormalAtPoint(myVector point, int[] args) {return new myVector(0,1,0);}
+	public myVector getNormalAtPoint(myPoint point, int[] args) {return new myVector(0,1,0);}
 
 	@Override
 	public myRay genRndPhtnRay() {
@@ -23,14 +24,14 @@ public class myPointLight extends Base_Light{
 	}
 	
 	@Override
-	public myVector getMaxVec(){
-		myVector res = new myVector(origin);
+	public myPoint getMaxVec(){
+		myPoint res = new myPoint(origin);
 		res._add(epsVal,epsVal,epsVal);
 		return res;
 	}	
 	@Override
-	public myVector getMinVec(){
-		myVector res = new myVector(origin);
+	public myPoint getMinVec(){
+		myPoint res = new myPoint(origin);
 		res._add(-epsVal,-epsVal,-epsVal);
 		return res;
 	}

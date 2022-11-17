@@ -6,6 +6,7 @@ import base_RayTracer.scene.myScene;
 import base_RayTracer.scene.objType;
 import base_Math_Objects.MyMathUtils;
 import base_Math_Objects.vectorObjs.doubles.myMatrix;
+import base_Math_Objects.vectorObjs.doubles.myPoint;
 import base_Math_Objects.vectorObjs.doubles.myVector;
 import processing.core.PImage;
 
@@ -42,7 +43,7 @@ public class mySphere extends myImpObject{
 			return result;
 		}  
 		// returns surface normal of sphere at given point on sphere
-		public myVector getNormalAtPoint(myVector pt, int[] args){
+		public myVector getNormalAtPoint(myPoint pt, int[] args){
 			myVector result = new myVector(pt);
 			result._sub(this.origin);
 			result._normalize();
@@ -71,8 +72,8 @@ public class mySphere extends myImpObject{
 		}//intersectCheck method
 		//find the u (x) value in a texture to plot to a specific point on the sphere
 		@Override
-		protected double findTextureU(myVector isctPt, double v, PImage myTexture, double time){		
-			myVector t_origin = this.getOrigin(time);
+		protected double findTextureU(myPoint isctPt, double v, PImage myTexture, double time){		
+			myPoint t_origin = this.getOrigin(time);
 			double u = 0.0, q,a0, a1, a2, shWm1 = myTexture.width-1, z1 = (isctPt.z - t_origin.z);	  
 			q = v/(myTexture.height-1);//normalize v to be 0-1
 			a0 = (isctPt.x - t_origin.x)/ (this.radX);
@@ -87,8 +88,8 @@ public class mySphere extends myImpObject{
 	        
 		// find the v (y) value in a texture to plot to a specific point on the sphere  remember top of texture should correspond to 0, bottom to texture.height.
 		@Override
-		protected double findTextureV(myVector isctPt, PImage myTexture, double time){
-			myVector t_origin = this.getOrigin(time);
+		protected double findTextureV(myPoint isctPt, PImage myTexture, double time){
+			myPoint t_origin = this.getOrigin(time);
 			double v = 0.0;
 			//double a0 = super.rayIntersectPoint[gen].y - this.origin.y;
 			double a0 = isctPt.y - t_origin.y;
@@ -99,7 +100,7 @@ public class mySphere extends myImpObject{
 		}//method findTextureV    
 		
 		@Override
-		public myVector getOrigin(double _t){	return origin;	}
+		public myPoint getOrigin(double _t){	return origin;	}
 		@Override
 		public myVector getMaxVec(){
 			myVector res = new myVector(origin);

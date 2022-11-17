@@ -6,6 +6,7 @@ import base_RayTracer.scene.myScene;
 import base_RayTracer.scene.shaders.myObjShader;
 import base_RayTracer.scene.textures.base.Base_TextureHandler;
 import base_Math_Objects.MyMathUtils;
+import base_Math_Objects.vectorObjs.doubles.myPoint;
 import base_Math_Objects.vectorObjs.doubles.myVector;
 
 //noise-based texture
@@ -108,8 +109,8 @@ public class myNoiseTexture extends Base_TextureHandler{
 	public double linPtVal(myVector vec){return (vec.x*periodMult.x + vec.y*periodMult.y + vec.z*periodMult.z);	}
 	public double sqPtVal(myVector vec){return  Math.sqrt((vec.x * vec.x)*periodMult.x + (vec.y * vec.y)*periodMult.y + (vec.z * vec.z)*periodMult.z);}
 	//return rgb array from two colors, using passed interpolant, and with passed random value used to provide variability - do not use for cellular texture
-	public double[] getClrAra(double distVal, myVector rawPt, int idx0, int idx1){//noise_3d((float)pt.x, (float)pt.y, (float)pt.z);
-		myVector pt = new myVector(rawPt);
+	public double[] getClrAra(double distVal, myPoint rawPt, int idx0, int idx1){//noise_3d((float)pt.x, (float)pt.y, (float)pt.z);
+		myPoint pt = new myPoint(rawPt);
 		pt._mult(colorScale);
 		double mult = colorMult;
 

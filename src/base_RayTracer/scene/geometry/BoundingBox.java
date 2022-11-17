@@ -7,6 +7,7 @@ import base_RayTracer.scene.myScene;
 import base_RayTracer.scene.objType;
 import base_RayTracer.scene.geometry.base.Base_Geometry;
 import base_Math_Objects.vectorObjs.doubles.myMatrix;
+import base_Math_Objects.vectorObjs.doubles.myPoint;
 import base_Math_Objects.vectorObjs.doubles.myVector;
 import processing.core.PImage;
  
@@ -20,7 +21,7 @@ public class BoundingBox extends Base_Geometry {
 	
 	public int maxExtentIdx;						//idx  (0,1,2) of maximum extent in this bounding box
 	public myVector sArea;
-	public BoundingBox(myScene _scn, myVector _minVals, myVector _maxVals){
+	public BoundingBox(myScene _scn, myPoint _minVals, myPoint _maxVals){
 		super (_scn, 0, 0, 0);
 		type = objType.BBox;
 		calcMinMaxCtrVals(_minVals, _maxVals);
@@ -28,7 +29,7 @@ public class BoundingBox extends Base_Geometry {
 	}
 
 	//expand passed bbox to hold passed point - point is in box coords
-	private void expandMePt(myVector newPt) {
+	private void expandMePt(myPoint newPt) {
 		minVals.x = (minVals.x < newPt.x) ?minVals.x : newPt.x; 
 		minVals.y = (minVals.y < newPt.y) ?minVals.y : newPt.y; 
 		minVals.z = (minVals.z < newPt.z) ?minVals.z : newPt.z; 
@@ -63,20 +64,21 @@ public class BoundingBox extends Base_Geometry {
 
 
 	
-	public void calcMinMaxCtrVals(myVector _minVals, myVector _maxVals){
+	public void calcMinMaxCtrVals(myPoint _minVals, myPoint _maxVals){
 		minVals.set(Math.min(_minVals.x, minVals.x),Math.min(_minVals.y, minVals.y),Math.min(_minVals.z, minVals.z));
 		maxVals.set(Math.max(_maxVals.x, maxVals.x),Math.max(_maxVals.y, maxVals.y),Math.max(_maxVals.z, maxVals.z));
-		origin = new myVector(minVals);
+		origin = new myPoint(minVals);
 		origin._add(maxVals);
 		origin._mult(.5);
 	    trans_origin = getTransformedPt(origin, CTMara[glblIDX]).asArray();
 	    //trans_origin = origin.getAsAra();
-		myVector difs = new myVector(minVals,maxVals);
+	    myPoint difs = myPoint._sub(maxVals, minVals);	    
+	    //myVector difs = new myVector(minVals,maxVals);
 		double[] difVals = difs.asArray();
 		double maxVal =  max(difVals);
 		maxExtentIdx = (maxVal == difVals[0] ? 0 : maxVal == difVals[1] ? 1 : 2);
-		myVector dif = new myVector(minVals,maxVals);
-		sArea =  new myVector (dif.y*dif.z, dif.x*dif.z, dif.x*dif.y);						
+		//myVector dif = new myVector(minVals,maxVals);
+		sArea =  new myVector (difs.y*difs.z, difs.x*difs.z, difs.x*difs.y);						
 	}
 
 	public void addObj(Base_Geometry _obj) {		
@@ -84,12 +86,17 @@ public class BoundingBox extends Base_Geometry {
 		CTMara = obj.CTMara;
 	}	
 	@Override
-	public myVector getMaxVec() {	return maxVals;	}
+	public myPoint getMaxVec() {	return maxVals;	}
 	@Override
-	public myVector getMinVec() {	return minVals;	}
+	public myPoint getMinVec() {	return minVals;	}
 	
 	@Override//bbox has no txtrs
-	public double[] findTxtrCoords(myVector isctPt, PImage myTexture, double time) {return new double[]{0,0};}
+	public double[] findTxtrCoords(myPoint isctPt, PImage myTexture, double time) {return new double[]{0,0};}
+	@Override
+	protected double findTextureU(myPoint isctPt, double v, PImage myTexture, double time){ return 0.0; }
+	@Override
+	protected double findTextureV(myPoint isctPt, PImage myTexture, double time){	return 0.0;  } 
+	
 	//only says if bbox is hit
 	@Override //_ctAra is ara of ctm for object held by bbox, and responsible for transformation of transray
 	public rayHit intersectCheck(myRay _ray,myRay transRay, myMatrix[] _ctAra) {
@@ -140,7 +147,7 @@ public class BoundingBox extends Base_Geometry {
 	 * (low const x plane, low const y plane, low const z plane, high const x plane, high const y plane, high const z plane). 
 	 * low planes have neg normal high planes have pos normal
 	 */
-	public myVector getNormalAtPoint(myVector point, int[] args) {
+	public myVector getNormalAtPoint(myPoint point, int[] args) {
 		//System.out.print(args[1]);
 		switch (args[1]){
 		case 0 : {return new myVector(-1,0,0);}
@@ -156,7 +163,7 @@ public class BoundingBox extends Base_Geometry {
 	@Override
 	public myColor getColorAtPos(rayHit transRay) {	return new myColor(1,0,0);}
 	@Override
-	public myVector getOrigin(double t) {return origin;}	
+	public myPoint getOrigin(double t) {return origin;}	
 	public String toString(){
 		String res = "\t\tBBOX : "+ ID + " BBox bounds : Min : " + minVals + " | Max : " + maxVals + " | Ctr " + origin + " Obj type : " + obj.type+"\n";
 		return res;		

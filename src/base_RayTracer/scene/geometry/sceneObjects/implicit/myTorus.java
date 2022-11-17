@@ -5,6 +5,7 @@ import base_RayTracer.rayHit;
 import base_RayTracer.scene.myScene;
 import base_RayTracer.scene.objType;
 import base_Math_Objects.vectorObjs.doubles.myMatrix;
+import base_Math_Objects.vectorObjs.doubles.myPoint;
 import base_Math_Objects.vectorObjs.doubles.myVector;
 import processing.core.PImage;
 
@@ -31,33 +32,33 @@ public class myTorus extends myImpObject{
 	public myTorus(myScene _p, double primeRad, double secondRad){this(_p,primeRad,secondRad,0,0,0); }
 
 	@Override
-	protected double findTextureU(myVector isctPt, double v, PImage myTexture, double time){
+	protected double findTextureU(myPoint isctPt, double v, PImage myTexture, double time){
 		double u = 0.0;
 		return u;
 	}    
 	      
 	@Override
-	protected double findTextureV(myVector isctPt, PImage myTexture, double time){
+	protected double findTextureV(myPoint isctPt, PImage myTexture, double time){
 		double v = 0.0;
 		return v;
 	}
 	
 	@Override
-	public myVector getOrigin(double _t){	return origin;	}
+	public myPoint getOrigin(double _t){	return origin;	}
 	@Override
-	public myVector getMaxVec(){
-		myVector res = new myVector(origin);
+	public myPoint getMaxVec(){
+		myPoint res = new myPoint(origin);
 		res._add(bodyRad,bodyRad,bodyRad);
 		return res;
 	}	
 	@Override
-	public myVector getMinVec(){
-		myVector res = new myVector(origin);
+	public myPoint getMinVec(){
+		myPoint res = new myPoint(origin);
 		res._add(-bodyRad,-bodyRad,-bodyRad);
 		return res;
 	}
 	@Override
-	public myVector getNormalAtPoint(myVector point, int[] args) {
+	public myVector getNormalAtPoint(myPoint point, int[] args) {
 		// TODO Auto-generated method stub
 		return null;
 	}

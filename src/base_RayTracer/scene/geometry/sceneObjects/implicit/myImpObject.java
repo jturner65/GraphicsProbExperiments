@@ -4,6 +4,7 @@ import processing.core.PImage;
 import base_RayTracer.myRay;
 import base_RayTracer.scene.myScene;
 import base_RayTracer.scene.geometry.sceneObjects.base.Base_SceneObject;
+import base_Math_Objects.vectorObjs.doubles.myPoint;
 import base_Math_Objects.vectorObjs.doubles.myVector;
 
 //scene object described by implicit equations
@@ -20,19 +21,16 @@ public abstract class myImpObject extends Base_SceneObject {
 	*  for seperate axes radii
 	*/	
 	public myVector originRadCalc(myRay ray){//need to get ray time value
-	    myVector result = new myVector(), _rayOrigin = ray.origin, thisOrigin = getOrigin(ray.getTime());
+	    myVector result = new myVector();
+	    myPoint _rayOrigin = ray.origin, thisOrigin = getOrigin(ray.getTime());
 	    result.set((_rayOrigin.x - thisOrigin.x)/radX, (_rayOrigin.y - thisOrigin.y)/radY, (_rayOrigin.z - thisOrigin.z)/radZ);
 	    return result;  
 	}//method originRadCalc
 	@Override
-	public double[] findTxtrCoords(myVector isctPt, PImage myTexture, double time){
+	public double[] findTxtrCoords(myPoint isctPt, PImage myTexture, double time){
 		double v = findTextureV(isctPt,myTexture,time);	
 		return new double[]{findTextureU(isctPt,v,myTexture,time),v};
 	}
-	protected abstract double findTextureU(myVector isctPt, double v, PImage myTexture, double time);
-	protected abstract double findTextureV(myVector isctPt, PImage myTexture, double time);	
-
-
 }//class myImpObject
 
 

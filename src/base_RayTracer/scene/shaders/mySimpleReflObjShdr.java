@@ -5,6 +5,7 @@ import base_RayTracer.myRay;
 import base_RayTracer.rayHit;
 import base_RayTracer.scene.myScene;
 import base_Math_Objects.MyMathUtils;
+import base_Math_Objects.vectorObjs.doubles.myPoint;
 import base_Math_Objects.vectorObjs.doubles.myVector;
 
 //simplified transparent shader, for project 1
@@ -17,7 +18,8 @@ public class mySimpleReflObjShdr extends myObjShader{
 	//"simplified" transparent color from assignment 1 TODO verify this is appropriate
 	protected double[] calcSimpleTransClr(rayHit hit){
 		double r=0,g=0,b=0;
-		myVector objRayN = hit.objNorm, hitLoc = hit.fwdTransHitLoc, refrEyeDir = new myVector(hit.fwdTransRayDir);
+		myVector objRayN = hit.objNorm,refrEyeDir = new myVector(hit.fwdTransRayDir); 
+		myPoint hitLoc = hit.fwdTransHitLoc;
 		refrEyeDir._mult(-1);
 		myVector reflDir = compReflDir(refrEyeDir, objRayN);	  
 

@@ -5,10 +5,10 @@ import base_RayTracer.myRay;
 import base_RayTracer.rayHit;
 import base_RayTracer.scene.myScene;
 import base_RayTracer.scene.objType;
-import base_RayTracer.scene.geometry.accelStruct.*;
 import base_RayTracer.scene.geometry.accelStruct.base.Base_AccelStruct;
 import base_RayTracer.scene.geometry.base.Base_Geometry;
 import base_Math_Objects.vectorObjs.doubles.myMatrix;
+import base_Math_Objects.vectorObjs.doubles.myPoint;
 import base_Math_Objects.vectorObjs.doubles.myVector;
 import processing.core.PImage;
 
@@ -35,15 +35,17 @@ public class myInstance extends Base_Geometry{
 	}
 	
 	//return vector with maximum x/y/z coords of this object
-	public myVector getMaxVec(){return getTransformedPt(obj.getMaxVec(), obj.CTMara[glblIDX]);}
+	@Override
+	public myPoint getMaxVec(){return getTransformedPt(obj.getMaxVec(), obj.CTMara[glblIDX]);}
 	//return vector with minimum x/y/z coords of this object
-	public myVector getMinVec(){return getTransformedPt(obj.getMinVec(), obj.CTMara[glblIDX]);}
+	@Override
+	public myPoint getMinVec(){return getTransformedPt(obj.getMinVec(), obj.CTMara[glblIDX]);}
 	@Override
 	public int calcShadowHit(myRay _ray,myRay _trans, myMatrix[] _ctAra, double distToLight) {
 		return obj.calcShadowHit(_trans, _trans, _ctAra, distToLight);
 	}
 	@Override
-	public myVector getOrigin(double t) {	return getTransformedPt(obj.getOrigin(t), obj.CTMara[glblIDX]);}
+	public myPoint getOrigin(double t) {	return getTransformedPt(obj.getOrigin(t), obj.CTMara[glblIDX]);}
 	@Override
 	public rayHit intersectCheck(myRay _ray,myRay transRay, myMatrix[] _ctAra) {
 		rayHit _hit = obj.intersectCheck(transRay, transRay, _ctAra);		//copy trans ray over so that ctm-transformed accel structs will still register hits appropriately TODO make this better
@@ -51,15 +53,21 @@ public class myInstance extends Base_Geometry{
 		return _hit;	
 	}
 	@Override
-	public myVector getNormalAtPoint(myVector point, int[] args) {		return obj.getNormalAtPoint(point, args);		}	
+	public myVector getNormalAtPoint(myPoint point, int[] args) {		return obj.getNormalAtPoint(point, args);		}	
 	//set to override base object's shader
 	public void useInstShader(){	useShader = true; shdr = scene.getCurShader();}//new myObjShader(scene);	}	
 	//this is probably not the best way to do this - each instance needs to have its own UV coords.  TODOgetTransformedPt(isctPt, CTMara[invIDX]);
-	@Override
 	//public double[] findTxtrCoords(myVector isctPt, PImage myTexture, double time){ return obj.findTxtrCoords(isctPt, myTexture, time);}
-	public double[] findTxtrCoords(myVector isctPt, PImage myTexture, double time){ 
-		return obj.findTxtrCoords(getTransformedVec(isctPt, CTMara[invIDX]), myTexture, time);}
+	@Override
+	public double[] findTxtrCoords(myPoint isctPt, PImage myTexture, double time){ 
+		return obj.findTxtrCoords(getTransformedPt(isctPt, CTMara[invIDX]), myTexture, time);}
 
+	@Override
+	protected double findTextureU(myPoint isctPt, double v, PImage myTexture, double time){ return 0.0; }
+	@Override
+	protected double findTextureV(myPoint isctPt, PImage myTexture, double time){	return 0.0;  } 
+
+	
 	@Override
 	public myColor getColorAtPos(rayHit hit) {		return (useShader) ? shdr.getColorAtPos(hit) : hit.obj.shdr.getColorAtPos(hit);}//return (hit.obj instanceof mySceneObject) ? ((mySceneObject)hit.obj).shdr.getColorAtPos(hit) : new myColor(-1,-1,-1,1);	}
 	public String toString(){

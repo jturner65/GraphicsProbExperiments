@@ -5,6 +5,7 @@ import base_RayTracer.rayHit;
 import base_RayTracer.scene.myScene;
 import base_RayTracer.scene.objType;
 import base_Math_Objects.vectorObjs.doubles.myMatrix;
+import base_Math_Objects.vectorObjs.doubles.myPoint;
 import base_Math_Objects.vectorObjs.doubles.myVector;
 import processing.core.PImage;
 
@@ -47,7 +48,7 @@ public class myHollow_Cylinder extends myImpObject{
 
   	//returns surface normal of cylinder at given point on cylinder	
   	@Override
-  	public myVector getNormalAtPoint(myVector pt,  int[] args){//in args ara 0 means hitting outside of cylinder, 1 means hitting inside	
+  	public myVector getNormalAtPoint(myPoint pt,  int[] args){//in args ara 0 means hitting outside of cylinder, 1 means hitting inside	
   		myVector result= (args[0] == 1) ? new myVector((origin.x - pt.x), 0, (origin.z - pt.z)) : new myVector((pt.x - origin.x), 0, (pt.z - origin.z));
   		result._normalize();
   		if (rFlags[invertedIDX]){result._mult(-1);}
@@ -57,10 +58,10 @@ public class myHollow_Cylinder extends myImpObject{
 
 	//find the u (x) value in a texture to plot to a specific point on the object	TODO
 	@Override
-	protected double findTextureU(myVector isctPt, double v, PImage myTexture, double time){double u = 0.0;return u;}     	
+	protected double findTextureU(myPoint isctPt, double v, PImage myTexture, double time){double u = 0.0;return u;}     	
   	//find the v (y) value in a texture to plot to a specific point on the object  	TODO
 	@Override
-	protected double findTextureV(myVector isctPt, PImage myTexture, double time){		double v = 0.0; 		return v; 	}   
+	protected double findTextureV(myPoint isctPt, PImage myTexture, double time){		double v = 0.0; 		return v; 	}   
 	
   	public double getMyHeight(){  return myHeight;}  
   	
@@ -72,7 +73,7 @@ public class myHollow_Cylinder extends myImpObject{
   	public double getCVal(myRay _ray){	myVector pC = originRadCalc(_ray);	return (pC.x * pC.x) + (pC.z * pC.z) - 1; }  
   	
 	@Override
-	public myVector getOrigin(double _t){	return origin;	}
+	public myPoint getOrigin(double _t){	return origin;	}
 	@Override
 	public myVector getMaxVec(){
 		myVector res = new myVector(origin);

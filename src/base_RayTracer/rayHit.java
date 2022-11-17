@@ -3,6 +3,7 @@ package base_RayTracer;
 import base_RayTracer.scene.geometry.base.Base_Geometry;
 import base_RayTracer.scene.shaders.myObjShader;
 import base_Math_Objects.vectorObjs.doubles.myMatrix;
+import base_Math_Objects.vectorObjs.doubles.myPoint;
 import base_Math_Objects.vectorObjs.doubles.myVector;
 
 /**
@@ -13,7 +14,8 @@ import base_Math_Objects.vectorObjs.doubles.myVector;
 public class rayHit implements Comparable<rayHit>{
 	public myRay transRay;
 	public Base_Geometry obj;
-	public myVector objNorm, hitLoc, fwdTransHitLoc, fwdTransRayDir;
+	public myVector objNorm, fwdTransRayDir;
+	public myPoint hitLoc, fwdTransHitLoc;
 	public myObjShader shdr;				//what shader to use for the hit object
 	public double t, ltMult;				//certain objects have multiple hit values - spotlight has light multiplier to make penumbra
 	public int[] iSectArgs;
@@ -27,7 +29,7 @@ public class rayHit implements Comparable<rayHit>{
 			transIDX = 2,
 			adjIDX = 3;
 
-	public rayHit(myRay _tray, myVector _rawRayDir, Base_Geometry _obj, myMatrix[] _ctMtrx, myVector _objNorm, myVector _hitLoc, myVector _fwdTransHitLoc, double _t, int[] _iSectArgs){
+	public rayHit(myRay _tray, myVector _rawRayDir, Base_Geometry _obj, myMatrix[] _ctMtrx, myVector _objNorm, myPoint _hitLoc, myPoint _fwdTransHitLoc, double _t, int[] _iSectArgs){
 		transRay = _tray;
 		isHit = true;
 		obj = _obj;

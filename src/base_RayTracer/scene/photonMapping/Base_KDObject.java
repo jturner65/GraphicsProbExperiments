@@ -9,7 +9,7 @@ public abstract class Base_KDObject <T extends Base_KDObject<T>> implements Comp
 	/**
 	 * Values to partition for KD Tree
 	 */
-	protected final double[] posVals;
+	protected double[] posVals;
 	/**
 	 * Tree that owns the hierarchy this object will be placed within+
 	 */
@@ -26,7 +26,6 @@ public abstract class Base_KDObject <T extends Base_KDObject<T>> implements Comp
 		posVals = new double[_locVals.length + 1];
 		System.arraycopy(_locVals, 0, posVals, 0, _locVals.length);
 	}
-
 	
 	/**
 	 * Get value for dist entry (last value)
@@ -39,6 +38,25 @@ public abstract class Base_KDObject <T extends Base_KDObject<T>> implements Comp
 	 */
 	public int getNumPosVals() {return numPosVals;}
 	
+	/**
+	 * Get square distance of this object from the passed point.
+	 * @param _pos
+	 * @return
+	 */
+	public double getSqDist(double[] _pos) {
+		double diff = 0, sum;
+		for (int i=0; i<numPosVals; ++i) {
+			sum = _pos[i] - posVals[i];
+			diff += sum * sum;
+		}
+		return diff;
+	}//getSqDist
+	
+	/**
+	 * Get the position values array of this KD Object
+	 * @return
+	 */
+	public double[] getPosVals() {return posVals;}
 
 	/**
 	 * Compare two objects, used in two different circumstances with KD-Tree 

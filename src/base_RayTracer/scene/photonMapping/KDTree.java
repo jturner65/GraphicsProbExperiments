@@ -82,21 +82,19 @@ public abstract class KDTree <T extends Base_KDObject<T>> {
 		//set first value in list as having both min and max
 		double[] mins = new double[]{1e20,1e20,1e20};
 		double[] maxs = new double[]{-1e20,-1e20,-1e20};	
-		
+		double[] posVals;
 		// now find min and max values for each axis for rest of objects in list
 		for (int i = 0; i < objList.size(); i++) {
-			p = objList.get(i);
+			posVals = objList.get(i).getPosVals();
 			for (int j = 0; j < numPosVals; j++) {
-				if (p.posVals[j] < mins[j]) {mins[j] = p.posVals[j];}
-				if (p.posVals[j] > maxs[j]) {maxs[j] = p.posVals[j];}
+				if (posVals[j] < mins[j]) {mins[j] = posVals[j];}
+				if (posVals[j] > maxs[j]) {maxs[j] = posVals[j];}
 			}
 		}
 
-
 		double dx = maxs[0] - mins[0];
 		double dy = maxs[1] - mins[1];
-		double dz = maxs[2] - mins[2];
-		
+		double dz = maxs[2] - mins[2];	
 	
 		if (dx >= dy && dx >= dz){	  	sortAxis = 0;}
 		else if (dy >= dx && dy >= dz){ sortAxis = 1;}
@@ -157,11 +155,11 @@ public abstract class KDTree <T extends Base_KDObject<T>> {
 	protected void findNearbyNodes (double[] pos, KDNode<T> node, PriorityQueue<T> queue) {
 		T nodeObj = node.getNodeObject();
 		// examine photon stored at this current node
-		double dx = pos[0] - nodeObj.posVals[0];
-		double dy = pos[1] - nodeObj.posVals[1];
-		double dz = pos[2] - nodeObj.posVals[2];
-		double len2 = dx*dx + dy*dy + dz*dz;		//sq dist from query position
-	
+//		double dx = pos[0] - nodeObj.posVals[0];
+//		double dy = pos[1] - nodeObj.posVals[1];
+//		double dz = pos[2] - nodeObj.posVals[2];
+//		double len2 = dx*dx + dy*dy + dz*dz;		//sq dist from query position
+		double len2 = nodeObj.getSqDist(pos);
 		if (len2 < tempMaxNeighborSqDist) {
 			// store distance squared in 4th double of a photon (for comparing distances)
 			nodeObj.setSqDist(len2);

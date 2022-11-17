@@ -8,6 +8,7 @@ import base_RayTracer.rayHit;
 import base_RayTracer.scene.myScene;
 import base_RayTracer.scene.geometry.base.Base_Geometry;
 import base_Math_Objects.vectorObjs.doubles.myMatrix;
+import base_Math_Objects.vectorObjs.doubles.myPoint;
 import base_Math_Objects.vectorObjs.doubles.myVector;
 import processing.core.PImage;
 
@@ -24,7 +25,7 @@ public abstract class Base_AccelStruct extends Base_Geometry{
 	}
 
 	@Override//myAccelStruct has no txtrs
-	public double[] findTxtrCoords(myVector isctPt, PImage myTexture, double time) {return new double[]{0,0};}
+	public double[] findTxtrCoords(myPoint isctPt, PImage myTexture, double time) {return new double[]{0,0};}
 	
 	public abstract rayHit traverseStruct(myRay _ray,myRay _trans, myMatrix[] _ctAra);
 
@@ -48,11 +49,12 @@ public abstract class Base_AccelStruct extends Base_Geometry{
 		return idxOfMaxSpan;
 	}//getIDXofMaxSpan
 	
-	
-	
-	
 	@Override
-	public myVector getNormalAtPoint(myVector point, int[] args) {	return _bbox.getNormalAtPoint(point, args);}
+	protected final double findTextureU(myPoint isctPt, double v, PImage myTexture, double time){ return 0.0; }
+	@Override
+	protected final double findTextureV(myPoint isctPt, PImage myTexture, double time){	return 0.0;  } 
+	@Override
+	public myVector getNormalAtPoint(myPoint point, int[] args) {	return _bbox.getNormalAtPoint(point, args);}
 	@Override
 	public myColor getColorAtPos(rayHit transRay) {//debug mechanism, will display colors of bounding boxes of particular depths in BVH tree
 		switch(typeOfAccel){
@@ -66,13 +68,13 @@ public abstract class Base_AccelStruct extends Base_Geometry{
 		return new myColor(0,1,0);
 	}
 	@Override
-	public myVector getMaxVec() {	return _bbox.maxVals;	}
+	public myPoint getMaxVec() {	return _bbox.maxVals;	}
 	@Override
-	public myVector getMinVec() {	return  _bbox.minVals;}
+	public myPoint getMinVec() {	return  _bbox.minVals;}
 
 	@Override
-	public myVector getOrigin(double t) {
-		origin = new myVector(_bbox.minVals);
+	public myPoint getOrigin(double t) {
+		origin = new myPoint(_bbox.minVals);
 		origin._add(_bbox.maxVals);
 		origin._mult(.5);
 		return origin;

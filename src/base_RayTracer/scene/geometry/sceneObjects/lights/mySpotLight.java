@@ -8,6 +8,7 @@ import base_RayTracer.scene.myScene;
 import base_RayTracer.scene.objType;
 import base_RayTracer.scene.geometry.sceneObjects.lights.base.Base_Light;
 import base_Math_Objects.vectorObjs.doubles.myMatrix;
+import base_Math_Objects.vectorObjs.doubles.myPoint;
 import base_Math_Objects.vectorObjs.doubles.myVector;
 import base_Math_Objects.MyMathUtils;
 
@@ -73,16 +74,16 @@ public class mySpotLight extends Base_Light{
 		return new myRay(scene, getTransformedPt(origin, CTMara[glblIDX]), tmp, 0);
 	}	
 	@Override //no need for surface normal of light (??)
-	public myVector getNormalAtPoint(myVector point, int[] args) {	return new myVector(0,1,0);	}
+	public myVector getNormalAtPoint(myPoint point, int[] args) {	return new myVector(0,1,0);	}
 	@Override
-	public myVector getMaxVec(){
-		myVector res = new myVector(origin);
+	public myPoint getMaxVec(){
+		myPoint res = new myPoint(origin);
 		res._add(epsVal,epsVal,epsVal);
 		return res;
 	}
 	@Override
-	public myVector getMinVec(){
-		myVector res = new myVector(origin);
+	public myPoint getMinVec(){
+		myPoint res = new myPoint(origin);
 		res._add(-epsVal,-epsVal,-epsVal);
 		return res;
 	}	

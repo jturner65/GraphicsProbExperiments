@@ -6,6 +6,7 @@ import base_RayTracer.myRay;
 import base_RayTracer.scene.myScene;
 import base_RayTracer.scene.objType;
 import base_RayTracer.scene.geometry.sceneObjects.lights.base.Base_Light;
+import base_Math_Objects.vectorObjs.doubles.myPoint;
 import base_Math_Objects.vectorObjs.doubles.myVector;
 import processing.core.PConstants;
 
@@ -17,8 +18,8 @@ import processing.core.PConstants;
 public class myDiskLight extends Base_Light{	
 	public double radius;
 	public int lightDistType;		//TODO support more than just normal light distribution (i.e. gaussian)
-	public myVector surfTangent,	//unit vector tangent to surface of light - randomly rotate around normal and extend from 0->radius to get random position	
-					curShadowTarget;		//current target for this light - changes every time shadow ray is sent
+	public myVector surfTangent;	//unit vector tangent to surface of light - randomly rotate around normal and extend from 0->radius to get random position	
+	public myPoint curShadowTarget;		//current target for this light - changes every time shadow ray is sent
 	
 	public myDiskLight(myScene _scn, int _lightID, 
 			double _r, double _g, double _b, 
@@ -43,7 +44,7 @@ public class myDiskLight extends Base_Light{
 		//rotate in phi dir for random direction
 		//dir = myVector._rotAroundAxis(dir, orientation,ThreadLocalRandom.current().nextDouble(0,PConstants.TWO_PI));		
 		dir = dir.rotMeAroundAxis(orientation,ThreadLocalRandom.current().nextDouble(0,PConstants.TWO_PI));		
-		myVector loc = getRandomDiskPos();
+		myPoint loc = getRandomDiskPos();
 		return new myRay(scene, getTransformedPt(loc, CTMara[glblIDX]), dir, 0);
 	}//genRndPhtnRay
 	
@@ -54,7 +55,7 @@ public class myDiskLight extends Base_Light{
 	
 	//find random position within this light disk to act as target
 	//TODO : t is time in ray - use this to determine if this light is moving
-	protected myVector getRandomDiskPos(){
+	protected myPoint getRandomDiskPos(){
 		myVector tmp = surfTangent.rotMeAroundAxis(orientation,ThreadLocalRandom.current().nextDouble(0,PConstants.TWO_PI));				//rotate surfTangent by random angle
 		tmp._normalize();
 		double mult = ThreadLocalRandom.current().nextDouble(0,radius);			//find displacement radius from origin
@@ -63,9 +64,9 @@ public class myDiskLight extends Base_Light{
 		return tmp;
 	}			
 	@Override //normal is used for illumination of an object, are we going to illuminate/render a light?
-	public myVector getNormalAtPoint(myVector point, int[] args) {	return new myVector(0,1,0);	}
+	public myVector getNormalAtPoint(myPoint point, int[] args) {	return new myVector(0,1,0);	}
 	@Override
-	public myVector getOrigin(double t) {	
+	public myPoint getOrigin(double t) {	
 		//do this 2x if light is moving, and interpolate between two values
 		curShadowTarget = getRandomDiskPos(); 
 		return curShadowTarget;

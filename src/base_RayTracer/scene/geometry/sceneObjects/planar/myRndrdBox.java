@@ -6,6 +6,7 @@ import base_RayTracer.scene.myScene;
 import base_RayTracer.scene.objType;
 import base_RayTracer.scene.geometry.sceneObjects.base.Base_SceneObject;
 import base_Math_Objects.vectorObjs.doubles.myMatrix;
+import base_Math_Objects.vectorObjs.doubles.myPoint;
 import base_Math_Objects.vectorObjs.doubles.myVector;
 import processing.core.PImage;
 
@@ -19,28 +20,24 @@ public class myRndrdBox extends Base_SceneObject{
 	    type = objType.RenderedBBox;
 		postProcBBox();				//cnstrct and define bbox
 	}
-	public double[] findTxtrCoords(myVector isctPt, PImage myTexture, double time){
+	@Override
+	public double[] findTxtrCoords(myPoint isctPt, PImage myTexture, double time){
 		double v = findTextureV(isctPt,myTexture,time);	
 		return new double[]{findTextureU(isctPt,v,myTexture,time),v};
 	}
+	@Override
+	protected double findTextureU(myPoint isctPt, double v, PImage myTexture, double time){ return 0.0; }
+	@Override
+	protected double findTextureV(myPoint isctPt, PImage myTexture, double time){	return 0.0;  } 
 
-	protected double findTextureU(myVector isctPt, double v, PImage myTexture, double time) {		//TODO
-		// TODO Auto-generated method stub
-		return 0;
-	}
-
-	protected double findTextureV(myVector isctPt, PImage myTexture, double time) {					//TODO
-		// TODO Auto-generated method stub
-		return 0;
-	}
 	@Override
-	public myVector getOrigin(double t) {return origin;}
+	public myPoint getOrigin(double t) {return origin;}
 	@Override
-	public myVector getMaxVec() {		return _bbox.getMaxVec();}
+	public myPoint getMaxVec() {		return _bbox.getMaxVec();}
 	@Override
-	public myVector getMinVec() {		return _bbox.getMinVec();}
+	public myPoint getMinVec() {		return _bbox.getMinVec();}
 	@Override
 	public rayHit intersectCheck(myRay _ray,myRay transRay, myMatrix[] _ctAra) {return _bbox.intersectCheck(_ray, transRay, _ctAra);	}
 	@Override
-	public myVector getNormalAtPoint(myVector point, int[] args) {return _bbox.getNormalAtPoint(point, args);}
+	public myVector getNormalAtPoint(myPoint point, int[] args) {return _bbox.getNormalAtPoint(point, args);}
 }

@@ -12,6 +12,7 @@ import base_RayTracer.scene.photonMapping.myPhoton;
 import base_RayTracer.scene.textures.base.Base_TextureHandler;
 import base_RayTracer.scene.textures.imageTextures.myImageTexture;
 import base_Math_Objects.MyMathUtils;
+import base_Math_Objects.vectorObjs.doubles.myPoint;
 import base_Math_Objects.vectorObjs.doubles.myVector;
 
 /**
@@ -132,10 +133,10 @@ public class myObjShader {
  	
   	protected double[] calcShadowColor(rayHit hit, double[] texTopColor){
   		double r=0,  g=0, b=0;
-  		myVector lightNorm = new myVector(0,0,0), 
+  		myVector lightNorm = new myVector(0,0,0);
 //  				hitLoc = hit.hitLoc,						//point on inv-obj-transformed ray where hit occurs, transformed to world coords
-  		  				hitLoc = hit.fwdTransHitLoc,						//point on inv-obj-transformed ray where hit occurs, transformed to world coords
-  				hNorm = new myVector(0,0,0);
+  		myPoint hitLoc = hit.fwdTransHitLoc;						//point on inv-obj-transformed ray where hit occurs, transformed to world coords
+  		myVector hNorm = new myVector(0,0,0);
   		//find contributions for each light
   		for (Base_Geometry lightObj : scene.lightList){
   			Base_Light light;
@@ -196,8 +197,8 @@ public class myObjShader {
   	 */
   	protected double[] calcTransClr(rayHit hit, myVector permClr){
   		double r=0,g=0,b=0;  		
-  		myVector hitLoc = hit.fwdTransHitLoc,
-  				backToEyeDir = new myVector(hit.fwdTransRayDir);
+  		myPoint hitLoc = hit.fwdTransHitLoc;
+  		myVector backToEyeDir = new myVector(hit.fwdTransRayDir);
   		backToEyeDir._mult(-1);
   		
   		myVector reflDir ;//= compReflDir(backToEyeDir, objRayN);		  
@@ -320,7 +321,8 @@ public class myObjShader {
   	//calc reflected color - simple reflection
   	protected double[] calcReflClr(rayHit hit, myVector reflClrVec){
  		double r=0,g=0,b=0;
-  		myVector hitLoc = hit.fwdTransHitLoc, backEyeDir = new myVector(hit.fwdTransRayDir);  		
+  		myPoint hitLoc = hit.fwdTransHitLoc;
+  		myVector backEyeDir = new myVector(hit.fwdTransRayDir);  		
   		backEyeDir._mult(-1);
   		myVector reflDir = compReflDir(backEyeDir, hit.objNorm);	  
   		if (reflDir._dot(hit.objNorm) >= 0){//reflections from behind can't happen 
@@ -342,8 +344,8 @@ public class myObjShader {
 	 * @return
 	 */
   	protected myRay calcTransRay(rayHit hit){
-  		myVector hitLoc = hit.fwdTransHitLoc,
-  				backToEyeDir = new myVector(hit.fwdTransRayDir);
+  		myPoint hitLoc = hit.fwdTransHitLoc;
+  		myVector backToEyeDir = new myVector(hit.fwdTransRayDir);
   		backToEyeDir._mult(-1);
   		
   		myVector reflDir ;//= compReflDir(backToEyeDir, objRayN);		  
@@ -448,7 +450,8 @@ public class myObjShader {
   	
   	//calc reflected color - simple reflection
   	protected myRay calcReflRay(rayHit hit){
-  		myVector hitLoc = hit.fwdTransHitLoc, backEyeDir = new myVector(hit.fwdTransRayDir);  		
+  		myPoint hitLoc = hit.fwdTransHitLoc;
+  		myVector backEyeDir = new myVector(hit.fwdTransRayDir);  		
   		backEyeDir._mult(-1);
   		myVector reflDir = compReflDir(backEyeDir, hit.objNorm);	  
   			//reflecting ray off surface

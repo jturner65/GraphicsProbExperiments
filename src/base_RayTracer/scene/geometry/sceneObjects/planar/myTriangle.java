@@ -3,6 +3,7 @@ package base_RayTracer.scene.geometry.sceneObjects.planar;
 import base_RayTracer.myRay;
 import base_RayTracer.scene.myScene;
 import base_RayTracer.scene.objType;
+import base_Math_Objects.vectorObjs.doubles.myPoint;
 import base_Math_Objects.vectorObjs.doubles.myVector;
 import processing.core.PImage;
 
@@ -15,7 +16,7 @@ public class myTriangle extends myPlanarObject{
 			initObjVals();    
 		}	//myTriangle constructor (4)
 
-		public boolean checkInside(myVector rayPoint, myRay ray){
+		public boolean checkInside(myPoint rayPoint, myRay ray){
 			//find ray from each vertex to the planar intersection point
 			myVector intRay = new myVector(0,0,0);
 			for(int i =0; i<vCount; ++i){
@@ -28,7 +29,7 @@ public class myTriangle extends myPlanarObject{
 		}//checkInside method
 
 		@Override
-		public double[] findTxtrCoords(myVector isctPt, PImage myTexture, double time){
+		public double[] findTxtrCoords(myPoint isctPt, PImage myTexture, double time){
 		    myVector v2 = new myVector(P[0],isctPt);
 		    double dot20 = v2._dot(P2P[0]), dot21 = v2._dot(P2P0),
 		    c_u = ((dotVals[2] * dot20) - (dotVals[vCount] * dot21)) * baryIDenomTxtr,

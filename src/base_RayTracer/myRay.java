@@ -5,6 +5,7 @@ import java.util.concurrent.ThreadLocalRandom;
 import base_RayTracer.scene.myScene;
 import base_RayTracer.scene.geometry.base.Base_Geometry;
 import base_Math_Objects.vectorObjs.doubles.myMatrix;
+import base_Math_Objects.vectorObjs.doubles.myPoint;
 import base_Math_Objects.vectorObjs.doubles.myVector;
 
 public class myRay{
@@ -14,7 +15,8 @@ public class myRay{
 	public double[] currRfrIdx;
 	public double[] currKTrans;
 	
-	public myVector origin;  
+	public myPoint origin;
+	public myVector originAsVec;
 	public myVector direction;
 	
 	public double[] originAra;
@@ -29,7 +31,7 @@ public class myRay{
 	 */
 	public int gen;
 
-	public myRay(myScene _scn, myVector _origin, myVector _direction, int _gen){
+	public myRay(myScene _scn, myPoint _origin, myVector _direction, int _gen){
 		//use this constructor when making rays r0 + t(dR) (direction is direction vector
 		//all vectors originate at origin
 		this.scn = _scn;
@@ -41,7 +43,8 @@ public class myRay{
 	      this.currKTrans[i] = 1;  
 	    }
 	    this.gen = _gen;
-	    this.origin = new myVector(_origin);
+	    this.origin = new myPoint(_origin);
+	    this.originAsVec = new myVector(this.origin);
 	    this.originAra = this.origin.asArray();
 	    this.direction = new myVector(_direction);
 	    this.direction._normalize();
@@ -60,6 +63,7 @@ public class myRay{
 	//used by ray transformation of object's inv CTM
 	private void setRayVals(double[] originVals, double[] dirVals){
 	    this.origin.set(originVals[0],originVals[1],originVals[2]);
+	    this.originAsVec.set(originVals[0],originVals[1],originVals[2]);
 	    this.originAra = this.origin.asArray();
 	    this.direction.set(dirVals[0],dirVals[1],dirVals[2]);
 	    this.dirAra = this.direction.asArray();
@@ -85,8 +89,8 @@ public class myRay{
 	public void setCurrKTrans(double[] vals){for(int i=0;i<currKTrans.length;++i){currKTrans[i]=vals[i];}}
   
 	public double[] getCurrKTrans(){   return currKTrans; }
-	public myVector pointOnRay(double t){
-		myVector result = new myVector(direction);
+	public myPoint pointOnRay(double t){
+		myPoint result = new myPoint(direction);
 		result._mult(t);
 		result._add(origin);
 	    return result;  
@@ -112,10 +116,15 @@ public class myRay{
 		return newRay;
 	}//getTransformedRay
 
-	//get transformed/inverse transformed point - homogeneous coords
-	public myVector getTransformedPt(myVector pt, myMatrix trans){
+	/**
+	 * get transformed/inverse transformed point - homogeneous coords
+	 * @param pt
+	 * @param trans
+	 * @return
+	 */
+	public myPoint getTransformedPt(myPoint pt, myMatrix trans){
 		double[] newPtAra = trans.multVert(pt.asHAraPt());	
-		myVector newPt = new myVector(newPtAra[0],newPtAra[1],newPtAra[2]);
+		myPoint newPt = new myPoint(newPtAra[0],newPtAra[1],newPtAra[2]);
 		return newPt;
 	}
 	
@@ -141,8 +150,8 @@ public class myRay{
 	 * @param _t
 	 * @return
 	 */
-	public rayHit objHit(Base_Geometry _obj, myVector _rawRayDir, myMatrix[] _ctMtrx, myVector pt, int[] args, double _t){
-		myVector fwdTransPt = getTransformedPt(pt, _ctMtrx[Base_Geometry.glblIDX]);		//hit location in world space		
+	public rayHit objHit(Base_Geometry _obj, myVector _rawRayDir, myMatrix[] _ctMtrx, myPoint pt, int[] args, double _t){
+		myPoint fwdTransPt = getTransformedPt(pt, _ctMtrx[Base_Geometry.glblIDX]);		//hit location in world space		
 		myVector _newNorm = getTransformedVec(_obj.getNormalAtPoint(pt,args), _ctMtrx[Base_Geometry.invTransIDX]);
 		_newNorm._normalize();
  		rayHit _hit = new rayHit(this, _rawRayDir, _obj,  _ctMtrx, _newNorm, pt,fwdTransPt,  _t,args);

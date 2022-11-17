@@ -5,6 +5,7 @@ import base_RayTracer.rayHit;
 import base_RayTracer.scene.myScene;
 import base_RayTracer.scene.objType;
 import base_Math_Objects.vectorObjs.doubles.myMatrix;
+import base_Math_Objects.vectorObjs.doubles.myPoint;
 import base_Math_Objects.vectorObjs.doubles.myVector;
 
 public class myCylinder extends myHollow_Cylinder{
@@ -73,7 +74,7 @@ public class myCylinder extends myHollow_Cylinder{
 	}//intersectCheck method
   	//returns surface normal of cylinder at given point on cylinder
   	@Override
-  	public myVector getNormalAtPoint(myVector pt,  int[] args){
+  	public myVector getNormalAtPoint(myPoint pt,  int[] args){
   		myVector result;
   		if(args[0]>= capEqs.length){ 		result = new myVector((pt.x - origin.x), 0, (pt.z - origin.z));	} 
   		else {								result = new myVector(capEqs[args[0]][0],capEqs[args[0]][1],capEqs[args[0]][2]);}

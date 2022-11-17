@@ -10,6 +10,7 @@ import base_RayTracer.scene.geometry.sceneObjects.base.Base_SceneObject;
 import base_RayTracer.scene.photonMapping.Photon_KDTree;
 import processing.core.PImage;
 import base_Math_Objects.vectorObjs.doubles.myMatrix;
+import base_Math_Objects.vectorObjs.doubles.myPoint;
 import base_Math_Objects.vectorObjs.doubles.myVector;
 
 
@@ -45,12 +46,15 @@ public abstract class Base_Light extends Base_SceneObject{
 	}		//point light always intersects
 
 	//TODO textured light could give different color light to scene based on location? BATSIGNAL!
-	public double[] findTxtrCoords(myVector isctPt, PImage myTexture, double time){
+	@Override
+	public double[] findTxtrCoords(myPoint isctPt, PImage myTexture, double time){
 		double v = findTextureV(isctPt,myTexture,time);	
 		return new double[]{findTextureU(isctPt,v,myTexture,time),v};
 	}
-	protected double findTextureU(myVector isctPt, double v, PImage myTexture, double time){ return 0.0; }   
-	protected double findTextureV(myVector isctPt, PImage myTexture, double time){	return 0.0;  } 
+	@Override
+	protected double findTextureU(myPoint isctPt, double v, PImage myTexture, double time){ return 0.0; }
+	@Override
+	protected double findTextureV(myPoint isctPt, PImage myTexture, double time){	return 0.0;  } 
 	//public boolean intersectCheck(myRay ray){  return true;}
 	public void setLightColor(double _r, double _g, double _b){	this.lightColor = new myColor(_r,_g,_b);} 
 	//sets color and position of a light
@@ -88,7 +92,7 @@ public abstract class Base_Light extends Base_SceneObject{
 	//get starting point for photon ray - will vary based on light type
 	public abstract myRay genRndPhtnRay();
 	@Override
-	public myVector getOrigin(double _t){	return origin;	}	
+	public myPoint getOrigin(double _t){	return origin;	}	
 	public myVector getOrientation(double _t){	return orientation;	}
 
 	public String toString(){  return super.toString() + " \ncolor : " + this.lightColor + " light ID : " + this.lightID;  }
