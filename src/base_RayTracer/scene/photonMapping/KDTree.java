@@ -24,7 +24,7 @@ public abstract class KDTree <T extends Base_KDObject<T>> {
 	/**
 	 * This is set so that each time neighbor hoods are searched the size can be reset.
 	 */
-	private double maxNeighborSqDist;
+	private final double maxNeighborSqDist;
 	
 	/**
 	 * Max Sq Distance to be considered within a neighborhood; MaxDouble for maxNumNeighbors closest
@@ -168,9 +168,9 @@ public abstract class KDTree <T extends Base_KDObject<T>> {
 			// add photon to the priority queue
 			queue.add(nodeObj);
 			// keep the queue within desired range
-			if (queue.size() > tempMaxNeighborSqDist){	queue.poll();  }// delete the most distant element(the first)
+			if (queue.size() > maxNumNeighbors){	queue.poll();  }// delete the most distant element(the first)
 			// shrink maxNeighborSqDist if our queue is full and the farthest photon is closer
-			if (queue.size() == tempMaxNeighborSqDist) {
+			if (queue.size() == maxNumNeighbors) {
 				//first object is most distant
 				double furthestDist = queue.peek().getSqDist();				
 				if (furthestDist < tempMaxNeighborSqDist) {
@@ -191,16 +191,13 @@ public abstract class KDTree <T extends Base_KDObject<T>> {
 				if (node.left != null && delta2 < tempMaxNeighborSqDist){       findNearbyNodes (pos, node.left, queue);}
 			}
 		}		
-
 	}//findNearbyPhotons
 	
 	//////////////////////////////
 	// Getters and setters
 	public int getSortAxis() {					return sortAxis;	}
 	public void setSortAxis(int _sortAxis) {	sortAxis = _sortAxis;}
-
-	public double getMaxNeighborSqDist() {							return maxNeighborSqDist;	}
-
+	
 	public int getMaxNumNeighbors() {						return maxNumNeighbors;	}
 	public void setMaxNumNeighbors(int _maxNumNeighbors) {	maxNumNeighbors = _maxNumNeighbors;}
 	
