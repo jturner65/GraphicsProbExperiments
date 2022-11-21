@@ -2,8 +2,8 @@ package base_RayTracer.scene.geometry.sceneObjects.planar;
 
 import java.util.*;
 
-import base_RayTracer.myRay;
-import base_RayTracer.rayHit;
+import base_RayTracer.ray.rayCast;
+import base_RayTracer.ray.rayHit;
 import base_RayTracer.scene.myScene;
 import base_RayTracer.scene.geometry.sceneObjects.base.Base_SceneObject;
 import processing.core.PImage;
@@ -112,7 +112,7 @@ public abstract class myPlanarObject extends Base_SceneObject{
 	 * check if passed ray intersects with this planar object - ray already transformed	
 	 */
 	@Override
-	public rayHit intersectCheck(myRay _ray, myRay transRay, myMatrix[] _ctAra){
+	public rayHit intersectCheck(rayCast _ray, rayCast transRay, myMatrix[] _ctAra){
 //		if(!_bbox.intersectCheck(ray, _ctAra).isHit){return new rayHit(false);	}
 //		myRay transRay = ray.getTransformedRay(ray, _ctAra[invIDX]);
 		//get the result of plugging in this ray's direction term with the plane in question - if 0 then this ray is parallel with the plane
@@ -131,7 +131,7 @@ public abstract class myPlanarObject extends Base_SceneObject{
 	public void setVert(double _x, double _y, double _z, int idx){vertX[idx] = _x;  		vertY[idx] = _y;  		vertZ[idx] = _z;}
 	public void setTxtrCoord(double _u, double _v, int idx){vertU[idx]=_u;			vertV[idx]=_v;}
 	// determine if a ray that intersects the plane containing this polygon does so within the bounds of this polygon.
-	public abstract boolean checkInside(myPoint rayPoint, myRay ray);
+	public abstract boolean checkInside(myPoint rayPoint, rayCast ray);
 	
 	/**
 	*  determine this object's normal - with individual objects, the normal will just

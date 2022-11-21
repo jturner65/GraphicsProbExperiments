@@ -2,8 +2,8 @@ package base_RayTracer.scene.textures.miscTextures;
 
 import java.util.ArrayList;
 
-import base_RayTracer.myColor;
-import base_RayTracer.rayHit;
+import base_RayTracer.myRTColor;
+import base_RayTracer.ray.rayHit;
 import base_RayTracer.scene.myScene;
 import base_RayTracer.scene.shaders.myObjShader;
 import base_RayTracer.scene.textures.base.Base_TextureHandler;
@@ -37,7 +37,7 @@ public class myCompoundTexture extends Base_TextureHandler{
 	protected void initTextureVals() {}
 
 	@Override
-	public double[] getDiffTxtrColor(rayHit hit, myColor diffuseColor, double diffConst) {
+	public double[] getDiffTxtrColor(rayHit hit, myRTColor diffuseColor, double diffConst) {
 		//First calc all img-based colors
 		double[] tmpColor, resColor= new double[3];
 		for (int i=0;i<imgTxtrs.size();++i) {

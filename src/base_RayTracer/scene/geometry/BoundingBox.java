@@ -1,8 +1,8 @@
 package base_RayTracer.scene.geometry;
 
-import base_RayTracer.myColor;
-import base_RayTracer.myRay;
-import base_RayTracer.rayHit;
+import base_RayTracer.myRTColor;
+import base_RayTracer.ray.rayCast;
+import base_RayTracer.ray.rayHit;
 import base_RayTracer.scene.myScene;
 import base_RayTracer.scene.objType;
 import base_RayTracer.scene.geometry.base.Base_Geometry;
@@ -99,7 +99,7 @@ public class BoundingBox extends Base_Geometry {
 	
 	//only says if bbox is hit
 	@Override //_ctAra is ara of ctm for object held by bbox, and responsible for transformation of transray
-	public rayHit intersectCheck(myRay _ray,myRay transRay, myMatrix[] _ctAra) {
+	public rayHit intersectCheck(rayCast _ray,rayCast transRay, myMatrix[] _ctAra) {
 		//iterate through first low and then high values
 		double[] rayO = transRay.originAra,//new double[]{transRay.origin.x,transRay.origin.y,transRay.origin.z},
 				rayD = transRay.dirAra,//new double[]{transRay.direction.x,transRay.direction.y,transRay.direction.z},
@@ -133,7 +133,7 @@ public class BoundingBox extends Base_Geometry {
 	
 	//determine if shadow ray is a hit or not - returns if object bounded by box is a hit
 	@Override
-	public int calcShadowHit(myRay _ray,myRay _trans, myMatrix[] _ctAra, double distToLight){		
+	public int calcShadowHit(rayCast _ray,rayCast _trans, myMatrix[] _ctAra, double distToLight){		
 		rayHit hitChk = intersectCheck(_ray,_trans,_ctAra);			
 		if (hitChk.isHit && (distToLight - hitChk.t) > epsVal){	return 1;}   
 		return 0;
@@ -161,7 +161,7 @@ public class BoundingBox extends Base_Geometry {
 	}
 	
 	@Override
-	public myColor getColorAtPos(rayHit transRay) {	return new myColor(1,0,0);}
+	public myRTColor getColorAtPos(rayHit transRay) {	return new myRTColor(1,0,0);}
 	@Override
 	public myPoint getOrigin(double t) {return origin;}	
 	public String toString(){

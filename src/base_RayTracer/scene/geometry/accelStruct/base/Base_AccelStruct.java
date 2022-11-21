@@ -2,9 +2,9 @@ package base_RayTracer.scene.geometry.accelStruct.base;
 
 import java.util.List;
 
-import base_RayTracer.myColor;
-import base_RayTracer.myRay;
-import base_RayTracer.rayHit;
+import base_RayTracer.myRTColor;
+import base_RayTracer.ray.rayCast;
+import base_RayTracer.ray.rayHit;
 import base_RayTracer.scene.myScene;
 import base_RayTracer.scene.geometry.base.Base_Geometry;
 import base_Math_Objects.vectorObjs.doubles.myMatrix;
@@ -27,10 +27,10 @@ public abstract class Base_AccelStruct extends Base_Geometry{
 	@Override//myAccelStruct has no txtrs
 	public double[] findTxtrCoords(myPoint isctPt, PImage myTexture, double time) {return new double[]{0,0};}
 	
-	public abstract rayHit traverseStruct(myRay _ray,myRay _trans, myMatrix[] _ctAra);
+	public abstract rayHit traverseStruct(rayCast _ray,rayCast _trans, myMatrix[] _ctAra);
 
 	@Override
-	public rayHit intersectCheck(myRay _ray,myRay transRay, myMatrix[] _ctAra) {	
+	public rayHit intersectCheck(rayCast _ray,rayCast transRay, myMatrix[] _ctAra) {	
 		//check first bbox and then traverse struct
 		rayHit bboxHit = _bbox.intersectCheck(_ray,transRay, _ctAra);
 		if(!bboxHit.isHit){return bboxHit;}
@@ -56,16 +56,16 @@ public abstract class Base_AccelStruct extends Base_Geometry{
 	@Override
 	public myVector getNormalAtPoint(myPoint point, int[] args) {	return _bbox.getNormalAtPoint(point, args);}
 	@Override
-	public myColor getColorAtPos(rayHit transRay) {//debug mechanism, will display colors of bounding boxes of particular depths in BVH tree
+	public myRTColor getColorAtPos(rayHit transRay) {//debug mechanism, will display colors of bounding boxes of particular depths in BVH tree
 		switch(typeOfAccel){
-		case 0 : {return new myColor(0,0,0);}
-		case 1 : {return new myColor(1,0,1);}//flat list
-		case 2 : {return new myColor(0,1,1);}//bvh parrent
-		case 3 : {return new myColor(0,0,1);}//a left child
-		case 4 : {return new myColor(1,0,0);}//a right child
-		case 5 : {return new myColor(1,1,0);}//leaf list
+		case 0 : {return new myRTColor(0,0,0);}
+		case 1 : {return new myRTColor(1,0,1);}//flat list
+		case 2 : {return new myRTColor(0,1,1);}//bvh parrent
+		case 3 : {return new myRTColor(0,0,1);}//a left child
+		case 4 : {return new myRTColor(1,0,0);}//a right child
+		case 5 : {return new myRTColor(1,1,0);}//leaf list
 		}		
-		return new myColor(0,1,0);
+		return new myRTColor(0,1,0);
 	}
 	@Override
 	public myPoint getMaxVec() {	return _bbox.maxVals;	}

@@ -1,7 +1,7 @@
 package base_RayTracer.scene.geometry.sceneObjects.implicit;
 
-import base_RayTracer.myRay;
-import base_RayTracer.rayHit;
+import base_RayTracer.ray.rayCast;
+import base_RayTracer.ray.rayHit;
 import base_RayTracer.scene.myScene;
 import base_RayTracer.scene.objType;
 import base_Math_Objects.vectorObjs.doubles.myMatrix;
@@ -63,7 +63,7 @@ public class myTorus extends myImpObject{
 		return null;
 	}
 	@Override
-	public rayHit intersectCheck(myRay _ray, myRay transRay, myMatrix[] _ctAra){
+	public rayHit intersectCheck(rayCast _ray, rayCast transRay, myMatrix[] _ctAra){
 //		if(!_bbox.intersectCheck(ray, _ctAra).isHit){return new rayHit(false);	}
 //		myRay transRay = ray.getTransformedRay(ray, _ctAra[invIDX]);
 

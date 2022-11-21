@@ -2,9 +2,9 @@ package base_RayTracer.scene.geometry.sceneObjects.lights.base;
 
 import java.util.concurrent.ThreadLocalRandom;
 
-import base_RayTracer.myColor;
-import base_RayTracer.myRay;
-import base_RayTracer.rayHit;
+import base_RayTracer.myRTColor;
+import base_RayTracer.ray.rayCast;
+import base_RayTracer.ray.rayHit;
 import base_RayTracer.scene.myScene;
 import base_RayTracer.scene.geometry.sceneObjects.base.Base_SceneObject;
 import base_RayTracer.scene.photonMapping.Photon_KDTree;
@@ -15,7 +15,7 @@ import base_Math_Objects.vectorObjs.doubles.myVector;
 
 
 public abstract class Base_Light extends Base_SceneObject{
-	public myColor lightColor;            //does not use super's color vals
+	public myRTColor lightColor;            //does not use super's color vals
 	public int lightID;
 	public Photon_KDTree photonTree;
 	public myVector orientation;
@@ -35,7 +35,7 @@ public abstract class Base_Light extends Base_SceneObject{
 	}	
 	@Override
 	//assumes that transRay dir is toward light.
-	public rayHit intersectCheck(myRay _ray, myRay transRay, myMatrix[] _ctAra){  
+	public rayHit intersectCheck(rayCast _ray, rayCast transRay, myMatrix[] _ctAra){  
 		myVector hitNorm = new myVector(transRay.direction);
 		hitNorm._mult(-1);//norm is just neg ray direction
 		hitNorm._normalize();
@@ -56,7 +56,7 @@ public abstract class Base_Light extends Base_SceneObject{
 	@Override
 	protected double findTextureV(myPoint isctPt, PImage myTexture, double time){	return 0.0;  } 
 	//public boolean intersectCheck(myRay ray){  return true;}
-	public void setLightColor(double _r, double _g, double _b){	this.lightColor = new myColor(_r,_g,_b);} 
+	public void setLightColor(double _r, double _g, double _b){	this.lightColor = new myRTColor(_r,_g,_b);} 
 	//sets color and position of a light
 	public void setVals(int lightID, double r, double g, double b, double x, double y, double z){
 		this.setLightColor(r,g,b);
@@ -90,7 +90,7 @@ public abstract class Base_Light extends Base_SceneObject{
 	}
 	
 	//get starting point for photon ray - will vary based on light type
-	public abstract myRay genRndPhtnRay();
+	public abstract rayCast genRndPhtnRay();
 	@Override
 	public myPoint getOrigin(double _t){	return origin;	}	
 	public myVector getOrientation(double _t){	return orientation;	}

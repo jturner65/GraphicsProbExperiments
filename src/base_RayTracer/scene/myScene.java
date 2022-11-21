@@ -4,18 +4,15 @@ import java.util.*;
 import java.util.concurrent.*;
 
 import base_JavaProjTools_IRender.base_Render_Interface.IRenderInterface;
-import base_RayTracer.myColor;
-import base_RayTracer.myRay;
-import base_RayTracer.rayHit;
+import base_RayTracer.myRTColor;
+import base_RayTracer.ray.rayCast;
+import base_RayTracer.ray.rayHit;
 import base_RayTracer.scene.geometry.accelStruct.*;
 import base_RayTracer.scene.geometry.accelStruct.base.Base_AccelStruct;
 import base_RayTracer.scene.geometry.base.Base_Geometry;
 import base_RayTracer.scene.geometry.sceneObjects.myInstance;
 import base_RayTracer.scene.geometry.sceneObjects.base.Base_SceneObject;
-import base_RayTracer.scene.geometry.sceneObjects.implicit.myCylinder;
-import base_RayTracer.scene.geometry.sceneObjects.implicit.myHollow_Cylinder;
-import base_RayTracer.scene.geometry.sceneObjects.implicit.myMovingSphere;
-import base_RayTracer.scene.geometry.sceneObjects.implicit.mySphere;
+import base_RayTracer.scene.geometry.sceneObjects.implicit.*;
 import base_RayTracer.scene.geometry.sceneObjects.lights.*;
 import base_RayTracer.scene.geometry.sceneObjects.lights.base.Base_Light;
 import base_RayTracer.scene.geometry.sceneObjects.planar.myPlane;
@@ -27,10 +24,7 @@ import base_RayTracer.scene.shaders.mySimpleReflObjShdr;
 import base_RayTracer.scene.textures.base.Base_TextureHandler;
 import base_RayTracer.scene.textures.imageTextures.myImageTexture;
 import base_RayTracer.scene.textures.miscTextures.myNonTexture;
-import base_RayTracer.scene.textures.noiseTextures.myBaseWoodTexture;
-import base_RayTracer.scene.textures.noiseTextures.myMarbleTexture;
-import base_RayTracer.scene.textures.noiseTextures.myNoiseTexture;
-import base_RayTracer.scene.textures.noiseTextures.myWoodTexture;
+import base_RayTracer.scene.textures.noiseTextures.*;
 import base_RayTracer.scene.textures.noiseTextures.cellularTextures.myCellularTexture;
 import base_UI_Objects.*;
 import base_Utils_Objects.io.messaging.MessageObject;
@@ -42,7 +36,11 @@ import base_Math_Objects.vectorObjs.doubles.myMatrix;
 import base_Math_Objects.vectorObjs.doubles.myPoint;
 import base_Math_Objects.vectorObjs.doubles.myVector;
 
-//class to hold all objects within a desired scene
+/**
+ * class to hold all objects within a desired scene
+ * @author 7strb
+ *
+ */
 public abstract class myScene {
 	public static IRenderInterface pa;
 	//for screen display
@@ -163,8 +161,8 @@ public abstract class myScene {
 	public int txtrType;				//set to be 0 : none; 1 : image; 2 : noise; 3 : wood; 4 : marble; 5 : stone/brick
 	public double noiseScale;			//set if using noise-based proc txtr
 	
-	public myColor[] noiseColors = new myColor[]{new myColor(.7,.7,.7),
-												new myColor(.2,.2,.2)};
+	public myRTColor[] noiseColors = new myRTColor[]{new myRTColor(.7,.7,.7),
+												new myRTColor(.2,.2,.2)};
 	//how much weight each color should have - TODO
 	public Double[] clrWts = new Double[]{.5,.5};
 	//turbulence values
@@ -187,7 +185,7 @@ public abstract class myScene {
 		
 	public Calendar now;
 	//global values set by surface parameter
-	public myColor currDiffuseColor, currAmbientColor, currSpecularColor,globCurPermClr, currKReflClr, backgroundColor;//, foregroundColor;
+	public myRTColor currDiffuseColor, currAmbientColor, currSpecularColor,globCurPermClr, currKReflClr, backgroundColor;//, foregroundColor;
 	public double currPhongExp, currKRefl,globRfrIdx,currKTrans, currDepth, lens_radius, lens_focal_distance;   //value representing the visible depth of a colloid (i.e. subsurface experiment) 
 	
 	public myPlane focalPlane;							//if Depth of Field scene, this is the plane where the lens is in focus
@@ -196,14 +194,14 @@ public abstract class myScene {
 	public int numRaysPerPixel;
 	
 	//constant color for mask of fisheye
-	public myColor blkColor = new myColor(0,0,0);
+	public myRTColor blkColor = new myRTColor(0,0,0);
 	
 	public double maxDim, yStart, xStart, fishMult;			//compensate for # rows or # cols not being max - make sure projection is centered in non-square images
 	
 	//project 3 timer stuff - length of time to render
 	public float renderTime;	
 	
-	public boolean init_flag = false;
+	public boolean initFlag = false;
 	public int grad3[][] = {{1,1,0},{-1,1,0},{1,-1,0},{-1,-1,0},{1,0,1},{-1,0,1},{1,0,-1},{-1,0,-1},{0,1,1},{0,-1,1},{0,1,-1},{0,-1,-1}};
 	public final int p[] = {151,160,137,91,90,15,
 				131,13,201,95,96,53,194,233,7,225,140,36,103,30,69,142,8,99,37,240,21,10,23,
@@ -300,18 +298,18 @@ public abstract class myScene {
 		objCount = 0;
 		numNamedObjs = 0;
 		
-		backgroundColor = new myColor(0,0,0);
+		backgroundColor = new myRTColor(0,0,0);
 //		foregroundColor = new myColor(1,1,1);
-		currDiffuseColor = new myColor(0,0,0);
-		currAmbientColor = new myColor(0,0,0);
-		currSpecularColor = new myColor(0,0,0);
+		currDiffuseColor = new myRTColor(0,0,0);
+		currAmbientColor = new myRTColor(0,0,0);
+		currSpecularColor = new myRTColor(0,0,0);
 		currPhongExp = 0;
 		currKRefl = 0;
-		currKReflClr = new myColor(0,0,0);
+		currKReflClr = new myRTColor(0,0,0);
 		currDepth = 0;		 
 		currKTrans = 0;
 		globRfrIdx = 0.0;
-		globCurPermClr = new myColor(0,0,0);
+		globCurPermClr = new myRTColor(0,0,0);
 
 		curRefineStep = 0;
 		reflRays = 0;
@@ -400,12 +398,20 @@ public abstract class myScene {
 				rVal = 1.0f - bVal, 
 				tmp = MyMathUtils.min((1.2f*(level-(maxLevel/2)))/(1.0f*maxLevel),1.0f), 
 				gVal = (tmp*tmp);
-		myColor cDiff = new myColor(MyMathUtils.min(1.0f,rVal+.5f), MyMathUtils.min(1.0f,gVal+.5f), MyMathUtils.min(1.0f,bVal+.5f));
+		myRTColor cDiff = new myRTColor(MyMathUtils.min(1.0f,rVal+.5f), MyMathUtils.min(1.0f,gVal+.5f), MyMathUtils.min(1.0f,bVal+.5f));
 		scFlags[glblTxtrdTopIDX]  = false;
 		scFlags[glblTxtrdBtmIDX] = false;
-		setSurface(cDiff,new myColor(0,0,0),new myColor(0,0,0),0,0);
+		setSurface(cDiff,new myRTColor(0,0,0),new myRTColor(0,0,0),0,0);
 	}
-	//recursively build sierpenski tetrahedron - dim is relative dimension, decreases at each recursive call
+	/**
+	 * recursively build sierpenski tetrahedron - dim is relative dimension, decreases at each recursive call
+	 * @param dim
+	 * @param scVal
+	 * @param instName
+	 * @param level
+	 * @param maxLevel
+	 * @param addShader
+	 */
 	private void buildSierpSubTri(float dim, float scVal, String instName, int level, int maxLevel, boolean addShader){
 		if(level>=maxLevel){return;}
 		float newDim = scVal*dim;
@@ -665,7 +671,7 @@ public abstract class myScene {
 				new boolean[]{false,false,false}, 
 				new double[]{1.0, 1.0, 5.0, .1, 1.0, 0.05}, 
 				new myVector[]{new myVector(1.0,1.0,1.0)}, 
-				new myColor[]{ getClr("clr_nearblack"),getClr("clr_white")},
+				new myRTColor[]{ getClr("clr_nearblack"),getClr("clr_white")},
 				new Double[]{.5,.5});
 	}//resetDfltTxtrVals
 
@@ -675,7 +681,7 @@ public abstract class myScene {
 	//myVector[] vecs = pdMult
 	//myColor[] clrs = noiseColors
 	//Double[] wts = clrWts
-	private void setProcTxtrVals(int[] ints, boolean[] bools, double[] dbls, myVector[] vecs, myColor[] clrs, Double[] wts){
+	private void setProcTxtrVals(int[] ints, boolean[] bools, double[] dbls, myVector[] vecs, myRTColor[] clrs, Double[] wts){
 		txtrType = ints[0];	numOctaves = ints[1];numOverlays = ints[2];	numPtsDist = ints[3];	distFunc = ints[4];	roiFunc = ints[5];	
 		rndColors = bools[0];useCustClrs = bools[1];useFwdTrans = bools[2];		
 		noiseScale = dbls[0];turbMult = dbls[1];colorScale = dbls[2];colorMult = dbls[3];avgNumPerCell = dbls[4];	mortarThresh = dbls[5];		
@@ -685,21 +691,21 @@ public abstract class myScene {
 	}//setProcTxtrVals
 	
 	//build a color value from a string array read in from a cli file.  stIdx is position in array where first color resides
-	private myColor readColor(String[] token, int stIdx){return new myColor(Double.parseDouble(token[stIdx]),Double.parseDouble(token[stIdx+1]),Double.parseDouble(token[stIdx+2]));}
+	private myRTColor readColor(String[] token, int stIdx){return new myRTColor(Double.parseDouble(token[stIdx]),Double.parseDouble(token[stIdx+1]),Double.parseDouble(token[stIdx+2]));}
 
 	//set colors used by proc texture
 	public void setTxtrColor(String[] clrs){
 		//get current noise color array
 		if(!useCustClrs){
-			noiseColors = new myColor[0];
+			noiseColors = new myRTColor[0];
 			clrWts = new Double[0];
 			useCustClrs = true;
 		}
-		ArrayList<myColor> tmpAra = new ArrayList<myColor>(Arrays.asList(noiseColors));
+		ArrayList<myRTColor> tmpAra = new ArrayList<myRTColor>(Arrays.asList(noiseColors));
 		ArrayList<Double> tmpWtAra = new ArrayList<Double>(Arrays.asList(clrWts));
 		//<noise color spec tag> (<'named'> <clr name>) or  (<color r g b>)  <wt> <-specify once for each color
 		try{	
-			myColor tmp = null;
+			myRTColor tmp = null;
 			int wtIdx;
 			//name has format "clr_<colorname>"
 			if(clrs[1].equals("named")){	tmp = getClr(clrs[2]);	wtIdx = 3;} 
@@ -722,7 +728,7 @@ public abstract class myScene {
 			System.out.println("Finished loading color : " + tmp + " for txtr " + getTxtrName());
 		}
 		catch (Exception e) {String res = "Invalid color specification : " ;	for(int i =0; i<clrs.length;++i){res+=" {"+clrs[i]+"} ";}res+=" so color not added to array";System.out.println(res);}	 		
-		noiseColors = tmpAra.toArray(new myColor[0]);
+		noiseColors = tmpAra.toArray(new myRTColor[0]);
 	}//setTxtrColors
 	
 	//read in constants configured for perlin noise
@@ -805,7 +811,7 @@ public abstract class myScene {
 				txtrType = 3;
 				boolean useDefaults = readProcTxtrVals(vals, true);
 				//may be overwritten by later color commands in cli
-				if(!useCustClrs){noiseColors = new myColor[]{ getClr("clr_dkwood1"),	getClr("clr_ltwood1")};clrWts = new Double[] {1.0,1.0};}
+				if(!useCustClrs){noiseColors = new myRTColor[]{ getClr("clr_dkwood1"),	getClr("clr_ltwood1")};clrWts = new Double[] {1.0,1.0};}
 				if(useDefaults){					
 					setProcTxtrVals(new int[]{txtrType, 4, 1, 2, 1,1}, 				//int[] ints =  txtrType,  numOctaves,  numOverlays,  numPtsDist,distFunc (not used for perlin), roiFunc (not used for perlin)
 							new boolean[]{true,useCustClrs,false}, 					//boolean[] bools = rndColors , useCustClrs, useFwdTrans -> useFwdTrans needs to be specified in command in cli
@@ -817,7 +823,7 @@ public abstract class myScene {
 			case "wood2"  : {//yellow-ish by default
 				txtrType = 6;
 				boolean useDefaults = readProcTxtrVals(vals, true);
-				if(!useCustClrs){noiseColors = new myColor[]{ getClr("clr_dkwood2"),	getClr("clr_ltwood2")};}// 		clrWts = new Double[] {1.0,1.0};}
+				if(!useCustClrs){noiseColors = new myRTColor[]{ getClr("clr_dkwood2"),	getClr("clr_ltwood2")};}// 		clrWts = new Double[] {1.0,1.0};}
 				//turbulence values
 				if(useDefaults){
 					setProcTxtrVals(new int[]{txtrType, 8, 1, 2, 1, 1}, 			//int[] ints =  txtrType,  numOctaves,  numOverlays,  numPtsDist,distFunc (not used), roiFunc (not used)
@@ -830,7 +836,7 @@ public abstract class myScene {
 			case "marble":{
 				txtrType = 4;
 				boolean useDefaults = readProcTxtrVals(vals, true);
-				if(!useCustClrs){noiseColors = new myColor[]{ getClr("clr_nearblack"),	getClr("clr_offwhite")}; clrWts = new Double[] {1.0,1.0};}
+				if(!useCustClrs){noiseColors = new myRTColor[]{ getClr("clr_nearblack"),	getClr("clr_offwhite")}; clrWts = new Double[] {1.0,1.0};}
 				//turbulence values
 				if(useDefaults){
 				setProcTxtrVals(new int[]{txtrType, 16, 1, 2, 1, 1}, 				//int[] ints =  txtrType,  numOctaves,  numOverlays,  numPtsDist,distFunc (not used), roiFunc (not used)
@@ -845,7 +851,7 @@ public abstract class myScene {
 				txtrType = 5;
 				boolean useDefaults = readProcTxtrVals(vals, false);
 				if(!useCustClrs){
-					noiseColors = new myColor[]{getClr("clr_mortar1"), getClr("clr_mortar2"),
+					noiseColors = new myRTColor[]{getClr("clr_mortar1"), getClr("clr_mortar2"),
 							getClr("clr_brick1_1"),getClr("clr_brick1_2"),getClr("clr_brick2_1"),getClr("clr_brick2_2"),				//"brick2" color 1,2
 							getClr("clr_brick3_1"),getClr("clr_brick3_2"),getClr("clr_brick4_1"),getClr("clr_brick4_2")};
 					clrWts = new Double[] {1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0};//normalized in txtr
@@ -865,68 +871,68 @@ public abstract class myScene {
 	
 	
 	//returns one of a set of predefined colors or a random color as an array of 0-1 doubles based on tag passed
-	public myColor getClr(String colorVal){
+	public myRTColor getClr(String colorVal){
 		switch (colorVal.toLowerCase()){
-			case "clr_rnd"				: { return new myColor(ThreadLocalRandom.current().nextDouble(0,1),ThreadLocalRandom.current().nextDouble(0,1),ThreadLocalRandom.current().nextDouble(0,1));}
-	    	case "clr_gray"   		    : { return new myColor(0.47,0.47,0.47);}
-	    	case "clr_white"  		    : { return new myColor(1.0,1.0,1.0);}
-	    	case "clr_yellow" 		    : { return new myColor(1.0,1.0,0);}
-	    	case "clr_cyan"			    : { return new myColor(0,1.0,1.0);} 
-	    	case "clr_magenta"		    : { return new myColor(1.0,0,1.0);}  
-	    	case "clr_red"    		    : { return new myColor(1.0,0,0);} 
-	    	case "clr_blue"			    : { return new myColor(0,0,1.0);}
-	    	case "clr_purple"		    : { return new myColor(0.6,0.2,1.0);}
-	    	case "clr_green"		    : { return new myColor(0,1.0,0);}  
+			case "clr_rnd"				: { return new myRTColor(ThreadLocalRandom.current().nextDouble(0,1),ThreadLocalRandom.current().nextDouble(0,1),ThreadLocalRandom.current().nextDouble(0,1));}
+	    	case "clr_gray"   		    : { return new myRTColor(0.47,0.47,0.47);}
+	    	case "clr_white"  		    : { return new myRTColor(1.0,1.0,1.0);}
+	    	case "clr_yellow" 		    : { return new myRTColor(1.0,1.0,0);}
+	    	case "clr_cyan"			    : { return new myRTColor(0,1.0,1.0);} 
+	    	case "clr_magenta"		    : { return new myRTColor(1.0,0,1.0);}  
+	    	case "clr_red"    		    : { return new myRTColor(1.0,0,0);} 
+	    	case "clr_blue"			    : { return new myRTColor(0,0,1.0);}
+	    	case "clr_purple"		    : { return new myRTColor(0.6,0.2,1.0);}
+	    	case "clr_green"		    : { return new myRTColor(0,1.0,0);}  
 	    	//lower idxs are darker
-	    	case "clr_ltwood1"			: { return new myColor(0.94, 0.47, 0.12);}  
-	    	case "clr_ltwood2"			: { return new myColor(0.94, 0.8, 0.4);}  
+	    	case "clr_ltwood1"			: { return new myRTColor(0.94, 0.47, 0.12);}  
+	    	case "clr_ltwood2"			: { return new myRTColor(0.94, 0.8, 0.4);}  
 	    	
-	    	case "clr_dkwood1"			: { return new myColor(0.2, 0.08, 0.08);}  
-	    	case "clr_dkwood2"			: { return new myColor(0.3, 0.20, 0.16);}  
+	    	case "clr_dkwood1"			: { return new myRTColor(0.2, 0.08, 0.08);}  
+	    	case "clr_dkwood2"			: { return new myRTColor(0.3, 0.20, 0.16);}  
 	    	
-	    	case "clr_mortar1"			: { return new myColor(0.2, 0.2, 0.2);}
-	    	case "clr_mortar2"			: { return new myColor(0.7, 0.7, 0.7);}
+	    	case "clr_mortar1"			: { return new myRTColor(0.2, 0.2, 0.2);}
+	    	case "clr_mortar2"			: { return new myRTColor(0.7, 0.7, 0.7);}
 
-	    	case "clr_brick1_1"			: { return new myColor(0.6, 0.18, 0.22);}
-	    	case "clr_brick1_2"			: { return new myColor(0.8, 0.26, 0.33);}
+	    	case "clr_brick1_1"			: { return new myRTColor(0.6, 0.18, 0.22);}
+	    	case "clr_brick1_2"			: { return new myRTColor(0.8, 0.26, 0.33);}
 	    	
-	    	case "clr_brick2_1"			: { return new myColor(0.6, 0.32, 0.16);}
-	    	case "clr_brick2_2"			: { return new myColor(0.8, 0.45, 0.25);}
+	    	case "clr_brick2_1"			: { return new myRTColor(0.6, 0.32, 0.16);}
+	    	case "clr_brick2_2"			: { return new myRTColor(0.8, 0.45, 0.25);}
 	    	
-	    	case "clr_brick3_1"			: { return new myColor(0.3, 0.01, 0.07);}
-	    	case "clr_brick3_2"			: { return new myColor(0.6, 0.02, 0.13);}
+	    	case "clr_brick3_1"			: { return new myRTColor(0.3, 0.01, 0.07);}
+	    	case "clr_brick3_2"			: { return new myRTColor(0.6, 0.02, 0.13);}
 	    	
-	    	case "clr_brick4_1"			: { return new myColor(0.4, 0.1, 0.17);}
-	    	case "clr_brick4_2"			: { return new myColor(0.6, 0.3, 0.13);}
+	    	case "clr_brick4_1"			: { return new myRTColor(0.4, 0.1, 0.17);}
+	    	case "clr_brick4_2"			: { return new myRTColor(0.6, 0.3, 0.13);}
 	    	
-	    	case "clr_darkgray"   	    : { return new myColor(0.31,0.31,0.31);}
-	    	case "clr_darkred"    	    : { return new myColor(0.47,0,0);}
-	    	case "clr_darkblue"  	 	: { return new myColor(0,0,0.47);}
-	    	case "clr_darkpurple"		: { return new myColor(0.4,0.2,0.6);}
-	    	case "clr_darkgreen"  	    : { return new myColor(0,0.47,0);}
-	    	case "clr_darkyellow" 	    : { return new myColor(0.47,0.47,0);}
-	    	case "clr_darkmagenta"	    : { return new myColor(0.47,0,0.47);}
-	    	case "clr_darkcyan"   	    : { return new myColor(0,0.47,0.47);}	  
+	    	case "clr_darkgray"   	    : { return new myRTColor(0.31,0.31,0.31);}
+	    	case "clr_darkred"    	    : { return new myRTColor(0.47,0,0);}
+	    	case "clr_darkblue"  	 	: { return new myRTColor(0,0,0.47);}
+	    	case "clr_darkpurple"		: { return new myRTColor(0.4,0.2,0.6);}
+	    	case "clr_darkgreen"  	    : { return new myRTColor(0,0.47,0);}
+	    	case "clr_darkyellow" 	    : { return new myRTColor(0.47,0.47,0);}
+	    	case "clr_darkmagenta"	    : { return new myRTColor(0.47,0,0.47);}
+	    	case "clr_darkcyan"   	    : { return new myRTColor(0,0.47,0.47);}	  
 	    	
-	    	case "clr_lightgray"   	    : { return new myColor(0.78,0.78,0.78);}
-	    	case "clr_lightred"    	    : { return new myColor(1.0,.43,.43);}
-	    	case "clr_lightblue"   	    : { return new myColor(0.43,0.43,1.0);}
-	    	case "clr_lightgreen"  	    : { return new myColor(0.43,1.0,0.43);}
-	    	case "clr_lightyellow"	    : { return new myColor(1.0,1.0,.43);}
-	    	case "clr_lightmagenta"	    : { return new myColor(1.0,.43,1.0);}
-	    	case "clr_lightcyan"   	    : { return new myColor(0.43,1.0,1.0);}
+	    	case "clr_lightgray"   	    : { return new myRTColor(0.78,0.78,0.78);}
+	    	case "clr_lightred"    	    : { return new myRTColor(1.0,.43,.43);}
+	    	case "clr_lightblue"   	    : { return new myRTColor(0.43,0.43,1.0);}
+	    	case "clr_lightgreen"  	    : { return new myRTColor(0.43,1.0,0.43);}
+	    	case "clr_lightyellow"	    : { return new myRTColor(1.0,1.0,.43);}
+	    	case "clr_lightmagenta"	    : { return new myRTColor(1.0,.43,1.0);}
+	    	case "clr_lightcyan"   	    : { return new myRTColor(0.43,1.0,1.0);}
 	    	
-	    	case "clr_black"		    : { return new myColor(0,0,0);}
-	    	case "clr_nearblack"		: { return new myColor(0.05,0.05,0.05);}
-	    	case "clr_faintgray" 		: { return new myColor(0.43,0.43,0.43);}
-	    	case "clr_faintred" 	 	: { return new myColor(0.43,0,0);}
-	    	case "clr_faintblue" 	 	: { return new myColor(0,0,0.43);}
-	    	case "clr_faintgreen" 	    : { return new myColor(0,0.43,0);}
-	    	case "clr_faintyellow" 	    : { return new myColor(0.43,0.43,0);}
-	    	case "clr_faintcyan"  	    : { return new myColor(0,0.43,0.43);}
-	    	case "clr_faintmagenta"  	: { return new myColor(0.43,0,0.43);}    	
-	    	case "clr_offwhite"			: { return new myColor(0.95,0.98,0.92);}
-	    	default         		    : { System.out.println("Color not found : " + colorVal + " so using white.");	return new myColor(1.0,1.0,1.0);}    
+	    	case "clr_black"		    : { return new myRTColor(0,0,0);}
+	    	case "clr_nearblack"		: { return new myRTColor(0.05,0.05,0.05);}
+	    	case "clr_faintgray" 		: { return new myRTColor(0.43,0.43,0.43);}
+	    	case "clr_faintred" 	 	: { return new myRTColor(0.43,0,0);}
+	    	case "clr_faintblue" 	 	: { return new myRTColor(0,0,0.43);}
+	    	case "clr_faintgreen" 	    : { return new myRTColor(0,0.43,0);}
+	    	case "clr_faintyellow" 	    : { return new myRTColor(0.43,0.43,0);}
+	    	case "clr_faintcyan"  	    : { return new myRTColor(0,0.43,0.43);}
+	    	case "clr_faintmagenta"  	: { return new myRTColor(0.43,0,0.43);}    	
+	    	case "clr_offwhite"			: { return new myRTColor(0.95,0.98,0.92);}
+	    	default         		    : { System.out.println("Color not found : " + colorVal + " so using white.");	return new myRTColor(1.0,1.0,1.0);}    
 		}//switch
 	}//getClr
 	
@@ -967,7 +973,7 @@ public abstract class myScene {
 		this.numRaysPerPixel = _num;
 	}
 	
-	public void setSurface(myColor Cdiff, myColor Camb, myColor Cspec, double phongExp, double newKRefl){
+	public void setSurface(myRTColor Cdiff, myRTColor Camb, myRTColor Cspec, double phongExp, double newKRefl){
 		txtrType = 0;			//set to be no texture
 		currDiffuseColor.set(Cdiff);
 		currAmbientColor.set(Camb);
@@ -980,13 +986,13 @@ public abstract class myScene {
 		globCurPermClr.set(0,0,0);
 	}//setSurface method
 
-	public void setSurface(myColor Cdiff, myColor Camb, myColor Cspec, double phongExp, double KRefl, double KTrans){
+	public void setSurface(myRTColor Cdiff, myRTColor Camb, myRTColor Cspec, double phongExp, double KRefl, double KTrans){
 		setSurface(Cdiff,Camb, Cspec,phongExp, KRefl);
 		currKTrans = KTrans;
 		setRfrIdx(0, 0, 0, 0);	
 	}//setSurface method with refractance
 
-	public void setSurface(myColor Cdiff, myColor Camb, myColor Cspec, double phongExp, double KRefl, double KTrans, double rfrIdx){
+	public void setSurface(myRTColor Cdiff, myRTColor Camb, myRTColor Cspec, double phongExp, double KRefl, double KTrans, double rfrIdx){
 		setSurface(Cdiff,Camb, Cspec,phongExp, KRefl, KTrans);
 		//set permiability of object to light
 		setRfrIdx(rfrIdx, rfrIdx, rfrIdx,rfrIdx);
@@ -1035,7 +1041,7 @@ public abstract class myScene {
 	//determines if a light source is blocked by another object for shadow detection
 	//currently only returns 1 or 0 if light is blocked
 	
-	public int calcShadow(myRay _ray, double distToLight){
+	public int calcShadow(rayCast _ray, double distToLight){
 		//for each object in scene, check if intersecting any objects before hitting light
 		for (Base_Geometry obj : objList){
 			if(obj.calcShadowHit(_ray, _ray.getTransformedRay(_ray, obj.CTMara[Base_Geometry.invIDX]), obj.CTMara, distToLight) == 1){	return 1;}
@@ -1044,7 +1050,7 @@ public abstract class myScene {
 	}//findLight method
 	
 	//eventually multithread/shdr per object?
-	public rayHit findClosestRayHit(myRay _ray){
+	public rayHit findClosestRayHit(rayCast _ray){
 		//objList does not hold lights - no need to check pointlights - TODO need to check lights for non-point lights- ?	
 		TreeMap<rayHit, Base_Geometry>objsAtRayHits = new TreeMap<rayHit,Base_Geometry>();
 		objsAtRayHits.put(new rayHit(false), null);
@@ -1063,7 +1069,7 @@ public abstract class myScene {
 	
 	
 	//determine color of a reflected ray - careful with recursive depth  
-	public myColor reflectRay(myRay _ray){
+	public myRTColor reflectRay(rayCast _ray){
 		rayHit hitChk = findClosestRayHit(_ray);
 		//if ((hitChk.isHit)) {												return(hitChk.obj.getColorAtPos(hitChk));}//to debug BVH use this - displays colors of leaf boxes (red/blue)
 		if (hitChk.isHit) {													return(hitChk.shdr.getColorAtPos(hitChk));}
@@ -1115,7 +1121,7 @@ public abstract class myScene {
 		int numCastPerDisp = photonTree.numCast/numDiv;
 		Base_Light tmpLight; 
 		double pwrMult = causticsLightPwrMult/photonTree.numCast;
-		myRay reflRefrRay;
+		rayCast reflRefrRay;
 		double[] tmpPwr,photonPwr;
 		rayHit hitChk;
 		myPhoton phn;
@@ -1169,7 +1175,7 @@ public abstract class myScene {
 		int numCastPerDisp = photonTree.numCast/numDiv;
 		Base_Light tmpLight; 
 		double pwrMult = diffuseLightPwrMult/photonTree.numCast;
-		myRay reflRefrRay;
+		rayCast reflRefrRay;
 		double[] tmpPwr,photonPwr;
 		rayHit hitChk;
 		myPhoton phn;
@@ -1222,7 +1228,7 @@ public abstract class myScene {
 					 		//save power before finding ray hit, to reset it after ray hit
 					  		tmpPwr = new double[]{hitChk.phtnPwr[0]*hitChk.shdr.phtnDiffScl.x,hitChk.phtnPwr[1]*hitChk.shdr.phtnDiffScl.y,hitChk.phtnPwr[2]*hitChk.shdr.phtnDiffScl.z};			//hitChk changes below, we want to propagate tmpPwr
 					 		//new photon ray - photon power : 
-			 				reflRefrRay = new myRay(this, hitLoc, bounceDir, hitChk.transRay.gen+1);
+			 				reflRefrRay = new rayCast(this, hitLoc, bounceDir, hitChk.transRay.gen+1);
 			 				hitChk = findClosestRayHit(reflRefrRay);
 			 				hitChk.phtnPwr = tmpPwr;
 						} else {	done = true;}						
@@ -1264,7 +1270,7 @@ public abstract class myScene {
 	/////////////
 	////skydome stuff - move to sphere code, set flag for internal normals TODO
 	// find corresponding u and v values for background texture	
-	public double findSkyDomeT(myRay transRay){
+	public double findSkyDomeT(rayCast transRay){
 		//similar to intersection of known direction vectors to lights
 		//this code finds t of where passed ray hits mySkyDome edge
 		double t = -Double.MAX_VALUE;  //this t is the value of the ray equation where it hits the dome - init to bogus value	  
@@ -1304,11 +1310,11 @@ public abstract class myScene {
 		return u;
 	} 
 
-	public myColor getBackgroundTextureColor(myRay ray){
+	public myRTColor getBackgroundTextureColor(rayCast ray){
 		double t = findSkyDomeT(ray);
 		myPoint isctPt = ray.pointOnRay(t);
 		double v = findBkgTextureV(isctPt, t), u = findBkgTextureU(isctPt, v, t);
-		return new myColor(((myImageTexture)mySkyDome.shdr.txtr).myTextureBottom.pixels[(int)v * ((myImageTexture)mySkyDome.shdr.txtr).myTextureBottom.width + (int)u]);
+		return new myRTColor(((myImageTexture)mySkyDome.shdr.txtr).myTextureBottom.pixels[(int)v * ((myImageTexture)mySkyDome.shdr.txtr).myTextureBottom.width + (int)u]);
 	}//getBackgroundTexturecolor
 	
 	//////////////////
@@ -1332,8 +1338,8 @@ public abstract class myScene {
 	public double noise_3d(myVector pt){return noise_3d((float)pt.x, (float)pt.y, (float)pt.z);}
 	//from code given by greg for project 4, 3d perlin noise
 	public float noise_3d(float x, float y, float z) {		
-		// make sure we've initilized table
-		if (init_flag == false) {	  initialize_table();	  init_flag = true;	}		
+		// make sure we've initialized table
+		if (initFlag == false) {	  initialize_table();	  initFlag = true;	}		
 		// Find unit grid cell containing point
 		int X = fastfloor(x),Y = fastfloor(y), Z = fastfloor(z);		
 		// Get relative xyz coordinates of point within that cell
@@ -1341,19 +1347,20 @@ public abstract class myScene {
 		// Wrap the integer cells at 255 (smaller integer period can be introduced here)
 		X = X & 255;	Y = Y & 255;	Z = Z & 255;		
 		// Calculate a set of eight hashed gradient indices
+		int Xp1 = X+1, Yp1 = Y+1, Zp1 = Z+1 ;
 		int pYpZ = perm[Y+perm[Z]];
-		int pYpZ1 = perm[Y+perm[Z+1]];
-		int pY1pZ = perm[Y+1+perm[Z]];
-		int pY1pZ1 = perm[Y+1+perm[Z+1]];
-		
+		int pYpZ1 = perm[Y+perm[Zp1]];
+		int pY1pZ = perm[Yp1+perm[Z]];
+		int pY1pZ1 = perm[Yp1+perm[Zp1]];
+
 		int gi000 = perm[X+pYpZ] % 12;
 		int gi001 = perm[X+pYpZ1] % 12;
 		int gi010 = perm[X+pY1pZ] % 12;
-		int gi011 = perm[X+perm[Y+1+perm[Z+1]]] % 12;
-		int gi100 = perm[X+1+pYpZ] % 12;
-		int gi101 = perm[X+1+pYpZ1] % 12;
-		int gi110 = perm[X+1+pY1pZ] % 12;
-		int gi111 = perm[X+1+pY1pZ1] % 12;
+		int gi011 = perm[X+pY1pZ1] % 12;
+		int gi100 = perm[Xp1+pYpZ] % 12;
+		int gi101 = perm[Xp1+pYpZ1] % 12;
+		int gi110 = perm[Xp1+pY1pZ] % 12;
+		int gi111 = perm[Xp1+pY1pZ1] % 12;
 		
 		// The gradients of each corner are now:
 		// gXXX = grad3[giXXX];
@@ -1396,6 +1403,7 @@ public abstract class myScene {
 	public int fastfloor(double x) { return x>0 ? (int)x : (int)x-1;}
 	private float dot(int g[], float x, float y, float z) { return g[0]*x + g[1]*y + g[2]*z;}
 	private float mix(float a, float b, float t) { return (1-t)*a + t*b;}
+	//Quintic interpolant calc
 	private float fade(float t) { return t*t*t*(t*(t*6-15)+10);}
 	//end given code, 3d perlin noise
 	
@@ -1429,34 +1437,42 @@ public abstract class myScene {
 	//////////////////////
 	//draw utility functions
 	//////////////////////
-	//write span of pixels with same value, for iterative refinement
+	/**
+	 * write span of pixels with same value, for iterative refinement
+	 * @param clrInt
+	 * @param row
+	 * @param col
+	 * @param _numPxls
+	 * @param pxls
+	 * @return
+	 */
 	public int writePxlSpan(int clrInt, int row, int col, int _numPxls, int[] pxls){
 		int pxlIDX = (row*sceneCols) + col;								//idx of pxl in pxls ara
-		int rowPxlCnt, rowStart = row, rowEnd = Math.min(rowStart + _numPxls, sceneRows ),//dont try to go beyond pxl array dims
-			colStart = col, colEnd = Math.min(colStart + _numPxls, sceneCols);
+		int rowPxlCnt, rowStart = row, rowEnd = MyMathUtils.min(rowStart + _numPxls, sceneRows ),//dont try to go beyond pxl array dims
+			colStart = col, colEnd = MyMathUtils.min(colStart + _numPxls, sceneCols);
 		for(int pxlR = rowStart; pxlR < rowEnd; ++pxlR){rowPxlCnt = (pxlR*sceneCols);	for(int pxlC = colStart; pxlC < colEnd; ++pxlC){pxls[(rowPxlCnt + pxlC)] = clrInt;}}		
 		return pxlIDX;
 	}//writePxlSpan
 	
 	//instance scene-specific 
 	//public abstract myColor calcAAColor(double pRayX, double pRayY, double xIncr, double yIncr);
-	public abstract myColor shootMultiRays(double pRayX, double pRayY);
+	public abstract myRTColor shootMultiRays(double pRayX, double pRayY);
 	public abstract void draw(); 
 	
 	/**
-	 * called at end of drawing - should save image
+	 * called at end of drawing to display image result
 	 */
 	protected final void finalizeDraw() {
 		((my_procApplet) pa).imageMode(PConstants.CORNER);
 		((my_procApplet) pa).image(rndrdImg,0,0);	
 	}
 
-	//file
+	/**
+	 * file save
+	 */
 	private void saveFile(){
-		now = Calendar.getInstance();
 		String tmpSaveName;
 		String[] tmp = saveName.split("\\.(?=[^\\.]+$)");				//remove extension from given savename
-		//if (scFlags[saveImgInDirIDX]){	tmpSaveName = folderName.toString() + "\\"  + tmp[0]+(scFlags[myScene.flipNormsIDX] ? "_normFlipped" : "")+"_"+getDateTimeString(false,true,"-") + ".png";} //rebuild name to include directory and image name including render time
 		if (scFlags[saveImgInDirIDX]){	tmpSaveName = folderName.toString() + "\\"  + tmp[0]+(scFlags[myScene.flipNormsIDX] ? "_normFlipped" : "")+ ".png";} //rebuild name to include directory and image name including render time
 		else {							tmpSaveName = tmp[0]+(scFlags[myScene.flipNormsIDX] ? "_normFlipped" : "")+".png";		}
 		System.out.println("File saved as  : "+ tmpSaveName);
@@ -1551,7 +1567,7 @@ public abstract class myScene {
 	*/
 	public void gtRotate(double angle, double ax, double ay, double az) { 
 		// build and add to top of stack the rotation matrix
-		double angleRad = (double)(angle * Math.PI)/180.0;
+		double angleRad = angle * MyMathUtils.DEG_TO_RAD;
 		myMatrix RotMat = new myMatrix();
 		myMatrix RotMatrix1 = new myMatrix();      //translates given axis to x axis
 		myMatrix RotMatrix2 = new myMatrix();      //rotation around x axis by given angle
@@ -1577,11 +1593,11 @@ public abstract class myScene {
 		RotMatrix1Trans = RotMatrix1.transpose();
 		//second build rotation matrix to rotate around x axis by angle
 		//need to set 1,1 ; 1,2 ; 2,1 ; and 2,2 to cos thet, neg sine thet, sine thet, cos thet, respectively
-	 
-		RotMatrix2.setValByIdx(1,1,(Math.cos(angleRad)));
-		RotMatrix2.setValByIdx(1,2,(-Math.sin(angleRad)));
-		RotMatrix2.setValByIdx(2,1,(Math.sin(angleRad)));
-		RotMatrix2.setValByIdx(2,2,(Math.cos(angleRad)));
+		double cosVal = (Math.cos(angleRad)), sinVal =(Math.sin(angleRad)); 
+		RotMatrix2.setValByIdx(1,1,cosVal);
+		RotMatrix2.setValByIdx(1,2,-sinVal);
+		RotMatrix2.setValByIdx(2,1,sinVal);
+		RotMatrix2.setValByIdx(2,2,cosVal);
 		//lastly, calculate full rotation matrix
 
 		myMatrix tmp = RotMatrix2.multMat(RotMatrix1);
@@ -1589,7 +1605,7 @@ public abstract class myScene {
 		updateCTM(RotMat);
 	}//gtrotate
 	
-	public void updateCTM(myMatrix _mat){		
+	private void updateCTM(myMatrix _mat){		
 		myMatrix CTM = matrixStack.peek();
 		matrixStack.replaceTop(CTM.multMat(_mat));
 	}

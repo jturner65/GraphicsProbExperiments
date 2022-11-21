@@ -3,8 +3,8 @@ package base_RayTracer.scene.textures.noiseTextures.cellularTextures;
 import java.util.Random;
 import java.util.concurrent.ConcurrentSkipListMap;
 
-import base_RayTracer.myColor;
-import base_RayTracer.rayHit;
+import base_RayTracer.myRTColor;
+import base_RayTracer.ray.rayHit;
 import base_RayTracer.scene.myScene;
 import base_RayTracer.scene.shaders.myObjShader;
 import base_RayTracer.scene.textures.noiseTextures.myNoiseTexture;
@@ -73,7 +73,7 @@ public class myCellularTexture extends myNoiseTexture{
 		return pdfs.get((null == pdfs.lowerKey(prob) ? pdfs.firstKey() : pdfs.lowerKey(prob)));
 	}	
 	@Override
-	public double[] getDiffTxtrColor(rayHit hit, myColor diffuseColor, double diffConst) {
+	public double[] getDiffTxtrColor(rayHit hit, myRTColor diffuseColor, double diffConst) {
 		distToPts.clear();
 		myVector hitVal = getHitLoc(hit);
 		hitVal._mult(scale);		//increasing scale here will proportionally decrease the size of the equal-hashed cubes

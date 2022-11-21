@@ -1,7 +1,7 @@
 package base_RayTracer.scene.geometry.sceneObjects.base;
-import base_RayTracer.myColor;
-import base_RayTracer.myRay;
-import base_RayTracer.rayHit;
+import base_RayTracer.myRTColor;
+import base_RayTracer.ray.rayCast;
+import base_RayTracer.ray.rayHit;
 import base_RayTracer.scene.myScene;
 import base_RayTracer.scene.geometry.base.Base_Geometry;
 import base_RayTracer.scene.shaders.myObjShader;
@@ -36,7 +36,7 @@ public abstract class Base_SceneObject extends Base_Geometry{
 	}
 	//determine if shadow ray is a hit or not
 	@Override
-	public int calcShadowHit(myRay _ray, myRay transRay, myMatrix[] _ctAra, double distToLight){		
+	public int calcShadowHit(rayCast _ray, rayCast transRay, myMatrix[] _ctAra, double distToLight){		
 		rayHit hitChk = intersectCheck(_ray,transRay,_ctAra);			
 		if (hitChk.isHit && (distToLight - hitChk.t) > epsVal){	return 1;}  
 		//if (distToLight - hitChk.t > scene.epsVal){	return 1;}  
@@ -57,7 +57,7 @@ public abstract class Base_SceneObject extends Base_Geometry{
 		return result;
 	}//showUV
 	@Override
-	public myColor getColorAtPos(rayHit hit) {	return shdr.getColorAtPos(hit);}
+	public myRTColor getColorAtPos(rayHit hit) {	return shdr.getColorAtPos(hit);}
 	
 	
 	//get orthogonal vector to passed vector

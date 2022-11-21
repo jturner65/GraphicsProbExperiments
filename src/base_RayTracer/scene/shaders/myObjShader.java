@@ -1,9 +1,9 @@
 package base_RayTracer.scene.shaders;
 
 
-import base_RayTracer.myColor;
-import base_RayTracer.myRay;
-import base_RayTracer.rayHit;
+import base_RayTracer.myRTColor;
+import base_RayTracer.ray.rayCast;
+import base_RayTracer.ray.rayHit;
 import base_RayTracer.scene.myScene;
 import base_RayTracer.scene.geometry.base.Base_Geometry;
 import base_RayTracer.scene.geometry.sceneObjects.myInstance;
@@ -11,6 +11,9 @@ import base_RayTracer.scene.geometry.sceneObjects.lights.base.Base_Light;
 import base_RayTracer.scene.photonMapping.myPhoton;
 import base_RayTracer.scene.textures.base.Base_TextureHandler;
 import base_RayTracer.scene.textures.imageTextures.myImageTexture;
+
+import java.util.PriorityQueue;
+
 import base_Math_Objects.MyMathUtils;
 import base_Math_Objects.vectorObjs.doubles.myPoint;
 import base_Math_Objects.vectorObjs.doubles.myVector;
@@ -32,7 +35,7 @@ public class myObjShader {
 	 //phong exponent, reflective and transimitted contants
 	public double phongExp, KRefl, KTrans, currPerm, diffConst;
 	//set values of color contants
-	public myColor diffuseColor, ambientColor, specularColor, curPermClr, KReflClr;  
+	public myRTColor diffuseColor, ambientColor, specularColor, curPermClr, KReflClr;  
 	public myVector phtnDiffScl, phtnSpecScl, phtnPermClr;	//needs to go over 1
 	public double avgDiffClr, avgSpecClr, avgPermClr;
 	//used as array indices
@@ -52,18 +55,18 @@ public class myObjShader {
 	    dbgRayHits = 0;
 	    shType="";
 	    //these values need to be set by surface or diffuse command in cli
-	    diffuseColor = new myColor(0,0,0);
+	    diffuseColor = new myRTColor(0,0,0);
 	    phtnDiffScl = new myVector(0,0,0);
 	    phtnSpecScl = new myVector(0,0,0);
 	    phtnPermClr = new myVector(0,0,0);
-	    ambientColor = new myColor(0,0,0);
-	    specularColor = new myColor(0,0,0);
+	    ambientColor = new myRTColor(0,0,0);
+	    specularColor = new myRTColor(0,0,0);
 	    setCurrColors();
 	    txtr = new myImageTexture(scene, this);			//default is image texture
 	}
 	public void initFlags(){shdrFlags = new boolean[numFlags];for(int i=0; i<numFlags;++i){shdrFlags[i]=false;}}
-	private double getAvgColor(myColor clr){ return (1.0/3.0) * (clr.RGB.x + clr.RGB.y + clr.RGB.z);}
-	private myVector getAvgPhtnColor(myColor base, double avg){ return new myVector(base.RGB.x/avg,base.RGB.y/avg,base.RGB.z/avg);}
+	private double getAvgColor(myRTColor clr){ return (1.0/3.0) * (clr.RGB.x + clr.RGB.y + clr.RGB.z);}
+	private myVector getAvgPhtnColor(myRTColor base, double avg){ return new myVector(base.RGB.x/avg,base.RGB.y/avg,base.RGB.z/avg);}
 	public void setCurrColors(){
 	    diffuseColor.set(scene.currDiffuseColor);
 	    avgDiffClr = getAvgColor(diffuseColor);
@@ -75,9 +78,9 @@ public class myObjShader {
 	 //   if(avgSpecClr != 0){  phtnSpecScl.set(specularColor.RGB.x/avgSpecClr,specularColor.RGB.y/avgSpecClr,specularColor.RGB.z/avgSpecClr);}
 	    if(avgSpecClr != 0){  phtnSpecScl = getAvgPhtnColor(specularColor,avgSpecClr);}
 	    KRefl = scene.currKRefl;
-	    KReflClr = new myColor(scene.currKReflClr.RGB.x,scene.currKReflClr.RGB.y,scene.currKReflClr.RGB.z);
+	    KReflClr = new myRTColor(scene.currKReflClr.RGB.x,scene.currKReflClr.RGB.y,scene.currKReflClr.RGB.z);
 	    KTrans = scene.currKTrans;
-	    curPermClr = new myColor(scene.globCurPermClr.RGB.x,scene.globCurPermClr.RGB.y,scene.globCurPermClr.RGB.z);
+	    curPermClr = new myRTColor(scene.globCurPermClr.RGB.x,scene.globCurPermClr.RGB.y,scene.globCurPermClr.RGB.z);
 	    avgPermClr = getAvgColor(curPermClr);
 	    if(avgPermClr != 0){  phtnPermClr = getAvgPhtnColor(curPermClr,avgPermClr);}
 	    currPerm = scene.globRfrIdx;
@@ -152,7 +155,7 @@ public class myObjShader {
   			lightNorm._normalize();
   			//to calculate shadows at this spot, need to check for intersections again making a new ray out of light norm
   			//myRay shadowRay = hit.transRay.getTransformedRay(new myRay(scene, hitLoc, lightNorm, hit.transRay.gen+1), hit.CTMara[hit.obj.glblIDX], false);
-  			myRay shadowRay = new myRay(scene, hitLoc, lightNorm, hit.transRay.gen+1);
+  			rayCast shadowRay = new rayCast(scene, hitLoc, lightNorm, hit.transRay.gen+1);
   			rayHit light_hit = light.intersectCheck(shadowRay, shadowRay, light.CTMara);//get t value of light intersection
   			double t=light_hit.t, ltMult=light_hit.ltMult;
   			if(ltMult == 0){ continue;}//this light has no contribution to light - out of field of light 			
@@ -195,7 +198,7 @@ public class myObjShader {
   	 * @param permClr
   	 * @return
   	 */
-  	protected double[] calcTransClr(rayHit hit, myVector permClr){
+  	protected double[] calcTransClr(rayHit hit, myPoint permClr){
   		double r=0,g=0,b=0;  		
   		myPoint hitLoc = hit.fwdTransHitLoc;
   		myVector backToEyeDir = new myVector(hit.fwdTransRayDir);
@@ -288,10 +291,10 @@ public class myObjShader {
   	      	uVec._add(nVec);
   	      	myVector refractDir = new myVector(uVec);
   	      	refractDir._normalize();    
-  	      	myRay refrRay = new myRay(scene, hitLoc, refractDir, hit.transRay.gen+1);  	      	
+  	      	rayCast refrRay = new rayCast(scene, hitLoc, refractDir, hit.transRay.gen+1);  	      	
   	      	refrRay.setCurrKTrans(KTrans, currPerm, curPermClr);//need to set ktrans for the material this ray is in
   	      	//color where ray hits
-  	      	myColor refractColor = scene.reflectRay(refrRay);
+  	      	myRTColor refractColor = scene.reflectRay(refrRay);
   	      	r += (oneMTransReflRatio) * permClr.x * (refractColor.RGB.x);
   	      	g += (oneMTransReflRatio) * permClr.y * (refractColor.RGB.y);
   	      	b += (oneMTransReflRatio) * permClr.z * (refractColor.RGB.z);
@@ -304,10 +307,10 @@ public class myObjShader {
   			//add more than 1 for ray generation to decrease number of internal reflection rays
   	  		reflDir = compReflDir(backToEyeDir, N);
  			reflDir._mult(refractNormMult);		//for leaving material
-  			myRay reflRay = new myRay(scene, hitLoc, reflDir, hit.transRay.gen+1);
+  			rayCast reflRay = new rayCast(scene, hitLoc, reflDir, hit.transRay.gen+1);
   			reflRay.setCurrKTrans(KTrans, currPerm, curPermClr);  	      	
   			//color where ray hits
-  			myColor reflectColor = scene.reflectRay(reflRay);
+  			myRTColor reflectColor = scene.reflectRay(reflRay);
   			//println("internal reflection color r g b : " + red(reflectColor) + "|" + green(reflectColor) + "|" + blue(reflectColor));
   			//added color component for reflection
   			r += (transReflRatio) *  permClr.x * (reflectColor.RGB.x);
@@ -319,7 +322,7 @@ public class myObjShader {
   		return new double[]{r,g,b};		
   	}//calcTransClr()	
   	//calc reflected color - simple reflection
-  	protected double[] calcReflClr(rayHit hit, myVector reflClrVec){
+  	protected double[] calcReflClr(rayHit hit, myPoint reflClrVec){
  		double r=0,g=0,b=0;
   		myPoint hitLoc = hit.fwdTransHitLoc;
   		myVector backEyeDir = new myVector(hit.fwdTransRayDir);  		
@@ -327,9 +330,9 @@ public class myObjShader {
   		myVector reflDir = compReflDir(backEyeDir, hit.objNorm);	  
   		if (reflDir._dot(hit.objNorm) >= 0){//reflections from behind can't happen 
   			//reflecting ray off surface
-  			myRay reflRay = new myRay(scene, hitLoc, reflDir, hit.transRay.gen+1);
+  			rayCast reflRay = new rayCast(scene, hitLoc, reflDir, hit.transRay.gen+1);
   			//color where ray hits
-  			myColor reflectColor = scene.reflectRay(reflRay);
+  			myRTColor reflectColor = scene.reflectRay(reflRay);
   			//added color component for reflection
   			r += (reflClrVec.x * reflectColor.RGB.x); 
   			g += (reflClrVec.y * reflectColor.RGB.y); 
@@ -343,7 +346,7 @@ public class myObjShader {
 	 * @param hit
 	 * @return
 	 */
-  	protected myRay calcTransRay(rayHit hit){
+  	protected rayCast calcTransRay(rayHit hit){
   		myPoint hitLoc = hit.fwdTransHitLoc;
   		myVector backToEyeDir = new myVector(hit.fwdTransRayDir);
   		backToEyeDir._mult(-1);
@@ -435,7 +438,7 @@ public class myObjShader {
   	      	uVec._add(nVec);
   	      	myVector refractDir = new myVector(uVec);
   	      	refractDir._normalize();    
-  	      	myRay refrRay = new myRay(scene, hitLoc, refractDir, hit.transRay.gen+1);  	      	
+  	      	rayCast refrRay = new rayCast(scene, hitLoc, refractDir, hit.transRay.gen+1);  	      	
   	      	refrRay.setCurrKTrans(KTrans, currPerm, curPermClr);//need to set ktrans for the material this ray is in
   	      	return refrRay;
   		}//if refracting
@@ -443,23 +446,23 @@ public class myObjShader {
 		//add more than 1 for ray generation to decrease number of internal reflection rays
   		reflDir = compReflDir(backToEyeDir, N);
 		reflDir._mult(refractNormMult);		//for leaving material
-		myRay reflRay = new myRay(scene, hitLoc, reflDir, hit.transRay.gen+1);
+		rayCast reflRay = new rayCast(scene, hitLoc, reflDir, hit.transRay.gen+1);
 		reflRay.setCurrKTrans(KTrans, currPerm, curPermClr);  	      	
 		return reflRay;
   	}//calcTransRay()	
   	
   	//calc reflected color - simple reflection
-  	protected myRay calcReflRay(rayHit hit){
+  	protected rayCast calcReflRay(rayHit hit){
   		myPoint hitLoc = hit.fwdTransHitLoc;
   		myVector backEyeDir = new myVector(hit.fwdTransRayDir);  		
   		backEyeDir._mult(-1);
   		myVector reflDir = compReflDir(backEyeDir, hit.objNorm);	  
   			//reflecting ray off surface
-  		return new myRay(scene, hitLoc, reflDir, hit.transRay.gen+1);
+  		return new rayCast(scene, hitLoc, reflDir, hit.transRay.gen+1);
    	}//calcReflClr
 
   	//this returns the color value at a particular point on the object, based on where the incident view ray hits it. 
-  	public myColor getColorAtPos(rayHit hit){
+  	public myRTColor getColorAtPos(rayHit hit){
   		//need to get color from photon map
   		++dbgRayHits;		
   		double r = ambientColor.RGB.x, g = ambientColor.RGB.y, b = ambientColor.RGB.z;
@@ -487,7 +490,7 @@ public class myObjShader {
   			r += res[0]; 	g += res[1]; 	b += res[2];
   		}//if enough rays to recurse and this material reflects/refracts
  	
-  		return new myColor(r,g,b);
+  		return new myRTColor(r,g,b);
   	}//getcoloratpos method  	
   	
 	/**
@@ -498,14 +501,15 @@ public class myObjShader {
 	protected double[] getIrradianceFromPhtnTree(rayHit hit){
 		//idx 0 is photon dir, idx 1 is phtn pwr
 		double[] res = new double[]{0,0,0};		
-		myPhoton[] hood = scene.photonTree.findNeighborhood(hit.fwdTransHitLoc.x, hit.fwdTransHitLoc.y, hit.fwdTransHitLoc.z);//location in world coords
+		PriorityQueue<myPhoton> hood = scene.photonTree.findNeighborhood(hit.fwdTransHitLoc.x, hit.fwdTransHitLoc.y, hit.fwdTransHitLoc.z);//location in world coords
 		//ArrayList<Photon> hood = scene.photonTree.find_near((float)hit.fwdTransHitLoc.x, (float)hit.fwdTransHitLoc.y, (float)hit.fwdTransHitLoc.z, scene.kNhood, scene.ph_max_near_dist);//location in world coords
-		int hoodSize = hood.length;
-		if ((hoodSize == 0) || (hood[0] == null)){return res;}
-		double rSq = hood[0].getSqDist();				//furthest photon is in first idx of hood, sqdist is 3rd position of pos ara
+		int hoodSize = hood.size();
+		if ((hoodSize == 0) || (hood.peek() == null)){return res;}
+		double rSq = hood.peek().getSqDist();				//furthest photon is first element of hood, sqdist is distance this photon is from ray hit
 		double area = MyMathUtils.PI * rSq;// * Math.sqrt(rSq) * 1.33333;//vol of differential hemi-sphere
-		for(int i=0;i<hoodSize;++i){
-			myPhoton phtn = hood[i];
+		
+		for(myPhoton phtn : hood) {
+			//myPhoton phtn = hood[i];
 			res[0] += phtn.pwr[0];
 			res[1] += phtn.pwr[1];
 			res[2] += phtn.pwr[2];
@@ -515,8 +519,8 @@ public class myObjShader {
 	}//getIrradianceFromPhtnTree   	
   	
   	//call this when a caustic-generating object is hit, it will return the ray hit of the reflected/refracted ray
-  	public myRay findCausticRayHit(rayHit hit, double[] phtn_pwr){ 
-  		myRay res = null;
+  	public rayCast findCausticRayHit(rayHit hit, double[] phtn_pwr){ 
+  		rayCast res = null;
  		if ((hit.transRay.gen < scene.numPhotonRays) && shdrFlags[hasCaustic]){
  			double[] pwrMult = new double[]{1.0f,1.0f,1.0f};
   			if ((KTrans > 0.0) || (currPerm > 0.0)){	

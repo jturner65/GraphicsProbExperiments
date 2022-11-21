@@ -2,7 +2,7 @@ package base_RayTracer.scene.geometry.sceneObjects.lights;
 
 import java.util.concurrent.ThreadLocalRandom;
 
-import base_RayTracer.myRay;
+import base_RayTracer.ray.rayCast;
 import base_RayTracer.scene.myScene;
 import base_RayTracer.scene.objType;
 import base_RayTracer.scene.geometry.sceneObjects.lights.base.Base_Light;
@@ -32,7 +32,7 @@ public class myDiskLight extends Base_Light{
 	}
 	//generates a ray to park a photon in the photon map
 	@Override
-	public myRay genRndPhtnRay() {
+	public rayCast genRndPhtnRay() {
 		myVector dir = new myVector();
 		double prob, angle;
 		do{//penumbra isn't as likely
@@ -45,7 +45,7 @@ public class myDiskLight extends Base_Light{
 		//dir = myVector._rotAroundAxis(dir, orientation,ThreadLocalRandom.current().nextDouble(0,PConstants.TWO_PI));		
 		dir = dir.rotMeAroundAxis(orientation,ThreadLocalRandom.current().nextDouble(0,PConstants.TWO_PI));		
 		myPoint loc = getRandomDiskPos();
-		return new myRay(scene, getTransformedPt(loc, CTMara[glblIDX]), dir, 0);
+		return new rayCast(scene, getTransformedPt(loc, CTMara[glblIDX]), dir, 0);
 	}//genRndPhtnRay
 	
 	public void setDisklightVals(double _radius){

@@ -3,8 +3,8 @@ package base_RayTracer.scene;
 import java.util.concurrent.ThreadLocalRandom;
 
 import base_JavaProjTools_IRender.base_Render_Interface.IRenderInterface;
-import base_RayTracer.myColor;
-import base_RayTracer.myRay;
+import base_RayTracer.myRTColor;
+import base_RayTracer.ray.rayCast;
 import base_Math_Objects.vectorObjs.doubles.myVector;
 
 public class myOrthoScene extends myScene{
@@ -41,19 +41,19 @@ public class myOrthoScene extends myScene{
 	}
 	
 	@Override
-	public myColor shootMultiRays(double xBseVal, double yBseVal) {
-		myColor result,aaResultColor;
+	public myRTColor shootMultiRays(double xBseVal, double yBseVal) {
+		myRTColor result,aaResultColor;
 		double redVal = 0, greenVal = 0, blueVal = 0, rayY, rayX;//,rayYOffset = 1.0/sceneRows, rayXOffset = 1.0/sceneCols;
 		//myRay ray;
 		for(int rayNum = 0; rayNum < numRaysPerPixel; ++rayNum){//vary by +/- .5
 			rayY = yBseVal + (orthPerRow*ThreadLocalRandom.current().nextDouble(-.5,.5));
 			rayX = xBseVal + (orthPerCol*ThreadLocalRandom.current().nextDouble(-.5,.5));				
-			aaResultColor = reflectRay(new myRay(this, new myVector(rayX,rayY,0), new myVector(0,0,-1),0));
+			aaResultColor = reflectRay(new rayCast(this, new myVector(rayX,rayY,0), new myVector(0,0,-1),0));
 			redVal += aaResultColor.RGB.x; //(aaResultColor >> 16 & 0xFF)/256.0;//gets red value
 			greenVal += aaResultColor.RGB.y; // (aaResultColor >> 8 & 0xFF)/256.0;//gets green value
 			blueVal += aaResultColor.RGB.z;//(aaResultColor & 0xFF)/256.0;//gets blue value	      
 		}//aaliasR
-		result = new myColor ( redVal/numRaysPerPixel, greenVal/numRaysPerPixel, blueVal/numRaysPerPixel); 
+		result = new myRTColor ( redVal/numRaysPerPixel, greenVal/numRaysPerPixel, blueVal/numRaysPerPixel); 
 		return result;
 	}//shootMultiRays	
 	
@@ -66,12 +66,14 @@ public class myOrthoScene extends myScene{
 			//index of currently written pixel
 			int pixIDX = 0;
 			int progressCount = 0;
-			//  double redVal, greenVal, blueVal, divVal;
-			double rayY, rayX;
-			double rayYOffset = sceneRows/2.0, rayXOffset = sceneCols/2.0;
-			myColor showColor;
+			myRTColor showColor;
 			boolean skipPxl = false;
 			int stepIter = 1;
+			
+			
+			//  double redVal, greenVal, blueVal, divVal;
+			double rayY, rayX;
+
 			if(scFlags[glblRefineIDX]){
 				stepIter = RefineIDX[curRefineStep++];
 				skipPxl = curRefineStep != 1;			//skip 0,0 pxl on all sub-images except the first pass
@@ -83,7 +85,7 @@ public class myOrthoScene extends myScene{
 					for (int col = 0; col < sceneCols; col+=stepIter){
 						if(skipPxl){skipPxl = false;continue;}			//skip only 0,0 pxl					
 						rayX = orthPerCol * (col - rayXOffset);
-						showColor = reflectRay(new myRay(this,new myVector(rayX,rayY,0), new myVector(0,0,-1),0)); 
+						showColor = reflectRay(new rayCast(this,new myVector(rayX,rayY,0), new myVector(0,0,-1),0)); 
 						pixIDX = writePxlSpan(showColor.getInt(),row,col,stepIter,rndrdImg.pixels);
 						if ((1.0 * pixIDX)/(numPxls) > (progressCount * .02)){System.out.print("-|");progressCount++;}//progressbar         
 					}//for col

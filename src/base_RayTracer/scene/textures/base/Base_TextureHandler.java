@@ -1,7 +1,7 @@
 package base_RayTracer.scene.textures.base;
 
-import base_RayTracer.myColor;
-import base_RayTracer.rayHit;
+import base_RayTracer.myRTColor;
+import base_RayTracer.ray.rayHit;
 import base_RayTracer.scene.myScene;
 import base_RayTracer.scene.shaders.myObjShader;
 
@@ -48,7 +48,7 @@ public abstract class Base_TextureHandler {
 	
 	public void initFlags(){txtFlags = new boolean[numFlags];for(int i=0; i<numFlags;++i){txtFlags[i]=false;}}
 	protected abstract void initTextureVals();
-	public abstract double[] getDiffTxtrColor(rayHit hit, myColor diffuseColor, double diffConst);  	
+	public abstract double[] getDiffTxtrColor(rayHit hit, myRTColor diffuseColor, double diffConst);  	
 	public abstract String showUV();
 	  	
 	public String toString(){

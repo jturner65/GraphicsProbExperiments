@@ -1,6 +1,6 @@
 package base_RayTracer.scene.geometry.sceneObjects.planar;
 
-import base_RayTracer.myRay;
+import base_RayTracer.ray.rayCast;
 import base_RayTracer.scene.myScene;
 import base_RayTracer.scene.objType;
 import base_Math_Objects.vectorObjs.doubles.myPoint;
@@ -16,7 +16,7 @@ public class myQuad extends myPlanarObject{
 			initObjVals();
 		}//myQuad constructor (4)
 		
-		public boolean checkInside(myPoint rayPoint, myRay ray){
+		public boolean checkInside(myPoint rayPoint, rayCast ray){
 			//find ray from each vertex to the planar intersection point
 			myVector intRay = new myVector(0,0,0);
 			for(int i =0; i<vCount; ++i){

@@ -210,9 +210,9 @@ public class myRTFileReader {
 			
 			//color commands
 				case "diffuse" : {//new assignment requirements
-					myColor cDiff = readColor(token,1);//new myColor(Double.parseDouble(token[1]),Double.parseDouble(token[2]),Double.parseDouble(token[3]));
-					myColor cAmb = readColor(token,4);//new myColor(Double.parseDouble(token[4]),Double.parseDouble(token[5]),Double.parseDouble(token[6]));
-					myColor cSpec = new myColor(0,0,0);
+					myRTColor cDiff = readColor(token,1);//new myColor(Double.parseDouble(token[1]),Double.parseDouble(token[2]),Double.parseDouble(token[3]));
+					myRTColor cAmb = readColor(token,4);//new myColor(Double.parseDouble(token[4]),Double.parseDouble(token[5]),Double.parseDouble(token[6]));
+					myRTColor cSpec = new myRTColor(0,0,0);
 					scene.scFlags[myScene.glblTxtrdTopIDX] = false;
 					scene.scFlags[myScene.glblTxtrdBtmIDX] = false;
 					scene.setSurface(cDiff,cAmb,cSpec,0,0);					
@@ -234,9 +234,9 @@ public class myRTFileReader {
 				//a reflective surface, this should cause the caustic photon to "bounce", and to travel in a new direction. 
 				//Caustic photons only stop bouncing when they hit a diffuse surface. 				
 				case "reflective" : {//reflective Cdr Cdg Cdb Car Cag Cab k_refl 
-					myColor cDiff = readColor(token,1);//new myColor(Double.parseDouble(token[1]),Double.parseDouble(token[2]),Double.parseDouble(token[3]));
-					myColor cAmb = readColor(token,4);//new myColor(Double.parseDouble(token[4]),Double.parseDouble(token[5]),Double.parseDouble(token[6]));
-					myColor cSpec = new myColor(0,0,0);
+					myRTColor cDiff = readColor(token,1);//new myColor(Double.parseDouble(token[1]),Double.parseDouble(token[2]),Double.parseDouble(token[3]));
+					myRTColor cAmb = readColor(token,4);//new myColor(Double.parseDouble(token[4]),Double.parseDouble(token[5]),Double.parseDouble(token[6]));
+					myRTColor cSpec = new myRTColor(0,0,0);
 					scene.scFlags[myScene.glblTxtrdTopIDX] = false;
 					scene.scFlags[myScene.glblTxtrdBtmIDX] = false;
 					double kRefl = Double.parseDouble(token[7]);
@@ -379,7 +379,7 @@ public class myRTFileReader {
 	}
 	
 	//build a color value from a string array read in from a cli file.  stIdx is position in array where first color resides
-	private myColor readColor(String[] token, int stIdx){return new myColor(Double.parseDouble(token[stIdx]),Double.parseDouble(token[stIdx+1]),Double.parseDouble(token[stIdx+2]));}
+	private myRTColor readColor(String[] token, int stIdx){return new myRTColor(Double.parseDouble(token[stIdx]),Double.parseDouble(token[stIdx+1]),Double.parseDouble(token[stIdx+2]));}
 	
 	public void finalizeScene(TreeMap<String, myScene> loadedScenes, String fileName,myScene scene){
 		//finalize scene
@@ -389,9 +389,9 @@ public class myRTFileReader {
 	
 	//handle surface and shiny commands (very similar in layout but slight differences - shiny will use "simple" version of transmittance, not TIR
 	public void setSurfaceShiny(myScene scene, String[] token, boolean useSimple){
-		myColor cDiff = readColor(token,1);
-		myColor cAmb = readColor(token,4);
-		myColor cSpec = readColor(token,7);
+		myRTColor cDiff = readColor(token,1);
+		myRTColor cAmb = readColor(token,4);
+		myRTColor cSpec = readColor(token,7);
 		double phongExp = Double.parseDouble(token[10]);
 		double kRefl = Double.parseDouble(token[11]);
 		double kTrans = 0;

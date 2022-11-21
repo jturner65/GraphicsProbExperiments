@@ -5,8 +5,8 @@ import java.util.List;
 import java.util.TreeMap;
 import java.util.Map.Entry;
 
-import base_RayTracer.myRay;
-import base_RayTracer.rayHit;
+import base_RayTracer.ray.rayCast;
+import base_RayTracer.ray.rayHit;
 import base_RayTracer.scene.myScene;
 import base_RayTracer.scene.objType;
 import base_RayTracer.scene.geometry.accelStruct.base.Base_AccelStruct;
@@ -103,7 +103,7 @@ public class BVH_AccelStruct extends Base_AccelStruct{
 //	}//addObj
 //	
 	@Override
-	public int calcShadowHit(myRay _ray, myRay _trans, myMatrix[] _ctAra, double distToLight) {
+	public int calcShadowHit(rayCast _ray, rayCast _trans, myMatrix[] _ctAra, double distToLight) {
 		if(isLeaf){return leafVals.calcShadowHit(_ray,_trans, _ctAra, distToLight);}
 		int leftRes = leftChild._bbox.calcShadowHit(_ray,_trans, _ctAra, distToLight);
 		if((leftRes == 1) && leftChild.calcShadowHit(_ray,_trans, _ctAra, distToLight) == 1){return 1;}
@@ -113,7 +113,7 @@ public class BVH_AccelStruct extends Base_AccelStruct{
 	}//calcShadowHit	
 	
 	@Override
-	public rayHit traverseStruct(myRay _ray,myRay _trans, myMatrix[] _ctAra){
+	public rayHit traverseStruct(rayCast _ray,rayCast _trans, myMatrix[] _ctAra){
 		if(isLeaf){return leafVals.traverseStruct(_ray,_trans, _ctAra);}		
 		rayHit _hit = leftChild._bbox.intersectCheck(_ray,_trans,_ctAra);
 //		int dpthToEnd = 18;

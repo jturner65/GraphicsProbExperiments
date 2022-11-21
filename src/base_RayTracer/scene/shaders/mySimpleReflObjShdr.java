@@ -1,8 +1,8 @@
 package base_RayTracer.scene.shaders;
 
-import base_RayTracer.myColor;
-import base_RayTracer.myRay;
-import base_RayTracer.rayHit;
+import base_RayTracer.myRTColor;
+import base_RayTracer.ray.rayCast;
+import base_RayTracer.ray.rayHit;
 import base_RayTracer.scene.myScene;
 import base_Math_Objects.MyMathUtils;
 import base_Math_Objects.vectorObjs.doubles.myPoint;
@@ -117,11 +117,11 @@ public class mySimpleReflObjShdr extends myObjShader{
 	      	refractDir.set(uVec);
 	      	refractDir._normalize();    
 	        //myRay refrRay = getFwdTransRay(hit, hitLoc, refractDir, hit.transRay.gen+1, hit.CTMara[hit.obj.glblIDX], false);
-	      	myRay refrRay = new myRay(scene, hitLoc, refractDir, hit.transRay.gen+1);
+	      	rayCast refrRay = new rayCast(scene, hitLoc, refractDir, hit.transRay.gen+1);
 	      	//need to set ktrans for the material this ray is in
 	      	refrRay.setCurrKTrans(KTrans, currPerm, curPermClr);
 	      	//color where ray hits
-	      	myColor refractColor = scene.reflectRay(refrRay);
+	      	myRTColor refractColor = scene.reflectRay(refrRay);
 	      	double preMult1MKtrans = oneMTransReflRatio * KTrans;
 	      	r += preMult1MKtrans * (refractColor.RGB.x);
 	      	g += preMult1MKtrans * (refractColor.RGB.y);
@@ -135,10 +135,10 @@ public class mySimpleReflObjShdr extends myObjShader{
 			//add more than 1 for ray generation to decrease number of internal reflection rays
 			reflDir._mult(refractNormMult);
 			//myRay reflRay = getFwdTransRay(hit, hitLoc, reflDir, hit.transRay.gen+1, hit.CTMara[hit.obj.glblIDX], false);
-			myRay reflRay = new myRay(scene, hitLoc, reflDir, hit.transRay.gen+1);
+			rayCast reflRay = new rayCast(scene, hitLoc, reflDir, hit.transRay.gen+1);
 			//myRay reflRay = new myRay(intX, intY, intZ, reflDir, numRays - 2);
 			//color where ray hits
-			myColor reflectColor = scene.reflectRay(reflRay);
+			myRTColor reflectColor = scene.reflectRay(reflRay);
 			//println("internal reflection color r g b : " + red(reflectColor) + "|" + green(reflectColor) + "|" + blue(reflectColor));
 			//added color component for reflection
 	      	double preMultKtrans = transReflRatio * KRefl;
@@ -152,7 +152,7 @@ public class mySimpleReflObjShdr extends myObjShader{
 	
 	//this returns the color value at a particular point on the object, based on where the incident view ray hits it. 	
 	@Override
-	public myColor getColorAtPos(rayHit hit){
+	public myRTColor getColorAtPos(rayHit hit){
 		dbgRayHits++;		
 		double r = ambientColor.RGB.x, g = ambientColor.RGB.y, b = ambientColor.RGB.z;
 		double [] shadowRes = calcShadowColor(hit, txtr.getDiffTxtrColor(hit, diffuseColor, 1.0));
@@ -167,7 +167,7 @@ public class mySimpleReflObjShdr extends myObjShader{
 			else if (KRefl > 0.0){ 				res = calcReflClr(hit, KReflClr.RGB);						}//if reflection happens	
 			r += res[0]; 	g += res[1]; 	b += res[2];
 		}//if enough rays to recurse   		
-		return new myColor(r,g,b);
+		return new myRTColor(r,g,b);
 	}//getcoloratpos method	
 	public String toString(){
 		String res = "Simple shdr model from proj 1 : " + super.toString();

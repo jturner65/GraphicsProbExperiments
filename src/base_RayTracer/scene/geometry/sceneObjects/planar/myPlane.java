@@ -1,6 +1,6 @@
 package base_RayTracer.scene.geometry.sceneObjects.planar;
 
-import base_RayTracer.myRay;
+import base_RayTracer.ray.rayCast;
 import base_RayTracer.scene.myScene;
 import base_RayTracer.scene.objType;
 import base_Math_Objects.vectorObjs.doubles.myPoint;
@@ -58,7 +58,7 @@ public class myPlane extends myPlanarObject{
 	@Override
 	public myVector getMinVec(){return  new myVector(-Double.MAX_VALUE,-Double.MAX_VALUE,-Double.MAX_VALUE);}
 	@Override//infinite plane isect is always inside
-	public boolean checkInside(myPoint rayPoint, myRay ray){	return true;	}//checkInside method
+	public boolean checkInside(myPoint rayPoint, rayCast ray){	return true;	}//checkInside method
 	@Override
 	public double[] findTxtrCoords(myPoint isctPt, PImage myTexture, double time){		
 	    myVector v2 = new myVector(P[0],isctPt);

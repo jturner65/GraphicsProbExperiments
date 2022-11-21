@@ -1,8 +1,8 @@
 package base_RayTracer.scene.geometry.base;
 
-import base_RayTracer.myColor;
-import base_RayTracer.myRay;
-import base_RayTracer.rayHit;
+import base_RayTracer.myRTColor;
+import base_RayTracer.ray.rayCast;
+import base_RayTracer.ray.rayHit;
 import base_RayTracer.scene.myScene;
 import base_RayTracer.scene.objType;
 import base_RayTracer.scene.geometry.BoundingBox;
@@ -92,13 +92,13 @@ public abstract class Base_Geometry {
 	//return point with minimum x/y/z coords of this object
 	public abstract myPoint getMinVec();
 	//intersection check for shadows 
-	public abstract int calcShadowHit(myRay _ray,myRay _trans, myMatrix[] _ctAra, double distToLight);
+	public abstract int calcShadowHit(rayCast _ray,rayCast _trans, myMatrix[] _ctAra, double distToLight);
 	//find rayhit value for hitting this geometry object
-	public abstract rayHit intersectCheck(myRay _ray,myRay transRay, myMatrix[] _ctAra);
+	public abstract rayHit intersectCheck(rayCast _ray,rayCast transRay, myMatrix[] _ctAra);
 	//find the appropriate normal for the hit on this object
 	public abstract myVector getNormalAtPoint(myPoint point, int[] args);
 	//everything should be able to handle a get color query
-	public abstract myColor getColorAtPos(rayHit transRay);
+	public abstract myRTColor getColorAtPos(rayHit transRay);
 	//get texture coordinates
 	public abstract double[] findTxtrCoords(myPoint isctPt, PImage myTexture, double time);
 	protected abstract double findTextureU(myPoint isctPt, double v, PImage myTexture, double time);  

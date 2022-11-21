@@ -1,7 +1,7 @@
 package base_RayTracer.scene.textures.noiseTextures;
 
-import base_RayTracer.myColor;
-import base_RayTracer.rayHit;
+import base_RayTracer.myRTColor;
+import base_RayTracer.ray.rayHit;
 import base_RayTracer.scene.myScene;
 import base_RayTracer.scene.shaders.myObjShader;
 import base_Math_Objects.MyMathUtils;
@@ -12,7 +12,7 @@ public class myMarbleTexture extends myNoiseTexture{
 
 	public myMarbleTexture(myScene _scn,myObjShader _shdr, double _scl) {	super(_scn, _shdr,_scl);}
 	@Override
-	public double[] getDiffTxtrColor(rayHit hit, myColor diffuseColor, double diffConst) {
+	public double[] getDiffTxtrColor(rayHit hit, myRTColor diffuseColor, double diffConst) {
 		myVector hitVal = getHitLoc(hit);
 		double res = getAbsTurbVal(hitVal);//gives vals between 0 and 1
 		double sptVal = linPtVal(hitVal)/periodMult._mag() + turbMult * res;

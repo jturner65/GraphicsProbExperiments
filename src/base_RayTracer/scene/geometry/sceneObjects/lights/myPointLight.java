@@ -1,6 +1,6 @@
 package base_RayTracer.scene.geometry.sceneObjects.lights;
 
-import base_RayTracer.myRay;
+import base_RayTracer.ray.rayCast;
 import base_RayTracer.scene.myScene;
 import base_RayTracer.scene.objType;
 import base_RayTracer.scene.geometry.sceneObjects.lights.base.Base_Light;
@@ -18,9 +18,9 @@ public class myPointLight extends Base_Light{
 	public myVector getNormalAtPoint(myPoint point, int[] args) {return new myVector(0,1,0);}
 
 	@Override
-	public myRay genRndPhtnRay() {
+	public rayCast genRndPhtnRay() {
 		myVector tmp = getRandDir();
-		return new myRay(scene, getTransformedPt(origin, CTMara[glblIDX]), tmp, 0);
+		return new rayCast(scene, getTransformedPt(origin, CTMara[glblIDX]), tmp, 0);
 	}
 	
 	@Override

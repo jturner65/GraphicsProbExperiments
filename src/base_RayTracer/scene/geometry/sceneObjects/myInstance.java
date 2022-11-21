@@ -1,8 +1,8 @@
 package base_RayTracer.scene.geometry.sceneObjects;
 
-import base_RayTracer.myColor;
-import base_RayTracer.myRay;
-import base_RayTracer.rayHit;
+import base_RayTracer.myRTColor;
+import base_RayTracer.ray.rayCast;
+import base_RayTracer.ray.rayHit;
 import base_RayTracer.scene.myScene;
 import base_RayTracer.scene.objType;
 import base_RayTracer.scene.geometry.accelStruct.base.Base_AccelStruct;
@@ -41,13 +41,13 @@ public class myInstance extends Base_Geometry{
 	@Override
 	public myPoint getMinVec(){return getTransformedPt(obj.getMinVec(), obj.CTMara[glblIDX]);}
 	@Override
-	public int calcShadowHit(myRay _ray,myRay _trans, myMatrix[] _ctAra, double distToLight) {
+	public int calcShadowHit(rayCast _ray,rayCast _trans, myMatrix[] _ctAra, double distToLight) {
 		return obj.calcShadowHit(_trans, _trans, _ctAra, distToLight);
 	}
 	@Override
 	public myPoint getOrigin(double t) {	return getTransformedPt(obj.getOrigin(t), obj.CTMara[glblIDX]);}
 	@Override
-	public rayHit intersectCheck(myRay _ray,myRay transRay, myMatrix[] _ctAra) {
+	public rayHit intersectCheck(rayCast _ray,rayCast transRay, myMatrix[] _ctAra) {
 		rayHit _hit = obj.intersectCheck(transRay, transRay, _ctAra);		//copy trans ray over so that ctm-transformed accel structs will still register hits appropriately TODO make this better
 		if(useShader){_hit.shdr = shdr;}
 		return _hit;	
@@ -69,7 +69,7 @@ public class myInstance extends Base_Geometry{
 
 	
 	@Override
-	public myColor getColorAtPos(rayHit hit) {		return (useShader) ? shdr.getColorAtPos(hit) : hit.obj.shdr.getColorAtPos(hit);}//return (hit.obj instanceof mySceneObject) ? ((mySceneObject)hit.obj).shdr.getColorAtPos(hit) : new myColor(-1,-1,-1,1);	}
+	public myRTColor getColorAtPos(rayHit hit) {		return (useShader) ? shdr.getColorAtPos(hit) : hit.obj.shdr.getColorAtPos(hit);}//return (hit.obj instanceof mySceneObject) ? ((mySceneObject)hit.obj).shdr.getColorAtPos(hit) : new myColor(-1,-1,-1,1);	}
 	public String toString(){
 		String result = super.toString() + " which is an instance of : "+obj.type;
 	    return result;

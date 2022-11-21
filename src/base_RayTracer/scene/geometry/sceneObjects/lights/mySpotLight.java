@@ -2,8 +2,8 @@ package base_RayTracer.scene.geometry.sceneObjects.lights;
 
 import java.util.concurrent.ThreadLocalRandom;
 
-import base_RayTracer.myRay;
-import base_RayTracer.rayHit;
+import base_RayTracer.ray.rayCast;
+import base_RayTracer.ray.rayHit;
 import base_RayTracer.scene.myScene;
 import base_RayTracer.scene.objType;
 import base_RayTracer.scene.geometry.sceneObjects.lights.base.Base_Light;
@@ -46,13 +46,13 @@ public class mySpotLight extends Base_Light{
 		oPhAxis = getOrthoVec(orientation);			//for rotation of dir vector for generating photons
 	}//setSpotlightVals	
 	@Override
-	public rayHit intersectCheck(myRay _ray, myRay transRay, myMatrix[] _ctAra){  
+	public rayHit intersectCheck(rayCast _ray, rayCast transRay, myMatrix[] _ctAra){  
 		rayHit hit = super.intersectCheck(_ray, transRay, _ctAra);
 		hit.ltMult = calcT_Mult(transRay.direction,transRay.getTime(), innerThetRad, outerThetRad, radDiff);
 		return hit;
 	}
 	@Override
-	public myRay genRndPhtnRay() {  //diminish power of photon by t value at fringe
+	public rayCast genRndPhtnRay() {  //diminish power of photon by t value at fringe
 		//find random unit vector at some angle from orientation < outerThetRad, scale pwr of photon by t for angle >innerThetRad, <outerThetRad 
 		myVector tmp = new myVector();
 		double prob, angle;
@@ -71,7 +71,7 @@ public class mySpotLight extends Base_Light{
 		//rotate in phi dir for random direction
 		tmp = tmp.rotMeAroundAxis(orientation,ThreadLocalRandom.current().nextDouble(0,MyMathUtils.TWO_PI));
 		
-		return new myRay(scene, getTransformedPt(origin, CTMara[glblIDX]), tmp, 0);
+		return new rayCast(scene, getTransformedPt(origin, CTMara[glblIDX]), tmp, 0);
 	}	
 	@Override //no need for surface normal of light (??)
 	public myVector getNormalAtPoint(myPoint point, int[] args) {	return new myVector(0,1,0);	}

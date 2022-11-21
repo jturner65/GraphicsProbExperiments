@@ -1,7 +1,7 @@
 package base_RayTracer.scene.textures.miscTextures;
 
-import base_RayTracer.myColor;
-import base_RayTracer.rayHit;
+import base_RayTracer.myRTColor;
+import base_RayTracer.ray.rayHit;
 import base_RayTracer.scene.myScene;
 import base_RayTracer.scene.shaders.myObjShader;
 import base_RayTracer.scene.textures.base.Base_TextureHandler;
@@ -13,7 +13,7 @@ public class myNonTexture extends Base_TextureHandler{
 	@Override
 	protected void initTextureVals() {}
 	@Override
-	public double[] getDiffTxtrColor(rayHit hit, myColor diffuseColor, double diffConst) {
+	public double[] getDiffTxtrColor(rayHit hit, myRTColor diffuseColor, double diffConst) {
 		return new double[] { diffuseColor.RGB.x*diffConst, diffuseColor.RGB.y*diffConst,diffuseColor.RGB.z*diffConst};
 	}
 

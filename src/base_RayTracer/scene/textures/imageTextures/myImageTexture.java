@@ -1,7 +1,7 @@
 package base_RayTracer.scene.textures.imageTextures;
 
-import base_RayTracer.myColor;
-import base_RayTracer.rayHit;
+import base_RayTracer.myRTColor;
+import base_RayTracer.ray.rayHit;
 import base_RayTracer.scene.myScene;
 import base_RayTracer.scene.shaders.myObjShader;
 import base_RayTracer.scene.textures.base.Base_TextureHandler;
@@ -44,11 +44,11 @@ public class myImageTexture extends Base_TextureHandler{
   		
   		int uInt = (int)u, vInt = (int)v,
   		idx00 = vInt * myTexture.width + uInt, idx10 = idx00 + myTexture.width,idx01 = idx00 + 1,idx11 = idx10 + 1;
-  		myColor texColorVal00 = new myColor(myTexture.pixels[idx00]), texColorVal10 = new myColor(myTexture.pixels[idx10]), 
-  				texColorVal01 = new myColor(myTexture.pixels[idx01]), texColorVal11 = new myColor(myTexture.pixels[idx11]);
+  		myRTColor texColorVal00 = new myRTColor(myTexture.pixels[idx00]), texColorVal10 = new myRTColor(myTexture.pixels[idx10]), 
+  				texColorVal01 = new myRTColor(myTexture.pixels[idx01]), texColorVal11 = new myRTColor(myTexture.pixels[idx11]);
   	  
   		double uMFlU = u - uInt, vMFlV = v - vInt;  		
- 		myColor texColorVal0 = texColorVal00.interpColor(uMFlU, texColorVal01), texColorVal1 = texColorVal10.interpColor(uMFlU,texColorVal11),texColorVal = texColorVal0.interpColor(vMFlV, texColorVal1);
+ 		myRTColor texColorVal0 = texColorVal00.interpColor(uMFlU, texColorVal01), texColorVal1 = texColorVal10.interpColor(uMFlU,texColorVal11),texColorVal = texColorVal0.interpColor(vMFlV, texColorVal1);
  		
   		texColor[R] = texColorVal.RGB.x;
   		texColor[G] = texColorVal.RGB.y;
@@ -56,7 +56,7 @@ public class myImageTexture extends Base_TextureHandler{
   		return texColor;   
   	}//get texture color at pixel
   	
-  	public double [] getDiffTxtrColor(rayHit hit, myColor diffuseColor, double diffConst){
+  	public double [] getDiffTxtrColor(rayHit hit, myRTColor diffuseColor, double diffConst){
   		double[] texTopColor = {0, 0 ,0}, texBotColor = {0, 0, 0};	
 		if (txtFlags[txtrdBtmIDX]){//get color information from texture on b of object at specific point of intersection
 			texBotColor = getTextureColor(hit,myTextureBottom);

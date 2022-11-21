@@ -1,7 +1,7 @@
 package base_RayTracer.scene.geometry.sceneObjects.implicit;
 
 import processing.core.PImage;
-import base_RayTracer.myRay;
+import base_RayTracer.ray.rayCast;
 import base_RayTracer.scene.myScene;
 import base_RayTracer.scene.geometry.sceneObjects.base.Base_SceneObject;
 import base_Math_Objects.vectorObjs.doubles.myPoint;
@@ -20,7 +20,7 @@ public abstract class myImpObject extends Base_SceneObject {
 	*  object is. this displacement is used for determining values in intersection equation for sphere.  includes values
 	*  for seperate axes radii
 	*/	
-	public myVector originRadCalc(myRay ray){//need to get ray time value
+	public myVector originRadCalc(rayCast ray){//need to get ray time value
 	    myVector result = new myVector();
 	    myPoint _rayOrigin = ray.origin, thisOrigin = getOrigin(ray.getTime());
 	    result.set((_rayOrigin.x - thisOrigin.x)/radX, (_rayOrigin.y - thisOrigin.y)/radY, (_rayOrigin.z - thisOrigin.z)/radZ);

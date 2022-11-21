@@ -2,8 +2,8 @@ package base_RayTracer.scene.geometry.accelStruct;
 
 import java.util.ArrayList;
 
-import base_RayTracer.myRay;
-import base_RayTracer.rayHit;
+import base_RayTracer.ray.rayCast;
+import base_RayTracer.ray.rayHit;
 import base_RayTracer.scene.myScene;
 import base_RayTracer.scene.objType;
 import base_RayTracer.scene.geometry.accelStruct.base.Base_AccelStruct;
@@ -27,9 +27,9 @@ public class GeoList_AccelStruct extends Base_AccelStruct{
 		_bbox.expandMeByTransBox(_obj._bbox, tmp);
 	}
 	@Override  //check if object's contents block the light - check if any are accel structs or instance of accel struct
-	public int calcShadowHit(myRay _ray,myRay _trans, myMatrix[] _ctAra, double distToLight) {
+	public int calcShadowHit(rayCast _ray,rayCast _trans, myMatrix[] _ctAra, double distToLight) {
 		if(_bbox.calcShadowHit( _ray, _trans, _ctAra, distToLight) == 0 ){return 0;}				//no hit of bounding box, then no hit 	
-		myRay _objTransRay;
+		rayCast _objTransRay;
 		for (Base_Geometry obj : objList){
 			_objTransRay = _ray.getTransformedRay(_ray, obj.CTMara[invIDX]);
 			//double dist = distToLight/_objTransRay.scale;
@@ -40,10 +40,10 @@ public class GeoList_AccelStruct extends Base_AccelStruct{
 	
 	//build traversal based on _ray - go through all objects in structure
 	@Override
-	public rayHit traverseStruct(myRay _ray,myRay _trans, myMatrix[] _ctAra){	
+	public rayHit traverseStruct(rayCast _ray,rayCast _trans, myMatrix[] _ctAra){	
 		double _clsT = Double.MAX_VALUE;
 		rayHit _clsHit = null;
-		myRay _objTransRay, _closestTransRay = null;
+		rayCast _objTransRay, _closestTransRay = null;
 		Base_Geometry _clsObj = null;
 		for (Base_Geometry obj : objList){
 			_objTransRay = _ray.getTransformedRay(_ray, obj.CTMara[invIDX]);

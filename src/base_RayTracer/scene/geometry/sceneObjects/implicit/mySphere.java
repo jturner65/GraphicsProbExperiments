@@ -1,7 +1,7 @@
 package base_RayTracer.scene.geometry.sceneObjects.implicit;
 
-import base_RayTracer.myRay;
-import base_RayTracer.rayHit;
+import base_RayTracer.ray.rayCast;
+import base_RayTracer.ray.rayHit;
 import base_RayTracer.scene.myScene;
 import base_RayTracer.scene.objType;
 import base_Math_Objects.MyMathUtils;
@@ -25,16 +25,16 @@ public class mySphere extends myImpObject{
 	  
 		public mySphere(myScene _p, double myRadius, double x, double y, double z, boolean active){	this(_p, myRadius, myRadius, myRadius,x,y,z);}    
 		// calculates the "A" value for the quadratic equation determining the potential intersection of this ray with a sphere of given radius and center
-		public double getAVal(myRay ray){return((ray.direction.x/radX) * (ray.direction.x/radX)) + ((ray.direction.y/radY) * (ray.direction.y/radY)) + ((ray.direction.z/radZ) * (ray.direction.z/radZ));}
+		public double getAVal(rayCast ray){return((ray.direction.x/radX) * (ray.direction.x/radX)) + ((ray.direction.y/radY) * (ray.direction.y/radY)) + ((ray.direction.z/radZ) * (ray.direction.z/radZ));}
 	  	// calculates the "B" value for the quadratic equation determining the potential intersection of this ray with a sphere of given radius and center
-		public double getBVal(myRay ray){
+		public double getBVal(rayCast ray){
 			double result = 0.0;
 			myVector pC = this.originRadCalc(ray);
 			result = 2*(((ray.direction.x/radX) * pC.x) + ((ray.direction.y/radY) * pC.y) + ((ray.direction.z/radZ) * pC.z));
 			return result;  
 		}  
 		// calculates the "C" value for the quadratic equation determining the potential intersection of this ray with a sphere of given radius and center
-		public double getCVal(myRay ray){
+		public double getCVal(rayCast ray){
 			double result = 0.0;  
 		   //don't need to worry about pC components being negative because of square
 			//this value should actually be rayorigin - sphereorigin coords - originRadCalc accounts for radius in each direction
@@ -51,7 +51,7 @@ public class mySphere extends myImpObject{
 	    return result;
 		}//method getNormalAtPoint	
 		//check if the passed ray intersects with this sphere
-		public rayHit intersectCheck(myRay _ray, myRay transRay, myMatrix[] _ctAra){
+		public rayHit intersectCheck(rayCast _ray, rayCast transRay, myMatrix[] _ctAra){
 //			if(!_bbox.intersectCheck(ray, _ctAra).isHit){return new rayHit(false);	}
 //			myRay transRay = ray.getTransformedRay(ray, _ctAra[invIDX]);
 			//boolean result = false;

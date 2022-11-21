@@ -1,7 +1,7 @@
 package base_RayTracer.scene.geometry.sceneObjects.planar;
 
-import base_RayTracer.myRay;
-import base_RayTracer.rayHit;
+import base_RayTracer.ray.rayCast;
+import base_RayTracer.ray.rayHit;
 import base_RayTracer.scene.myScene;
 import base_RayTracer.scene.objType;
 import base_RayTracer.scene.geometry.sceneObjects.base.Base_SceneObject;
@@ -37,7 +37,7 @@ public class myRndrdBox extends Base_SceneObject{
 	@Override
 	public myPoint getMinVec() {		return _bbox.getMinVec();}
 	@Override
-	public rayHit intersectCheck(myRay _ray,myRay transRay, myMatrix[] _ctAra) {return _bbox.intersectCheck(_ray, transRay, _ctAra);	}
+	public rayHit intersectCheck(rayCast _ray,rayCast transRay, myMatrix[] _ctAra) {return _bbox.intersectCheck(_ray, transRay, _ctAra);	}
 	@Override
 	public myVector getNormalAtPoint(myPoint point, int[] args) {return _bbox.getNormalAtPoint(point, args);}
 }

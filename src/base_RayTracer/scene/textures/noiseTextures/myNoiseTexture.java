@@ -1,7 +1,7 @@
 package base_RayTracer.scene.textures.noiseTextures;
 
-import base_RayTracer.myColor;
-import base_RayTracer.rayHit;
+import base_RayTracer.myRTColor;
+import base_RayTracer.ray.rayHit;
 import base_RayTracer.scene.myScene;
 import base_RayTracer.scene.shaders.myObjShader;
 import base_RayTracer.scene.textures.base.Base_TextureHandler;
@@ -12,7 +12,7 @@ import base_Math_Objects.vectorObjs.doubles.myVector;
 //noise-based texture
 public class myNoiseTexture extends Base_TextureHandler{
 	public double scale;
-	public myColor[] colors;		//light/dark colors - inited here so that can be overwritten in initTexturevals	
+	public myRTColor[] colors;		//light/dark colors - inited here so that can be overwritten in initTexturevals	
 	public Double[] clrWts;			//weights of each color	
 	
 	public int numOctaves;		//# of octaves of turbulence
@@ -45,8 +45,8 @@ public class myNoiseTexture extends Base_TextureHandler{
 	
 	//set colors
 	protected void setColorsAndWts(){
-		colors = new myColor[scene.noiseColors.length];
-		for(int i =0; i<scene.noiseColors.length;++i ){colors[i] = new myColor(scene.noiseColors[i].RGB.x,scene.noiseColors[i].RGB.y,scene.noiseColors[i].RGB.z);}		
+		colors = new myRTColor[scene.noiseColors.length];
+		for(int i =0; i<scene.noiseColors.length;++i ){colors[i] = new myRTColor(scene.noiseColors[i].RGB.x,scene.noiseColors[i].RGB.y,scene.noiseColors[i].RGB.z);}		
 		clrWts = new Double[scene.clrWts.length];
 		//normalize wts
 		Double sum = 0.0, cnt = 0.0;
@@ -89,7 +89,7 @@ public class myNoiseTexture extends Base_TextureHandler{
 	protected myVector getHitLoc(rayHit hit){	return (useFwdTrans ? new myVector(hit.fwdTransHitLoc) : new myVector(hit.hitLoc));}
 	
 	@Override
-	public double[] getDiffTxtrColor(rayHit hit, myColor diffuseColor, double diffConst) {
+	public double[] getDiffTxtrColor(rayHit hit, myRTColor diffuseColor, double diffConst) {
 		double res = turbMult * getNoiseVal(getHitLoc(hit));
 		double val = .5 * res + .5;		//0->1
 		
