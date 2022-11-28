@@ -7,16 +7,15 @@ import base_JavaProjTools_IRender.base_Render_Interface.IRenderInterface;
 import base_RayTracer.myRTColor;
 import base_RayTracer.ray.rayCast;
 import base_RayTracer.ray.rayHit;
+import base_RayTracer.scene.geometry.ObjInstance;
 import base_RayTracer.scene.geometry.accelStruct.*;
 import base_RayTracer.scene.geometry.accelStruct.base.Base_AccelStruct;
 import base_RayTracer.scene.geometry.base.Base_Geometry;
-import base_RayTracer.scene.geometry.sceneObjects.myInstance;
 import base_RayTracer.scene.geometry.sceneObjects.base.Base_SceneObject;
 import base_RayTracer.scene.geometry.sceneObjects.implicit.*;
 import base_RayTracer.scene.geometry.sceneObjects.lights.*;
 import base_RayTracer.scene.geometry.sceneObjects.lights.base.Base_Light;
 import base_RayTracer.scene.geometry.sceneObjects.planar.myPlane;
-import base_RayTracer.scene.geometry.sceneObjects.planar.myRndrdBox;
 import base_RayTracer.scene.photonMapping.Photon_KDTree;
 import base_RayTracer.scene.photonMapping.myPhoton;
 import base_RayTracer.scene.shaders.myObjShader;
@@ -90,9 +89,11 @@ public abstract class Base_Scene {
 	//the current texture to be used for subsequent objects for either their "top" or "bottom" as determined by their normal, the texture for the background, result image of rendering
 	public PImage currTextureTop, currTextureBottom, currBkgTexture, rndrdImg;
 	
-	//an array list of all the objects in the scene : objList does not include lights, objAndLightList includes all lights
+	/**
+	 * an array list of all the objects in the scene : objList does not include lights, objAndLightList includes all lights
+	 */
 	public ArrayList<Base_Geometry> allObjsToFind;
-	//the following to facilitate faster light lookup and instancing
+	//the following to facilitate faster light and object lookup and instancing by separating them
 	public ArrayList<Base_Geometry> objList;
 	public ArrayList<Base_Geometry> lightList; 	
 	
@@ -220,14 +221,7 @@ public abstract class Base_Scene {
 	// To remove the need for index wrapping, double the permutation table length
 	public int perm[] = new int[512];
 
-	
-	///////
-	//transformation stack stuff
-	//
-	public myMatStack matrixStack;
-	//current depth in matrix stack - starts at 0;
-	public int currMatrixDepthIDX;	
-	
+		
 	public Base_Scene(IRenderInterface _p, String _sceneName, int _numCols, int _numRows) {
 		pa = _p;
 		
@@ -259,17 +253,17 @@ public abstract class Base_Scene {
 		folderName = _old.folderName;
 		setImageSize(_old.sceneCols,_old.sceneRows);
 
-		allObjsToFind = _old.allObjsToFind;
-		lightList = _old.lightList;
-		objList = _old.objList;
+		allObjsToFind = new ArrayList<Base_Geometry>(_old.allObjsToFind);
+		lightList = new ArrayList<Base_Geometry>(_old.lightList);
+		objList = new ArrayList<Base_Geometry>(_old.objList);
 		
 		srcFileNames = _old.srcFileNames;
 		eyeOrigin = new myVector(0,0,0);
 		eyeOrigin.set(_old.eyeOrigin);
-		namedObjs = _old.namedObjs;
-		numInstances = _old.numInstances;
+		namedObjs = new TreeMap<String,Base_Geometry>(_old.namedObjs);
+		numInstances = new TreeMap<String,Integer>(_old.numInstances);
 
-		tmpObjList = _old.tmpObjList;
+		tmpObjList = new ArrayList<Base_Geometry>(_old.tmpObjList);
 		
 		gtInitialize();       															 //sets up matrix stack
 		scFlags=new boolean[numFlags];for(int i=0;i<numFlags;++i){scFlags[i]=_old.scFlags[i];}
@@ -466,7 +460,10 @@ public abstract class Base_Scene {
 		endTmpObjList(1);			//bvh of sierp objs
 		System.out.println("total buns : "+((Math.pow(4, depth)-1)/3.0f));
 	}	
-	//remove most recent object from list of objects and instead add to instance object struct.
+	/**
+	 * remove most recent object from list of objects and instead add to instance object struct.
+	 * @param name
+	 */
 	public void setObjectAsNamedObject(String name){
 		Base_Geometry _obj = allObjsToFind.remove(allObjsToFind.size()-1);
 		objCount--;
@@ -479,7 +476,7 @@ public abstract class Base_Scene {
 	
 	public void addInstance(String name, boolean addShdr){
 		Base_Geometry baseObj = namedObjs.get(name);
-		myInstance _inst = new myInstance(this, baseObj);
+		ObjInstance _inst = new ObjInstance(this, baseObj);
 		if(addShdr){		_inst.useInstShader();	}
 		addObjectToScene(_inst, baseObj);			
 		numInstances.put(name, numInstances.get(name)+1);
@@ -1036,7 +1033,7 @@ public abstract class Base_Scene {
 		myPhoton phn;
 		//TODO scale # of photons sent into scene by light intensity
 		for(Base_Geometry light : lightList){//either a light or an instance of a light
-			tmpLight = (light instanceof Base_Light) ? tmpLight = (Base_Light)light : ((Base_Light)((myInstance)light).obj);
+			tmpLight = (light instanceof Base_Light) ? tmpLight = (Base_Light)light : ((Base_Light)((ObjInstance)light).obj);
 			System.out.print("Casting " + photonTree.numCast + " Caustic photons for light ID " + tmpLight.ID + ": Progress:");			
 			for(int i =0; i<photonTree.numCast; ++i){
 				photonPwr = new double[]{tmpLight.lightColor.RGB.x * pwrMult,tmpLight.lightColor.RGB.y * pwrMult,tmpLight.lightColor.RGB.z * pwrMult };
@@ -1090,7 +1087,7 @@ public abstract class Base_Scene {
 		myPhoton phn;
 		//TODO scale # of photons sent into scene by light intensity
 		for(Base_Geometry light : lightList){//either a light or an instance of a light
-			tmpLight = (light instanceof Base_Light) ? tmpLight = (Base_Light)light : ((Base_Light)((myInstance)light).obj);
+			tmpLight = (light instanceof Base_Light) ? tmpLight = (Base_Light)light : ((Base_Light)((ObjInstance)light).obj);
 			System.out.print("Casting " + photonTree.numCast + " Diffuse (indirect) photons for light ID " + tmpLight.ID + ": Progress:");			
 			for(int i =0; i<photonTree.numCast; ++i){
 				photonPwr = new double[]{tmpLight.lightColor.RGB.x * pwrMult,tmpLight.lightColor.RGB.y * pwrMult,tmpLight.lightColor.RGB.z * pwrMult };
@@ -1212,7 +1209,7 @@ public abstract class Base_Scene {
 		a0 = (isctPt.x - mySkyDome.origin.x)/ (mySkyDome.radX);
 		a0 = (a0 > 1) ? 1 : (a0 < -1) ? -1 : a0;
 		a1 = ( Math.sin(q* Math.PI));
-		a2 = ( fastAbs(a1) < MyMathUtils.EPS) ? 1 : a0/a1;
+		a2 = (Math.abs(a1) < MyMathUtils.EPS) ? 1 : a0/a1;
 		u = (z1 <= MyMathUtils.EPS) ? ((shWm1 * ( Math.acos(a2))/ (MyMathUtils.TWO_PI_F)) + shWm1/2.0f) : 
 					shWm1 - ((shWm1 * ( Math.acos(a2))/ (MyMathUtils.TWO_PI_F)) + shWm1/2.0f);
 		u = (u < 0) ? 0 : (u > shWm1) ? shWm1 : u;
@@ -1238,11 +1235,11 @@ public abstract class Base_Scene {
 		globRayCount = 0;
 		for (Base_Geometry obj : objList){//set for all scene objects or instances of sceneobjects
 			if(obj instanceof Base_SceneObject){((Base_SceneObject)obj).setFlags(Base_SceneObject.invertedIDX, scFlags[flipNormsIDX]);}//either a scene object or an instance of a scene object
-			else {if(obj instanceof myInstance && ((myInstance)obj).obj instanceof Base_SceneObject){((Base_SceneObject)((myInstance)obj).obj).setFlags(Base_SceneObject.invertedIDX, scFlags[flipNormsIDX]);}}
+			else {if(obj instanceof ObjInstance && ((ObjInstance)obj).obj instanceof Base_SceneObject){((Base_SceneObject)((ObjInstance)obj).obj).setFlags(Base_SceneObject.invertedIDX, scFlags[flipNormsIDX]);}}
 		}
 	}//flipNormal	
 	//return abs vals of vector as vector
-	public myVector absVec(myVector _v){return new myVector(fastAbs(_v.x),fastAbs(_v.y),fastAbs(_v.z));}
+	public myVector absVec(myVector _v){return new myVector(Math.abs(_v.x),Math.abs(_v.y),Math.abs(_v.z));}
 
 	public double noise_3d(myVector pt){return noise_3d((float)pt.x, (float)pt.y, (float)pt.z);}
 	//from code given by greg for project 4, 3d perlin noise
@@ -1305,11 +1302,19 @@ public abstract class Base_Scene {
 	}//noise_3d
 
 	public void initialize_table() { for(int i=0; i<512; ++i) perm[i]=p[i & 255];}
-	public float fastAbs(float x) {return x>0?x:-x;}
-	public double fastAbs(double x) {return x>0?x:-x;}
-	// This method is a *lot* faster than using (int)Math.floor(x)
-	public int fastfloor(float x) { return x>0 ? (int)x : (int)x-1;}
-	public int fastfloor(double x) { return x>0 ? (int)x : (int)x-1;}
+	/**
+	 * This method is a *lot* faster than using (int)Math.floor(x)
+	 * @param x
+	 * @return
+	 */
+	protected int fastfloor(float x) { return x>0 ? (int)x : (int)x-1;}
+	/**
+	 * This method is a *lot* faster than using (int)Math.floor(x)
+	 * @param x
+	 * @return
+	 */
+	protected int fastfloor(double x) { return x>0 ? (int)x : (int)x-1;}
+	
 	private float dot(int g[], float x, float y, float z) { return g[0]*x + g[1]*y + g[2]*z;}
 	private float mix(float a, float b, float t) { return (1-t)*a + t*b;}
 	//Quintic interpolant calc
@@ -1401,8 +1406,8 @@ public abstract class Base_Scene {
 		     			System.out.println("" + ((Base_SceneObject)obj).showUV());
 		     		}//if textured
 	     		}
-		     	else if(obj instanceof myInstance){
-		     		myInstance inst = (myInstance)obj;
+		     	else if(obj instanceof ObjInstance){
+		     		ObjInstance inst = (ObjInstance)obj;
 		     		if ((inst.obj instanceof Base_SceneObject) && (((Base_SceneObject)inst.obj).shdr.txtr.txtFlags[Base_TextureHandler.txtrdTopIDX])){			//TODO need to modify this when using instanced polys having textures - each instance will need a notion of where it should sample from
 		     			System.out.println("" + ((Base_SceneObject)inst.obj).showUV());
 		     		}	     	
@@ -1413,7 +1418,7 @@ public abstract class Base_Scene {
 			System.out.println("\nBackground : \n");
 			System.out.println("" + mySkyDome.showUV());  
 		}
-		System.out.println("total # of rays : " + globRayCount + " | refl/refr rays " + reflRays +"/" + refrRays);
+		System.out.println("Total # of rays : " + globRayCount + " | refl/refr rays " + reflRays +"/" + refrRays);
 		System.out.println("");
 		System.out.println("Image rendered from file name : " + saveName);
 		System.out.println("");
@@ -1427,6 +1432,13 @@ public abstract class Base_Scene {
 	*  so if object A is subjected to a translate/rotate/scale sequence to render A' then to implement this we need to 
 	*  subject the rays attempting to intersect with it by the inverse of these operations to find which rays will actually intersect with it.
 	*/
+	///////
+	//transformation stack stuff
+	//
+	private myMatStack matrixStack;
+	//current depth in matrix stack - starts at 0;
+	private int currMatrixDepthIDX;	
+	
 	 public void gtDebugStack(String caller){ System.out.println("Caller : "+caller + "\nCurrent stack status : \n"+matrixStack.toString()); }//gtdebugStack method
 
 	 public void gtInitialize() {
@@ -1450,6 +1462,11 @@ public abstract class Base_Scene {
 			--currMatrixDepthIDX;
 		}
 	}//gtPopMatrix method
+	
+	
+	public myMatrix gtPeekMatrix() {
+		return matrixStack.peek();
+	}
 
 	public void gtTranslate(double tx, double ty, double tz) { 
 		//build and push onto stack the translation matrix

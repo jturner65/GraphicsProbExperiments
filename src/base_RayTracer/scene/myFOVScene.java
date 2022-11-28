@@ -37,7 +37,7 @@ public class myFOVScene extends Base_Scene {
 	public void setSceneParams(double[] args){
 		fov = args[0];
 		fovRad = Math.PI*fov/180.0;
-		if (fastAbs(fov - 180) < .001){//if illegal fov value, modify to prevent divide by 0
+		if (Math.abs(fov - 180) < .001){//if illegal fov value, modify to prevent divide by 0
 			fov -= .001;
 			fovRad -= .0001;
 		}

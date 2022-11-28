@@ -1,4 +1,4 @@
-package base_RayTracer.scene.geometry.sceneObjects;
+package base_RayTracer.scene.geometry;
 
 import base_RayTracer.myRTColor;
 import base_RayTracer.ray.rayCast;
@@ -17,14 +17,14 @@ import processing.core.PImage;
  * @author 7strb
  *
  */
-public class myInstance extends Base_Geometry{
+public class ObjInstance extends Base_Geometry{
 	public Base_Geometry obj;						//object this is instance of
 	public boolean useShader, isAccel;					//whether to use instance shader or base object shader
-	public myInstance(Base_Scene scene, Base_Geometry _obj){
+	public ObjInstance(Base_Scene scene, Base_Geometry _obj){
 		super(scene, 0,0,0);
 		obj = _obj;										//owning object
 		isAccel = (obj instanceof Base_AccelStruct);
-		CTMara = buildCTMara(scene, obj.CTMara[glblIDX]);//build this object's transformation matrix - since this is instancing the owning object, pass the owning object's matrix
+		CTMara = buildCTMara(scene.gtPeekMatrix(), obj.CTMara[glblIDX]);//build this object's transformation matrix - since this is instancing the owning object, pass the owning object's matrix
 	    //CTMara = scene.p.buildCTMara(scene);//build this object's transformation matrix		    
 	    type = objType.Instance;//"Instance of "+obj.objType;
 	    this.minVals = getMinVec();
@@ -36,16 +36,16 @@ public class myInstance extends Base_Geometry{
 	
 	//return vector with maximum x/y/z coords of this object
 	@Override
-	public myPoint getMaxVec(){return getTransformedPt(obj.getMaxVec(), obj.CTMara[glblIDX]);}
+	public myPoint getMaxVec(){return obj.CTMara[glblIDX].transformPoint(obj.getMaxVec());}
 	//return vector with minimum x/y/z coords of this object
 	@Override
-	public myPoint getMinVec(){return getTransformedPt(obj.getMinVec(), obj.CTMara[glblIDX]);}
+	public myPoint getMinVec(){return obj.CTMara[glblIDX].transformPoint(obj.getMinVec());}
 	@Override
 	public int calcShadowHit(rayCast _ray,rayCast _trans, myMatrix[] _ctAra, double distToLight) {
 		return obj.calcShadowHit(_trans, _trans, _ctAra, distToLight);
 	}
 	@Override
-	public myPoint getOrigin(double t) {	return getTransformedPt(obj.getOrigin(t), obj.CTMara[glblIDX]);}
+	public myPoint getOrigin(double t) {	return obj.CTMara[glblIDX].transformPoint(obj.getOrigin(t));}
 	@Override
 	public rayHit intersectCheck(rayCast _ray,rayCast transRay, myMatrix[] _ctAra) {
 		rayHit _hit = obj.intersectCheck(transRay, transRay, _ctAra);		//copy trans ray over so that ctm-transformed accel structs will still register hits appropriately TODO make this better
@@ -60,7 +60,7 @@ public class myInstance extends Base_Geometry{
 	//public double[] findTxtrCoords(myVector isctPt, PImage myTexture, double time){ return obj.findTxtrCoords(isctPt, myTexture, time);}
 	@Override
 	public double[] findTxtrCoords(myPoint isctPt, PImage myTexture, double time){ 
-		return obj.findTxtrCoords(getTransformedPt(isctPt, CTMara[invIDX]), myTexture, time);}
+		return obj.findTxtrCoords(CTMara[invIDX].transformPoint(isctPt), myTexture, time);}
 
 	@Override
 	protected double findTextureU(myPoint isctPt, double v, PImage myTexture, double time){ return 0.0; }

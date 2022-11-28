@@ -52,7 +52,7 @@ public class myHollow_Cylinder extends Base_ImplicitObject{
   	public myVector getNormalAtPoint(myPoint pt,  int[] args){//in args ara 0 means hitting outside of cylinder, 1 means hitting inside	
   		myVector result= (args[0] == 1) ? new myVector((origin.x - pt.x), 0, (origin.z - pt.z)) : new myVector((pt.x - origin.x), 0, (pt.z - origin.z));
   		result._normalize();
-  		if (rFlags[invertedIDX]){result._mult(-1);}
+  		if (isInverted()){result._mult(-1);}
   		//System.out.println("normal :" + result.toStrBrf() + " @ pt :"+ pt.toStrBrf());
   		return result;
   	}//method getNormalAtPoint  		

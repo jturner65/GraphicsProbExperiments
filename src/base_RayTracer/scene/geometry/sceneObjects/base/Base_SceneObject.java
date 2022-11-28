@@ -10,7 +10,7 @@ import base_Math_Objects.vectorObjs.doubles.myVector;
 
 public abstract class Base_SceneObject extends Base_Geometry{	
 	
-	public boolean[] rFlags;					//various state-related flags for this object
+	public int[] rFlags;					//various state-related flags for this object
 	public static final int 
 			invertedIDX			= 0,				//normals point in or out
 			isLightIDX			= 1//,
@@ -23,17 +23,44 @@ public abstract class Base_SceneObject extends Base_Geometry{
 	    initFlags();
 	    shdr = new myObjShader(scene);//sets currently defined colors for this object also    
 	}//constructor 6 var
-		
-	public void initFlags(){rFlags = new boolean[numFlags];for(int i=0; i<numFlags;++i){rFlags[i]=false;}}
 	
-	public void setFlags(int idx, boolean val){
-		rFlags[idx]=val;
+	
+	/**
+	 * base class flags init
+	 */
+	public final void initFlags(){rFlags = new int[1 + numFlags/32];for(int i =0; i<numFlags;++i){setFlags(i,false);}}			
+	/**
+	 * get baseclass flag
+	 * @param idx
+	 * @return
+	 */
+	public final boolean getFlags(int idx){int bitLoc = 1<<(idx%32);return (rFlags[idx/32] & bitLoc) == bitLoc;}	
+	
+	/**
+	 * check list of flags
+	 * @param idxs
+	 * @return
+	 */
+	public final boolean getAllFlags(int [] idxs){int bitLoc; for(int idx =0;idx<idxs.length;++idx){bitLoc = 1<<(idx%32);if ((rFlags[idx/32] & bitLoc) != bitLoc){return false;}} return true;}
+	public final boolean getAnyFlags(int [] idxs){int bitLoc; for(int idx =0;idx<idxs.length;++idx){bitLoc = 1<<(idx%32);if ((rFlags[idx/32] & bitLoc) == bitLoc){return true;}} return false;}
+		
+	public final boolean isInverted() {return getFlags(invertedIDX);}
+	public final boolean isLight() {return getFlags(isLightIDX);}
+	
+	/**
+	 * set baseclass flags  //setFlags(showIDX, 
+	 * @param idx
+	 * @param val
+	 */
+	public final void setFlags(int idx, boolean val){
+		int flIDX = idx/32, mask = 1<<(idx%32);
+		rFlags[flIDX] = (val ?  rFlags[flIDX] | mask : rFlags[flIDX] & ~mask);
 		switch(idx){
 		case invertedIDX		:{break;}		
 		case isLightIDX			:{break;}
-	//	case isTemplateObjIDX	:{break;}			//this object is used to instance multiple objects (doesn't exist in scene itself)
-		}
-	}
+		}				
+	}//setFlags
+
 	//determine if shadow ray is a hit or not
 	@Override
 	public int calcShadowHit(rayCast _ray, rayCast transRay, myMatrix[] _ctAra, double distToLight){		
@@ -43,7 +70,13 @@ public abstract class Base_SceneObject extends Base_Geometry{
 		return 0;
 	}
 	
-	//interpolate 2 vectors, t==0 == a, t==1 == b
+	/**
+	 * interpolate 2 vectors, t==0 == a, t==1 == b
+	 * @param a
+	 * @param t
+	 * @param b
+	 * @return
+	 */
 	public myVector interpVec(myVector a, double t, myVector b){
 		myVector bMa = new myVector(a,b);
 		return new myVector(a.x + t*bMa.x, a.y + t*bMa.y, a.z + t*bMa.z );
@@ -58,13 +91,12 @@ public abstract class Base_SceneObject extends Base_Geometry{
 	}//showUV
 	@Override
 	public myRTColor getColorAtPos(rayHit hit) {	return shdr.getColorAtPos(hit);}
-	
-	
+		
 	//get orthogonal vector to passed vector
 	public myVector getOrthoVec(myVector vec){
 		myVector tmpVec = new myVector(1,1,0);
 		tmpVec._normalize();
-		if(fastAbs(tmpVec._dot(vec) - 1) < epsVal ){		tmpVec.set(0,0,1); }	//colinear - want non-colinear vector for xprod
+		if(Math.abs(tmpVec._dot(vec) - 1) < epsVal ){		tmpVec.set(0,0,1); }	//colinear - want non-colinear vector for xprod
 		myVector tmpRes = vec._cross(tmpVec);												//surface tangent vector - rotate this around normal by random amt, and extend from origin by random dist 0->radius			
 		tmpRes._normalize();
 		return tmpRes;

@@ -79,7 +79,7 @@ public class myCylinder extends myHollow_Cylinder{
   		if(args[0]>= capEqs.length){ 		result = new myVector((pt.x - origin.x), 0, (pt.z - origin.z));	} 
   		else {								result = new myVector(capEqs[args[0]][0],capEqs[args[0]][1],capEqs[args[0]][2]);}
   		result._normalize();
-  		if (rFlags[invertedIDX]){result._mult(-1);}
+  		if (isInverted()){result._mult(-1);}
   		return result;
   	}//method getNormalAtPoint  	
 

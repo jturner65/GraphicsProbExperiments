@@ -5,8 +5,8 @@ import base_RayTracer.myRTColor;
 import base_RayTracer.ray.rayCast;
 import base_RayTracer.ray.rayHit;
 import base_RayTracer.scene.base.Base_Scene;
+import base_RayTracer.scene.geometry.ObjInstance;
 import base_RayTracer.scene.geometry.base.Base_Geometry;
-import base_RayTracer.scene.geometry.sceneObjects.myInstance;
 import base_RayTracer.scene.geometry.sceneObjects.lights.base.Base_Light;
 import base_RayTracer.scene.photonMapping.myPhoton;
 import base_RayTracer.scene.textures.base.Base_TextureHandler;
@@ -144,7 +144,7 @@ public class myObjShader {
   		for (Base_Geometry lightObj : scene.lightList){
   			Base_Light light;
   			if(lightObj instanceof Base_Light){light = (Base_Light)lightObj;} 
-  			else {							light = (Base_Light)((myInstance)lightObj).obj;}			//possibly an instance of a light
+  			else {							light = (Base_Light)((ObjInstance)lightObj).obj;}			//possibly an instance of a light
   			//lightnormal is light origin minus ray-object intersection point normalized, in direction of object to light 
   			//transform the light's origin (fwd), use this object's fwd transformed hit location
   			//uncomment below for instances of bvh - need to fix this TODO

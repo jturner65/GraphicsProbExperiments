@@ -48,7 +48,7 @@ public class mySphere extends Base_ImplicitObject{
 			myVector result = new myVector(pt);
 			result._sub(this.origin);
 			result._normalize();
-			if (rFlags[invertedIDX]){	result._mult(-1.0);   }
+			if (isInverted()){	result._mult(-1.0);   }
 	    return result;
 		}//method getNormalAtPoint	
 		//check if the passed ray intersects with this sphere

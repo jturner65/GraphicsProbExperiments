@@ -7,6 +7,7 @@ import base_RayTracer.ray.rayHit;
 import base_RayTracer.scene.base.Base_Scene;
 import base_RayTracer.scene.geometry.sceneObjects.base.Base_SceneObject;
 import processing.core.PImage;
+import base_Math_Objects.MyMathUtils;
 import base_Math_Objects.matrixObjs.doubles.myMatrix;
 import base_Math_Objects.vectorObjs.doubles.myPoint;
 import base_Math_Objects.vectorObjs.doubles.myVector;
@@ -52,7 +53,7 @@ public abstract class Base_PlanarObject extends Base_SceneObject{
 	protected void setPointsAndNormal(){
 		double tempX = 0, tempY = 0, tempZ = 0;
 		//set all vectors to correspond to entered points
-		for(int i = 0; i < this.vCount; i++){
+		for(int i = 0; i < this.vCount; ++i){
 			tempX += vertX[i];
 			tempY += vertY[i];
 			tempZ += vertZ[i];
@@ -73,7 +74,9 @@ public abstract class Base_PlanarObject extends Base_SceneObject{
     	N._normalize();
 		//set center x,y,z to be centroid of planar object
     	origin.set(tempX/vCount,tempY/vCount,tempZ/vCount);
-    	trans_origin = getTransformedPt(origin, CTMara[glblIDX]).asArray();
+    	buildTransOrigin();
+    	//set equation values
+    	setEQ();
 	}
 	
 	protected void invertNormal(){
@@ -82,27 +85,31 @@ public abstract class Base_PlanarObject extends Base_SceneObject{
 		tmpZ = new double[this.vCount],
 		tmpU = new double[this.vCount],
 		tmpV = new double[this.vCount];
-		
-		for(int i = 0; i < this.vCount; i++){
-			tmpX[this.vCount-1-i] = vertX[i];
-			tmpY[this.vCount-1-i] = vertY[i];
-			tmpZ[this.vCount-1-i] = vertZ[i];
-			tmpU[this.vCount-1-i] = vertU[i];
-			tmpV[this.vCount-1-i] = vertV[i];
+		int idx = 0;
+		for(int i = this.vCount-1; i >= 0; --i){
+			tmpX[i] = vertX[idx];
+			tmpY[i] = vertY[idx];
+			tmpZ[i] = vertZ[idx];
+			tmpU[i] = vertU[idx];
+			tmpV[i] = vertV[idx];
+			++idx;
 		}
 		vertX = tmpX; vertY = tmpY; vertZ = tmpZ; vertU = tmpU; vertV = tmpV;
 		setPointsAndNormal();
-		setEQ();
 	}
 	
 	protected void setEQ(){peqA = N.x;peqB = N.y;peqC = N.z;peqD = -((peqA * vertX[0]) + (peqB * vertY[0]) + (peqC * vertZ[0]));}//equals D in equation given in class notes		
 	
-	//finalize loading of polygon info from cli file
-	public void finalizePoly(){		
+	/**
+	 * finalize loading of polygon info from cli file
+	 */
+	public final void finalizePoly(){		
 		setPointsAndNormal();
-		setEQ();
-		minVals.set(min(vertX),min(vertY),min(vertZ));
-		maxVals.set(max(vertX),max(vertY),max(vertZ));
+		double[] minAndMaxX = MyMathUtils.minAndMax(vertX);
+		double[] minAndMaxY = MyMathUtils.minAndMax(vertY);
+		double[] minAndMaxZ = MyMathUtils.minAndMax(vertZ);		
+		minVals.set(minAndMaxX[0], minAndMaxY[0], minAndMaxZ[0]);
+		maxVals.set(minAndMaxX[1], minAndMaxY[1], minAndMaxZ[1]);
 		_bbox.calcMinMaxCtrVals(minVals, maxVals);
 		_bbox.addObj(this);
 	}//setVects method
@@ -112,25 +119,34 @@ public abstract class Base_PlanarObject extends Base_SceneObject{
 	 * check if passed ray intersects with this planar object - ray already transformed	
 	 */
 	@Override
-	public rayHit intersectCheck(rayCast _ray, rayCast transRay, myMatrix[] _ctAra){
-//		if(!_bbox.intersectCheck(ray, _ctAra).isHit){return new rayHit(false);	}
-//		myRay transRay = ray.getTransformedRay(ray, _ctAra[invIDX]);
+	public final rayHit intersectCheck(rayCast _ray, rayCast transRay, myMatrix[] _ctAra){
+		//no bbox check for planar object - actual plane check is faster than bbox
+		//if(!_bbox.intersectCheck(ray, _ctAra).isHit){return new rayHit(false);	}
 		//get the result of plugging in this ray's direction term with the plane in question - if 0 then this ray is parallel with the plane
-		double planeRes = N._dot(transRay.direction);			
-		if ( fastAbs(planeRes) > 0){//intersection with poly plane present - need to check if inside polygon	
-			//blorch @ norm recalc.  could speed this up if i found all eye intersections first and then all shadow intersections
-			if(planeRes > 0){invertNormal(); return intersectCheck(_ray,transRay, _ctAra);}	
-			//TODO WHY OH WHY DO I DOT WITH THE ORIGIN!?!?
-			double t = -(N._dot(new myVector(transRay.origin)) + peqD)/planeRes;	
-			if ((t > epsVal) && (checkInside(transRay.pointOnRay(t), transRay))) {return transRay.objHit(this, _ray.direction, _ctAra, transRay.pointOnRay(t),null,t);}
-		} 
-		return new rayHit(false);
+		double planeRes = N._dot(transRay.direction);
+		if(planeRes == 0) {
+			return new rayHit(false);		
+		}
+		//intersection with poly plane present - need to check if inside polygon	
+		//blorch @ norm recalc.  could speed this up if i found all eye intersections first and then all shadow intersections
+		if(planeRes > 0){invertNormal(); return intersectCheck(_ray,transRay, _ctAra);}	
+		//Dotting with origin and dividing by planeRes is actually calculating the origin's value 
+		//within the plane's equation - this is telling what side of the plane the origin is on.
+		//If behind the origin, we're not going to see this plane so return a false hit
+		double t = -(N._dot(new myVector(transRay.origin)) + peqD)/planeRes;	
+		if ((t > epsVal) && (checkInside(transRay.pointOnRay(t), transRay))) {return transRay.objHit(this, _ray.direction, _ctAra, transRay.pointOnRay(t),null,t);}
+		return new rayHit(false);	
 	}//intersectCheck planar object	
 
 	//sets the vertex values for a particular vertex, given by idx
-	public void setVert(double _x, double _y, double _z, int idx){vertX[idx] = _x;  		vertY[idx] = _y;  		vertZ[idx] = _z;}
-	public void setTxtrCoord(double _u, double _v, int idx){vertU[idx]=_u;			vertV[idx]=_v;}
-	// determine if a ray that intersects the plane containing this polygon does so within the bounds of this polygon.
+	public final void setVert(double _x, double _y, double _z, int idx){vertX[idx] = _x;  		vertY[idx] = _y;  		vertZ[idx] = _z;}
+	public final void setTxtrCoord(double _u, double _v, int idx){vertU[idx]=_u;			vertV[idx]=_v;}
+	/**
+	 * determine if a ray that intersects the plane containing this polygon does so within the bounds of this polygon.
+	 * @param rayPoint
+	 * @param ray
+	 * @return
+	 */
 	public abstract boolean checkInside(myPoint rayPoint, rayCast ray);
 	
 	/**
