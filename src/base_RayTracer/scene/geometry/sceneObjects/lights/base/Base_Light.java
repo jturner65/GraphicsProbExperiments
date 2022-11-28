@@ -91,8 +91,7 @@ public abstract class Base_Light extends Base_SceneObject{
 	
 	//get starting point for photon ray - will vary based on light type
 	public abstract rayCast genRndPhtnRay();
-	@Override
-	public myPoint getOrigin(double _t){	return origin;	}	
+	
 	public myVector getOrientation(double _t){	return orientation;	}
 
 	public String toString(){  return super.toString() + " \ncolor : " + this.lightColor + " light ID : " + this.lightID;  }

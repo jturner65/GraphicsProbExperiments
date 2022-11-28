@@ -45,8 +45,6 @@ public class myTorus extends Base_ImplicitObject{
 	}
 	
 	@Override
-	public myPoint getOrigin(double _t){	return origin;	}
-	@Override
 	public myPoint getMaxVec(){
 		myPoint res = new myPoint(origin);
 		res._add(bodyRad,bodyRad,bodyRad);

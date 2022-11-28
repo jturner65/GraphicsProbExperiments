@@ -144,17 +144,14 @@ public abstract class Base_PlanarObject extends Base_SceneObject{
 		//polygon is flat, normals will all be the same
 		myVector res = N;
 		res._normalize();
-		if (rFlags[invertedIDX]){invertNormal(); res = new myVector(N);res._normalize();}
+		if (isInverted()){invertNormal(); res = new myVector(N);res._normalize();}
 		return res;
 	}
 	
-	@Override //TODO modify these if we want to support moving polys
-	public myPoint getOrigin(double _t){	return origin;	}
-	
 	@Override
-	public myPoint getMaxVec(){return new myPoint(max(vertX),max(vertY),max(vertZ));}//set in finalize poly, this is tmp
+	public myPoint getMaxVec(){return maxVals;}//set in finalize poly, this is tmp
 	@Override
-	public myPoint getMinVec(){return new myPoint(min(vertX),min(vertY),min(vertZ));}//set in finalize poly, this is tmp	
+	public myPoint getMinVec(){return minVals;}//set in finalize poly, this is tmp	
 	//finds u,v in array, based on loaded U,V coordinates for each vertex, and interpolation of U,V of intersection point
 	
 	//Not currently used for planar objects

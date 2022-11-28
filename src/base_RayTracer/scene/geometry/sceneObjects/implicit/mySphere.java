@@ -99,9 +99,7 @@ public class mySphere extends Base_ImplicitObject{
 			v = (myTexture.height-1) * Math.acos(a1)/Math.PI;
 			return v;
 		}//method findTextureV    
-		
-		@Override
-		public myPoint getOrigin(double _t){	return origin;	}
+
 		@Override
 		public myVector getMaxVec(){
 			myVector res = new myVector(origin);

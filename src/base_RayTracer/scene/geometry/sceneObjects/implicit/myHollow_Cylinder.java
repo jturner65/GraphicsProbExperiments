@@ -72,9 +72,7 @@ public class myHollow_Cylinder extends Base_ImplicitObject{
   	public double getBVal(rayCast _ray){myVector pC = originRadCalc(_ray);return 2*(((_ray.direction.x/radX) * pC.x) + ((_ray.direction.z/radZ) * pC.z)); }  
   	//calculates the "C" value for the quadratic equation determining the potential intersection of the passed ray with a cylinder of given radius and center
   	public double getCVal(rayCast _ray){	myVector pC = originRadCalc(_ray);	return (pC.x * pC.x) + (pC.z * pC.z) - 1; }  
-  	
-	@Override
-	public myPoint getOrigin(double _t){	return origin;	}
+
 	@Override
 	public myVector getMaxVec(){
 		myVector res = new myVector(origin);

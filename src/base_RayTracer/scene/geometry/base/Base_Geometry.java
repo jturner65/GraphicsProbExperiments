@@ -94,10 +94,12 @@ public abstract class Base_Geometry {
 	protected int fastfloor(float x) { return x>0 ? (int)x : (int)x-1;}
 	protected int fastfloor(double x) { return x>0 ? (int)x : (int)x-1;}
 
-	//to implement motion blur - t is interpolant between two set values
-	public abstract myPoint getOrigin(double t);
-	//for both below, CALLER MUST FWD TRANSFORM! - to support instances of objects
-	//return point with maximum x/y/z coords of this object
+	/**
+	 * To implement motion blur - t is interpolant between two set values
+	 * @param t
+	 * @return
+	 */
+	public myPoint getOrigin(double t) {return origin;}
 	public abstract myPoint getMaxVec();	
 	//return point with minimum x/y/z coords of this object
 	public abstract myPoint getMinVec();

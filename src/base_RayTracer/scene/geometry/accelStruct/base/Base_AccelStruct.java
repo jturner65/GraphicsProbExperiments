@@ -68,17 +68,9 @@ public abstract class Base_AccelStruct extends Base_Geometry{
 		return new myRTColor(0,1,0);
 	}
 	@Override
-	public myPoint getMaxVec() {	return _bbox.maxVals;	}
+	public myPoint getMaxVec() {	return _bbox.getMaxVec();	}
 	@Override
-	public myPoint getMinVec() {	return  _bbox.minVals;}
-
-	@Override
-	public myPoint getOrigin(double t) {
-		origin = new myPoint(_bbox.minVals);
-		origin._add(_bbox.maxVals);
-		origin._mult(.5);
-		return origin;
-	}
+	public myPoint getMinVec() {	return  _bbox.getMinVec();}
 
 	/**
 	 * @return the typeOfAccel

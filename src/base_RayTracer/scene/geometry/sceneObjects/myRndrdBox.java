@@ -1,4 +1,4 @@
-package base_RayTracer.scene.geometry.sceneObjects.planar;
+package base_RayTracer.scene.geometry.sceneObjects;
 
 import base_RayTracer.ray.rayCast;
 import base_RayTracer.ray.rayHit;
@@ -10,7 +10,11 @@ import base_Math_Objects.vectorObjs.doubles.myPoint;
 import base_Math_Objects.vectorObjs.doubles.myVector;
 import processing.core.PImage;
 
-//a scene object representing a box - basically a bounding box + a shader
+/**
+ * a scene object representing a box - basically a bounding box + a shader
+ * @author 7strb
+ *
+ */
 public class myRndrdBox extends Base_SceneObject{
 
 	public myRndrdBox(Base_Scene _scn, double _x, double _y, double _z, myVector _minVals, myVector _maxVals) {
@@ -31,8 +35,6 @@ public class myRndrdBox extends Base_SceneObject{
 	protected double findTextureV(myPoint isctPt, PImage myTexture, double time){	return 0.0;  } 
 
 	@Override
-	public myPoint getOrigin(double t) {return origin;}
-	@Override
 	public myPoint getMaxVec() {		return _bbox.getMaxVec();}
 	@Override
 	public myPoint getMinVec() {		return _bbox.getMinVec();}
@@ -40,4 +42,4 @@ public class myRndrdBox extends Base_SceneObject{
 	public rayHit intersectCheck(rayCast _ray,rayCast transRay, myMatrix[] _ctAra) {return _bbox.intersectCheck(_ray, transRay, _ctAra);	}
 	@Override
 	public myVector getNormalAtPoint(myPoint point, int[] args) {return _bbox.getNormalAtPoint(point, args);}
-}
+}//class myRndrdBox
