@@ -3,11 +3,11 @@ package base_RayTracer.scene.geometry.sceneObjects;
 import base_RayTracer.myRTColor;
 import base_RayTracer.ray.rayCast;
 import base_RayTracer.ray.rayHit;
-import base_RayTracer.scene.myScene;
 import base_RayTracer.scene.objType;
+import base_RayTracer.scene.base.Base_Scene;
 import base_RayTracer.scene.geometry.accelStruct.base.Base_AccelStruct;
 import base_RayTracer.scene.geometry.base.Base_Geometry;
-import base_Math_Objects.vectorObjs.doubles.myMatrix;
+import base_Math_Objects.matrixObjs.doubles.myMatrix;
 import base_Math_Objects.vectorObjs.doubles.myPoint;
 import base_Math_Objects.vectorObjs.doubles.myVector;
 import processing.core.PImage;
@@ -20,7 +20,7 @@ import processing.core.PImage;
 public class myInstance extends Base_Geometry{
 	public Base_Geometry obj;						//object this is instance of
 	public boolean useShader, isAccel;					//whether to use instance shader or base object shader
-	public myInstance(myScene scene, Base_Geometry _obj){
+	public myInstance(Base_Scene scene, Base_Geometry _obj){
 		super(scene, 0,0,0);
 		obj = _obj;										//owning object
 		isAccel = (obj instanceof Base_AccelStruct);

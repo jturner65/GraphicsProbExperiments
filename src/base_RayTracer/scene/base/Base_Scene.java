@@ -1,4 +1,4 @@
-package base_RayTracer.scene;
+package base_RayTracer.scene.base;
 
 import java.util.*;
 import java.util.concurrent.*;
@@ -31,8 +31,8 @@ import base_Utils_Objects.io.messaging.MessageObject;
 import processing.core.PConstants;
 import processing.core.PImage;
 import base_Math_Objects.MyMathUtils;
-import base_Math_Objects.vectorObjs.doubles.myMatStack;
-import base_Math_Objects.vectorObjs.doubles.myMatrix;
+import base_Math_Objects.matrixObjs.doubles.myMatStack;
+import base_Math_Objects.matrixObjs.doubles.myMatrix;
 import base_Math_Objects.vectorObjs.doubles.myPoint;
 import base_Math_Objects.vectorObjs.doubles.myVector;
 
@@ -41,7 +41,7 @@ import base_Math_Objects.vectorObjs.doubles.myVector;
  * @author 7strb
  *
  */
-public abstract class myScene {
+public abstract class Base_Scene {
 	public static IRenderInterface pa;
 	//for screen display
 	public static MessageObject msgObj = null;
@@ -228,7 +228,7 @@ public abstract class myScene {
 	//current depth in matrix stack - starts at 0;
 	public int currMatrixDepthIDX;	
 	
-	public myScene(IRenderInterface _p, String _sceneName, int _numCols, int _numRows) {
+	public Base_Scene(IRenderInterface _p, String _sceneName, int _numCols, int _numRows) {
 		pa = _p;
 		
 		now = Calendar.getInstance();
@@ -253,7 +253,7 @@ public abstract class myScene {
 		initVars(_sceneName);
 	}
 	
-	public myScene(myScene _old){//copy ctor, for when scene type is being set - only use when old scene is being discarded (shallow copy)
+	public Base_Scene(Base_Scene _old){//copy ctor, for when scene type is being set - only use when old scene is being discarded (shallow copy)
 		//pa = _old.pa;
 		now = _old.now;
 		folderName = _old.folderName;
@@ -319,7 +319,7 @@ public abstract class myScene {
 	}//initVars method
 	
 	//scene-wide variables set during loading of scene info from .cli file
-	private void initVars(myScene _old){
+	private void initVars(Base_Scene _old){
 		currTextureTop = _old.currTextureTop;
 		currTextureBottom = _old.currTextureBottom;
 		currBkgTexture = _old.currBkgTexture;
@@ -954,7 +954,7 @@ public abstract class myScene {
 	//refining
 	public void setRefine(String refState){
     	curRefineStep = 0;
-		scFlags[myScene.glblRefineIDX] = refState.toLowerCase().equals("on");
+		scFlags[Base_Scene.glblRefineIDX] = refState.toLowerCase().equals("on");
 		//build refinement #pxls array dynamically by finding average dim of image and then math.
 		int refIDX = (int)(Math.log((this.sceneCols + this.sceneRows)/32.0)/ MyMathUtils.LOG_2);
 		RefineIDX = new int[(refIDX+1)];
@@ -1473,8 +1473,8 @@ public abstract class myScene {
 	private void saveFile(){
 		String tmpSaveName;
 		String[] tmp = saveName.split("\\.(?=[^\\.]+$)");				//remove extension from given savename
-		if (scFlags[saveImgInDirIDX]){	tmpSaveName = folderName.toString() + "\\"  + tmp[0]+(scFlags[myScene.flipNormsIDX] ? "_normFlipped" : "")+ ".png";} //rebuild name to include directory and image name including render time
-		else {							tmpSaveName = tmp[0]+(scFlags[myScene.flipNormsIDX] ? "_normFlipped" : "")+".png";		}
+		if (scFlags[saveImgInDirIDX]){	tmpSaveName = folderName.toString() + "\\"  + tmp[0]+(scFlags[Base_Scene.flipNormsIDX] ? "_normFlipped" : "")+ ".png";} //rebuild name to include directory and image name including render time
+		else {							tmpSaveName = tmp[0]+(scFlags[Base_Scene.flipNormsIDX] ? "_normFlipped" : "")+".png";		}
 		System.out.println("File saved as  : "+ tmpSaveName);
 		rndrdImg.save(tmpSaveName);
 		scFlags[saveImageIDX] =  false;//don't keep saving every frame
@@ -1512,8 +1512,8 @@ public abstract class myScene {
 	
 	
 	/**
-	*  build translate, scale and rotation matricies to use for ray tracer
-	*  need to implement inversion for each matrix - will apply inverses of these matricies to generated ray so that object is rendered in appropriate manner :
+	*  build translate, scale and rotation matricies to use for scene descriptions
+	*  will apply inverses of these matricies to generated ray so that object is rendered in appropriate manner :
 	*
 	*  so if object A is subjected to a translate/rotate/scale sequence to render A' then to implement this we need to 
 	*  subject the rays attempting to intersect with it by the inverse of these operations to find which rays will actually intersect with it.
@@ -1536,6 +1536,7 @@ public abstract class myScene {
 	public void gtPopMatrix() { 
 		if (matrixStack.top == 0){System.out.println("Error : Cannot pop the last matrix in the matrix stack");} 
 		else {		//temp was last matrix at top of stack - referencing only for debugging purposes
+			@SuppressWarnings("unused")
 			myMatrix temp = matrixStack.pop();
 			--currMatrixDepthIDX;
 		}

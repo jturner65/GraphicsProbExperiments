@@ -3,19 +3,19 @@ package base_RayTracer.scene.geometry.base;
 import base_RayTracer.myRTColor;
 import base_RayTracer.ray.rayCast;
 import base_RayTracer.ray.rayHit;
-import base_RayTracer.scene.myScene;
 import base_RayTracer.scene.objType;
+import base_RayTracer.scene.base.Base_Scene;
 import base_RayTracer.scene.geometry.BoundingBox;
 import base_RayTracer.scene.shaders.myObjShader;
 import processing.core.PImage;
 import base_Math_Objects.MyMathUtils;
-import base_Math_Objects.vectorObjs.doubles.myMatrix;
+import base_Math_Objects.matrixObjs.doubles.myMatrix;
 import base_Math_Objects.vectorObjs.doubles.myPoint;
 import base_Math_Objects.vectorObjs.doubles.myVector;
 //abstract base class from which scene objects, instances, bounding boxes and acceleration structures all inherit
 //make this very skinny since we may have thousands of them
 public abstract class Base_Geometry {
-	public myScene scene;
+	public Base_Scene scene;
 	public final int ID;
 	public objType type;    //what kind of object this is
 	//first 2 vectors of object, center of object,the orientation vector of this object, the min and max values in xyz that this object spans, for bounding box
@@ -36,7 +36,7 @@ public abstract class Base_Geometry {
 	
 	public myPoint minVals, maxVals;
 	
-	public Base_Geometry(myScene _scn, double _x, double _y, double _z) {
+	public Base_Geometry(Base_Scene _scn, double _x, double _y, double _z) {
 		scene = _scn;
 	    ID = scene.objCnt++;
 	    type = objType.None;
@@ -48,13 +48,23 @@ public abstract class Base_Geometry {
 		trans_origin =  getTransformedPt(origin, CTMara[glblIDX]).asArray();
 	}
 	
-	//inv mat idx : 1; transpose mat idx : 2; transpose of inverse : 3
+	/**
+	 * Build array of matrices of precalced matrix operations
+	 * inv mat idx : 1; transpose mat idx : 2; transpose of inverse : 3
+	 * @param CTMara
+	 * @return
+	 */
 	private myMatrix[] buildMatExt(myMatrix[] CTMara){CTMara[1] = CTMara[0].inverse();CTMara[2] = CTMara[0].transpose();CTMara[3] = CTMara[1].transpose();return CTMara;}
 	//passing Mat so that can instance transformed prims like distorted spheres
-	public myMatrix[] buildCTMara(myScene scene, myMatrix _mat){myMatrix[] CTMara = new myMatrix[4];CTMara[0] = _mat.multMat(scene.matrixStack.peek());return buildMatExt(CTMara);}	
-	//rebuild mat ara such that passed matrix _mat1 to be fwd transformed by _baseMat.  
-	public myMatrix[] reBuildCTMara(myMatrix _mat1, myMatrix _prntMat){myMatrix[] CTMara = new myMatrix[4];CTMara[0] = _prntMat.multMat(_mat1);return buildMatExt(CTMara);}	
-	public myMatrix[] buildCTMara(myScene scene){myMatrix[] CTMara = new myMatrix[4];CTMara[0] = scene.matrixStack.peek(); return buildMatExt(CTMara);}	
+	public myMatrix[] buildCTMara(Base_Scene scene, myMatrix _mat){myMatrix[] CTMara = new myMatrix[4];CTMara[0] = _mat.multMat(scene.matrixStack.peek());return buildMatExt(CTMara);}	
+	/**
+	 * build mat ara such that passed matrix _mat1 to be fwd transformed by _baseMat.  
+	 * @param _mat1
+	 * @param _baseMat
+	 * @return
+	 */
+	public myMatrix[] buildCTMara(myMatrix _mat1, myMatrix _baseMat){myMatrix[] CTMara = new myMatrix[4];CTMara[0] = _baseMat.multMat(_mat1);return buildMatExt(CTMara);}	
+	public myMatrix[] buildCTMara(Base_Scene scene){myMatrix[] CTMara = new myMatrix[4];CTMara[0] = scene.matrixStack.peek(); return buildMatExt(CTMara);}	
 	public myMatrix[] buildIdentCTMara(){myMatrix[] CTMara = new myMatrix[4];CTMara[0] = new myMatrix(); return buildMatExt(CTMara);	}
 
 	

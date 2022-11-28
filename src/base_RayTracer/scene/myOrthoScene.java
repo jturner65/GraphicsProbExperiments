@@ -5,9 +5,10 @@ import java.util.concurrent.ThreadLocalRandom;
 import base_JavaProjTools_IRender.base_Render_Interface.IRenderInterface;
 import base_RayTracer.myRTColor;
 import base_RayTracer.ray.rayCast;
+import base_RayTracer.scene.base.Base_Scene;
 import base_Math_Objects.vectorObjs.doubles.myVector;
 
-public class myOrthoScene extends myScene{
+public class myOrthoScene extends Base_Scene{
 	//width and height of view - for ortho projection. for perspective will be screen width and height
 	public double orthoWidth, orthoHeight;	
 	private double orthPerRow, orthPerCol;			//normalizers for ortho projection
@@ -17,7 +18,7 @@ public class myOrthoScene extends myScene{
 	public myOrthoScene(IRenderInterface _p, String _sceneName,int _numCols, int _numRows) {
 		super(_p,_sceneName,_numCols,_numRows);
 	}
-	public myOrthoScene(myScene _s, int _numCols, int _numRows){
+	public myOrthoScene(Base_Scene _s, int _numCols, int _numRows){
 		super(_s);
 	}
 	@Override

@@ -4,13 +4,13 @@ import java.util.concurrent.ThreadLocalRandom;
 
 import base_RayTracer.ray.rayCast;
 import base_RayTracer.ray.rayHit;
-import base_RayTracer.scene.myScene;
 import base_RayTracer.scene.objType;
+import base_RayTracer.scene.base.Base_Scene;
 import base_RayTracer.scene.geometry.sceneObjects.lights.base.Base_Light;
-import base_Math_Objects.vectorObjs.doubles.myMatrix;
 import base_Math_Objects.vectorObjs.doubles.myPoint;
 import base_Math_Objects.vectorObjs.doubles.myVector;
 import base_Math_Objects.MyMathUtils;
+import base_Math_Objects.matrixObjs.doubles.myMatrix;
 
 /**
  * spotlight x y z dx dy dz angle_inner angle_outer r g b
@@ -27,7 +27,7 @@ public class mySpotLight extends Base_Light{
 
 	public myVector oPhAxis;	//unit vector ortho to orientation, to use for randomly calculating direction for photon casting
 	
-	public mySpotLight(myScene _scn, int _lightID, 
+	public mySpotLight(Base_Scene _scn, int _lightID, 
 			double _r, double _g, double _b, 
 			double _x, double _y, double _z, 
 			double _dx, double _dy, double _dz, 

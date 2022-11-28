@@ -6,11 +6,12 @@ import base_JavaProjTools_IRender.base_Render_Interface.IRenderInterface;
 import base_RayTracer.myRTColor;
 import base_RayTracer.ray.rayCast;
 import base_RayTracer.ray.rayHit;
+import base_RayTracer.scene.base.Base_Scene;
 import base_RayTracer.scene.geometry.base.Base_Geometry;
 import base_Math_Objects.vectorObjs.doubles.myPoint;
 import base_Math_Objects.vectorObjs.doubles.myVector;
 
-public class myFOVScene extends myScene {
+public class myFOVScene extends Base_Scene {
 	//current field of view
 	public double fov, fovRad, viewZ;			//degrees, radians,distance from eye the current view plane exists at, in -z direction
 	//public List<Future<Boolean>> callFOVFutures;
@@ -21,7 +22,7 @@ public class myFOVScene extends myScene {
 		//callFOVCalcs= new ArrayList<myFOVCall>();
 		//callFOVFutures = new ArrayList<Future<Boolean>>(); 
 	}
-	public myFOVScene(myScene _scene) {
+	public myFOVScene(Base_Scene _scene) {
 		super( _scene);
 		viewZ = ((myFOVScene)(_scene)).viewZ;
 		//callFOVCalcs= new ArrayList<myFOVCall>();

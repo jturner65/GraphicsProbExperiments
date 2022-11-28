@@ -1,15 +1,16 @@
 package base_RayTracer.scene.geometry.sceneObjects.planar;
 
 import base_RayTracer.ray.rayCast;
-import base_RayTracer.scene.myScene;
 import base_RayTracer.scene.objType;
+import base_RayTracer.scene.base.Base_Scene;
+import base_RayTracer.scene.geometry.sceneObjects.planar.base.Base_PlanarObject;
 import base_Math_Objects.vectorObjs.doubles.myPoint;
 import base_Math_Objects.vectorObjs.doubles.myVector;
 import processing.core.PImage;
 
-public class myTriangle extends myPlanarObject{
+public class myTriangle extends Base_PlanarObject{
 	  
-		public myTriangle(myScene _scn){
+		public myTriangle(Base_Scene _scn){
 			super(_scn);
 			vCount = 3;
 			type = objType.Triangle;

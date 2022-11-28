@@ -2,16 +2,16 @@ package base_RayTracer.scene.geometry.sceneObjects.implicit;
 
 import base_RayTracer.ray.rayCast;
 import base_RayTracer.ray.rayHit;
-import base_RayTracer.scene.myScene;
 import base_RayTracer.scene.objType;
-import base_Math_Objects.vectorObjs.doubles.myMatrix;
+import base_RayTracer.scene.base.Base_Scene;
+import base_Math_Objects.matrixObjs.doubles.myMatrix;
 import base_Math_Objects.vectorObjs.doubles.myPoint;
 import base_Math_Objects.vectorObjs.doubles.myVector;
 
 public class myCylinder extends myHollow_Cylinder{
 	private double[][] capEqs;
   
-	public myCylinder(myScene _p, double _myRadius, double _myHeight, double x, double y, double z, double xO,double yO, double zO){
+	public myCylinder(Base_Scene _p, double _myRadius, double _myHeight, double x, double y, double z, double xO,double yO, double zO){
 		super(_p, _myRadius, _myHeight, x, y, z, xO, yO, zO);
 		type = objType.Cylinder;
 		

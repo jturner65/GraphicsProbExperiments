@@ -1,17 +1,17 @@
-package base_RayTracer.scene.geometry.sceneObjects.planar;
+package base_RayTracer.scene.geometry.sceneObjects.planar.base;
 
 import java.util.*;
 
 import base_RayTracer.ray.rayCast;
 import base_RayTracer.ray.rayHit;
-import base_RayTracer.scene.myScene;
+import base_RayTracer.scene.base.Base_Scene;
 import base_RayTracer.scene.geometry.sceneObjects.base.Base_SceneObject;
 import processing.core.PImage;
-import base_Math_Objects.vectorObjs.doubles.myMatrix;
+import base_Math_Objects.matrixObjs.doubles.myMatrix;
 import base_Math_Objects.vectorObjs.doubles.myPoint;
 import base_Math_Objects.vectorObjs.doubles.myVector;
 
-public abstract class myPlanarObject extends Base_SceneObject{
+public abstract class Base_PlanarObject extends Base_SceneObject{
 	//objects used for both square and triangle
 	protected double[] vertX, vertY, vertZ,
 						vertU, vertV;			//texture coordinates corresponding to each vertex of this poly
@@ -24,7 +24,7 @@ public abstract class myPlanarObject extends Base_SceneObject{
 	protected double[] dotVals;
 //	//list of adjacent faces to this face
 //	protected ArrayList<myPlanarObject> adjFaces;  
-	public myPlanarObject(myScene _p){   
+	public Base_PlanarObject(Base_Scene _p){   
 		super(_p,0,0,0); 		
 		postProcBBox();				//cnstrct and define bbox - rebuilt when finalizePoly()
 	}//constructor (4) 
@@ -174,21 +174,21 @@ public abstract class myPlanarObject extends Base_SceneObject{
 
 //class to hold a vertex - will be shared by planar objects, will own it's own normal
 class myVertex implements Comparable<myVertex> {
-	public myScene scn;
+	public Base_Scene scn;
 	public myVector V, N;
-	private ArrayList<myPlanarObject> owners;
+	private ArrayList<Base_PlanarObject> owners;
 	
-	public myVertex(myScene _scn, myVector _v){
+	public myVertex(Base_Scene _scn, myVector _v){
 		scn = _scn;
 		V = new myVector(_v);
-		owners = new ArrayList<myPlanarObject>();		
+		owners = new ArrayList<Base_PlanarObject>();		
 	}
 	
-	public void addOwner(myPlanarObject obj){owners.add(obj);}
+	public void addOwner(Base_PlanarObject obj){owners.add(obj);}
 	//calc vertex normal of this vertex by finding the verts of each adjacent planar object and adding them
 	public myVector calcNorm(){
 		myVector res = new myVector(0,0,0);
-		for(myPlanarObject obj : owners){res._add(obj.N);}
+		for(Base_PlanarObject obj : owners){res._add(obj.N);}
 		res._normalize();		
 		return res;		
 	}

@@ -5,7 +5,7 @@ import java.util.concurrent.ConcurrentSkipListMap;
 
 import base_RayTracer.myRTColor;
 import base_RayTracer.ray.rayHit;
-import base_RayTracer.scene.myScene;
+import base_RayTracer.scene.base.Base_Scene;
 import base_RayTracer.scene.shaders.myObjShader;
 import base_RayTracer.scene.textures.noiseTextures.myNoiseTexture;
 import base_RayTracer.scene.textures.noiseTextures.cellularTextures.distanceFuncs.EuclidDist;
@@ -28,7 +28,7 @@ public class myCellularTexture extends myNoiseTexture{
 	private Base_DistFunc distFunc;			//function for dist calculation
 	private Base_ROI roiFunc;					//function for region of interest calculation
 	
-	public myCellularTexture(myScene _scn,myObjShader _shdr, double _scl) {	
+	public myCellularTexture(Base_Scene _scn,myObjShader _shdr, double _scl) {	
 		super(_scn, _shdr,_scl);
 		avgNumPerCell = scene.avgNumPerCell;
 		mortarThresh = scene.mortarThresh;

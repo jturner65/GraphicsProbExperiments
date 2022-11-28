@@ -4,7 +4,7 @@ package base_RayTracer.scene.shaders;
 import base_RayTracer.myRTColor;
 import base_RayTracer.ray.rayCast;
 import base_RayTracer.ray.rayHit;
-import base_RayTracer.scene.myScene;
+import base_RayTracer.scene.base.Base_Scene;
 import base_RayTracer.scene.geometry.base.Base_Geometry;
 import base_RayTracer.scene.geometry.sceneObjects.myInstance;
 import base_RayTracer.scene.geometry.sceneObjects.lights.base.Base_Light;
@@ -24,7 +24,7 @@ import base_Math_Objects.vectorObjs.doubles.myVector;
  *
  */
 public class myObjShader {
-	public myScene scene;
+	public Base_Scene scene;
 	
 	public String shType;		//what kind of shader - needed?
 	//number of times a color is looked up on this object
@@ -49,7 +49,7 @@ public class myObjShader {
 	public static final int numFlags = 3;	
 	
 	
-	public myObjShader(myScene _scn) {
+	public myObjShader(Base_Scene _scn) {
 		scene = _scn;
 		initFlags();
 	    dbgRayHits = 0;
@@ -86,8 +86,8 @@ public class myObjShader {
 	    currPerm = scene.globRfrIdx;
 	    
 	    shdrFlags[hasCaustic] = ((KRefl > 0.0) || (currPerm > 0.0) || (KTrans > 0.0));
-	    shdrFlags[usePhotonMap] = scene.scFlags[myScene.usePhotonMapIDX];
-	    shdrFlags[isCausticPhtnIDX] = scene.scFlags[myScene.isCausticPhtnIDX];
+	    shdrFlags[usePhotonMap] = scene.scFlags[Base_Scene.usePhotonMapIDX];
+	    shdrFlags[isCausticPhtnIDX] = scene.scFlags[Base_Scene.isCausticPhtnIDX];
 	    
 	    diffConst = 1 - currPerm;	        
 	    phongExp = scene.currPhongExp;

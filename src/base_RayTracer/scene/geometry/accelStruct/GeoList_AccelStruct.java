@@ -4,15 +4,15 @@ import java.util.ArrayList;
 
 import base_RayTracer.ray.rayCast;
 import base_RayTracer.ray.rayHit;
-import base_RayTracer.scene.myScene;
 import base_RayTracer.scene.objType;
+import base_RayTracer.scene.base.Base_Scene;
 import base_RayTracer.scene.geometry.accelStruct.base.Base_AccelStruct;
 import base_RayTracer.scene.geometry.base.Base_Geometry;
-import base_Math_Objects.vectorObjs.doubles.myMatrix;
+import base_Math_Objects.matrixObjs.doubles.myMatrix;
 
 public class GeoList_AccelStruct extends Base_AccelStruct{
 	public ArrayList<Base_Geometry> objList;
-	public GeoList_AccelStruct(myScene _scn){
+	public GeoList_AccelStruct(Base_Scene _scn){
 		super(_scn,0,0,0);
 		objList = new ArrayList<Base_Geometry>();
 		type = objType.AccelFlatList;
@@ -57,7 +57,7 @@ public class GeoList_AccelStruct extends Base_AccelStruct{
 			}
 		}//for obj in scenelist
 		if(_clsHit == null){return new rayHit(false);}
-		_clsHit.reCalcCTMHitNorm(reBuildCTMara(_clsObj.CTMara[glblIDX], CTMara[glblIDX]));
+		_clsHit.reCalcCTMHitNorm(buildCTMara(_clsObj.CTMara[glblIDX], CTMara[glblIDX]));
 		if(!(_clsObj instanceof Base_AccelStruct)){	return _clsHit;		}		//hit object
 		rayHit _hit2 = ((Base_AccelStruct)_clsObj).traverseStruct(_ray,_closestTransRay, _clsHit.CTMara);	
 		return _hit2;

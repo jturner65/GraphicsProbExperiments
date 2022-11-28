@@ -5,11 +5,11 @@ import java.util.concurrent.ThreadLocalRandom;
 import base_RayTracer.myRTColor;
 import base_RayTracer.ray.rayCast;
 import base_RayTracer.ray.rayHit;
-import base_RayTracer.scene.myScene;
+import base_RayTracer.scene.base.Base_Scene;
 import base_RayTracer.scene.geometry.sceneObjects.base.Base_SceneObject;
 import base_RayTracer.scene.photonMapping.Photon_KDTree;
 import processing.core.PImage;
-import base_Math_Objects.vectorObjs.doubles.myMatrix;
+import base_Math_Objects.matrixObjs.doubles.myMatrix;
 import base_Math_Objects.vectorObjs.doubles.myPoint;
 import base_Math_Objects.vectorObjs.doubles.myVector;
 
@@ -22,7 +22,7 @@ public abstract class Base_Light extends Base_SceneObject{
 	
 	//TODO light intensity should fall off by inverse sq dist
 	
-	public Base_Light(myScene _scn, int _lightID, double _r, double _g, double _b, double _x, double _y, double _z, double _dx, double _dy, double _dz) {
+	public Base_Light(Base_Scene _scn, int _lightID, double _r, double _g, double _b, double _x, double _y, double _z, double _dx, double _dy, double _dz) {
 		super(_scn, _x,_y,_z);
 	    minVals = this.getMinVec();
 	    maxVals = this.getMaxVec();

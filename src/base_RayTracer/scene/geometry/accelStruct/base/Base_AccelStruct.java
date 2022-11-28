@@ -5,9 +5,9 @@ import java.util.List;
 import base_RayTracer.myRTColor;
 import base_RayTracer.ray.rayCast;
 import base_RayTracer.ray.rayHit;
-import base_RayTracer.scene.myScene;
+import base_RayTracer.scene.base.Base_Scene;
 import base_RayTracer.scene.geometry.base.Base_Geometry;
-import base_Math_Objects.vectorObjs.doubles.myMatrix;
+import base_Math_Objects.matrixObjs.doubles.myMatrix;
 import base_Math_Objects.vectorObjs.doubles.myPoint;
 import base_Math_Objects.vectorObjs.doubles.myVector;
 import processing.core.PImage;
@@ -18,7 +18,7 @@ public abstract class Base_AccelStruct extends Base_Geometry{
 	private int typeOfAccel;
 	protected int treedepth;
 
-	public Base_AccelStruct(myScene _scn, double _x, double _y, double _z) {
+	public Base_AccelStruct(Base_Scene _scn, double _x, double _y, double _z) {
 		super (_scn, _x,  _y,  _z);
 		typeOfAccel = -1;
 		treedepth = 0;

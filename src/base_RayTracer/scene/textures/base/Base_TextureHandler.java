@@ -2,7 +2,7 @@ package base_RayTracer.scene.textures.base;
 
 import base_RayTracer.myRTColor;
 import base_RayTracer.ray.rayHit;
-import base_RayTracer.scene.myScene;
+import base_RayTracer.scene.base.Base_Scene;
 import base_RayTracer.scene.shaders.myObjShader;
 
 /**
@@ -12,7 +12,7 @@ import base_RayTracer.scene.shaders.myObjShader;
  */
 
 public abstract class Base_TextureHandler {
-	public myScene scene;
+	public Base_Scene scene;
 	public myObjShader shdr;
 	
 	protected static final int hashPrime1 = 1572869;
@@ -33,7 +33,7 @@ public abstract class Base_TextureHandler {
 	//used as array indices
 	public static final int R = 0, G = 1, B = 2;
 	
-	public Base_TextureHandler(myScene _scn, myObjShader _shdr) {
+	public Base_TextureHandler(Base_Scene _scn, myObjShader _shdr) {
 		scene = _scn;
 		shdr = _shdr;
 		initFlags();		

@@ -2,7 +2,7 @@ package base_RayTracer.ray;
 
 import base_RayTracer.scene.geometry.base.Base_Geometry;
 import base_RayTracer.scene.shaders.myObjShader;
-import base_Math_Objects.vectorObjs.doubles.myMatrix;
+import base_Math_Objects.matrixObjs.doubles.myMatrix;
 import base_Math_Objects.vectorObjs.doubles.myPoint;
 import base_Math_Objects.vectorObjs.doubles.myVector;
 

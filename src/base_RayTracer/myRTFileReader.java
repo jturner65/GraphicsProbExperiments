@@ -6,12 +6,12 @@ import base_JavaProjTools_IRender.base_Render_Interface.IRenderInterface;
 import base_RayTracer.scene.myFOVScene;
 import base_RayTracer.scene.myFishEyeScene;
 import base_RayTracer.scene.myOrthoScene;
-import base_RayTracer.scene.myScene;
+import base_RayTracer.scene.base.Base_Scene;
 import base_RayTracer.scene.geometry.sceneObjects.base.Base_SceneObject;
 import base_RayTracer.scene.geometry.sceneObjects.implicit.mySphere;
-import base_RayTracer.scene.geometry.sceneObjects.planar.myPlanarObject;
 import base_RayTracer.scene.geometry.sceneObjects.planar.myQuad;
 import base_RayTracer.scene.geometry.sceneObjects.planar.myTriangle;
+import base_RayTracer.scene.geometry.sceneObjects.planar.base.Base_PlanarObject;
 import base_RayTracer.scene.textures.imageTextures.myImageTexture;
 import base_UI_Objects.my_procApplet;
 import processing.core.PApplet;
@@ -27,13 +27,13 @@ public class myRTFileReader {
 	}
 	
 	//passed scene is for when called recursively - is null on first time in, passes scene to be used otherwise
-	public myScene readRTFile(TreeMap<String, myScene> loadedScenes, String fileName, myScene _scene, int _numCols, int _numRows) {		  
+	public Base_Scene readRTFile(TreeMap<String, Base_Scene> loadedScenes, String fileName, Base_Scene _scene, int _numCols, int _numRows) {		  
 		//build individual scene for each file		
 		timer = ((my_procApplet)pa).millis();			//times rendering
 		curNumRows = _numRows;
 		curNumCols = _numCols;
 		
-		myScene scene = null;
+		Base_Scene scene = null;
 		boolean isMainFileScene = true;			//whether this is primary scene's file or secondary/recursive read call; whether scene has been named and finalized yet
 		if(_scene != null){//recursively being passed into readRTFile - will have different file name
 			scene =  _scene;				
@@ -56,7 +56,7 @@ public class myRTFileReader {
 	
 	
 	//build the objects in a scene
-	public myScene parseStringArray(TreeMap<String, myScene> loadedScenes, String[] fileStrings, myScene scene, boolean isMainFileScene, String fileName) {
+	public Base_Scene parseStringArray(TreeMap<String, Base_Scene> loadedScenes, String[] fileStrings, Base_Scene scene, boolean isMainFileScene, String fileName) {
 		boolean finalized = false;
 		String vertType = "triangle";    		//assume default object type is triangle
 		int myVertCount = 0;		
@@ -73,7 +73,7 @@ public class myRTFileReader {
 			//determine the kind of scene - needs to be the first component in base scene file
 				case "fov" 	: {	
 					if(!isMainFileScene){System.out.println("Error - unsupported setting scene type ('FOV') in recursive child scene file"); break;}
-					myScene tmp = new myFOVScene(scene);
+					Base_Scene tmp = new myFOVScene(scene);
 					scene = tmp;
 					//scene = new myFOVScene(p);
 					scene.setNumRaysPerPxl((curNumRaysPerPxl != 0) ? curNumRaysPerPxl : 1);
@@ -89,7 +89,7 @@ public class myRTFileReader {
 				case "fishEye" :
 				case "fisheye" : { 
 					if(!isMainFileScene){System.out.println("Error - unsupported setting scene type ('fishEye') in recursive child scene file"); break;}					
-					myScene tmp = new myFishEyeScene(scene);
+					Base_Scene tmp = new myFishEyeScene(scene);
 					scene = tmp;
 					//scene = new myFishEyeScene(p);
 					scene.setNumRaysPerPxl((curNumRaysPerPxl != 0) ? curNumRaysPerPxl : 1);
@@ -98,7 +98,7 @@ public class myRTFileReader {
 				case "ortho" :
 				case "orthographic" : {// width height
 					if(!isMainFileScene){System.out.println("Error - unsupported setting scene type ('Ortho') in recursive child scene file"); break;}
-					myScene tmp = new myOrthoScene(scene,curNumCols, curNumRows);
+					Base_Scene tmp = new myOrthoScene(scene,curNumCols, curNumRows);
 					scene = tmp;
 					//scene = new myOrthoScene(p);
 					scene.setNumRaysPerPxl((curNumRaysPerPxl != 0) ? curNumRaysPerPxl : 1);
@@ -154,7 +154,7 @@ public class myRTFileReader {
 						//load texture to be used for background
 						String textureName = token[2];
 						scene.currBkgTexture = ((my_procApplet)pa).loadImage(textureDir+textureName);
-						scene.scFlags[myScene.glblTxtrdBkgIDX] = true;
+						scene.scFlags[Base_Scene.glblTxtrdBkgIDX] = true;
 						System.out.println("Background texture loaded");
 						//build "skydome" - textured sphere encircling scene
 						double rad = Double.parseDouble(token[3]);
@@ -213,8 +213,8 @@ public class myRTFileReader {
 					myRTColor cDiff = readColor(token,1);//new myColor(Double.parseDouble(token[1]),Double.parseDouble(token[2]),Double.parseDouble(token[3]));
 					myRTColor cAmb = readColor(token,4);//new myColor(Double.parseDouble(token[4]),Double.parseDouble(token[5]),Double.parseDouble(token[6]));
 					myRTColor cSpec = new myRTColor(0,0,0);
-					scene.scFlags[myScene.glblTxtrdTopIDX] = false;
-					scene.scFlags[myScene.glblTxtrdBtmIDX] = false;
+					scene.scFlags[Base_Scene.glblTxtrdTopIDX] = false;
+					scene.scFlags[Base_Scene.glblTxtrdBtmIDX] = false;
 					scene.setSurface(cDiff,cAmb,cSpec,0,0);					
 					break;}
 				//use shiny for new refr/refl; use surface for older cli files - handles mix of colors and refr/refl better
@@ -237,8 +237,8 @@ public class myRTFileReader {
 					myRTColor cDiff = readColor(token,1);//new myColor(Double.parseDouble(token[1]),Double.parseDouble(token[2]),Double.parseDouble(token[3]));
 					myRTColor cAmb = readColor(token,4);//new myColor(Double.parseDouble(token[4]),Double.parseDouble(token[5]),Double.parseDouble(token[6]));
 					myRTColor cSpec = new myRTColor(0,0,0);
-					scene.scFlags[myScene.glblTxtrdTopIDX] = false;
-					scene.scFlags[myScene.glblTxtrdBtmIDX] = false;
+					scene.scFlags[Base_Scene.glblTxtrdTopIDX] = false;
+					scene.scFlags[Base_Scene.glblTxtrdBtmIDX] = false;
 					double kRefl = Double.parseDouble(token[7]);
 					scene.setSurface(cDiff,cAmb,cSpec,0,kRefl);		
 					break;}
@@ -289,13 +289,13 @@ public class myRTFileReader {
 			    		textureName = token[2]; 
 			    		//if specified as bottom, assume bottom texture
 			    		scene.currTextureBottom = ((my_procApplet)pa).loadImage("..\\data\\"+textureDir+"\\"+textureName);
-			    		scene.scFlags[myScene.glblTxtrdBtmIDX] = true;
+			    		scene.scFlags[Base_Scene.glblTxtrdBtmIDX] = true;
 			    		System.out.println("bottom surface texture loaded");      }
 			    	else {
 			    		//if not specified then assume texture goes on top and texture name is specified in first token
 			    		if (side.toLowerCase().equals("top")){  		  	textureName = token[2];   }
 			    		scene.currTextureTop = ((my_procApplet)pa).loadImage("..\\data\\"+textureDir+"\\"+textureName);
-			    		scene.scFlags[myScene.glblTxtrdTopIDX] = true;
+			    		scene.scFlags[Base_Scene.glblTxtrdTopIDX] = true;
 			    		System.out.println("top surface texture loaded");
 			    	} 
 			    	scene.txtrType = 1;		//texture type is set to image/none
@@ -325,15 +325,15 @@ public class myRTFileReader {
 			    //texture_coord u v
 			    case "texture_coord" : {
 				//specifies the texture coordinate for the next vertex that is to be created for a triangle. - each "texture_coord" command will come before the corresponding "vertex" command in the .cli files
-			    	((myPlanarObject) myPoly).setTxtrCoord(Double.parseDouble(token[1]),Double.parseDouble(token[2]), myVertCount); 
+			    	((Base_PlanarObject) myPoly).setTxtrCoord(Double.parseDouble(token[1]),Double.parseDouble(token[2]), myVertCount); 
 			    	break;}
 			    case "vertex" : {
-			    	((myPlanarObject) myPoly).setVert(Double.parseDouble(token[1]),Double.parseDouble(token[2]),Double.parseDouble(token[3]), myVertCount);
+			    	((Base_PlanarObject) myPoly).setVert(Double.parseDouble(token[1]),Double.parseDouble(token[2]),Double.parseDouble(token[3]), myVertCount);
 			    	myVertCount++;
 			    	break;}
 			    case "end" : {//end shape - reset vars to add new triangle, finalize triangle, add to arraylist of sceneobjects		
 			    	
-		    		((myPlanarObject) myPoly).finalizePoly();
+		    		((Base_PlanarObject) myPoly).finalizePoly();
 		    		myPoly.shdr = scene.getCurShader();				//set shader for object <- important! this is where any proc textures used are specified
 		    		scene.addObjectToScene(myPoly);
 
@@ -381,14 +381,14 @@ public class myRTFileReader {
 	//build a color value from a string array read in from a cli file.  stIdx is position in array where first color resides
 	private myRTColor readColor(String[] token, int stIdx){return new myRTColor(Double.parseDouble(token[stIdx]),Double.parseDouble(token[stIdx+1]),Double.parseDouble(token[stIdx+2]));}
 	
-	public void finalizeScene(TreeMap<String, myScene> loadedScenes, String fileName,myScene scene){
+	public void finalizeScene(TreeMap<String, Base_Scene> loadedScenes, String fileName,Base_Scene scene){
 		//finalize scene
 		scene.srcFileNames.push(fileName);
 		loadedScenes.put(fileName, scene);
 	}
 	
 	//handle surface and shiny commands (very similar in layout but slight differences - shiny will use "simple" version of transmittance, not TIR
-	public void setSurfaceShiny(myScene scene, String[] token, boolean useSimple){
+	public void setSurfaceShiny(Base_Scene scene, String[] token, boolean useSimple){
 		myRTColor cDiff = readColor(token,1);
 		myRTColor cAmb = readColor(token,4);
 		myRTColor cSpec = readColor(token,7);
@@ -396,8 +396,8 @@ public class myRTFileReader {
 		double kRefl = Double.parseDouble(token[11]);
 		double kTrans = 0;
 		double rfrIdx = 0;
-		scene.scFlags[myScene.glblTxtrdTopIDX] = false;
-		scene.scFlags[myScene.glblTxtrdBtmIDX] = false;
+		scene.scFlags[Base_Scene.glblTxtrdTopIDX] = false;
+		scene.scFlags[Base_Scene.glblTxtrdBtmIDX] = false;
 		scene.setSurface(cDiff,cAmb,cSpec,phongExp,kRefl);
 		try {//if ktrans value in format file, grab it and re-initialize surfaces
 			kTrans = Double.parseDouble( token[12]);  
@@ -407,7 +407,7 @@ public class myRTFileReader {
 			scene.setRfrIdx(rfrIdx);    	
     		scene.setRfrIdx(rfrIdx,Double.parseDouble(token[14]),Double.parseDouble(token[15]),Double.parseDouble(token[16]));    	
 		} catch (Exception e) {}
-		if((useSimple) && ((kTrans > 0) || (rfrIdx > 0))){scene.scFlags[myScene.simpleRefrIDX] = true;}			
+		if((useSimple) && ((kTrans > 0) || (rfrIdx > 0))){scene.scFlags[Base_Scene.simpleRefrIDX] = true;}			
 	}//setSurfaceShiny
 
 }//class myRTFileReader 

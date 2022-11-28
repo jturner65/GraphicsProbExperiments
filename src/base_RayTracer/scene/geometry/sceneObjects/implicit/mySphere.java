@@ -2,17 +2,18 @@ package base_RayTracer.scene.geometry.sceneObjects.implicit;
 
 import base_RayTracer.ray.rayCast;
 import base_RayTracer.ray.rayHit;
-import base_RayTracer.scene.myScene;
 import base_RayTracer.scene.objType;
+import base_RayTracer.scene.base.Base_Scene;
+import base_RayTracer.scene.geometry.sceneObjects.implicit.base.Base_ImplicitObject;
 import base_Math_Objects.MyMathUtils;
-import base_Math_Objects.vectorObjs.doubles.myMatrix;
+import base_Math_Objects.matrixObjs.doubles.myMatrix;
 import base_Math_Objects.vectorObjs.doubles.myPoint;
 import base_Math_Objects.vectorObjs.doubles.myVector;
 import processing.core.PImage;
 
-public class mySphere extends myImpObject{
+public class mySphere extends Base_ImplicitObject{
 	  
-		public mySphere(myScene _p, double _radX, double _radY, double _radZ, double x, double y, double z){
+		public mySphere(Base_Scene _p, double _radX, double _radY, double _radZ, double x, double y, double z){
 			super(_p, x,y,z);
 			type = objType.Sphere;
 			radX = _radX;
@@ -23,7 +24,7 @@ public class mySphere extends myImpObject{
 			postProcBBox();				//cnstrct and define bbox
 		}
 	  
-		public mySphere(myScene _p, double myRadius, double x, double y, double z, boolean active){	this(_p, myRadius, myRadius, myRadius,x,y,z);}    
+		public mySphere(Base_Scene _p, double myRadius, double x, double y, double z, boolean active){	this(_p, myRadius, myRadius, myRadius,x,y,z);}    
 		// calculates the "A" value for the quadratic equation determining the potential intersection of this ray with a sphere of given radius and center
 		public double getAVal(rayCast ray){return((ray.direction.x/radX) * (ray.direction.x/radX)) + ((ray.direction.y/radY) * (ray.direction.y/radY)) + ((ray.direction.z/radZ) * (ray.direction.z/radZ));}
 	  	// calculates the "B" value for the quadratic equation determining the potential intersection of this ray with a sphere of given radius and center

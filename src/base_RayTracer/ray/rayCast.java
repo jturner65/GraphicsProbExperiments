@@ -3,16 +3,16 @@ package base_RayTracer.ray;
 import java.util.concurrent.ThreadLocalRandom;
 
 import base_RayTracer.myRTColor;
-import base_RayTracer.scene.myScene;
+import base_RayTracer.scene.base.Base_Scene;
 import base_RayTracer.scene.geometry.base.Base_Geometry;
-import base_Math_Objects.vectorObjs.doubles.myMatrix;
+import base_Math_Objects.matrixObjs.doubles.myMatrix;
 import base_Math_Objects.vectorObjs.doubles.myPoint;
 import base_Math_Objects.vectorObjs.doubles.myVector;
 
 public class rayCast{
 
 	//the transmission constant of the material this ray is inside - will have 4 elements
-	public myScene scn;
+	public Base_Scene scn;
 	public double[] currRfrIdx;
 	public double[] currKTrans;
 	
@@ -32,7 +32,7 @@ public class rayCast{
 	 */
 	public int gen;
 
-	public rayCast(myScene _scn, myPoint _origin, myVector _direction, int _gen){
+	public rayCast(Base_Scene _scn, myPoint _origin, myVector _direction, int _gen){
 		//use this constructor when making rays r0 + t(dR) (direction is direction vector
 		//all vectors originate at origin
 		this.scn = _scn;

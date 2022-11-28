@@ -5,10 +5,11 @@ import java.util.concurrent.ThreadLocalRandom;
 import base_JavaProjTools_IRender.base_Render_Interface.IRenderInterface;
 import base_RayTracer.myRTColor;
 import base_RayTracer.ray.rayCast;
+import base_RayTracer.scene.base.Base_Scene;
 import base_Math_Objects.MyMathUtils;
 import base_Math_Objects.vectorObjs.doubles.myVector;
 
-public class myFishEyeScene extends myScene{
+public class myFishEyeScene extends Base_Scene{
 	//current field of view
 	public double fishEye, fishEyeRad;			//fisheye in degrees, radians	
 	private double aperatureHlf;
@@ -19,7 +20,7 @@ public class myFishEyeScene extends myScene{
 		super(_p,_sceneName,_numCols,_numRows);	
 	}
 	
-	public myFishEyeScene(myScene _s){
+	public myFishEyeScene(Base_Scene _s){
 		super(_s);
 	}
 

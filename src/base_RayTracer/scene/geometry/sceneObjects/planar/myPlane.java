@@ -1,16 +1,17 @@
 package base_RayTracer.scene.geometry.sceneObjects.planar;
 
 import base_RayTracer.ray.rayCast;
-import base_RayTracer.scene.myScene;
 import base_RayTracer.scene.objType;
+import base_RayTracer.scene.base.Base_Scene;
+import base_RayTracer.scene.geometry.sceneObjects.planar.base.Base_PlanarObject;
 import base_Math_Objects.vectorObjs.doubles.myPoint;
 import base_Math_Objects.vectorObjs.doubles.myVector;
 import processing.core.PImage;
 
 //infinite plane object
-public class myPlane extends myPlanarObject{
+public class myPlane extends Base_PlanarObject{
 
-	public myPlane(myScene _scn){
+	public myPlane(Base_Scene _scn){
 		super(_scn);
 		vCount = 4;
 		type = objType.Plane;

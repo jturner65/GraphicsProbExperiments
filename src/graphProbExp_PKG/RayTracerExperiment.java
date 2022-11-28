@@ -6,14 +6,14 @@ import java.util.TreeMap;
 import base_JavaProjTools_IRender.base_Render_Interface.IRenderInterface;
 import base_ProbTools.baseProbExpMgr;
 import base_RayTracer.myRTFileReader;
-import base_RayTracer.scene.myScene;
+import base_RayTracer.scene.base.Base_Scene;
 import base_Utils_Objects.io.messaging.MessageObject;
 import base_Utils_Objects.io.messaging.MsgCodes;
 
 public class RayTracerExperiment extends baseProbExpMgr {
 	public IRenderInterface pa;
 	//holds references to all loaded scenes
-	public TreeMap<String, myScene> loadedScenes;
+	public TreeMap<String, Base_Scene> loadedScenes;
 	
 	//current scene dims
 	public static int sceneCols = 300;
@@ -35,7 +35,7 @@ public class RayTracerExperiment extends baseProbExpMgr {
 		super(_msgObj, _curVisScrDims);	
 		pa = _pa;
 		rdr = new myRTFileReader(pa,".."+File.separator+"data"+File.separator+"txtrs"+File.separator);	
-		loadedScenes = new TreeMap<String, myScene>();	
+		loadedScenes = new TreeMap<String, Base_Scene>();	
 	}//ctor
 
 	@Override
@@ -59,12 +59,12 @@ public class RayTracerExperiment extends baseProbExpMgr {
 	}
 	
 	public void setFlipNorms() {
-		myScene s = loadedScenes.get(currSceneName);
+		Base_Scene s = loadedScenes.get(currSceneName);
 		if(s!=null) {s.flipNormal();}
 	}
 	
 	public void startRayTrace() {		
-		myScene tmp = rdr.readRTFile(loadedScenes, currSceneName, null, sceneCols, sceneRows);//pass null as scene so that we don't add to an existing scene
+		Base_Scene tmp = rdr.readRTFile(loadedScenes, currSceneName, null, sceneCols, sceneRows);//pass null as scene so that we don't add to an existing scene
 		msgObj.dispMessage("RayTracerExperiment", "startRayTrace", "Done with readRTFile", MsgCodes.info1);
 		//returns null means not found
 		if(null==tmp) {currSceneName = "";}
@@ -104,7 +104,7 @@ public class RayTracerExperiment extends baseProbExpMgr {
 		pa.pushMatState();
 			pa.disableLights();
 			pa.translate(transLoc[0],transLoc[1],0);
-			myScene s = loadedScenes.get(currDispSceneName);
+			Base_Scene s = loadedScenes.get(currDispSceneName);
 			if(s!=null) {s.draw();}		
 			pa.translate(sceneCols,0,0);
 			//TODO needs to be alt scene, using reduced cosine dist

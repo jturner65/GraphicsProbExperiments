@@ -7,11 +7,11 @@ import java.util.Map.Entry;
 
 import base_RayTracer.ray.rayCast;
 import base_RayTracer.ray.rayHit;
-import base_RayTracer.scene.myScene;
 import base_RayTracer.scene.objType;
+import base_RayTracer.scene.base.Base_Scene;
 import base_RayTracer.scene.geometry.accelStruct.base.Base_AccelStruct;
 import base_RayTracer.scene.geometry.base.Base_Geometry;
-import base_Math_Objects.vectorObjs.doubles.myMatrix;
+import base_Math_Objects.matrixObjs.doubles.myMatrix;
 
 //bvh structure 
 public class BVH_AccelStruct extends Base_AccelStruct{
@@ -23,7 +23,7 @@ public class BVH_AccelStruct extends Base_AccelStruct{
 	
 	public BVH_AccelStruct leftChild, rightChild;
 	//public int treedepth;
-	public BVH_AccelStruct(myScene _scn){
+	public BVH_AccelStruct(Base_Scene _scn){
 		super(_scn, 0, 0, 0);
 		type = objType.AccelBVH;
 		setTypeOfAccel(1);

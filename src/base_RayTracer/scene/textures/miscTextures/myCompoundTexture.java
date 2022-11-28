@@ -4,7 +4,7 @@ import java.util.ArrayList;
 
 import base_RayTracer.myRTColor;
 import base_RayTracer.ray.rayHit;
-import base_RayTracer.scene.myScene;
+import base_RayTracer.scene.base.Base_Scene;
 import base_RayTracer.scene.shaders.myObjShader;
 import base_RayTracer.scene.textures.base.Base_TextureHandler;
 import base_RayTracer.scene.textures.imageTextures.myImageTexture;
@@ -25,7 +25,7 @@ public class myCompoundTexture extends Base_TextureHandler{
 	private ArrayList<Double> imgWts;			
 	private ArrayList<Double> nseWts;	
 	
-	public myCompoundTexture(myScene _scn, myObjShader _shdr) {
+	public myCompoundTexture(Base_Scene _scn, myObjShader _shdr) {
 		super(_scn, _shdr);
 		imgTxtrs = new ArrayList<myImageTexture>();
 		imgWts = new ArrayList<Double>();

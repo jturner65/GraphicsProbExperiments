@@ -2,7 +2,7 @@ package base_RayTracer.scene.textures.imageTextures;
 
 import base_RayTracer.myRTColor;
 import base_RayTracer.ray.rayHit;
-import base_RayTracer.scene.myScene;
+import base_RayTracer.scene.base.Base_Scene;
 import base_RayTracer.scene.shaders.myObjShader;
 import base_RayTracer.scene.textures.base.Base_TextureHandler;
 import processing.core.PImage;
@@ -11,14 +11,14 @@ public class myImageTexture extends Base_TextureHandler{
 	//the image to be used as a texture to cover this object
 	public PImage myTextureTop, myTextureBottom;
 
-	public myImageTexture(myScene _scn, myObjShader _shdr) {
+	public myImageTexture(Base_Scene _scn, myObjShader _shdr) {
 		super(_scn,_shdr);
 	}
 	//initialize constants used to store extremal texture map conversion coords
 	@Override
 	protected void initTextureVals(){
-		txtFlags[txtrdTopIDX] = scene.scFlags[myScene.glblTxtrdTopIDX];
-		txtFlags[txtrdBtmIDX] =  scene.scFlags[myScene.glblTxtrdBtmIDX];
+		txtFlags[txtrdTopIDX] = scene.scFlags[Base_Scene.glblTxtrdTopIDX];
+		txtFlags[txtrdBtmIDX] =  scene.scFlags[Base_Scene.glblTxtrdBtmIDX];
 	    if (txtFlags[txtrdTopIDX]){
 	    	myTextureTop = scene.currTextureTop;
 	    	myTextureTop.loadPixels();		    } 

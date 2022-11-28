@@ -3,8 +3,8 @@ package base_RayTracer.scene.geometry.sceneObjects.lights;
 import java.util.concurrent.ThreadLocalRandom;
 
 import base_RayTracer.ray.rayCast;
-import base_RayTracer.scene.myScene;
 import base_RayTracer.scene.objType;
+import base_RayTracer.scene.base.Base_Scene;
 import base_RayTracer.scene.geometry.sceneObjects.lights.base.Base_Light;
 import base_Math_Objects.vectorObjs.doubles.myPoint;
 import base_Math_Objects.vectorObjs.doubles.myVector;
@@ -21,7 +21,7 @@ public class myDiskLight extends Base_Light{
 	public myVector surfTangent;	//unit vector tangent to surface of light - randomly rotate around normal and extend from 0->radius to get random position	
 	public myPoint curShadowTarget;		//current target for this light - changes every time shadow ray is sent
 	
-	public myDiskLight(myScene _scn, int _lightID, 
+	public myDiskLight(Base_Scene _scn, int _lightID, 
 			double _r, double _g, double _b, 
 			double _x, double _y, double _z, 
 			double _dx, double _dy, double _dz, 

@@ -8,7 +8,7 @@ import processing.core.*;
 import java.io.File;
 import java.util.*;
 
-import base_RayTracer.scene.myScene;
+import base_RayTracer.scene.base.Base_Scene;
 import base_UI_Objects.GUI_AppManager;
 import base_UI_Objects.my_procApplet;
 
@@ -23,7 +23,7 @@ public class DistRayTracer extends GUI_AppManager {
 	private final int sceneRows = 300;
 	
 	//map holding all loaded scene descriptions - scene should describe all scene and rendering-specific variables and quantities
-	public TreeMap<String, myScene> loadedScenes;
+	public TreeMap<String, Base_Scene> loadedScenes;
 
 
 	//name to save the file with, folder to put picture file in, a global variable for holding current active file name.
@@ -186,7 +186,7 @@ public class DistRayTracer extends GUI_AppManager {
 	
 	private void loadFile() {
 		if(!gCurrentFile.equals("")){
-			myScene tmp = rdr.readRTFile(loadedScenes, gCurrentFile, null, sceneCols, sceneRows);//pass null as scene so that we don't add to an existing scene
+			Base_Scene tmp = rdr.readRTFile(loadedScenes, gCurrentFile, null, sceneCols, sceneRows);//pass null as scene so that we don't add to an existing scene
 			if(null==tmp) {gCurrentFile = "";}
 		}		
 	}
@@ -216,8 +216,8 @@ public class DistRayTracer extends GUI_AppManager {
 	@Override
 	protected void initProgram_Indiv() {
 		rdr = new myRTFileReader((my_procApplet)pa,".."+File.separator+"data"+File.separator+"txtrs"+File.separator);	
-		loadedScenes = new TreeMap<String, myScene>();	
-		myScene tmp = rdr.readRTFile(loadedScenes, gCurrentFile, null, sceneCols, sceneRows);//pass null as scene so that we don't add to an existing scene
+		loadedScenes = new TreeMap<String, Base_Scene>();	
+		Base_Scene tmp = rdr.readRTFile(loadedScenes, gCurrentFile, null, sceneCols, sceneRows);//pass null as scene so that we don't add to an existing scene
 		//returns null means not found
 		if(null==tmp) {gCurrentFile = "";}
 	}

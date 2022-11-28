@@ -2,10 +2,10 @@ package base_RayTracer.scene.geometry.sceneObjects.base;
 import base_RayTracer.myRTColor;
 import base_RayTracer.ray.rayCast;
 import base_RayTracer.ray.rayHit;
-import base_RayTracer.scene.myScene;
+import base_RayTracer.scene.base.Base_Scene;
 import base_RayTracer.scene.geometry.base.Base_Geometry;
 import base_RayTracer.scene.shaders.myObjShader;
-import base_Math_Objects.vectorObjs.doubles.myMatrix;
+import base_Math_Objects.matrixObjs.doubles.myMatrix;
 import base_Math_Objects.vectorObjs.doubles.myVector;
 
 public abstract class Base_SceneObject extends Base_Geometry{	
@@ -18,7 +18,7 @@ public abstract class Base_SceneObject extends Base_Geometry{
 			;				//this object is used to instance multiple objects (doesn't exist in scene itself)
 	public static final int numFlags = 2;	
 
-	public Base_SceneObject(myScene _scn, double _x, double _y, double _z){
+	public Base_SceneObject(Base_Scene _scn, double _x, double _y, double _z){
 		super(_scn, _x, _y, _z);	    
 	    initFlags();
 	    shdr = new myObjShader(scene);//sets currently defined colors for this object also    
