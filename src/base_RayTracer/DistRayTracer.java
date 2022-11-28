@@ -1,6 +1,6 @@
 package base_RayTracer;
 /////
-///		Final ray tracer from cs7490 - supports distribution RT, acceleration structure(BVH), perlin and worley-noise-based textures, photon mapping
+///		Final ray tracer from cs7490 - supports distribution RT, acceleration structure(BVH), perlin and worley-noise-based textures, photon mapping (caustic and diffuse) in KD tree
 /////
 
 import processing.core.*;
