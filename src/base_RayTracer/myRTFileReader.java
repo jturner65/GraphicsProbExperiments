@@ -3,18 +3,19 @@ package base_RayTracer;
 import java.util.*;
 
 import base_JavaProjTools_IRender.base_Render_Interface.IRenderInterface;
+import base_Math_Objects.MyMathUtils;
+import base_Math_Objects.vectorObjs.doubles.myVector;
 import base_RayTracer.scene.myFOVScene;
 import base_RayTracer.scene.myFishEyeScene;
 import base_RayTracer.scene.myOrthoScene;
 import base_RayTracer.scene.base.Base_Scene;
+import base_RayTracer.scene.geometry.sceneObjects.myRndrdBox;
 import base_RayTracer.scene.geometry.sceneObjects.base.Base_SceneObject;
-import base_RayTracer.scene.geometry.sceneObjects.implicit.mySphere;
-import base_RayTracer.scene.geometry.sceneObjects.planar.myQuad;
-import base_RayTracer.scene.geometry.sceneObjects.planar.myTriangle;
+import base_RayTracer.scene.geometry.sceneObjects.implicit.*;
+import base_RayTracer.scene.geometry.sceneObjects.planar.*;
 import base_RayTracer.scene.geometry.sceneObjects.planar.base.Base_PlanarObject;
 import base_RayTracer.scene.textures.imageTextures.myImageTexture;
 import base_UI_Objects.my_procApplet;
-import processing.core.PApplet;
 
 public class myRTFileReader {
 	public IRenderInterface pa;
@@ -29,7 +30,7 @@ public class myRTFileReader {
 	//passed scene is for when called recursively - is null on first time in, passes scene to be used otherwise
 	public Base_Scene readRTFile(TreeMap<String, Base_Scene> loadedScenes, String fileName, Base_Scene _scene, int _numCols, int _numRows) {		  
 		//build individual scene for each file		
-		timer = ((my_procApplet)pa).millis();			//times rendering
+		timer = getTime();			//times rendering
 		curNumRows = _numRows;
 		curNumCols = _numCols;
 		
@@ -54,8 +55,19 @@ public class myRTFileReader {
 		return scene;
 	}//interpreter method
 	
+	protected int getTime() {
+		return ((my_procApplet)pa).millis();
+	}
 	
-	//build the objects in a scene
+	/**
+	 * build the objects in a scene
+	 * @param loadedScenes
+	 * @param fileStrings
+	 * @param scene
+	 * @param isMainFileScene
+	 * @param fileName
+	 * @return
+	 */
 	public Base_Scene parseStringArray(TreeMap<String, Base_Scene> loadedScenes, String[] fileStrings, Base_Scene scene, boolean isMainFileScene, String fileName) {
 		boolean finalized = false;
 		String vertType = "triangle";    		//assume default object type is triangle
@@ -66,11 +78,13 @@ public class myRTFileReader {
 		//reinitializes the image so that any previous values from other images are not saved
 		//if (str == null) {System.out.println("Error! Failed to read the file.");}
 		for (int i=0; i<fileStrings.length; ++i) { 
-			//System.out.println("Line " + i + " : " + str[i]);
-			String[] token = PApplet.splitTokens(fileStrings[i], " "); // Get a line and parse tokens.
-			if ((token.length == 0) || (token[0].startsWith("#"))) continue; // Skip blank line or comments.
-			switch (token[0]){
-			//determine the kind of scene - needs to be the first component in base scene file
+			if(fileStrings[i].startsWith("#")) {continue;}
+			String[] token = fileStrings[i].strip().split("\\s+"); // Get a line and parse tokens.
+			//debug
+			//printTokenAra(fileStrings[i], i, token);
+			if ((token.length == 0) || (token[0] == "")) {continue;} // Skip blank line or comments.
+			switch (token[0].toLowerCase()){
+				//determine the kind of scene - needs to be the first component in base scene file
 				case "fov" 	: {	
 					if(!isMainFileScene){System.out.println("Error - unsupported setting scene type ('FOV') in recursive child scene file"); break;}
 					Base_Scene tmp = new myFOVScene(scene);
@@ -79,14 +93,15 @@ public class myRTFileReader {
 					scene.setNumRaysPerPxl((curNumRaysPerPxl != 0) ? curNumRaysPerPxl : 1);
 					scene.setSceneParams(new double[]{Double.parseDouble(token[1])}); 
 					break;}	
-				   
-			    case "lens" : { 			//for depth of field -only in FOV scenes - specifies the lens size (radius) and what distance in front of the eye is in focus - greater radius should blur more of the image
+				//for depth of field -only in FOV scenes - specifies the lens size (radius) and what 
+				//distance in front of the eye is in focus - greater radius should blur more of the image
+			    case "lens" : { 			
 			    	double radius = Double.parseDouble(token[1]);
 			    	double focal_distance = Double.parseDouble(token[2]);
 			    	scene.setDpthOfFld(radius, focal_distance);			    	
 			    	break;}
 			    
-				case "fishEye" :
+				//case "fishEye" :
 				case "fisheye" : { 
 					if(!isMainFileScene){System.out.println("Error - unsupported setting scene type ('fishEye') in recursive child scene file"); break;}					
 					Base_Scene tmp = new myFishEyeScene(scene);
@@ -117,20 +132,20 @@ public class myRTFileReader {
 			    case "read" : {//read another scene file - nested to load multiple files
 			    	readRTFile(loadedScenes,token[1],scene,curNumCols, curNumRows);
 			    	break;}		
-		    //timer stuff
+			    //timer stuff
 			    case "reset_timer" : {//Reset a global timer that will be used to determine how long it takes to render a scene. 
-			    	timer = ((my_procApplet)pa).millis();
+			    	timer = getTime();
 			    	break;
 			    }
 			    case "print_timer" : {//Print the time elapsed since reset_timer was called (in seconds). Use the code snippet 
-			    	int new_timer = ((my_procApplet)pa).millis();
+			    	int new_timer = getTime();
 			    	int diff = new_timer - timer;
 			    	float seconds = diff / 1000.0f;
 			    	scene.renderTime = seconds;
 			    	System.out.println ("timer = " + seconds);
 			    	break;
 			    }			    
-			//global modifications to alg
+			    //global modifications to alg
 			    case "refine" : {    	scene.setRefine(token[1]); break;}//user iterative refinement when rendering scene - start at (int)log2 of dim, then decrease by 2 every iteration			    
 
 			    case "rays_per_pixel" : {	//how many rays should be shot per pixel.
@@ -315,8 +330,9 @@ public class myRTFileReader {
 			    case "wood" : 
 			    case "wood2" : {   	scene.setTexture(token);   	break;    }			 
 			    
-			    //polygons		    
-			    case "begin" : {//begin shape - defaults to triangle
+			    //polygons		
+			    //begin shape - defaults to triangle
+			    case "begin" : {
 			    	try {	vertType = token[1];   	} catch (Exception e) {	}      //triangle is default;  quad will be specified
 			     	myVertCount = 0;
 			      	if (vertType.equals("quad")){	myPoly = new myQuad(scene);} 
