@@ -1,5 +1,6 @@
 package graphProbExp_PKG;
 
+import base_RayTracer.ui.RayTracer2DWin;
 import base_UI_Objects.*;
 import base_UI_Objects.windowUI.base.Base_DispWindow;
 import base_UI_Objects.windowUI.sidebar.SidebarMenu;

@@ -1,25 +1,25 @@
-package graphProbExp_PKG;
+package base_RayTracer.ui;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.TreeMap;
 
 import base_JavaProjTools_IRender.base_Render_Interface.IRenderInterface;
-import base_Math_Objects.vectorObjs.doubles.myPoint;
-import base_Math_Objects.vectorObjs.doubles.myVector;
+import base_Math_Objects.vectorObjs.doubles.*;
 import base_UI_Objects.GUI_AppManager;
 import base_UI_Objects.windowUI.base.Base_DispWindow;
 import base_UI_Objects.windowUI.drawnTrajectories.DrawnSimpleTraj;
 import base_UI_Objects.windowUI.uiData.UIDataUpdater;
 import base_UI_Objects.windowUI.uiObjs.base.GUIObj_Type;
 import base_Utils_Objects.io.messaging.MsgCodes;
+import graphProbExp_PKG.GrapProbUIDataUpdater;
+import graphProbExp_PKG.RayTracerExperiment;
 
 /**
  * class to hold 2-D ray tracer experiment - bunch of circles, shoot rays and plot their traversal
  * @author john
  *
  */
-
 public class RayTracer2DWin extends Base_DispWindow {
 	
 	/////////////
@@ -227,13 +227,10 @@ public class RayTracer2DWin extends Base_DispWindow {
 		}	
 	}
 
-	
-	
 	//check whether the mouse is over a legitimate map location
 	public boolean chkMouseClick2D(int mouseX, int mouseY, int btn){		
 		return RTExp.checkMouseClickInExp2D( mouseX-(int)this.rectDim[0], mouseY, btn);
 	}//chkMouseOvr
-
 	
 	//check whether the mouse is over a legitimate map location
 	public boolean chkMouseMoveDragState2D(int mouseX, int mouseY, int btn){		
@@ -243,7 +240,6 @@ public class RayTracer2DWin extends Base_DispWindow {
 	//check whether the mouse is over a legitimate map location
 	public void setMouseReleaseState2D(){	RTExp.setMouseReleaseInExp2D();}//chkMouseOvr
 
-	
 	@Override
 	protected void drawMe(float animTimeMod) {
 		pa.pushMatState();
