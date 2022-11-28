@@ -71,7 +71,7 @@ public class mySpotLight extends Base_Light{
 		//rotate in phi dir for random direction
 		tmp = tmp.rotMeAroundAxis(orientation,ThreadLocalRandom.current().nextDouble(0,MyMathUtils.TWO_PI));
 		
-		return new rayCast(scene, getTransformedPt(origin, CTMara[glblIDX]), tmp, 0);
+		return new rayCast(scene, CTMara[glblIDX].transformPoint(origin), tmp, 0);
 	}	
 	@Override //no need for surface normal of light (??)
 	public myVector getNormalAtPoint(myPoint point, int[] args) {	return new myVector(0,1,0);	}

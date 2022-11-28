@@ -6,6 +6,7 @@ import base_RayTracer.ray.rayHit;
 import base_RayTracer.scene.objType;
 import base_RayTracer.scene.base.Base_Scene;
 import base_RayTracer.scene.geometry.base.Base_Geometry;
+import base_Math_Objects.MyMathUtils;
 import base_Math_Objects.matrixObjs.doubles.myMatrix;
 import base_Math_Objects.vectorObjs.doubles.myPoint;
 import base_Math_Objects.vectorObjs.doubles.myVector;
@@ -44,8 +45,8 @@ public class BoundingBox extends Base_Geometry {
 
 	//expand bbox to encompass passed box
 	public void expandMeByTransBox(BoundingBox srcBox, myMatrix fwdTrans) {
-		expandMePt(getTransformedPt(srcBox.minVals,fwdTrans));
-		expandMePt(getTransformedPt(srcBox.maxVals,fwdTrans));
+		expandMePt(fwdTrans.transformPoint(srcBox.minVals));
+		expandMePt(fwdTrans.transformPoint(srcBox.maxVals));
 	}
 	public void expandMeByBox(BoundingBox srcBox) {
 		expandMePt(srcBox.minVals);
@@ -65,7 +66,6 @@ public class BoundingBox extends Base_Geometry {
 													((tarBox.minVals.y < pt.y) && ( pt.y < tarBox.maxVals.y)) && 
 													((tarBox.minVals.z < pt.z) && ( pt.z < tarBox.maxVals.z)));}
 
-
 	
 	public void calcMinMaxCtrVals(myPoint _minVals, myPoint _maxVals){
 		minVals.set(Math.min(_minVals.x, minVals.x),Math.min(_minVals.y, minVals.y),Math.min(_minVals.z, minVals.z));
@@ -73,12 +73,12 @@ public class BoundingBox extends Base_Geometry {
 		origin = new myPoint(minVals);
 		origin._add(maxVals);
 		origin._mult(.5);
-	    trans_origin = getTransformedPt(origin, CTMara[glblIDX]).asArray();
+		buildTransOrigin();
 	    //trans_origin = origin.getAsAra();
 	    myPoint difs = myPoint._sub(maxVals, minVals);	    
 	    //myVector difs = new myVector(minVals,maxVals);
 		double[] difVals = difs.asArray();
-		double maxVal =  max(difVals);
+		double maxVal = MyMathUtils.max(difVals);
 		maxExtentIdx = (maxVal == difVals[0] ? 0 : maxVal == difVals[1] ? 1 : 2);
 		//myVector dif = new myVector(minVals,maxVals);
 		sArea =  new myVector (difs.y*difs.z, difs.x*difs.z, difs.x*difs.y);						
@@ -127,7 +127,7 @@ public class BoundingBox extends Base_Geometry {
 				if(biggestMin < tmpVals2[i]){		idx = i + 3;	biggestMin = tmpVals2[i];}
 			}
 		}		
-		if((min(tMaxVals) > max(tMinVals)) && biggestMin > 0){ //hit happens
+		if((MyMathUtils.min(tMaxVals) > MyMathUtils.max(tMinVals)) && biggestMin > 0){ //hit happens
 			//pass args array to rayHit args : use idx[1] : this is idx (0 - 5) of plane intersected (low const x plane, low const y plane, low const z plane, high const x plane, high const y plane, high const z plane
 			//return (obj instanceof myRndrdBox) ? transRay.objHit(transRay,obj,  _ctAra, transRay.pointOnRay(biggestMin),new int[]{0,idx},biggestMin) : obj.intersectCheck(ray, transRay, _ctAra);
 			return transRay.objHit(obj,transRay.getTransformedVec(transRay.direction, _ctAra[glblIDX]),  _ctAra, transRay.pointOnRay(biggestMin),new int[]{0,idx},biggestMin);		//TODO - should we use obj ctara or bbox ctara? should they be same?

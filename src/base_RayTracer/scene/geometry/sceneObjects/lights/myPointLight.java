@@ -20,7 +20,7 @@ public class myPointLight extends Base_Light{
 	@Override
 	public rayCast genRndPhtnRay() {
 		myVector tmp = getRandDir();
-		return new rayCast(scene, getTransformedPt(origin, CTMara[glblIDX]), tmp, 0);
+		return new rayCast(scene, CTMara[glblIDX].transformPoint(origin), tmp, 0);
 	}
 	
 	@Override

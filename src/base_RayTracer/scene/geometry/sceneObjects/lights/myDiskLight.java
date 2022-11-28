@@ -45,7 +45,7 @@ public class myDiskLight extends Base_Light{
 		//dir = myVector._rotAroundAxis(dir, orientation,ThreadLocalRandom.current().nextDouble(0,PConstants.TWO_PI));		
 		dir = dir.rotMeAroundAxis(orientation,ThreadLocalRandom.current().nextDouble(0,PConstants.TWO_PI));		
 		myPoint loc = getRandomDiskPos();
-		return new rayCast(scene, getTransformedPt(loc, CTMara[glblIDX]), dir, 0);
+		return new rayCast(scene, CTMara[glblIDX].transformPoint(loc), dir, 0);
 	}//genRndPhtnRay
 	
 	public void setDisklightVals(double _radius){
