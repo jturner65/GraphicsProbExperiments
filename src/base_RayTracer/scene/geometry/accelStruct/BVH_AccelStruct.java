@@ -31,7 +31,7 @@ public class BVH_AccelStruct extends Base_AccelStruct{
 		isLeaf = true;
 		maxSpanSplitIDX = -1;						//can use this to determine if this is a leaf or not
 		leafVals = new GeoList_AccelStruct(scene);
-		postProcBBox();				//cnstrct and define bbox
+		postProcAccelStruct();
 	}	
 	
 	public BVH_AccelStruct buildChild(){
@@ -54,10 +54,10 @@ public class BVH_AccelStruct extends Base_AccelStruct{
 				resAra[i] = new ArrayList<Base_Geometry>();
 				tmpMap = new TreeMap<Double,List<Base_Geometry>>();				
 				for(Base_Geometry _obj : _sortedAra){
-					List<Base_Geometry> tmpList = tmpMap.get(_obj.trans_origin[i]);
+					List<Base_Geometry> tmpList = tmpMap.get(_obj.transOrigin[i]);
 					if(null == tmpList){tmpList = new ArrayList<Base_Geometry>();}
 					tmpList.add(_obj);
-					tmpMap.put( _obj.trans_origin[i], tmpList);
+					tmpMap.put( _obj.transOrigin[i], tmpList);
 				}
 				for (Entry<Double, List<Base_Geometry>> e: tmpMap.entrySet()) {		resAra[i].addAll(e.getValue());		}
 			}
@@ -75,7 +75,7 @@ public class BVH_AccelStruct extends Base_AccelStruct{
 			//leafVals.CTMara = scene.p.buildIdentCTMara();
 			for(Base_Geometry _obj : _addObjsList[0]){	leafVals.addObj(_obj);		}
 			leafVals.setTypeOfAccel(5);
-			_bbox.expandMeByBox(leafVals._bbox);
+			_bbox.expandMeByBox(leafVals.getBBox());
 		} else {
 			isLeaf = false;
 			//go through ctr-sorted objects to find appropriate first partition

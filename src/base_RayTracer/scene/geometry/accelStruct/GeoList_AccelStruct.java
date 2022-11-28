@@ -17,14 +17,14 @@ public class GeoList_AccelStruct extends Base_AccelStruct{
 		objList = new ArrayList<Base_Geometry>();
 		type = objType.AccelFlatList;
 		setTypeOfAccel(0);
-		postProcBBox();				//cnstrct and define bbox
+		postProcAccelStruct();
 	}
 
 	public void addObj(Base_Geometry _obj) {
 		objList.add(_obj);	
 		myMatrix tmp = CTMara[invIDX].multMat(_obj.CTMara[glblIDX]);
 		//gtMatrix tmp = (_obj.CTMara[glblIDX]);
-		_bbox.expandMeByTransBox(_obj._bbox, tmp);
+		_bbox.expandMeByTransBox(_obj.getBBox(), tmp);
 	}
 	@Override  //check if object's contents block the light - check if any are accel structs or instance of accel struct
 	public int calcShadowHit(rayCast _ray,rayCast _trans, myMatrix[] _ctAra, double distToLight) {

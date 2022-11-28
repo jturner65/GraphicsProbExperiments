@@ -13,7 +13,11 @@ import base_Math_Objects.vectorObjs.doubles.myVector;
 import processing.core.PImage;
 
  
-//abstract base class for myGeomBase objects that are directly involved in holding other objects for acceleration purposes
+/**
+ * abstract base class for myGeomBase objects that are directly involved in holding other objects for acceleration purposes
+ * @author 7strb
+ *
+ */
 public abstract class Base_AccelStruct extends Base_Geometry{
 	private int typeOfAccel;
 	protected int treedepth;
@@ -23,7 +27,14 @@ public abstract class Base_AccelStruct extends Base_Geometry{
 		typeOfAccel = -1;
 		treedepth = 0;
 	}
-
+	protected final void postProcAccelStruct() {
+		postProcBBox();				//cnstrct and define bbox
+		//build origin based on bounding box
+		origin = new myPoint(_bbox.getMinVec());
+		origin._add(_bbox.getMaxVec());
+		origin._mult(.5);
+	}
+	
 	@Override//myAccelStruct has no txtrs
 	public double[] findTxtrCoords(myPoint isctPt, PImage myTexture, double time) {return new double[]{0,0};}
 	
@@ -42,7 +53,7 @@ public abstract class Base_AccelStruct extends Base_Geometry{
 		double maxSpan = -1, diff;
 		int idxOfMaxSpan = -1, araSize = _tmpCtrObjList[0].size();
 		for(int i = 0; i<3; ++i){
-			diff = _tmpCtrObjList[i].get(araSize-1).trans_origin[i] - _tmpCtrObjList[i].get(0).trans_origin[i] ; 
+			diff = _tmpCtrObjList[i].get(araSize-1).transOrigin[i] - _tmpCtrObjList[i].get(0).transOrigin[i] ; 
 			//System.out.println("Diff : arasize : " + araSize + " diff : " + diff);
 			if(maxSpan < diff){		maxSpan = diff;	idxOfMaxSpan = i;}				
 		}
