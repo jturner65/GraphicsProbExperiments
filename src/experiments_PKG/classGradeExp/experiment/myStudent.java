@@ -1,10 +1,11 @@
-package classGradeExperimentsPKG;
+package experiments_PKG.classGradeExp.experiment;
 
 import java.util.HashMap;
 
 import base_JavaProjTools_IRender.base_Render_Interface.IRenderInterface;
 import base_ProbTools.samples.mySampleObs;
 import base_ProbTools.samples.mySampleSet;
+import experiments_PKG.classGradeExp.roster.myClassRoster;
 import base_Math_Objects.vectorObjs.floats.myPointf;
 
 /**
@@ -13,7 +14,7 @@ import base_Math_Objects.vectorObjs.floats.myPointf;
  * @author john
  *
  */
-public class myStudent implements Comparable<mySampleObs> {
+public class myStudent implements Comparable<myStudent> {
 	//short display name
 	public final String shrtName;
 	public final int ObjID;
@@ -159,9 +160,11 @@ public class myStudent implements Comparable<mySampleObs> {
 	}//drawMe
 	
 	
-	//compare based on name first, then sort by ObjID
+	/**
+	 * compare based on name first, then sort by ObjID
+	 */
 	@Override
-	public int compareTo(mySampleObs othr) {
+	public int compareTo(myStudent othr) {
 		int res = this.name.toLowerCase().compareTo(othr.name.toLowerCase());
 		return (res == 0 ? Integer.compare(ObjID, othr.ObjID) : res);
 	}//compareTo

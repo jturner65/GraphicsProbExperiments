@@ -1,4 +1,4 @@
-package graphProbExp_PKG;
+package experiments_PKG.probabilityExp.ui;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -12,6 +12,7 @@ import base_UI_Objects.windowUI.base.Base_DispWindow;
 import base_UI_Objects.windowUI.drawnTrajectories.DrawnSimpleTraj;
 import base_UI_Objects.windowUI.uiData.UIDataUpdater;
 import base_Utils_Objects.io.messaging.MsgCodes;
+import experiments_PKG.probabilityExp.experiment.myProbExpMgr;
 
 public class Alt2DWindow extends Base_DispWindow {
 	
@@ -62,7 +63,7 @@ public class Alt2DWindow extends Base_DispWindow {
 		setFlags(useCustCam, true);
 		//this window uses right side info window
 		setFlags(drawRightSideMenu, true);
-		tester = new myProbExpMgr(pa, msgObj, curVisScrDims);
+		tester = new myProbExpMgr(pa, this, curVisScrDims);
 		
 		//set offset to use for custom menu objects
 		custMenuOffset = uiClkCoords[3];	

@@ -1371,16 +1371,23 @@ public abstract class Base_Scene {
 	//instance scene-specific 
 	//public abstract myColor calcAAColor(double pRayX, double pRayY, double xIncr, double yIncr);
 	public abstract myRTColor shootMultiRays(double pRayX, double pRayY);
-	public abstract void draw(); 
-	
-	/**
-	 * called at end of drawing to display image result
-	 */
-	protected final void finalizeDraw() {
+	public final void draw() {
+		//if not rendered yet, render and then draw
+		if (!scFlags[renderedIDX]){	
+			initRender();
+			//Render specific scene
+			renderScene();			
+			//Finish up
+			//update the display based on the pixels array
+			rndrdImg.updatePixels();
+			if(scFlags[renderedIDX]){	finishImage();	}
+		}
 		((my_procApplet) pa).imageMode(PConstants.CORNER);
 		((my_procApplet) pa).image(rndrdImg,0,0);	
 	}
-
+	
+	protected abstract void renderScene();
+	
 	/**
 	 * file save
 	 */

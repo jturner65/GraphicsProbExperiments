@@ -1,7 +1,9 @@
-package classGradeExperimentsPKG;
+package experiments_PKG.classGradeExp;
 
 import base_JavaProjTools_IRender.base_Render_Interface.IRenderInterface;
 import base_StatsTools.visualization.base.baseVisMgr;
+import experiments_PKG.classGradeExp.experiment.myStudent;
+import experiments_PKG.classGradeExp.roster.myClassRoster;
 
 
 /**
@@ -31,7 +33,7 @@ public class myGradeDistVisBar extends baseVisMgr {
 	//this bar is enabled/disabled
 	private boolean enabled;
 	//student being moved by mouse click
-	protected myStudent _modStudent;
+	private myStudent _modStudent;
 	
 	public static final int[] blkStrk = new int[] {0,0,0,255};
 	//grey for disabled
@@ -39,10 +41,10 @@ public class myGradeDistVisBar extends baseVisMgr {
 	
 	//specific color constructor - used to set up overall grade bar for a single class
 	public myGradeDistVisBar(myClassRoster _owningClass, IRenderInterface _pa, float[] _dims, String _typ, int[] _barColor, String _name) {
-		super(_pa, new float[] {_dims[0],_dims[1], _barStX + (_owningClass.distPlotDimRect[2]*barWidthMult) ,_dims[2]}, _name);
+		super(_pa, new float[] {_dims[0],_dims[1], _barStX + (_dims[2]*barWidthMult) ,_dims[3]}, _name);
 		gradeType=_typ;
 		setIsVisible(true);			//default bar to being visible
-		_setDispWidthIndiv(_owningClass.distPlotDimRect[2]);
+		_setDispWidthIndiv(_dims[2]);
 		_barStY = .5f * startRect[3];
 		_clkBox = new float[] {0,-8+_barStY,16,16};
 		barColor = _barColor;// getRndClr2 should be brighter colors
@@ -73,9 +75,9 @@ public class myGradeDistVisBar extends baseVisMgr {
 		//x location of click
 		float clickScale = ((msXLoc-_barStX)/barWidth);
 		//if moving a student, update grade
-		if(_modStudent != null) {
+		if(getModStudent() != null) {
 			//System.out.println("_mouseDragIndiv for bar : " + ObjID + " clickScale : " + clickScale);
-			_modStudent.setTransformedGrade(gradeType, owningClass,clickScale);
+			getModStudent().setTransformedGrade(gradeType, owningClass,clickScale);
 			return true;
 		}
 		return false;
@@ -89,7 +91,7 @@ public class myGradeDistVisBar extends baseVisMgr {
 	
 	//release student being dragged
 	@Override
-	protected void _mouseReleaseIndiv() {		_modStudent = null;}//
+	protected void _mouseReleaseIndiv() {		setModStudent(null);}//
 	
 	public float getAbsYLoc() {return startRect[1]+_barStY;}
 	
@@ -97,17 +99,16 @@ public class myGradeDistVisBar extends baseVisMgr {
 	public void transToBarStart() {pa.translate(startRect[0]+_barStX,startRect[1]+_barStY,0);}	
 	//draw grade bar and student locations
 	protected void _drawVisIndiv() {
+		pa.pushMatState();
 		if(enabled) {
-			pa.pushMatState();
 			_drawBoxAndBar(clr_green,barColor);
-			for (myStudent s : owningClass.students.values()) {		s.drawMeTransformed(pa, gradeType, owningClass, s.clr, barWidth);	}
-			pa.popMatState();					
+			//for (myStudent s : owningClass.students.values()) {		s.drawMeTransformed(pa, gradeType, owningClass, s.clr, barWidth);	}
 		} else {							
-			pa.pushMatState();
 			_drawBoxAndBar(clr_red,clr_grey);
-			for (myStudent s : owningClass.students.values()) {		s.drawMeTransformed(pa, gradeType, owningClass, greyOff, barWidth);	}		
-			pa.popMatState();
+			//for (myStudent s : owningClass.students.values()) {		s.drawMeTransformed(pa, gradeType, owningClass, greyOff, barWidth);	}		
 		}
+		owningClass.drawAllStudents(gradeType, barWidth, enabled);
+		pa.popMatState();					
 	}//_drawVisIndiv
 	
 	//draw box and bar with appropriate colors
@@ -132,6 +133,16 @@ public class myGradeDistVisBar extends baseVisMgr {
 	public void setBarEnabled(boolean _en) {enabled=_en;}
 	public void setType(String _typ) {gradeType=_typ;}
 	public String getType() {return gradeType;}
+
+	/**
+	 * @return the _modStudent
+	 */
+	public myStudent getModStudent() {	return _modStudent;}
+
+	/**
+	 * @param set _modStudent with passed modStudent
+	 */
+	public void setModStudent(myStudent modStudent) {	_modStudent = modStudent;}
 
 	@Override
 	public void clearEvalVals() {}

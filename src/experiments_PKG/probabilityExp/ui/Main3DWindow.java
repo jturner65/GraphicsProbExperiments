@@ -1,4 +1,4 @@
-package graphProbExp_PKG;
+package experiments_PKG.probabilityExp.ui;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -13,6 +13,7 @@ import base_UI_Objects.windowUI.drawnTrajectories.DrawnSimpleTraj;
 import base_UI_Objects.windowUI.uiData.UIDataUpdater;
 import base_UI_Objects.windowUI.uiObjs.base.GUIObj_Type;
 import base_Utils_Objects.io.messaging.MsgCodes;
+import experiments_PKG.probabilityExp.experiment.myProbExpMgr;
 
 public class Main3DWindow extends Base_DispWindow {
 	
@@ -88,7 +89,7 @@ public class Main3DWindow extends Base_DispWindow {
 		
 		//called once
 		//initPrivFlags(numPrivFlags);
-		tester = new myProbExpMgr(pa, msgObj, curVisScrDims);
+		tester = new myProbExpMgr(pa, this, curVisScrDims);
 
 		custMenuOffset = uiClkCoords[3];	//495	
 	}//initMe	

@@ -1,10 +1,12 @@
-package graphProbExp_PKG;
+package experiments_PKG;
 
-import base_RayTracer.ui.RayTracer2DWin;
 import base_UI_Objects.*;
 import base_UI_Objects.windowUI.base.Base_DispWindow;
 import base_UI_Objects.windowUI.sidebar.SidebarMenu;
-import classGradeExperimentsPKG.Grade2DWindow;
+import experiments_PKG.classGradeExp.ui.Grade2DWindow;
+import experiments_PKG.graphProbExp.RayTracerExpWindow;
+import experiments_PKG.probabilityExp.ui.Alt2DWindow;
+import experiments_PKG.probabilityExp.ui.Main3DWindow;
 
 /**
  * Testbed to experiment with synthesizing probablity distributions and displaying the results
@@ -133,7 +135,7 @@ public class GraphProbExpMain extends GUI_AppManager {
 		//ray tracer window
 		wIdx = disp2DRayTracerIDX; fIdx = show2DRayTracerIDX;
 		setInitDispWinVals(wIdx, _dimOpen, _dimClosed,new boolean[]{false,false,false,false}, new int[]{20,30,10,255}, new int[]{255,255,255,255},new int[]{180,180,180,255},new int[]{100,100,100,255}); 
-		dispWinFrames[wIdx] = new RayTracer2DWin(pa, this, wIdx, fIdx);
+		dispWinFrames[wIdx] = new RayTracerExpWindow(pa, this, wIdx, fIdx);
 		//grades experiment window
 		wIdx = dispGradeWinIDX; fIdx = showGradeWinIDX;
 		setInitDispWinVals(wIdx, _dimOpen, _dimClosed,new boolean[]{false,false,false,false}, new int[]{50,20,50,255}, new int[]{255,255,255,255},new int[]{180,180,180,255},new int[]{100,100,100,255}); 
@@ -151,8 +153,8 @@ public class GraphProbExpMain extends GUI_AppManager {
 	//called from base class, once at start of program after vis init is called
 	protected void initOnce_Indiv(){
 		setVisFlag(showUIMenu, true);					//show input UI menu	
-		//setVisFlag(showGradeWinIDX, true);
-		setVisFlag(show2DRayTracerIDX, true);
+		setVisFlag(showGradeWinIDX, true);
+		//setVisFlag(show2DRayTracerIDX, true);
 	}//	initOnce
 	
 	@Override
@@ -226,6 +228,7 @@ public class GraphProbExpMain extends GUI_AppManager {
 	
 	
 	//get the ui rect values of the "master" ui region (another window) -> this is so ui objects of one window can be made, clicked, and shown displaced from those of the parent windwo
+	@Override
 	public float[] getUIRectVals(int idx){
 			//this.pr("In getUIRectVals for idx : " + idx);
 		switch(idx){

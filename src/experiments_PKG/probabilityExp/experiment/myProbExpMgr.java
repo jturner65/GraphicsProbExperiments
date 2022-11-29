@@ -1,4 +1,4 @@
-package graphProbExp_PKG;
+package experiments_PKG.probabilityExp.experiment;
 
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -6,7 +6,9 @@ import base_JavaProjTools_IRender.base_Render_Interface.IRenderInterface;
 import base_ProbTools.baseProbExpMgr;
 import base_ProbTools.randGenFunc.gens.base.myRandGen;
 import base_StatsTools.summary.myProbSummary_Dbls;
-import base_Utils_Objects.io.messaging.MessageObject;
+import base_UI_Objects.windowUI.base.Base_DispWindow;
+import base_Utils_Objects.dataAdapter.Base_UIDataUpdater;
+import experiments_PKG.probabilityExp.ui.GrapProbUIDataUpdater;
 /**
  * this class will manage probability-based graphical experiments
  * @author john
@@ -14,6 +16,8 @@ import base_Utils_Objects.io.messaging.MessageObject;
  */
 public class myProbExpMgr extends baseProbExpMgr{	
 	public IRenderInterface pa;
+	
+	public Base_DispWindow win;
 	//random # generator
 	protected myRandGen nrmlGen, gaussGen;
 	
@@ -23,16 +27,35 @@ public class myProbExpMgr extends baseProbExpMgr{
 	public static final int numFlags = 1;	
 	
 	
-	public myProbExpMgr(IRenderInterface _pa, MessageObject _msgObj, float[] _curVisScrDims) {
-		super(_msgObj, _curVisScrDims);
+	public myProbExpMgr(IRenderInterface _pa, Base_DispWindow _win, float[] _curVisScrDims) {
+		super(_win.getMsgObj(), _curVisScrDims);
+		win = _win;
 		pa=_pa;
 	}//ctor
 
 	//build solvers specific to this experiment - called after base class solver init
 	@Override
-	protected void buildSolvers_indiv() {
+	protected void buildSolvers_Indiv() {
 
 	}//buildSolvers
+	
+	/**
+	 * Sets the initial uiDataValues UIDataUpdater from owner of experiment. This is used to pass values between experiment and UI
+	 * This is called the first time update process is called
+	 */
+	@Override
+	protected Base_UIDataUpdater initUIDataUpdater(Base_UIDataUpdater dataUpdate) {
+		return new GrapProbUIDataUpdater((GrapProbUIDataUpdater)dataUpdate);
+	}
+	/**
+	 * Sets new values for the UIDataUpdater. Should only be called if values have changed.
+	 * @param dataUpdate New data from UI or other data source
+	 */
+	@Override
+	protected void updateUIDataValues_Priv() {		
+	}
+
+
 	
 	//called at end of ctor and whenever experiment needs to be re-instanced
 	@Override
@@ -43,16 +66,11 @@ public class myProbExpMgr extends baseProbExpMgr{
 	
 	//update all rand gen objects for this function, including updating rand var funcs
 	@Override
-	protected void updateAllRandGens_Priv() {
-		// TODO Auto-generated method stub
-		
-	}
+	protected void updateAllRandGens_Priv() {	}
 
 	//this is called whenever screen width is changed - used to modify visualizations if necessary
 	@Override
-	protected void setVisWidth_Priv() {
-		
-	}//setVisWidth_Priv
+	protected void setVisWidth_Priv() {}//setVisWidth_Priv
 
 	//check mouse over/click in 2d experiment - btn == -1 is mouse over
 	@Override	

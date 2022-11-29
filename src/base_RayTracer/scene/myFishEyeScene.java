@@ -61,63 +61,56 @@ public class myFishEyeScene extends Base_Scene{
 	
 	@Override
 	//distribution draw
-	public void draw(){
-		if (!scFlags[renderedIDX]){
-			initRender();
-			//index of currently written pixel
-			int pixIDX = 0;
-			int progressCount = 0;
-			myRTColor showColor;
-			boolean skipPxl = false;
-			int stepIter = 1;			
-			if(scFlags[glblRefineIDX]){
-				stepIter = RefineIDX[curRefineStep++];
-				skipPxl = curRefineStep != 1;			//skip 0,0 pxl on all sub-images except the first pass
-			} 
-			if(stepIter == 1){scFlags[renderedIDX] = true;			}
-			//fisheye assumes plane is 1 away from eye
+	public void renderScene(){
+		//index of currently written pixel
+		int pixIDX = 0;
+		int progressCount = 0;
+		myRTColor showColor;
+		boolean skipPxl = false;
+		int stepIter = 1;			
+		if(scFlags[glblRefineIDX]){
+			stepIter = RefineIDX[curRefineStep++];
+			skipPxl = curRefineStep != 1;			//skip 0,0 pxl on all sub-images except the first pass
+		} 
+		if(stepIter == 1){scFlags[renderedIDX] = true;			}
+		//fisheye assumes plane is 1 away from eye
 
-			
-			double r, phi, theta,yVal, xVal, ySq, sTh, rTmp;
-			//fishRad2 = .5*fishEyeRad;
+		
+		double r, phi, theta,yVal, xVal, ySq, sTh, rTmp;
+		//fishRad2 = .5*fishEyeRad;
 
-			if (numRaysPerPixel == 1){											//single ray into scene per pixel
-				for (int row = 0; row < sceneRows; row+=stepIter){
-					yVal = (row + yStart) * fishMult;
-					ySq = yVal * yVal;
-					for (int col = 0; col < sceneCols; col+=stepIter){
-						if(skipPxl){skipPxl = false;continue;}			//skip only 0,0 pxl	
-						xVal = (col + xStart)* fishMult;
-						rTmp = xVal*xVal+ySq;
-						if(rTmp > 1){	pixIDX = writePxlSpan(blkColor.getInt(),row,col,stepIter,rndrdImg.pixels);	} 
-						else {
-							r = Math.sqrt(rTmp);
-							theta = r * aperatureHlf;
-							phi = Math.atan2(-yVal,xVal); 					
-							sTh = Math.sin(theta);
-							showColor = reflectRay(new rayCast(this,this.eyeOrigin, new myVector(sTh * Math.cos(phi),sTh * Math.sin(phi),-Math.cos(theta)),0)); 
-							pixIDX = writePxlSpan(showColor.getInt(),row,col,stepIter,rndrdImg.pixels);
-						}
-						if ((1.0 * pixIDX)/(numPxls) > (progressCount * .02)){System.out.print("-|");progressCount++;}//progressbar  
-					}//for col
-				}//for row	     
-			} else{    
-				for (int row = 0; row < sceneRows; row+=stepIter){
-					yVal = (row + yStart);
-					for (int col = 0; col < sceneCols; col+=stepIter){
-						if(skipPxl){skipPxl = false;continue;}			//skip only 0,0 pxl		
-						xVal = (col + xStart);
-						showColor = shootMultiRays(xVal, yVal); 			//replace by base radian amt of max(x,y) 
-						pixIDX = writePxlSpan(showColor.getInt(),row,col,stepIter,rndrdImg.pixels);			
-						if ((1.0 * pixIDX)/(numPxls) > (progressCount * .02)){System.out.print("-|");progressCount++;}//progressbar  
-					}//for col
-				}//for row  
-			}//if antialiasing
-			System.out.println("-");
-			if(scFlags[renderedIDX]){			finishImage();	}	
-		}		
-		finalizeDraw();
-//		pa.imageMode(PConstants.CORNER);
-//		pa.image(rndrdImg,0,0);	
-	}//draw
+		if (numRaysPerPixel == 1){											//single ray into scene per pixel
+			for (int row = 0; row < sceneRows; row+=stepIter){
+				yVal = (row + yStart) * fishMult;
+				ySq = yVal * yVal;
+				for (int col = 0; col < sceneCols; col+=stepIter){
+					if(skipPxl){skipPxl = false;continue;}			//skip only 0,0 pxl	
+					xVal = (col + xStart)* fishMult;
+					rTmp = xVal*xVal+ySq;
+					if(rTmp > 1){	pixIDX = writePxlSpan(blkColor.getInt(),row,col,stepIter,rndrdImg.pixels);	} 
+					else {
+						r = Math.sqrt(rTmp);
+						theta = r * aperatureHlf;
+						phi = Math.atan2(-yVal,xVal); 					
+						sTh = Math.sin(theta);
+						showColor = reflectRay(new rayCast(this,this.eyeOrigin, new myVector(sTh * Math.cos(phi),sTh * Math.sin(phi),-Math.cos(theta)),0)); 
+						pixIDX = writePxlSpan(showColor.getInt(),row,col,stepIter,rndrdImg.pixels);
+					}
+					if ((1.0 * pixIDX)/(numPxls) > (progressCount * .02)){System.out.print("-|");progressCount++;}//progressbar  
+				}//for col
+			}//for row	     
+		} else{    
+			for (int row = 0; row < sceneRows; row+=stepIter){
+				yVal = (row + yStart);
+				for (int col = 0; col < sceneCols; col+=stepIter){
+					if(skipPxl){skipPxl = false;continue;}			//skip only 0,0 pxl		
+					xVal = (col + xStart);
+					showColor = shootMultiRays(xVal, yVal); 			//replace by base radian amt of max(x,y) 
+					pixIDX = writePxlSpan(showColor.getInt(),row,col,stepIter,rndrdImg.pixels);			
+					if ((1.0 * pixIDX)/(numPxls) > (progressCount * .02)){System.out.print("-|");progressCount++;}//progressbar  
+				}//for col
+			}//for row  
+		}//if antialiasing
+		System.out.println("-");
+	}//renderScene
 }//myFishEyeScene

@@ -1,5 +1,6 @@
 package base_RayTracer;
 
+import java.io.File;
 import java.util.*;
 
 import base_JavaProjTools_IRender.base_Render_Interface.IRenderInterface;
@@ -28,7 +29,7 @@ public class myRTFileReader {
 	}
 	
 	//passed scene is for when called recursively - is null on first time in, passes scene to be used otherwise
-	public Base_Scene readRTFile(TreeMap<String, Base_Scene> loadedScenes, String fileName, Base_Scene _scene, int _numCols, int _numRows) {		  
+	public Base_Scene readRTFile(TreeMap<String, Base_Scene> loadedScenes, String filePath, String fileName, Base_Scene _scene, int _numCols, int _numRows) {		  
 		//build individual scene for each file		
 		timer = getTime();			//times rendering
 		curNumRows = _numRows;
@@ -47,11 +48,11 @@ public class myRTFileReader {
 		}
 		String[] str = null;
 		try{
-			str = ((my_procApplet)pa).loadStrings("../data/"+fileName);
-			System.out.println("File name : " + fileName + " Size : " + str.length);
+			str = ((my_procApplet)pa).loadStrings(filePath + File.separator+fileName);
+			System.out.println("File path : "+filePath + "|File name : " + fileName + " Size : " + str.length);
 		} catch (Exception e) {	System.out.println("myRTFileReader::readRTFile : File Read Error : File name : " + fileName + " not found."); return null;		}	 
 	
-		scene = parseStringArray(loadedScenes, str, scene, isMainFileScene, fileName);
+		scene = parseStringArray(loadedScenes, str, scene, isMainFileScene, filePath, fileName);
 		return scene;
 	}//interpreter method
 	
@@ -68,7 +69,7 @@ public class myRTFileReader {
 	 * @param fileName
 	 * @return
 	 */
-	public Base_Scene parseStringArray(TreeMap<String, Base_Scene> loadedScenes, String[] fileStrings, Base_Scene scene, boolean isMainFileScene, String fileName) {
+	public Base_Scene parseStringArray(TreeMap<String, Base_Scene> loadedScenes, String[] fileStrings, Base_Scene scene, boolean isMainFileScene, String filePath, String fileName) {
 		boolean finalized = false;
 		String vertType = "triangle";    		//assume default object type is triangle
 		int myVertCount = 0;		
@@ -130,7 +131,7 @@ public class myRTFileReader {
 			    	else{System.out.println("Can't render unknown/incomplete scene");}
 			    	break;}		
 			    case "read" : {//read another scene file - nested to load multiple files
-			    	readRTFile(loadedScenes,token[1],scene,curNumCols, curNumRows);
+			    	readRTFile(loadedScenes, filePath, token[1],scene,curNumCols, curNumRows);
 			    	break;}		
 			    //timer stuff
 			    case "reset_timer" : {//Reset a global timer that will be used to determine how long it takes to render a scene. 

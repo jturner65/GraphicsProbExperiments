@@ -1,4 +1,4 @@
-package classGradeExperimentsPKG;
+package experiments_PKG.classGradeExp.experiment;
 
 import java.util.*;
 
@@ -8,7 +8,11 @@ import base_ProbTools.randGenFunc.gens.myFleishUniVarRandGen;
 import base_ProbTools.randGenFunc.gens.base.myRandGen;
 import base_StatsTools.summary.myProbSummary_Dbls;
 import base_UI_Objects.windowUI.base.Base_DispWindow;
-import base_Utils_Objects.io.messaging.MessageObject;
+import base_Utils_Objects.dataAdapter.Base_UIDataUpdater;
+import experiments_PKG.classGradeExp.roster.myClassRoster;
+import experiments_PKG.classGradeExp.roster.myFinalGradeRoster;
+import experiments_PKG.classGradeExp.ui.Grade2DUIDataUpdater;
+import experiments_PKG.classGradeExp.ui.Grade2DWindow;
 /**
  * this class is a specialized type fo probability experiment manager, specifically for the class grades project
  * @author john
@@ -16,6 +20,8 @@ import base_Utils_Objects.io.messaging.MessageObject;
  */
 public class ClassGradeExperiment extends baseProbExpMgr{
 	public IRenderInterface pa;
+	//Owning window
+	protected Grade2DWindow win;
 	//structure holding all classes
 	private HashSet<myClassRoster> classRosters;
 	private int numClasses;
@@ -62,9 +68,10 @@ public class ClassGradeExperiment extends baseProbExpMgr{
 	private static float[] classBarStart = new float[] {10,50};
 	private static float[] classPlotStart = new float[] {10,50};
 	
-	public ClassGradeExperiment(IRenderInterface _pa, MessageObject _msgObj, float[] _curVisScrDims) {
-		super(_msgObj, _curVisScrDims);
+	public ClassGradeExperiment(IRenderInterface _pa, Grade2DWindow _win, float[] _curVisScrDims) {
+		super(_win.getMsgObj(), _curVisScrDims);
 		pa = _pa;		
+		win = _win;
 	}//ctor
 	
 	//called at end of ctor and whenever experiment needs to be re-instanced
@@ -78,9 +85,20 @@ public class ClassGradeExperiment extends baseProbExpMgr{
 		finalGradeClass = buildFinalGradeRoster(getPlotHeight());
 	}//	initExp
 
+	@Override
+	protected Base_UIDataUpdater initUIDataUpdater(Base_UIDataUpdater dataUpdate) {
+		return new Grade2DUIDataUpdater((Grade2DUIDataUpdater)dataUpdate);
+	}
+
+	@Override
+	protected void updateUIDataValues_Priv() {
+		//TODO use this to update all UI values from Grade2DWindow
+	}
+	
+	
 	//called by base class call to buildSolvers, during base class ctor
 	@Override
-	protected void buildSolvers_indiv() {	//any solvers that are custom should be built here		
+	protected void buildSolvers_Indiv() {	//any solvers that are custom should be built here		
 	}//buildSolvers_indiv	
 	
 	//update all rand gen objects for this function, including updating rand var funcs

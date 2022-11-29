@@ -1,4 +1,4 @@
-package graphProbExp_PKG;
+package experiments_PKG.probabilityExp;
 import static java.lang.Math.*;
 import java.util.function.Function;
 import java.math.*;

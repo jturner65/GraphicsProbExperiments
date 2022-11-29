@@ -75,41 +75,31 @@ public class myFOVScene extends Base_Scene {
 		return result;	  
 	}//shootMultiRays	
 	
-	protected void drawDpthOfFld(){
-		if (!scFlags[renderedIDX]){	
-			initRender();
-			//index of currently written pixel
-			int pixIDX = 0;
-			int progressCount = 0;
-			double rayY, rayX;
-			myRTColor showColor;
-			//myRay ray;
-			boolean skipPxl = false;
-			int stepIter = 1;
-			if(scFlags[glblRefineIDX]){
-				stepIter = RefineIDX[curRefineStep++];
-				skipPxl = curRefineStep != 1;			//skip 0,0 pxl on all sub-images except the first pass
-			} 
-			if(stepIter == 1){scFlags[renderedIDX] = true;			}
-			//always uses multi rays in depthOfFld image
-			for (int row = 0; row < sceneRows; row+=stepIter){
-				rayY = (-1 * (row - rayYOffset));        
-				for (int col = 0; col < sceneCols; col+=stepIter){
-					if(skipPxl){skipPxl = false;continue;}			//skip only 0,0 pxl		
-					rayX = col - rayXOffset;      
-					showColor = shootMultiDpthOfFldRays(rayX,rayY);
-					pixIDX = writePxlSpan(showColor.getInt(),row,col,stepIter,rndrdImg.pixels);
-					if ((1.0 * pixIDX)/(numPxls) > (progressCount * .02)){System.out.print("-|");progressCount++;}//progressbar  
-				}//for col
-			}//for row  
-			System.out.println("-");
-			//update the display based on the pixels array
-			rndrdImg.updatePixels();
-			if(scFlags[renderedIDX]){	finishImage();}	
-		}
-		finalizeDraw();
-//		pa.imageMode(PConstants.CORNER);
-//		pa.image(rndrdImg,0,0);	
+	private void renderDepthOfField(){
+		//index of currently written pixel
+		int pixIDX = 0;
+		int progressCount = 0;
+		double rayY, rayX;
+		myRTColor showColor;
+		//myRay ray;
+		boolean skipPxl = false;
+		int stepIter = 1;
+		if(scFlags[glblRefineIDX]){
+			stepIter = RefineIDX[curRefineStep++];
+			skipPxl = curRefineStep != 1;			//skip 0,0 pxl on all sub-images except the first pass
+		} 
+		if(stepIter == 1){scFlags[renderedIDX] = true;			}
+		//always uses multi rays in depthOfFld image
+		for (int row = 0; row < sceneRows; row+=stepIter){
+			rayY = (-1 * (row - rayYOffset));        
+			for (int col = 0; col < sceneCols; col+=stepIter){
+				if(skipPxl){skipPxl = false;continue;}			//skip only 0,0 pxl		
+				rayX = col - rayXOffset;      
+				showColor = shootMultiDpthOfFldRays(rayX,rayY);
+				pixIDX = writePxlSpan(showColor.getInt(),row,col,stepIter,rndrdImg.pixels);
+				if ((1.0 * pixIDX)/(numPxls) > (progressCount * .02)){System.out.print("-|");progressCount++;}//progressbar  
+			}//for col
+		}//for row  
 	}//drawDpthOfFld
 	
 	
@@ -131,60 +121,55 @@ public class myFOVScene extends Base_Scene {
 		return result;	  
 	}//shootMultiRays	
 	
-	@Override
-	//distribution draw
-	public void draw(){
-		if(scFlags[hasDpthOfFldIDX]){drawDpthOfFld(); return;}
-		if (!scFlags[renderedIDX]){	
-			initRender();
-			//index of currently written pixel
-			int pixIDX = 0;
-			int progressCount = 0;
-			myRTColor showColor;
-			boolean skipPxl = false;
-			int stepIter = 1;
-			if(scFlags[glblRefineIDX]){
-				stepIter = RefineIDX[curRefineStep++];
-				skipPxl = curRefineStep != 1;			//skip 0,0 pxl on all sub-images except the first pass
-			} 
-			if(stepIter == 1){scFlags[renderedIDX] = true;			}
-			
+	private void renderFOVScene() {
+		//index of currently written pixel
+		int pixIDX = 0;
+		int progressCount = 0;
+		myRTColor showColor;
+		boolean skipPxl = false;
+		int stepIter = 1;
+		if(scFlags[glblRefineIDX]){
+			stepIter = RefineIDX[curRefineStep++];
+			skipPxl = curRefineStep != 1;			//skip 0,0 pxl on all sub-images except the first pass
+		} 
+		if(stepIter == 1){scFlags[renderedIDX] = true;			}
+		
 
-			double rayY, rayX;
-			if (numRaysPerPixel == 1){//only single ray shot into scene for each pixel
-				for (int row = 0; row < sceneRows; row+=stepIter){
-					rayY = (-1 * (row - rayYOffset));         
-					for (int col = 0; col < sceneCols; col+=stepIter){
-						if(skipPxl){skipPxl = false;continue;}			//skip only 0,0 pxl					
-						rayX = col - rayXOffset;
-						showColor = reflectRay(new rayCast(this,this.eyeOrigin, new myVector(rayX,rayY,viewZ),0)); 
-						pixIDX = writePxlSpan(showColor.getInt(),row,col,stepIter,rndrdImg.pixels);
-						if ((1.0 * pixIDX)/(numPxls) > (progressCount * .02)){System.out.print("-|");progressCount++;}//progressbar         
-					}//for col
-				}//for row	     
-			} else{    //multiple rays shot into scene per pxl
-				for (int row = 0; row < sceneRows; row+=stepIter){
-					rayY = (-1 * (row - rayYOffset));        
-					for (int col = 0; col < sceneCols; col+=stepIter){
-						if(skipPxl){skipPxl = false;continue;}			//skip only 0,0 pxl		
-						rayX = col - rayXOffset;      
-						showColor = shootMultiRays(rayX,rayY);
-						pixIDX = writePxlSpan(showColor.getInt(),row,col,stepIter,rndrdImg.pixels);
-						if ((1.0 * pixIDX)/(numPxls) > (progressCount * .02)){System.out.print("-|");progressCount++;}//progressbar  
-					}//for col
-				}//for row  
-			}//if antialiasing
-			
-			System.out.println("-");
-			//update the display based on the pixels array
-			rndrdImg.updatePixels();
-			if(scFlags[renderedIDX]){//only do this stuff when finished				
-				finishImage();
-			}	
+		double rayY, rayX;
+		if (numRaysPerPixel == 1){//only single ray shot into scene for each pixel
+			for (int row = 0; row < sceneRows; row+=stepIter){
+				rayY = (-1 * (row - rayYOffset));         
+				for (int col = 0; col < sceneCols; col+=stepIter){
+					if(skipPxl){skipPxl = false;continue;}			//skip only 0,0 pxl					
+					rayX = col - rayXOffset;
+					showColor = reflectRay(new rayCast(this,this.eyeOrigin, new myVector(rayX,rayY,viewZ),0)); 
+					pixIDX = writePxlSpan(showColor.getInt(),row,col,stepIter,rndrdImg.pixels);
+					if ((1.0 * pixIDX)/(numPxls) > (progressCount * .02)){System.out.print("-|");progressCount++;}//progressbar         
+				}//for col
+			}//for row	     
+		} else{    //multiple rays shot into scene per pxl
+			for (int row = 0; row < sceneRows; row+=stepIter){
+				rayY = (-1 * (row - rayYOffset));        
+				for (int col = 0; col < sceneCols; col+=stepIter){
+					if(skipPxl){skipPxl = false;continue;}			//skip only 0,0 pxl		
+					rayX = col - rayXOffset;      
+					showColor = shootMultiRays(rayX,rayY);
+					pixIDX = writePxlSpan(showColor.getInt(),row,col,stepIter,rndrdImg.pixels);
+					if ((1.0 * pixIDX)/(numPxls) > (progressCount * .02)){System.out.print("-|");progressCount++;}//progressbar  
+				}//for col
+			}//for row  
+		}//if antialiasing
+	}//renderFOVScene
+	
+	@Override
+	//distribution render
+	public void renderScene(){
+		if(scFlags[hasDpthOfFldIDX]){
+			renderDepthOfField(); 
+		} else {
+			renderFOVScene();
 		}
-		finalizeDraw();
-//		pa.imageMode(PConstants.CORNER);
-//		pa.image(rndrdImg,0,0);		
-	}
+		System.out.println("-");
+	}//renderScene
 
 }//myFOVScene

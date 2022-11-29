@@ -59,58 +59,50 @@ public class myOrthoScene extends Base_Scene{
 	}//shootMultiRays	
 	
 	@Override
-	public void draw(){
-		if (!scFlags[renderedIDX]){	
-			initRender();
-			//we must shoot out rays and determine what is being hit by them
-			//get pixels array, to be modified by ray-shooting
-			//index of currently written pixel
-			int pixIDX = 0;
-			int progressCount = 0;
-			myRTColor showColor;
-			boolean skipPxl = false;
-			int stepIter = 1;
-			
-			
-			//  double redVal, greenVal, blueVal, divVal;
-			double rayY, rayX;
+	public void renderScene(){
+		//we must shoot out rays and determine what is being hit by them
+		//get pixels array, to be modified by ray-shooting
+		//index of currently written pixel
+		int pixIDX = 0;
+		int progressCount = 0;
+		myRTColor showColor;
+		boolean skipPxl = false;
+		int stepIter = 1;
+		
+		
+		//  double redVal, greenVal, blueVal, divVal;
+		double rayY, rayX;
 
-			if(scFlags[glblRefineIDX]){
-				stepIter = RefineIDX[curRefineStep++];
-				skipPxl = curRefineStep != 1;			//skip 0,0 pxl on all sub-images except the first pass
-			} 
-			if(stepIter == 1){scFlags[renderedIDX] = true;			}
-			if (numRaysPerPixel == 1){											//single ray into scene per pixel
-				for (int row = 0; row < sceneRows; row+=stepIter){
-					rayY = orthPerRow * (-1 * (row - rayYOffset));         
-					for (int col = 0; col < sceneCols; col+=stepIter){
-						if(skipPxl){skipPxl = false;continue;}			//skip only 0,0 pxl					
-						rayX = orthPerCol * (col - rayXOffset);
-						showColor = reflectRay(new rayCast(this,new myVector(rayX,rayY,0), new myVector(0,0,-1),0)); 
-						pixIDX = writePxlSpan(showColor.getInt(),row,col,stepIter,rndrdImg.pixels);
-						if ((1.0 * pixIDX)/(numPxls) > (progressCount * .02)){System.out.print("-|");progressCount++;}//progressbar         
-					}//for col
-				}//for row	     
-			} else{    //anti aliasing
-				for (int row = 0; row < sceneRows; row+=stepIter){
-					rayY = orthPerRow * ((-1 * (row - rayYOffset)) - .5);         
-					for (int col = 0; col < sceneCols; col+=stepIter){
-						if(skipPxl){skipPxl = false;continue;}			//skip only 0,0 pxl		
-						rayX = orthPerCol * (col - rayXOffset - .5);      
-						showColor = shootMultiRays(rayX,rayY); 
-						pixIDX = writePxlSpan(showColor.getInt(),row,col,stepIter,rndrdImg.pixels);
-						if ((1.0 * pixIDX)/(numPxls) > (progressCount * .02)){System.out.print("-|");progressCount++;}//progressbar  
-					}//for col
-				}//for row  
-			}//if antialiasing			
-			System.out.println("-");
-			//update the display based on the pixels array
-			rndrdImg.updatePixels();
-			if(scFlags[renderedIDX]){	finishImage();	}	
-		}
-		finalizeDraw();
-//		pa.imageMode(PConstants.CORNER);
-//		pa.image(rndrdImg,0,0);		
+		if(scFlags[glblRefineIDX]){
+			stepIter = RefineIDX[curRefineStep++];
+			skipPxl = curRefineStep != 1;			//skip 0,0 pxl on all sub-images except the first pass
+		} 
+		if(stepIter == 1){scFlags[renderedIDX] = true;			}
+		if (numRaysPerPixel == 1){											//single ray into scene per pixel
+			for (int row = 0; row < sceneRows; row+=stepIter){
+				rayY = orthPerRow * (-1 * (row - rayYOffset));         
+				for (int col = 0; col < sceneCols; col+=stepIter){
+					if(skipPxl){skipPxl = false;continue;}			//skip only 0,0 pxl					
+					rayX = orthPerCol * (col - rayXOffset);
+					showColor = reflectRay(new rayCast(this,new myVector(rayX,rayY,0), new myVector(0,0,-1),0)); 
+					pixIDX = writePxlSpan(showColor.getInt(),row,col,stepIter,rndrdImg.pixels);
+					if ((1.0 * pixIDX)/(numPxls) > (progressCount * .02)){System.out.print("-|");progressCount++;}//progressbar         
+				}//for col
+			}//for row	     
+		} else{    //anti aliasing
+			for (int row = 0; row < sceneRows; row+=stepIter){
+				rayY = orthPerRow * ((-1 * (row - rayYOffset)) - .5);         
+				for (int col = 0; col < sceneCols; col+=stepIter){
+					if(skipPxl){skipPxl = false;continue;}			//skip only 0,0 pxl		
+					rayX = orthPerCol * (col - rayXOffset - .5);      
+					showColor = shootMultiRays(rayX,rayY); 
+					pixIDX = writePxlSpan(showColor.getInt(),row,col,stepIter,rndrdImg.pixels);
+					if ((1.0 * pixIDX)/(numPxls) > (progressCount * .02)){System.out.print("-|");progressCount++;}//progressbar  
+				}//for col
+			}//for row  
+		}//if antialiasing			
+		System.out.println("-");
+	
 	}//draw	
 
 }//myOrthoScene

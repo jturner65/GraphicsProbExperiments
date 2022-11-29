@@ -1,51 +1,54 @@
-package graphProbExp_PKG;
-
-import java.io.File;
-import java.util.TreeMap;
+package experiments_PKG.graphProbExp;
 
 import base_JavaProjTools_IRender.base_Render_Interface.IRenderInterface;
 import base_ProbTools.baseProbExpMgr;
-import base_RayTracer.myRTFileReader;
 import base_RayTracer.scene.base.Base_Scene;
-import base_Utils_Objects.io.messaging.MessageObject;
-import base_Utils_Objects.io.messaging.MsgCodes;
+import base_RayTracer.ui.base.Base_RayTracerWin;
+import base_Utils_Objects.dataAdapter.Base_UIDataUpdater;
 
 public class RayTracerExperiment extends baseProbExpMgr {
 	public IRenderInterface pa;
-	//holds references to all loaded scenes
-	public TreeMap<String, Base_Scene> loadedScenes;
+	
+	public Base_RayTracerWin win;
 	
 	//current scene dims
 	public static int sceneCols = 300;
 	public static int sceneRows = 300;
 	private int[] transLoc = new int[] {0,0};
-	//current scene name
-	private String currSceneName = "", currDispSceneName = "";
-	
-	//file reader/interpreter
-	public myRTFileReader rdr; 	
-
 	
 	//experiment-specific state flag bits - bits in array holding relevant process info
 	public static final int
 			debugIDX 			= 0;		
 	public static final int numFlags = 1;	
 	
-	public RayTracerExperiment(IRenderInterface _pa, MessageObject _msgObj, float[] _curVisScrDims) {
-		super(_msgObj, _curVisScrDims);	
+	public RayTracerExperiment(IRenderInterface _pa, Base_RayTracerWin _win, float[] _curVisScrDims) {
+		super(_win.getMsgObj(), _curVisScrDims);	
 		pa = _pa;
-		rdr = new myRTFileReader(pa,".."+File.separator+"data"+File.separator+"txtrs"+File.separator);	
-		loadedScenes = new TreeMap<String, Base_Scene>();	
+		win = _win;
 	}//ctor
 
 	@Override
 	public void initExp() {}//initExp	
+	
+
+	@Override
+	protected Base_UIDataUpdater initUIDataUpdater(Base_UIDataUpdater dataUpdate) {
+		// TODO Auto-generated method stub
+		return new RayTracerExpUIUpdater((RayTracerExpUIUpdater)dataUpdate);
+	}
+
+	@Override
+	protected void updateUIDataValues_Priv() {
+		RayTracerExpUIUpdater tmpUpdater = (RayTracerExpUIUpdater)uiDataValues;
+		setRTSceneExpVals(tmpUpdater.getNumSceneCols(),tmpUpdater.getNumSceneRows());
+	}
+
+	
 
 	//set values for RT scene experiment values
-	public void setRTSceneExpVals(int cols, int rows, String _currFileName) {
+	protected void setRTSceneExpVals(int cols, int rows) {
 		sceneCols = cols;
 		sceneRows = rows;
-		currSceneName = _currFileName;
 		setTransLoc();		
 	}//setRTSceneExpVals
 	
@@ -58,53 +61,31 @@ public class RayTracerExperiment extends baseProbExpMgr {
 		transLoc[1] = (0 > stLocY ? 0 : stLocY);
 	}
 	
-	public void setFlipNorms() {
-		Base_Scene s = loadedScenes.get(currSceneName);
-		if(s!=null) {s.flipNormal();}
-	}
-	
-	public void startRayTrace() {		
-		Base_Scene tmp = rdr.readRTFile(loadedScenes, currSceneName, null, sceneCols, sceneRows);//pass null as scene so that we don't add to an existing scene
-		msgObj.dispMessage("RayTracerExperiment", "startRayTrace", "Done with readRTFile", MsgCodes.info1);
-		//returns null means not found
-		if(null==tmp) {currSceneName = "";}
-		currDispSceneName = currSceneName;
-	}
-	
 	@Override
-	protected void buildSolvers_indiv() {
-	}
+	protected void buildSolvers_Indiv() {}
 	//update all rand gen objects for this function, including updating rand var funcs
 	@Override
-	protected void updateAllRandGens_Priv() {
-	}
+	protected void updateAllRandGens_Priv() {}
 	@Override
 	protected void setVisWidth_Priv() {
 		if(transLoc != null) {	setTransLoc();	}
 	}
 
 	@Override
-	public boolean checkMouseClickInExp2D(int msx, int msy, int btn) {
-		// TODO Auto-generated method stub
-		return false;
-	}
+	public boolean checkMouseClickInExp2D(int msx, int msy, int btn) {	return false;}
 
 	@Override
-	public boolean checkMouseDragMoveInExp2D(int msx, int msy, int btn) {
-		// TODO Auto-generated method stub
-		return false;
-	}
+	public boolean checkMouseDragMoveInExp2D(int msx, int msy, int btn) {return false;}
 
 	@Override
-	public void setMouseReleaseInExp2D() {
-		// TODO Auto-generated method stub
-	}
+	public void setMouseReleaseInExp2D() {}
+	
 	@Override
 	public void drawExp() {
 		pa.pushMatState();
 			pa.disableLights();
 			pa.translate(transLoc[0],transLoc[1],0);
-			Base_Scene s = loadedScenes.get(currDispSceneName);
+			Base_Scene s = win.getCurrScene();
 			if(s!=null) {s.draw();}		
 			pa.translate(sceneCols,0,0);
 			//TODO needs to be alt scene, using reduced cosine dist
@@ -132,6 +113,5 @@ public class RayTracerExperiment extends baseProbExpMgr {
 			
 		}//switch
 	}//setFlag
-
 
 }//class RayTracerExperiment
