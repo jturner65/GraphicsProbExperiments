@@ -160,7 +160,7 @@ public class mySimpleReflObjShdr extends myObjShader{
 		   
 		//now need kRefl factor - need to be careful with reflection - don't want to go further than 
 		//recursive depth of numRays - need to leave room for one more for shadows, that's why -2 not -1
-		if ((hit.transRay.gen < scene.numRays-2) && shdrFlags[hasCaustic]){
+		if ((hit.transRay.gen < scene.numRays-2) && getHasCaustic()){
 			//replace with either/or for transparent or reflective			
 			double[] res = new double[]{0,0,0};
 			if (KTrans > 0){	 				res = calcSimpleTransClr(hit);  			}//if refraction happens

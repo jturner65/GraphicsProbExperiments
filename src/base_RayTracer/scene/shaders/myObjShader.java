@@ -35,16 +35,18 @@ public class myObjShader {
 	 //phong exponent, reflective and transimitted contants
 	public double phongExp, KRefl, KTrans, currPerm, diffConst;
 	//set values of color contants
-	public myRTColor diffuseColor, ambientColor, specularColor, curPermClr, KReflClr;  
-	public myVector phtnDiffScl, phtnSpecScl, phtnPermClr;	//needs to go over 1
+	protected myRTColor diffuseColor, ambientColor, specularColor, curPermClr, KReflClr;  
+	
+	public myPoint phtnDiffScl, phtnSpecScl, phtnPermClr;	//needs to go over 1
+	
 	public double avgDiffClr, avgSpecClr, avgPermClr;
 	//used as array indices
 	public static final int R = 0, G = 1, B = 2;
 	
-	public boolean[] shdrFlags;					//various state-related flags for this shader
+	private int[] shdrFlags;					//various state-related flags for this shader
 	public static final int 
-		hasCaustic			= 0,			//this shader will generate a caustic, either reflective or refractive
-		usePhotonMap		= 1,			//this shader should incorporate the effects of a photon map
+		hasCausticIDX		= 0,			//this shader will generate a caustic, either reflective or refractive
+		usePhotonMapIDX		= 1,			//this shader should incorporate the effects of a photon map
 		isCausticPhtnIDX 	= 2;
 	public static final int numFlags = 3;	
 	
@@ -55,12 +57,15 @@ public class myObjShader {
 	    dbgRayHits = 0;
 	    shType="";
 	    //these values need to be set by surface or diffuse command in cli
-	    diffuseColor = new myRTColor(0,0,0);
-	    phtnDiffScl = new myVector(0,0,0);
-	    phtnSpecScl = new myVector(0,0,0);
-	    phtnPermClr = new myVector(0,0,0);
+	    phtnDiffScl = new myPoint(0,0,0);
+	    phtnSpecScl = new myPoint(0,0,0);
+	    phtnPermClr = new myPoint(0,0,0);
+	    
 	    ambientColor = new myRTColor(0,0,0);
+	    
+	    diffuseColor = new myRTColor(0,0,0);
 	    specularColor = new myRTColor(0,0,0);
+	    curPermClr = new myRTColor(0,0,0);
 	    setCurrColors();
 	    txtr = new myImageTexture(scene, this);			//default is image texture
 	}
@@ -86,10 +91,11 @@ public class myObjShader {
 	    KReflClr = new myRTColor(scene.currKReflClr);
 	    KTrans = scene.currKTrans;
 	    currPerm = scene.globRfrIdx;
-	    
-	    shdrFlags[hasCaustic] = ((KRefl > 0.0) || (currPerm > 0.0) || (KTrans > 0.0));
-	    shdrFlags[usePhotonMap] = scene.scFlags[Base_Scene.usePhotonMapIDX];
-	    shdrFlags[isCausticPhtnIDX] = scene.scFlags[Base_Scene.isCausticPhtnIDX];
+
+    
+	    setHasCaustic((KRefl > 0.0) || (currPerm > 0.0) || (KTrans > 0.0));
+	    setUsePhotonMap(scene.scFlags[Base_Scene.usePhotonMapIDX]);
+	    setIsCausticPtn(scene.scFlags[Base_Scene.isCausticPhtnIDX]);
 	    
 	    diffConst = 1 - currPerm;	        
 	    phongExp = scene.currPhongExp;
@@ -470,10 +476,10 @@ public class myObjShader {
   		double r = ambientColor.x, g = ambientColor.y, b = ambientColor.z;
   		double[] phtnIrr;
   		//TODO separate caustics and indirect into 2 processes
-  		if((KRefl == 0.0) && (shdrFlags[usePhotonMap])){
- 			//r += diffuseColor.RGB.x * phtnIrr[0]; 		g += diffuseColor.RGB.y * phtnIrr[1]; 		b += diffuseColor.RGB.z * phtnIrr[2]; 
+  		if((KRefl == 0.0) && getUsePhotonMap()){
+ 			//r += diffuseColor.x * phtnIrr[0]; 		g += diffuseColor.y * phtnIrr[1]; 		b += diffuseColor.z * phtnIrr[2]; 
   			phtnIrr = getIrradianceFromPhtnTree(hit);
-  			if(shdrFlags[isCausticPhtnIDX]){//visualize photons directly for caustics
+  			if(getIsCausticPtn()){//visualize photons directly for caustics
   				r += phtnIrr[0]; 		g += phtnIrr[1]; 		b += phtnIrr[2];
   			} else {					// indirect illumination effects
  				r += diffuseColor.x * phtnIrr[0]; 		g += diffuseColor.y * phtnIrr[1]; 		b += diffuseColor.z * phtnIrr[2]; 
@@ -484,7 +490,7 @@ public class myObjShader {
   		r += shadowRes[0]; 		g += shadowRes[1]; 		b += shadowRes[2];
   		//now need kRefl factor - need to be careful with reflection - don't want to go further than 
   		//recursive depth of numRays - need to leave room for one more for shadows, that's why -2 not -1
-  		if ((hit.transRay.gen < scene.numRays-2) && shdrFlags[hasCaustic]){
+  		if ((hit.transRay.gen < scene.numRays-2) && getHasCaustic()){
   			//replace with either/or for transparent or reflective			
   			double[] res = new double[]{0,0,0};
   			if ((KTrans > 0) || (currPerm > 0.0)){				res = calcTransClr(hit, curPermClr); 			}//TODO clean this up : if refraction happens (also handles reflection - splits rays)
@@ -523,7 +529,7 @@ public class myObjShader {
   	//call this when a caustic-generating object is hit, it will return the ray hit of the reflected/refracted ray
   	public rayCast findCausticRayHit(rayHit hit, double[] phtn_pwr){ 
   		rayCast res = null;
- 		if ((hit.transRay.gen < scene.numPhotonRays) && shdrFlags[hasCaustic]){
+ 		if ((hit.transRay.gen < scene.numPhotonRays) && getHasCaustic()){
  			double[] pwrMult = new double[]{1.0f,1.0f,1.0f};
   			if ((KTrans > 0.0) || (currPerm > 0.0)){	
   				pwrMult[0] = phtnPermClr.x;
@@ -541,16 +547,55 @@ public class myObjShader {
   	}//keep reflect/refract until hit diffuse object
  
   	public String showUV(){	return txtr.showUV();}//showUV
+  	
+  	
+  	
+	/**
+	 * base class flags init
+	 */
+	private final void initFlags(){shdrFlags = new int[1 + numFlags/32];for(int i =0; i<numFlags;++i){setFlags(i,false);}}			
+	/**
+	 * get baseclass flag
+	 * @param idx
+	 * @return
+	 */
+	public final boolean getFlags(int idx){int bitLoc = 1<<(idx%32);return (shdrFlags[idx/32] & bitLoc) == bitLoc;}	
+	
+	/**
+	 * check list of flags
+	 * @param idxs
+	 * @return
+	 */
+	public final boolean getAllFlags(int [] idxs){int bitLoc; for(int idx =0;idx<idxs.length;++idx){bitLoc = 1<<(idx%32);if ((shdrFlags[idx/32] & bitLoc) != bitLoc){return false;}} return true;}
+	public final boolean getAnyFlags(int [] idxs){int bitLoc; for(int idx =0;idx<idxs.length;++idx){bitLoc = 1<<(idx%32);if ((shdrFlags[idx/32] & bitLoc) == bitLoc){return true;}} return false;}
+		
+	public final boolean getHasCaustic() {return getFlags(hasCausticIDX);}
+	public final void setHasCaustic(boolean val) {setFlags(hasCausticIDX, val);}
+	public final boolean getUsePhotonMap() {return getFlags(usePhotonMapIDX);}
+	public final void setUsePhotonMap(boolean val) {setFlags(usePhotonMapIDX, val);}
+	public final boolean getIsCausticPtn() {return getFlags(isCausticPhtnIDX);}
+	public final void setIsCausticPtn(boolean val) {setFlags(isCausticPhtnIDX, val);}
+	/**
+	 * set baseclass flags  //setFlags(showIDX, 
+	 * @param idx
+	 * @param val
+	 */
+	public final void setFlags(int idx, boolean val){
+		int flIDX = idx/32, mask = 1<<(idx%32);
+		shdrFlags[flIDX] = (val ?  shdrFlags[flIDX] | mask : shdrFlags[flIDX] & ~mask);
+		switch(idx){
+			case hasCausticIDX			: {	break;}	
+			case usePhotonMapIDX		: {	break;}	
+			case isCausticPhtnIDX  		: {	break;}	
+		}				
+	}//setFlags
+  	
 
 	public String toString(){
 		String result = "Shader type : " + shType +  " |\t ray hits on obj : " + dbgRayHits;
-		result += "\n\tDIFFUSE : " + diffuseColor.toString() + " diff const : " + diffConst + " | " ;
-		result += "AMBIENT : " + ambientColor.toString() + " | ";
-		result += "SPECULAR : " + specularColor.toString();
-		result += "\n\tphongExp : " + phongExp;
-		result += " krefl : " + KRefl;
-		result += " ktrans : " + KTrans;
-		result += "\n\tcurrent 'permiability' : " + currPerm + " perm for r g b : " + curPermClr.toString();
+		result += "\n\tDIFFUSE : " + diffuseColor.toString() + " | AMBIENT : " + ambientColor.toString() + " | SPECULAR : " + specularColor.toString();
+		result += "\n\tDiffuse const : " + diffConst + " | phongExp : " + phongExp + " | krefl : " + KRefl+ " | ktrans : " + KTrans;
+		result += "\n\tcurrent 'permiability' : " + currPerm + " perm for r g b : " + curPermClr.toString()+"\n";
 		return result;
 	} 
 }//myObjShader

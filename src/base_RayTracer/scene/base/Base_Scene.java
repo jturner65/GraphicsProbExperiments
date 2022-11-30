@@ -25,8 +25,9 @@ import base_RayTracer.scene.textures.imageTextures.myImageTexture;
 import base_RayTracer.scene.textures.miscTextures.myNonTexture;
 import base_RayTracer.scene.textures.noiseTextures.*;
 import base_RayTracer.scene.textures.noiseTextures.cellularTextures.myCellularTexture;
+import base_RayTracer.ui.base.Base_RayTracerWin;
 import base_UI_Objects.*;
-import base_Utils_Objects.io.messaging.MessageObject;
+import base_Utils_Objects.io.messaging.MsgCodes;
 import processing.core.PConstants;
 import processing.core.PImage;
 import base_Math_Objects.MyMathUtils;
@@ -42,8 +43,8 @@ import base_Math_Objects.vectorObjs.doubles.myVector;
  */
 public abstract class Base_Scene {
 	public static IRenderInterface pa;
-	//for screen display
-	public static MessageObject msgObj = null;
+	//Owning window
+	protected Base_RayTracerWin win;
 	
 	//multi-threaded stuff
 	public ExecutorService th_exec;
@@ -53,9 +54,9 @@ public abstract class Base_Scene {
 
 	//used for determining refinement array
 	public static final int[] pow2 = new int[]{1,2,4,8,16,32,64,128,256,512,1024,2048,4096,8192,16384,32768};
-	public static final float //sqrt3 = Math.sqrt(3.0f),
-	sqrt66 = (float) (Math.sqrt(6.0f)/6.0f), 
-	sqrt612 = .5f*sqrt66;
+	public static final float 
+		sqrt66 = (float) (Math.sqrt(6.0f)/6.0f), 
+		sqrt612 = .5f*sqrt66;
 
 	////
 	//constants and control variables for a particular scene - make changeable via .cli reader
@@ -80,14 +81,18 @@ public abstract class Base_Scene {
 	
 	/////////////////////////////
 	//refining index list
-	public int[] RefineIDX;
-	public int curRefineStep;
+	private int[] RefineIDX;
+	private int curRefineStep;
+	
+	
+	
 	public ArrayDeque<String> srcFileNames;
 	
 	public String saveName, folderName;										//name of cli file used to describe this scene, save file, name of containing folder
 	
 	//the current texture to be used for subsequent objects for either their "top" or "bottom" as determined by their normal, the texture for the background, result image of rendering
-	public PImage currTextureTop, currTextureBottom, currBkgTexture, rndrdImg;
+	public PImage currTextureTop, currTextureBottom, currBkgTexture; 
+	private PImage rndrdImg;
 	
 	/**
 	 * an array list of all the objects in the scene : objList does not include lights, objAndLightList includes all lights
@@ -199,59 +204,64 @@ public abstract class Base_Scene {
 	
 	public double maxDim, yStart, xStart, fishMult;			//compensate for # rows or # cols not being max - make sure projection is centered in non-square images
 	
-	//project 3 timer stuff - length of time to render
+	//length of time to render
 	public float renderTime;	
 	
 	public boolean initFlag = false;
 	public int grad3[][] = {{1,1,0},{-1,1,0},{1,-1,0},{-1,-1,0},{1,0,1},{-1,0,1},{1,0,-1},{-1,0,-1},{0,1,1},{0,-1,1},{0,1,-1},{0,-1,-1}};
-	public final int p[] = {151,160,137,91,90,15,
-				131,13,201,95,96,53,194,233,7,225,140,36,103,30,69,142,8,99,37,240,21,10,23,
-				190, 6,148,247,120,234,75,0,26,197,62,94,252,219,203,117,35,11,32,57,177,33,
-				88,237,149,56,87,174,20,125,136,171,168, 68,175,74,165,71,134,139,48,27,166,
-				77,146,158,231,83,111,229,122,60,211,133,230,220,105,92,41,55,46,245,40,244,
-				102,143,54, 65,25,63,161, 1,216,80,73,209,76,132,187,208, 89,18,169,200,196,
-				135,130,116,188,159,86,164,100,109,198,173,186, 3,64,52,217,226,250,124,123,
-				5,202,38,147,118,126,255,82,85,212,207,206,59,227,47,16,58,17,182,189,28,42,
-				223,183,170,213,119,248,152, 2,44,154,163, 70,221,153,101,155,167, 43,172,9,
-				129,22,39,253, 19,98,108,110,79,113,224,232,178,185, 112,104,218,246,97,228,
-				251,34,242,193,238,210,144,12,191,179,162,241, 81,51,145,235,249,14,239,107,
-				49,192,214, 31,181,199,106,157,184, 84,204,176,115,121,50,45,127, 4,150,254,
-				138,236,205,93,222,114,67,29,24,72,243,141,128,195,78,66,215,61,156,180};
+	public final int pValAra[] = {151,160,137,91,90,15,131,13,201,95,96,53,194,233,7,225,
+		140,36,103,30,69,142,8,99,37,240,21,10,23,190,6,148,247,120,234,75,0,26,197,62,94,
+		252,219,203,117,35,11,32,57,177,33,88,237,149,56,87,174,20,125,136,171,168,68,175,
+		74,165,71,134,139,48,27,166,77,146,158,231,83,111,229,122,60,211,133,230,220,105,92,
+		41,55,46,245,40,244,102,143,54,65,25,63,161,1,216,80,73,209,76,132,187,208,89,18,169,
+		200,196,135,130,116,188,159,86,164,100,109,198,173,186,3,64,52,217,226,250,124,123,
+		5,202,38,147,118,126,255,82,85,212,207,206,59,227,47,16,58,17,182,189,28,42,223,183,
+		170,213,119,248,152,2,44,154,163,70,221,153,101,155,167,43,172,9,129,22,39,253,19,
+		98,108,110,79,113,224,232,178,185,112,104,218,246,97,228,251,34,242,193,238,210,144,
+		12,191,179,162,241, 81,51,145,235,249,14,239,107,49,192,214,31,181,199,106,157,184,
+		84,204,176,115,121,50,45,127,4,150,254,138,236,205,93,222,114,67,29,24,72,243,141,
+		128,195,78,66,215,61,156,180};
 
 	// To remove the need for index wrapping, double the permutation table length
 	public int perm[] = new int[512];
-
 		
-	public Base_Scene(IRenderInterface _p, String _sceneName, int _numCols, int _numRows) {
+	public Base_Scene(IRenderInterface _p, Base_RayTracerWin _win, String _sceneName, int _numCols, int _numRows) {
 		pa = _p;
+		win = _win;
+		initFlags();
+		scFlags[saveImageIDX] = true;    												//default to saving image
+		scFlags[saveImgInDirIDX] = true;    											//save to timestamped directories, to keep track of changing images
+		scFlags[showObjInfoIDX] = true;    												//default to showing info
+		
+		gtInitialize();       															 //sets up matrix stack
 		
 		now = Calendar.getInstance();
-		folderName = "pics." +getDateTimeString(); 
-		setImageSize(_numCols, _numRows);		
-		initialize_table();
+		folderName = "pics." +getDateTimeString();
+		initPermTable();
+		
 		allObjsToFind = new ArrayList<Base_Geometry>();
 		lightList = new ArrayList<Base_Geometry>();
 		objList = new ArrayList<Base_Geometry>();
 		
 		srcFileNames = new ArrayDeque<String>();
 		eyeOrigin = new myVector(0,0,0);
-		gtInitialize();       															 //sets up matrix stack
-		initFlags();
-		scFlags[saveImageIDX] = true;    												//default to saving image
-		scFlags[saveImgInDirIDX] = true;    											//save to timestamped directories, to keep track of changing images
-		scFlags[showObjInfoIDX] = true;    												//default to showing info
 		namedObjs = new TreeMap<String,Base_Geometry>();
 		numInstances = new TreeMap<String,Integer>();
 
 		tmpObjList = new ArrayList<Base_Geometry>();										//list to hold objects being built to be put into acceleration structure	
-		initVars(_sceneName);
+		initVars(_sceneName,_numCols, _numRows);
 	}
 	
 	public Base_Scene(Base_Scene _old){//copy ctor, for when scene type is being set - only use when old scene is being discarded (shallow copy)
 		//pa = _old.pa;
+		initFlags();
+		for(int i=0;i<scFlags.length;++i) {	scFlags[i] = _old.scFlags[1];}
+		
+		gtInitialize();       															 //sets up matrix stack
+		
 		now = _old.now;
+		win = _old.win;
 		folderName = _old.folderName;
-		setImageSize(_old.sceneCols,_old.sceneRows);
 
 		allObjsToFind = new ArrayList<Base_Geometry>(_old.allObjsToFind);
 		lightList = new ArrayList<Base_Geometry>(_old.lightList);
@@ -264,23 +274,22 @@ public abstract class Base_Scene {
 		numInstances = new TreeMap<String,Integer>(_old.numInstances);
 
 		tmpObjList = new ArrayList<Base_Geometry>(_old.tmpObjList);
-		
-		gtInitialize();       															 //sets up matrix stack
-		scFlags=new boolean[numFlags];for(int i=0;i<numFlags;++i){scFlags[i]=_old.scFlags[i];}
-		initVars(_old);	
+
+		copyVars(_old);	
 		matrixStack = _old.matrixStack;
 	}//myScene
 	
 	private void initFlags(){scFlags=new boolean[numFlags];for(int i=0;i<numFlags;++i){scFlags[i]=false;}}
 	
 	//scene-wide variables set during loading of scene info from .cli file
-	private void initVars(String _saveName){
+	private void initVars(String _saveName, int _numCols, int _numRows){
+		setImageSize(_numCols, _numRows);	
 		currTextureTop = null;
 		currTextureBottom = null;
 		currBkgTexture = null;
 		photonTree = null;
 		numGatherRays = 0;
-		numPhotons =0;
+		numPhotons = 0;
 		kNhood = 0;
 		photonMaxNearDist = 0;
 		
@@ -293,7 +302,6 @@ public abstract class Base_Scene {
 		numNamedObjs = 0;
 		
 		backgroundColor = new myRTColor(0,0,0);
-//		foregroundColor = new myColor(1,1,1);
 		currDiffuseColor = new myRTColor(0,0,0);
 		currAmbientColor = new myRTColor(0,0,0);
 		currSpecularColor = new myRTColor(0,0,0);
@@ -313,7 +321,8 @@ public abstract class Base_Scene {
 	}//initVars method
 	
 	//scene-wide variables set during loading of scene info from .cli file
-	private void initVars(Base_Scene _old){
+	private void copyVars(Base_Scene _old){
+		setImageSize(_old.sceneCols,_old.sceneRows);
 		currTextureTop = _old.currTextureTop;
 		currTextureBottom = _old.currTextureBottom;
 		currBkgTexture = _old.currBkgTexture;
@@ -354,16 +363,16 @@ public abstract class Base_Scene {
 		lens_focal_distance = _old.lens_focal_distance;		
 		focalPlane = _old.focalPlane;		
 	}//initVars from old scene method	
-	protected abstract void initVarsPriv();
-	
-	
-	public abstract void setSceneParams(double[] args);	
 
 	public void startTmpObjList(){
 		tmpObjList = new ArrayList<Base_Geometry>();
 		scFlags[addToTmpListIDX] = true;
 	}
-	//end building the accel struct - if is list just build arraylist object, otherwise build acceleration struct
+	
+	/**
+	 * end building the accel struct - if is list just build arraylist object, otherwise build acceleration struct
+	 * @param lstType
+	 */
 	public void endTmpObjList(int lstType){
 		scFlags[addToTmpListIDX] = false;
 		Base_AccelStruct accelObjList = null;
@@ -372,15 +381,14 @@ public abstract class Base_Scene {
 			//int objAdded = 1;
 			for(Base_Geometry obj : tmpObjList){		((GeoList_AccelStruct)accelObjList).addObj(obj);	}
 		} else if(lstType == 1){//bvh tree
-			System.out.println("begin adding to BVH structure - # objs : " + tmpObjList.size());
+			win.getMsgObj().dispInfoMessage("Base_Scene", "endTmpObjList", "Begin adding to BVH structure - # objs : " + tmpObjList.size());
 			accelObjList = new BVH_AccelStruct(this);
 			List<Base_Geometry>[] _tmpCtr_ObjList = ((BVH_AccelStruct)accelObjList).buildSortedObjAras(tmpObjList,-1);
 			((BVH_AccelStruct)accelObjList).addObjList(_tmpCtr_ObjList, 0, _tmpCtr_ObjList[0].size()-1);
-			System.out.println("");
-			System.out.println("Done Adding to BVH structure");
+			win.getMsgObj().dispInfoMessage("Base_Scene", "endTmpObjList", "Done Adding to BVH structure");
 		} else if(lstType == 2){//KDtree/octree TODO
-			System.out.println("begin adding to octree structure TODO");
-			System.out.println("Done Adding to octree structure TODO");
+			win.getMsgObj().dispInfoMessage("Base_Scene", "endTmpObjList", "Begin adding to octree structure TODO");
+			win.getMsgObj().dispInfoMessage("Base_Scene", "endTmpObjList", "Done Adding to octree structure TODO");
 		}
 		addObjectToScene(accelObjList);
 	}//endTmpObjList
@@ -458,7 +466,7 @@ public abstract class Base_Scene {
 		startTmpObjList();
 		buildSierpSubTri(8,scVal, name,0,depth,useShdr);
 		endTmpObjList(1);			//bvh of sierp objs
-		System.out.println("total buns : "+((Math.pow(4, depth)-1)/3.0f));
+		win.getMsgObj().dispInfoMessage("Base_Scene", "buildSierpinski", "Total buns : "+((Math.pow(4, depth)-1)/3.0f));
 	}	
 	/**
 	 * remove most recent object from list of objects and instead add to instance object struct.
@@ -484,7 +492,7 @@ public abstract class Base_Scene {
 	
 	// adds a new pointlight to the array of lights :   @params rgb - color, xyz - location
 	public void addMyPointLight(String[] token){
-		System.out.println("Point Light : current # of lights : " + numLights);
+		win.getMsgObj().dispInfoMessage("Base_Scene", "addMyPointLight", "Point Light : current # of lights : " + numLights);
 		myPointLight tmp = new myPointLight(this, numLights, 
 				Double.parseDouble(token[4]),Double.parseDouble(token[5]),Double.parseDouble(token[6]),
 				Double.parseDouble(token[1]),Double.parseDouble(token[2]),Double.parseDouble(token[3]));
@@ -495,7 +503,7 @@ public abstract class Base_Scene {
 	public void addMySpotLight(String[] token){
 		double _inThet = Double.parseDouble(token[7]);
 		double _outThet = Double.parseDouble(token[8]);
-		System.out.println("Spotlight : current # of lights : " + numLights + " inner angle : " + _inThet + " outer angle : " + _outThet);
+		win.getMsgObj().dispInfoMessage("Base_Scene", "addMySpotLight", "Spotlight : current # of lights : " + numLights + " inner angle : " + _inThet + " outer angle : " + _outThet);
 		mySpotLight tmp = new mySpotLight(this, numLights,
 				Double.parseDouble(token[9]),Double.parseDouble(token[10]),Double.parseDouble(token[11]),
 				Double.parseDouble(token[1]),Double.parseDouble(token[2]),Double.parseDouble(token[3]),
@@ -507,7 +515,7 @@ public abstract class Base_Scene {
 	// adds a new disklight to the array of lights : disk_light x y z radius dx dy dz r g b
 	public void addMyDiskLight(String[] token){
 		double radius = Double.parseDouble(token[4]);
-		System.out.println("Disk Light : current # of lights : " + numLights + " radius : " + radius);
+		win.getMsgObj().dispInfoMessage("Base_Scene", "addMyDiskLight", "Disk Light : current # of lights : " + numLights + " radius : " + radius);
 		myDiskLight tmp = new myDiskLight(this, numLights,
 				Double.parseDouble(token[8]),Double.parseDouble(token[9]),Double.parseDouble(token[10]),
 				Double.parseDouble(token[1]),Double.parseDouble(token[2]),Double.parseDouble(token[3]),
@@ -567,7 +575,7 @@ public abstract class Base_Scene {
 	public void setNoise(double scale, String[] vals){
 		resetDfltTxtrVals();//reset values for next call
 		txtrType = 2;
-		System.out.println("Setting Noise to scale : " + scale);	
+		win.getMsgObj().dispInfoMessage("Base_Scene", "setNoise","Setting Noise to scale : " + scale);	
 		noiseScale = scale;		//only specified value is scale currently
 	}//setNoise
 	
@@ -631,9 +639,14 @@ public abstract class Base_Scene {
 				}
 				tmpWtAra.add(tmpWt);
 			}//catch		
-			System.out.println("Finished loading color : " + tmp + " for txtr " + getTxtrName());
+			win.getMsgObj().dispInfoMessage("Base_Scene", "setTxtrColor","Finished loading color : " + tmp + " for txtr " + getTxtrName());
 		}
-		catch (Exception e) {String res = "Invalid color specification : " ;	for(int i =0; i<clrs.length;++i){res+=" {"+clrs[i]+"} ";}res+=" so color not added to array";System.out.println(res);}	 		
+		catch (Exception e) {
+			String res = "Invalid color specification : \n" ;	
+			for(int i =0; i<clrs.length;++i){res+=" {"+clrs[i]+"} \n";}
+			res+=" so color not added to array\n";
+			win.getMsgObj().dispMultiLineMessage("Base_Scene", "addMyPointLight",res, MsgCodes.error1);
+		}	 		
 		noiseColors = tmpAra.toArray(new myRTColor[0]);
 	}//setTxtrColors
 	
@@ -661,12 +674,13 @@ public abstract class Base_Scene {
 				try{	numOverlays = Integer.parseInt(vals[13]);	}	catch (Exception e) {numOverlays = 1;	}		
 			}
 			catch (Exception e) {	
-				System.out.println("Proc Perlin-based txtr not specifying randomize colors or overlays so defaults are used for txtr type : " + getTxtrName());	
+				win.getMsgObj().dispErrorMessage("Base_Scene", "readProcTxtrPerlinVals","Proc Perlin-based txtr not specifying randomize colors or overlays so defaults are used for txtr type : " + getTxtrName());	
 				rndColors = false;	colorScale = 25.0;colorMult = .1;numOverlays = 1;}	 
 			useDefaults = false;
-			System.out.println("Finished loading custom values for texture type : " + getTxtrName());
+			win.getMsgObj().dispInfoMessage("Base_Scene", "readProcTxtrPerlinVals", "Finished loading custom values for texture type : " + getTxtrName());
 		}
-		catch (Exception e) {System.out.println("No Proc Texture values specified for texture type : " + getTxtrName() + " so using defaults.");	useDefaults = true;	}	 
+		catch (Exception e) {
+			win.getMsgObj().dispErrorMessage("Base_Scene", "readProcTxtrPerlinVals", "No Proc Texture values specified for texture type : " + getTxtrName() + " so using defaults.");	useDefaults = true;	}	 
 		return useDefaults;	
 	}//readProcTxtrPerlinVals
 	
@@ -692,12 +706,12 @@ public abstract class Base_Scene {
 				try{	numOverlays = Integer.parseInt(vals[parseIDX++]);	}	catch (Exception e) {numOverlays = 1;	}		
 			}
 			catch (Exception e) {	
-				System.out.println("Proc txtr not specifying randomize colors or overlays so defaults are used for txtr type : " + getTxtrName());	
+				win.getMsgObj().dispErrorMessage("Base_Scene", "readProcTxtrWorleyVals", "Proc txtr not specifying randomize colors or overlays so defaults are used for txtr type : " + getTxtrName());	
 				rndColors = false;	colorScale = 25.0;colorMult = .1;numOverlays = 1;}	 
 			useDefaults = false;
-			System.out.println("Finished loading custom values for texture type : " + getTxtrName());
+			win.getMsgObj().dispInfoMessage("Base_Scene", "readProcTxtrWorleyVals", "Finished loading custom values for texture type : " + getTxtrName());
 		}
-		catch (Exception e) {System.out.println("No Proc Texture values specified for texture type : " + getTxtrName() + " so using defaults.");	useDefaults = true;	}	 
+		catch (Exception e) {win.getMsgObj().dispErrorMessage("Base_Scene", "readProcTxtrWorleyVals", "No Proc Texture values specified for texture type : " + getTxtrName() + " so using defaults.");	useDefaults = true;	}	 
 		return useDefaults;	
 	}//readProcTxtrWorleyVals
 	
@@ -707,7 +721,10 @@ public abstract class Base_Scene {
 		else { return readProcTxtrWorleyVals(vals);}
 	}//readProcTxtrVals	
 	
-	//proc texture components
+	/**
+	 * proc texture components
+	 * @param vals
+	 */
 	public void setTexture(String[] vals){
 		//TODO get all these values from CLI
 		resetDfltTxtrVals();//reset values for next call
@@ -770,13 +787,17 @@ public abstract class Base_Scene {
 							noiseColors, 											//myColor[] clrs = noiseColors
 							clrWts);											//Double[] wts = clrWts					
 				} break;}
-			default : {	System.out.println("Unknown Texture type : " + _typ); txtrType = 0; return;}
+			default : {	win.getMsgObj().dispErrorMessage("Base_Scene", "setTexture", "Unknown Texture type : " + _typ); txtrType = 0; return;}
 		}
-		System.out.println("Set Texture type : " + _typ); 
+		win.getMsgObj().dispInfoMessage("Base_Scene", "setTexture", "Set Texture type : " + _typ); 
 	}//setTexture
 	
 	
-	//returns one of a set of predefined colors or a random color as an array of 0-1 doubles based on tag passed
+	/**
+	 * returns one of a set of predefined colors or a random color as an array of 0-1 doubles based on tag passed
+	 * @param colorVal
+	 * @return
+	 */
 	public myRTColor getClr(String colorVal){
 		switch (colorVal.toLowerCase()){
 			case "clr_rnd"				: { return new myRTColor(ThreadLocalRandom.current().nextDouble(0,1),ThreadLocalRandom.current().nextDouble(0,1),ThreadLocalRandom.current().nextDouble(0,1));}
@@ -838,11 +859,11 @@ public abstract class Base_Scene {
 	    	case "clr_faintcyan"  	    : { return new myRTColor(0,0.43,0.43);}
 	    	case "clr_faintmagenta"  	: { return new myRTColor(0.43,0,0.43);}    	
 	    	case "clr_offwhite"			: { return new myRTColor(0.95,0.98,0.92);}
-	    	default         		    : { System.out.println("Color not found : " + colorVal + " so using white.");	return new myRTColor(1.0,1.0,1.0);}    
+	    	default         		    : { win.getMsgObj().dispErrorMessage("Base_Scene", "getClr", "Color not found : " + colorVal + " so using white.");	return new myRTColor(1.0,1.0,1.0);}    
 		}//switch
 	}//getClr
 	
-	public void setImageSize(int numCols, int numRows){//set size and all size-related variables, including image dims
+	private void setImageSize(int numCols, int numRows){//set size and all size-related variables, including image dims
 		sceneCols = numCols;
 		sceneRows = numRows;
 		numPxls = sceneRows * sceneCols;
@@ -854,20 +875,23 @@ public abstract class Base_Scene {
 		xStart = ((maxDim - sceneCols)/2.0) - rayXOffset;			//compensate for # rows or # cols not being max - make sure projection is centered in non-square images
 		fishMult = 2.0/maxDim; 
 			
-		rndrdImg = ((my_procApplet) pa).createImage(sceneCols,sceneRows,PConstants.RGB);		
+		rndrdImg = ((my_procApplet) pa).createImage(sceneCols,sceneRows,PConstants.RGB);
+		//Set scene-specific values for when 
+		setImageSize_Indiv();
 	}
+	protected abstract void setImageSize_Indiv();
 	
 	//refining
 	public void setRefine(String refState){
     	curRefineStep = 0;
-		scFlags[Base_Scene.glblRefineIDX] = refState.toLowerCase().equals("on");
+		scFlags[glblRefineIDX] = refState.toLowerCase().equals("on");
 		//build refinement #pxls array dynamically by finding average dim of image and then math.
 		int refIDX = (int)(Math.log((this.sceneCols + this.sceneRows)/32.0)/ MyMathUtils.LOG_2);
 		RefineIDX = new int[(refIDX+1)];
 		for(int i =refIDX; i >=0; --i){	RefineIDX[refIDX-i]=pow2[i];}
 	}//setRefine
 		
-	public void setDpthOfFld(double lRad, double lFD){//depth of field effect
+	public void setDpthOfFld(double lRad, double lFD){				//depth of field effect
 		lens_radius = lRad;
 		lens_focal_distance = lFD;
 		scFlags[hasDpthOfFldIDX] = true;
@@ -875,7 +899,7 @@ public abstract class Base_Scene {
 	}
 	
 	public void setNumRaysPerPxl(int _num){
-		System.out.println("Num Rays Per Pixel : " + _num);
+		win.getMsgObj().dispInfoMessage("Base_Scene", "setNumRaysPerPxl", "Num Rays Per Pixel : " + _num);
 		this.numRaysPerPixel = _num;
 	}
 	
@@ -966,7 +990,7 @@ public abstract class Base_Scene {
 //			try{
 			rayHit _hit = obj.intersectCheck(_ray,_ray.getTransformedRay(_ray, obj.CTMara[Base_Geometry.invIDX]),obj.CTMara);		
 //			} catch (Exception e){
-//				System.out.println("find closest ray hit exception :"+e);
+//				win.getMsgObj().dispErrorMessage("Base_Scene", "findClosestRayHit", "exception :\n"+e);
 //			}
 			if(_hit.isHit){			objsAtRayHits.put(_hit, _hit.obj);		}
 		}//for obj in scenelist
@@ -998,7 +1022,7 @@ public abstract class Base_Scene {
 		kNhood = Integer.parseInt(token[2]);
 		photonMaxNearDist = Float.parseFloat(token[3]);
 		float sqDist = photonMaxNearDist*photonMaxNearDist;
-		System.out.println("# photons : "+ numPhotons+ " Hood size :"+kNhood+" Max Near Dist :" +photonMaxNearDist);
+		win.getMsgObj().dispInfoMessage("Base_Scene", "setPhotonHandling", "# photons : "+ numPhotons+ " Hood size :"+kNhood+" Max Near Dist :" +photonMaxNearDist);
 		//build photon tree
 		photonTree = new Photon_KDTree(numPhotons, kNhood, sqDist);
 	}
@@ -1019,6 +1043,12 @@ public abstract class Base_Scene {
   		return reflDir;  
   	}//getReflDir
   				
+  	private void _buildKDTree(String _type) {
+		win.getMsgObj().dispInfoMessage("Base_Scene", "_buildKDTree", "Building KD Tree for "+_type+" Photons");
+		photonTree.buildKDTree();
+		win.getMsgObj().dispInfoMessage("Base_Scene", "_buildKDTree", "KD Tree Built for "+_type+" Photons"); 		
+  	}
+  	
   	//TODO set  up seperate maps for caustic and diffuse photons
 	//send out photons for all lights if we are using photon mapping - put these photons in kd tree
 	//need different photon configurations/processes for caustic photons and indirect illumination (diffuse)photons
@@ -1038,7 +1068,7 @@ public abstract class Base_Scene {
 			for(int i =0; i<photonTree.numCast; ++i){
 				photonPwr = new double[]{tmpLight.lightColor.x * pwrMult,tmpLight.lightColor.y * pwrMult,tmpLight.lightColor.z * pwrMult };
 				hitChk = findClosestRayHit(tmpLight.genRndPhtnRay());//first hit
-				if((!hitChk.isHit) || (!hitChk.shdr.shdrFlags[myObjShader.hasCaustic])){continue;}			//either hit background or 1st hit is diffuse object - caustic has to hit spec first
+				if((!hitChk.isHit) || (!hitChk.shdr.getHasCaustic())){continue;}			//either hit background or 1st hit is diffuse object - caustic has to hit spec first
 				//System.out.println("hit obj : " + hitChk.obj.ID);
 				//we have first hit here at caustic-generating surface.  need to propagate through to first diffuse surface
 				hitChk.phtnPwr = photonPwr;
@@ -1049,7 +1079,7 @@ public abstract class Base_Scene {
 		 				hitChk = findClosestRayHit(reflRefrRay);
 		 				hitChk.phtnPwr = tmpPwr;
 		 			} else {					hitChk.isHit = false;}
-				} while((hitChk.isHit) && (hitChk.shdr.shdrFlags[myObjShader.hasCaustic]) && (reflRefrRay.gen <= numPhotonRays));				//keep going while we have a hit and we are hitting a caustic
+				} while((hitChk.isHit) && (hitChk.shdr.getHasCaustic()) && (reflRefrRay.gen <= numPhotonRays));				//keep going while we have a hit and we are hitting a caustic
 				if((!hitChk.isHit) || (reflRefrRay.gen > numPhotonRays)){continue;}																//bounced off into space
 				
 				//d = hitChk.fwdTransRayDir._normalized().getAsAra();				
@@ -1067,9 +1097,7 @@ public abstract class Base_Scene {
 			System.out.println("100.0%");
 			starCount = 0;lastCastCnt=0;
 		}//for each light
-		System.out.println("Building KD Tree for Caustic Photons");
-		photonTree.buildKDTree();
-		System.out.println("KD Tree Built for Caustic Photons");
+		_buildKDTree("caustic");
 	}//sendCausticPhotons
 	
 	protected void sendDiffusePhotons(){
@@ -1162,9 +1190,7 @@ public abstract class Base_Scene {
 			System.out.println("100.0%");
 			starCount = 0;lastCastCnt=0;
 		}
-		System.out.println("Building KD Tree for Diffuse Photons");
-		photonTree.buildKDTree();
-		System.out.println("KD Tree Built for Diffuse Photons");
+		_buildKDTree("diffuse");
 	}//sendDiffusePhotons
 	
 	//initialize drawing routine - build photon map if it exists
@@ -1173,53 +1199,68 @@ public abstract class Base_Scene {
 		if ((scFlags[usePhotonMapIDX]) && (!scFlags[isPhtnMapRndrdIDX])){	if (scFlags[isCausticPhtnIDX]) {sendCausticPhotons(); } else {sendDiffusePhotons();scFlags[isPhtnMapRndrdIDX] = true;}}		
 	}//initRender	
 	
+	public boolean isSameSize(int numCols, int numRows) {
+		return (numCols == sceneCols) && (numRows == sceneRows);
+	}
+	
+	/**
+	 * Resizing the image from UI input - will redraw right after new size
+	 * @param numCols
+	 * @param numRows
+	 */
+	public void setNewSize(int numCols, int numRows) {
+		setImageSize(numCols, numRows);
+		curRefineStep = 0;
+		reflRays = 0;
+		refrRays = 0;
+		globRayCount = 0;
+		if (scFlags[usePhotonMapIDX]) {
+			rebuildPhotonTree();
+		}
+		scFlags[saveImageIDX] =  true;				//save image with new size
+		scFlags[renderedIDX] = false;
+	}//setNewSize
+	
+	private void rebuildPhotonTree() {
+		//build photon tree
+		photonTree = new Photon_KDTree(numPhotons, kNhood, photonMaxNearDist*photonMaxNearDist);			
+		
+	}
+	
 	/////////////
 	////skydome stuff - move to sphere code, set flag for internal normals TODO
-	// find corresponding u and v values for background texture	
-	public double findSkyDomeT(rayCast transRay){
+	/**
+	 * find corresponding u and v values for background texture	
+	 * @param transRay
+	 * @return
+	 */
+	private double findSkyDomeT(rayCast transRay){
 		//similar to intersection of known direction vectors to lights
 		//this code finds t of where passed ray hits mySkyDome edge
 		double t = -Double.MAX_VALUE;  //this t is the value of the ray equation where it hits the dome - init to bogus value	  
 		//find t for intersection : 
-		double a = mySkyDome.getAVal(transRay), b = mySkyDome.getBVal(transRay), c = mySkyDome.getCVal(transRay);	    
+		myPoint pC = mySkyDome.originRadCalc(transRay);
+		double a = mySkyDome.getAVal(transRay), b = mySkyDome.getBVal(transRay,pC), c = mySkyDome.getCVal(transRay,pC);	    
 		double discr = ((b * b) - (4 * a * c));
 		//quadratic - check first if imaginary - if so then no intersection
-		if (discr > 0){     
+		if (discr >= 0){     
 			double discr1 = Math.pow(discr,.5), t1 = (-1*b + discr1)/ (2*a), t2 = (-1*b - discr1)/ (2*a), tVal = Math.min(t1,t2);
 			if (tVal < MyMathUtils.EPS){tVal = Math.max(t1,t2);}//if the min t val is less than 0
 			t = tVal;
 		}//if positive t
-		else {System.out.println ("error - non-colliding ray doesn't hit sky dome.  b^2 - 4ac , eval : "+ b + "^2 - 4 " + a + "*" + c + " : " + discr);}//should never get here - any ray that is sent to this function hasn't intersected with any other
+		else {
+			//should never get here - any ray that is sent to this function hasn't intersected with any other
+			win.getMsgObj().dispErrorMessage("Base_Scene", "findSkyDomeT", "Error - non-colliding ray doesn't hit sky dome.  b^2 - 4ac , eval : "+ b + "^2 - 4 " + a + "*" + c + " : " + discr);
+		}
 		return t;
 	}//findSkjDomeT func
 	
-	// find corresponding u and v values for background texture
-	public double findBkgTextureV(myPoint isctPt, double t){
-		double v = 0.0;
-		double a0 = isctPt.y - mySkyDome.origin.y;
-		double a1 = a0 /(mySkyDome.radY);
-		a1 = (a1 > 1)? 1 : (a1 < -1) ? -1 : a1;   
-		v = (((myImageTexture)mySkyDome.shdr.txtr).myTextureBottom.height-1) * Math.acos(a1)/ Math.PI;
-	  return v;
-	}
-
-	public double findBkgTextureU(myPoint isctPt, double v, double t){
-		double u = 0.0, q,a0, a1, a2, shWm1 = ((myImageTexture)mySkyDome.shdr.txtr).myTextureBottom.width-1, z1 = (isctPt.z - mySkyDome.origin.z);	  
-		q = v/(((myImageTexture)mySkyDome.shdr.txtr).myTextureBottom.height-1);//normalize v to be 0-1
-		a0 = (isctPt.x - mySkyDome.origin.x)/ (mySkyDome.radX);
-		a0 = (a0 > 1) ? 1 : (a0 < -1) ? -1 : a0;
-		a1 = ( Math.sin(q* Math.PI));
-		a2 = (Math.abs(a1) < MyMathUtils.EPS) ? 1 : a0/a1;
-		u = (z1 <= MyMathUtils.EPS) ? ((shWm1 * ( Math.acos(a2))/ (MyMathUtils.TWO_PI_F)) + shWm1/2.0f) : 
-					shWm1 - ((shWm1 * ( Math.acos(a2))/ (MyMathUtils.TWO_PI_F)) + shWm1/2.0f);
-		u = (u < 0) ? 0 : (u > shWm1) ? shWm1 : u;
-		return u;
-	} 
-
 	public myRTColor getBackgroundTextureColor(rayCast ray){
 		double t = findSkyDomeT(ray);
 		myPoint isctPt = ray.pointOnRay(t);
-		double v = findBkgTextureV(isctPt, t), u = findBkgTextureU(isctPt, v, t);
+		double[] bkgTxtrUV = mySkyDome.findTxtrCoords(isctPt, (((myImageTexture)mySkyDome.shdr.txtr).myTextureBottom), t);
+		//double v = findBkgTextureV(isctPt, t), u = findBkgTextureU(isctPt, v, t);
+		double u = bkgTxtrUV[0], v = bkgTxtrUV[1];
 		return new myRTColor(((myImageTexture)mySkyDome.shdr.txtr).myTextureBottom.pixels[(int)v * ((myImageTexture)mySkyDome.shdr.txtr).myTextureBottom.width + (int)u]);
 	}//getBackgroundTexturecolor
 	
@@ -1233,6 +1274,7 @@ public abstract class Base_Scene {
 		reflRays = 0;
 		refrRays = 0;
 		globRayCount = 0;
+		rebuildPhotonTree();
 		for (Base_Geometry obj : objList){//set for all scene objects or instances of sceneobjects
 			if(obj instanceof Base_SceneObject){((Base_SceneObject)obj).setFlags(Base_SceneObject.invertedIDX, scFlags[flipNormsIDX]);}//either a scene object or an instance of a scene object
 			else {if(obj instanceof ObjInstance && ((ObjInstance)obj).obj instanceof Base_SceneObject){((Base_SceneObject)((ObjInstance)obj).obj).setFlags(Base_SceneObject.invertedIDX, scFlags[flipNormsIDX]);}}
@@ -1241,11 +1283,11 @@ public abstract class Base_Scene {
 	//return abs vals of vector as vector
 	public myVector absVec(myVector _v){return new myVector(Math.abs(_v.x),Math.abs(_v.y),Math.abs(_v.z));}
 
-	public double noise_3d(myVector pt){return noise_3d((float)pt.x, (float)pt.y, (float)pt.z);}
+	public double perlinNoise3D(myPoint pt){return perlinNoise3D((float)pt.x, (float)pt.y, (float)pt.z);}
 	//from code given by greg for project 4, 3d perlin noise
-	public float noise_3d(float x, float y, float z) {		
+	public float perlinNoise3D(float x, float y, float z) {		
 		// make sure we've initialized table
-		if (initFlag == false) {	  initialize_table();	  initFlag = true;	}		
+		if (initFlag == false) {	  initPermTable();	  initFlag = true;	}		
 		// Find unit grid cell containing point
 		int X = fastfloor(x),Y = fastfloor(y), Z = fastfloor(z);		
 		// Get relative xyz coordinates of point within that cell
@@ -1374,12 +1416,23 @@ public abstract class Base_Scene {
 	//instance scene-specific 
 	//public abstract myColor calcAAColor(double pRayX, double pRayY, double xIncr, double yIncr);
 	public abstract myRTColor shootMultiRays(double pRayX, double pRayY);
+	
+
+	
 	public final void draw() {
 		//if not rendered yet, render and then draw
 		if (!scFlags[renderedIDX]){	
 			initRender();
+			int stepIter = 1;
+			boolean skipPxl = false;
+			if(scFlags[glblRefineIDX]){
+				stepIter = RefineIDX[curRefineStep++];
+				skipPxl = curRefineStep != 1;			//skip 0,0 pxl on all sub-images except the first pass
+			} 
+			if(stepIter == 1){scFlags[renderedIDX] = true;			}
+			
 			//Render specific scene
-			renderScene();			
+			renderScene(stepIter, skipPxl, rndrdImg.pixels);			
 			//Finish up
 			//update the display based on the pixels array
 			rndrdImg.updatePixels();
@@ -1389,7 +1442,7 @@ public abstract class Base_Scene {
 		((my_procApplet) pa).image(rndrdImg,0,0);	
 	}
 	
-	protected abstract void renderScene();
+	protected abstract void renderScene(int stepIter, boolean skipPxl, int[] pixels);
 	
 	/**
 	 * file save
@@ -1399,39 +1452,41 @@ public abstract class Base_Scene {
 		String[] tmp = saveName.split("\\.(?=[^\\.]+$)");				//remove extension from given savename
 		if (scFlags[saveImgInDirIDX]){	tmpSaveName = folderName.toString() + "\\"  + tmp[0]+(scFlags[Base_Scene.flipNormsIDX] ? "_normFlipped" : "")+ ".png";} //rebuild name to include directory and image name including render time
 		else {							tmpSaveName = tmp[0]+(scFlags[Base_Scene.flipNormsIDX] ? "_normFlipped" : "")+".png";		}
-		System.out.println("File saved as  : "+ tmpSaveName);
+		win.getMsgObj().dispInfoMessage("Base_Scene", "saveFile", "File saved as  : "+ tmpSaveName);
 		rndrdImg.save(tmpSaveName);
 		scFlags[saveImageIDX] =  false;//don't keep saving every frame
 	}//save image
 	  
-	//common finalizing for all rendering methods
+	/**
+	 * common finalizing for all rendering methods
+	 */
 	protected void finishImage(){
 		if (scFlags[saveImageIDX]){		saveFile();	}//if savefile is true, save the file
+		String dispStr = "";
 		if (scFlags[showObjInfoIDX]){
+			
 			for (Base_Geometry obj : allObjsToFind){
-	     		System.out.println(obj.toString());
-	     		System.out.println();
+				dispStr += obj.toString();
 	     		if(obj instanceof Base_SceneObject){
 		     		if (((Base_SceneObject)obj).shdr.txtr.txtFlags[Base_TextureHandler.txtrdTopIDX]){
-		     			System.out.println("" + ((Base_SceneObject)obj).showUV());
+		     			dispStr += ((Base_SceneObject)obj).showUV() +"\n";
 		     		}//if textured
 	     		}
 		     	else if(obj instanceof ObjInstance){
 		     		ObjInstance inst = (ObjInstance)obj;
 		     		if ((inst.obj instanceof Base_SceneObject) && (((Base_SceneObject)inst.obj).shdr.txtr.txtFlags[Base_TextureHandler.txtrdTopIDX])){			//TODO need to modify this when using instanced polys having textures - each instance will need a notion of where it should sample from
-		     			System.out.println("" + ((Base_SceneObject)inst.obj).showUV());
+		     			dispStr += ((Base_SceneObject)inst.obj).showUV()+"\n";
 		     		}	     	
 		     	}
+	     		dispStr += "_________________________________________________________________________\n";
 	     	}
+			win.getMsgObj().dispMultiLineInfoMessage("Base_Scene", "finishImage", dispStr);
 		}//for objects and instances, to print out info
 		if (scFlags[glblTxtrdBkgIDX]){
-			System.out.println("\nBackground : \n");
-			System.out.println("" + mySkyDome.showUV());  
+			dispStr += "\nBackground : " + mySkyDome.showUV() + "\n";  
 		}
-		System.out.println("Total # of rays : " + globRayCount + " | refl/refr rays " + reflRays +"/" + refrRays);
-		System.out.println("");
-		System.out.println("Image rendered from file name : " + saveName);
-		System.out.println("");
+		dispStr += "Total # of rays : " + globRayCount + " | refl/refr rays " + reflRays +"/" + refrRays + "\n\nImage rendered from file name : " + saveName;
+		win.getMsgObj().dispMultiLineInfoMessage("Base_Scene", "finishImage", dispStr);
 	}
 	
 	
@@ -1449,9 +1504,9 @@ public abstract class Base_Scene {
 	//current depth in matrix stack - starts at 0;
 	private int currMatrixDepthIDX;	
 	
-	 public void gtDebugStack(String caller){ System.out.println("Caller : "+caller + "\nCurrent stack status : \n"+matrixStack.toString()); }//gtdebugStack method
+	 public void gtDebugStack(String caller){ win.getMsgObj().dispMultiLineInfoMessage("Base_Scene", "gtDebugStack", "Caller : "+caller + "\nCurrent stack status : \n"+matrixStack.toString()); }//gtdebugStack method
 
-	 public void gtInitialize() {
+	 private void gtInitialize() {
 		 currMatrixDepthIDX = 0;
 		 matrixStack = new myMatStack(this.matStackMaxHeight);
 		 matrixStack.initStackLocation(0);

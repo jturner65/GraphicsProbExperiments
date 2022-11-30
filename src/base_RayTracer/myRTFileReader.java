@@ -6,9 +6,7 @@ import java.util.*;
 import base_JavaProjTools_IRender.base_Render_Interface.IRenderInterface;
 import base_Math_Objects.MyMathUtils;
 import base_Math_Objects.vectorObjs.doubles.myVector;
-import base_RayTracer.scene.myFOVScene;
-import base_RayTracer.scene.myFishEyeScene;
-import base_RayTracer.scene.myOrthoScene;
+import base_RayTracer.scene.*;
 import base_RayTracer.scene.base.Base_Scene;
 import base_RayTracer.scene.geometry.sceneObjects.myRndrdBox;
 import base_RayTracer.scene.geometry.sceneObjects.base.Base_SceneObject;
@@ -16,19 +14,31 @@ import base_RayTracer.scene.geometry.sceneObjects.implicit.*;
 import base_RayTracer.scene.geometry.sceneObjects.planar.*;
 import base_RayTracer.scene.geometry.sceneObjects.planar.base.Base_PlanarObject;
 import base_RayTracer.scene.textures.imageTextures.myImageTexture;
+import base_RayTracer.ui.base.Base_RayTracerWin;
 import base_UI_Objects.my_procApplet;
 
 public class myRTFileReader {
 	public IRenderInterface pa;
+	private Base_RayTracerWin win;
 	public final String textureDir;
 	private int timer;
 	private int curNumRows, curNumCols;
-	public myRTFileReader(IRenderInterface _pa, String _txtrDirs) {
+	public myRTFileReader(IRenderInterface _pa, Base_RayTracerWin _win, String _txtrDirs) {
 		pa = _pa;
+		win=_win;
 		textureDir = _txtrDirs;		
 	}
 	
-	//passed scene is for when called recursively - is null on first time in, passes scene to be used otherwise
+	/**
+	 * passed scene is for when called recursively - is null on first time in, passes scene to be used otherwise
+	 * @param loadedScenes
+	 * @param filePath
+	 * @param fileName
+	 * @param _scene
+	 * @param _numCols
+	 * @param _numRows
+	 * @return
+	 */
 	public Base_Scene readRTFile(TreeMap<String, Base_Scene> loadedScenes, String filePath, String fileName, Base_Scene _scene, int _numCols, int _numRows) {		  
 		//build individual scene for each file		
 		timer = getTime();			//times rendering
@@ -42,17 +52,22 @@ public class myRTFileReader {
 			isMainFileScene = false;			//set this so that scene info is not put into
 		} else {
 			scene = loadedScenes.get(fileName);
-			if(scene != null){return scene;}//if scene exists, don't read in again
-			scene = new myFOVScene(pa,fileName,_numCols, _numRows);
-			scene.setSceneParams(new double[]{60}); 	//set default scene to be FOV with width 60 degrees
+			if(scene != null){
+				//if scene exists but is not the same size, do not reload, just re-render
+				if(!scene.isSameSize(_numCols, _numRows)) {scene.setNewSize(curNumCols, curNumRows);}				
+				return scene;
+			}//if scene exists, don't read in again
+			scene = new myFOVScene(pa, win, fileName, curNumCols, curNumRows, 60.0);
+			//scene.setSceneParams(new double[]{60}); 	//set default scene to be FOV with width 60 degrees
 		}
-		String[] str = null;
+		String[] strAra = null;
 		try{
-			str = ((my_procApplet)pa).loadStrings(filePath + File.separator+fileName);
-			System.out.println("File path : "+filePath + "|File name : " + fileName + " Size : " + str.length);
-		} catch (Exception e) {	System.out.println("myRTFileReader::readRTFile : File Read Error : File name : " + fileName + " not found."); return null;		}	 
+			//Load the file
+			strAra = ((my_procApplet)pa).loadStrings(filePath + File.separator+fileName);
+			win.getMsgObj().dispInfoMessage("myRTFileReader", "readRTFile", "File path : "+filePath + "|File name : " + fileName + " Size : " + strAra.length);
+		} catch (Exception e) {	win.getMsgObj().dispErrorMessage("myRTFileReader", "readRTFile", "File Read Error : File name : " + fileName + " not found."); return null;		}	 
 	
-		scene = parseStringArray(loadedScenes, str, scene, isMainFileScene, filePath, fileName);
+		scene = parseStringArray(loadedScenes, strAra, scene, isMainFileScene, filePath, fileName);
 		return scene;
 	}//interpreter method
 	
@@ -77,61 +92,60 @@ public class myRTFileReader {
 		Base_SceneObject myPoly = null;
 		int curNumRaysPerPxl = scene.numRaysPerPixel;
 		//reinitializes the image so that any previous values from other images are not saved
-		//if (str == null) {System.out.println("Error! Failed to read the file.");}
+		//if (str == null) {win.getMsgObj().dispErrorMessage("myRTFileReader", "parseStringArray", "Error! Failed to read the file.");}
 		for (int i=0; i<fileStrings.length; ++i) { 
 			if(fileStrings[i].startsWith("#")) {continue;}
-			String[] token = fileStrings[i].strip().split("\\s+"); // Get a line and parse tokens.
+			String[] tokenAra = fileStrings[i].strip().split("\\s+"); // Get a line and parse tokens.
 			//debug
 			//printTokenAra(fileStrings[i], i, token);
-			if ((token.length == 0) || (token[0] == "")) {continue;} // Skip blank line or comments.
-			switch (token[0].toLowerCase()){
+			if ((tokenAra.length == 0) || (tokenAra[0] == "")) {continue;} // Skip blank line or comments.
+			switch (tokenAra[0].toLowerCase()){
 				//determine the kind of scene - needs to be the first component in base scene file
 				case "fov" 	: {	
-					if(!isMainFileScene){System.out.println("Error - unsupported setting scene type ('FOV') in recursive child scene file"); break;}
-					Base_Scene tmp = new myFOVScene(scene);
+					if(!isMainFileScene){win.getMsgObj().dispErrorMessage("myRTFileReader", "parseStringArray", "Error - unsupported setting scene type ('FOV') in recursive child scene file"); break;}
+					Base_Scene tmp = new myFOVScene(scene, Double.parseDouble(tokenAra[1]));
 					scene = tmp;
 					//scene = new myFOVScene(p);
 					scene.setNumRaysPerPxl((curNumRaysPerPxl != 0) ? curNumRaysPerPxl : 1);
-					scene.setSceneParams(new double[]{Double.parseDouble(token[1])}); 
+					//scene.setSceneParams(new double[]{Double.parseDouble(tokenAra[1])}); 
 					break;}	
 				//for depth of field -only in FOV scenes - specifies the lens size (radius) and what 
 				//distance in front of the eye is in focus - greater radius should blur more of the image
 			    case "lens" : { 			
-			    	double radius = Double.parseDouble(token[1]);
-			    	double focal_distance = Double.parseDouble(token[2]);
+			    	double radius = Double.parseDouble(tokenAra[1]);
+			    	double focal_distance = Double.parseDouble(tokenAra[2]);
 			    	scene.setDpthOfFld(radius, focal_distance);			    	
 			    	break;}
 			    
 				//case "fishEye" :
 				case "fisheye" : { 
-					if(!isMainFileScene){System.out.println("Error - unsupported setting scene type ('fishEye') in recursive child scene file"); break;}					
-					Base_Scene tmp = new myFishEyeScene(scene);
+					if(!isMainFileScene){win.getMsgObj().dispErrorMessage("myRTFileReader", "parseStringArray", "Error - unsupported setting scene type ('fishEye') in recursive child scene file"); break;}					
+					Base_Scene tmp = new myFishEyeScene(scene, Double.parseDouble(tokenAra[1]));
 					scene = tmp;
 					//scene = new myFishEyeScene(p);
 					scene.setNumRaysPerPxl((curNumRaysPerPxl != 0) ? curNumRaysPerPxl : 1);
-					scene.setSceneParams(new double[]{Double.parseDouble(token[1])}); 
+					//scene.setSceneParams(new double[]{Double.parseDouble(tokenAra[1])}); 
 					break;}	
 				case "ortho" :
 				case "orthographic" : {// width height
-					if(!isMainFileScene){System.out.println("Error - unsupported setting scene type ('Ortho') in recursive child scene file"); break;}
-					Base_Scene tmp = new myOrthoScene(scene,curNumCols, curNumRows);
+					if(!isMainFileScene){win.getMsgObj().dispErrorMessage("myRTFileReader", "parseStringArray", "Error - unsupported setting scene type ('Ortho') in recursive child scene file"); break;}
+					Base_Scene tmp = new myOrthoScene(scene, Double.parseDouble(tokenAra[1]),Double.parseDouble(tokenAra[2]));
 					scene = tmp;
-					//scene = new myOrthoScene(p);
 					scene.setNumRaysPerPxl((curNumRaysPerPxl != 0) ? curNumRaysPerPxl : 1);
-					scene.setSceneParams(new double[]{Double.parseDouble(token[1]),Double.parseDouble(token[2])}); 
+					//scene.setSceneParams(new double[]{Double.parseDouble(tokenAra[1]),Double.parseDouble(tokenAra[2])}); 
 					break;}				
 				//file save and read subordinate file
 				//NEEDS TO RENDER SCENE and then save it so that rendering can be timed - doesn't work with refine currently
 			    case "write" : {		
-			    	scene.saveName = token[1];			    	
+			    	scene.saveName = tokenAra[1];			    	
 			    	finalizeScene(loadedScenes,fileName, scene);		
 			    	finalized = true;
 			    	//render scene -here- - needs to be modified to not stop until scene is finished rendering (for incremental/refine scene renders)
 			    	if(!fileName.equals("")){scene.draw();}
-			    	else{System.out.println("Can't render unknown/incomplete scene");}
+			    	else{win.getMsgObj().dispErrorMessage("myRTFileReader", "parseStringArray", "Can't render unknown/incomplete scene with empty fileName");}
 			    	break;}		
 			    case "read" : {//read another scene file - nested to load multiple files
-			    	readRTFile(loadedScenes, filePath, token[1],scene,curNumCols, curNumRows);
+			    	readRTFile(loadedScenes, filePath, tokenAra[1],scene, curNumCols, curNumRows);
 			    	break;}		
 			    //timer stuff
 			    case "reset_timer" : {//Reset a global timer that will be used to determine how long it takes to render a scene. 
@@ -143,66 +157,66 @@ public class myRTFileReader {
 			    	int diff = new_timer - timer;
 			    	float seconds = diff / 1000.0f;
 			    	scene.renderTime = seconds;
-			    	System.out.println ("timer = " + seconds);
+			    	win.getMsgObj().dispInfoMessage("myRTFileReader", "parseStringArray", "Timer = " + seconds);
 			    	break;
 			    }			    
 			    //global modifications to alg
-			    case "refine" : {    	scene.setRefine(token[1]); break;}//user iterative refinement when rendering scene - start at (int)log2 of dim, then decrease by 2 every iteration			    
+			    case "refine" : {    	scene.setRefine(tokenAra[1]); break;}//user iterative refinement when rendering scene - start at (int)log2 of dim, then decrease by 2 every iteration			    
 
 			    case "rays_per_pixel" : {	//how many rays should be shot per pixel.
-			    	int rays = Integer.parseInt(token[1]);
-			    	System.out.println("Num Rays Per Pixel : " + rays);
+			    	int rays = Integer.parseInt(tokenAra[1]);
+			    	win.getMsgObj().dispInfoMessage("myRTFileReader", "parseStringArray","Num Rays Per Pixel : " + rays);
 			    	curNumRaysPerPxl = rays;				//doing this because it is being set before FOV, which rebuilds scene
 			    	scene.setNumRaysPerPxl(rays);			    	
 			    	break;}			
 			    
 				case "antialias" : {
-					int aaDepthRow = Integer.parseInt(token[1]);
-					int aaDepthCol = Integer.parseInt(token[2]);
+					int aaDepthRow = Integer.parseInt(tokenAra[1]);
+					int aaDepthCol = Integer.parseInt(tokenAra[2]);
 					int prod = aaDepthRow * aaDepthCol;
-					System.out.println("aa depth r/c " + aaDepthRow + "|" + aaDepthCol +" -> convert to numRays per pixel " + prod);
+					win.getMsgObj().dispInfoMessage("myRTFileReader", "parseStringArray", "Anti Alias depth r/c " + aaDepthRow + "|" + aaDepthCol +" -> convert to numRays per pixel " + prod);
 			    	curNumRaysPerPxl = prod;				//doing this because it is being set before FOV, which rebuilds scene
 			    	scene.setNumRaysPerPxl(prod);			    	
 					break;} 			    
-			//background texture/color/foreground color
+				//background texture/color/foreground color
 				case "background" : {//visible background in front of camera - negative infinite z\
-					if (token[1].equals("texture")) {
+					if (tokenAra[1].equals("texture")) {
 						//load texture to be used for background
-						String textureName = token[2];
+						String textureName = tokenAra[2];
 						scene.currBkgTexture = ((my_procApplet)pa).loadImage(textureDir+textureName);
 						scene.scFlags[Base_Scene.glblTxtrdBkgIDX] = true;
-						System.out.println("Background texture loaded");
+						win.getMsgObj().dispInfoMessage("myRTFileReader", "parseStringArray", "Background texture loaded");
 						//build "skydome" - textured sphere encircling scene
-						double rad = Double.parseDouble(token[3]);
-						double xC = Double.parseDouble(token[4]);
-						double yC = Double.parseDouble(token[5]);
-						double zC = Double.parseDouble(token[6]);
-						System.out.println("Skydome : rad:" + rad +" ctr : ["+ xC +","+ yC +","+ zC+"]");
+						double rad = Double.parseDouble(tokenAra[3]);
+						double xC = Double.parseDouble(tokenAra[4]);
+						double yC = Double.parseDouble(tokenAra[5]);
+						double zC = Double.parseDouble(tokenAra[6]);
+						win.getMsgObj().dispInfoMessage("myRTFileReader", "parseStringArray", "Skydome : rad:" + rad +" ctr : ["+ xC +","+ yC +","+ zC+"]");
 						scene.mySkyDome = new mySphere(scene,rad,xC,yC,zC,true);
 						((myImageTexture)scene.mySkyDome.shdr.txtr).setMyTextureBottom(scene.currBkgTexture);	
 					} else {//set bkg color
-						scene.setBackgroundColor(Double.parseDouble(token[1]),Double.parseDouble(token[2]),Double.parseDouble(token[3]));
+						scene.setBackgroundColor(Double.parseDouble(tokenAra[1]),Double.parseDouble(tokenAra[2]),Double.parseDouble(tokenAra[3]));
 						scene.txtrType = 0;
 					}
 					break;}
 //				case "foreground" : {//visible foreground behind camera - positive infinite z - rgb - modify this to also allow for textures as in background, but mapped to billboard behind viewer?
 //					scene.setForegroundColor(Double.parseDouble(token[1]),Double.parseDouble(token[2]),Double.parseDouble(token[3]));
 //					break;}				
-			//lights
+				//lights
 				case "point_light" : {
-					scene.addMyPointLight(token);	      
+					scene.addMyPointLight(tokenAra);	      
 					break;}
 				case "spotlight" : {//spotlight x y z dx dy dz angle_inner angle_outer r g b
-					System.out.println("File : " + fileName+ " has a spotLight!");
-					scene.addMySpotLight(token);   
+					win.getMsgObj().dispInfoMessage("myRTFileReader", "parseStringArray", "File : " + fileName+ " has a spotLight!");
+					scene.addMySpotLight(tokenAra);   
 					break;}				
 				case "disk_light" : {//disk_light x y z radius dx dy dz r g b
-					scene.addMyDiskLight(token);
+					scene.addMyDiskLight(tokenAra);
 					break;}	
 
 				case "caustic_photons" : //caustic_photons num_cast num_near max_near_dist
 				case "diffuse_photons" : {//diffuse_photons num_cast num_near max_near_dist 
-					scene.setPhotonHandling(token);
+					scene.setPhotonHandling(tokenAra);
 					break;}
 				//
 //				final_gather num_rays
@@ -217,17 +231,17 @@ public class myRTFileReader {
 //				much better images, but will also be significantly slower. Speeding this up would require irradiance caching, 
 //				but we will not implement this due to lack of time. 
 				case "final_gather" : {//final_gather num_rays
-					int numRays = Integer.parseInt(token[1]);
+					int numRays = Integer.parseInt(tokenAra[1]);
 					
 					//TODO handle final gather ray count
-					System.out.println("Final gather ray count : "+numRays);
+					win.getMsgObj().dispInfoMessage("myRTFileReader", "parseStringArray", "Final gather ray count : "+numRays);
 					//
 					break;}
 			
 			//color commands
 				case "diffuse" : {//new assignment requirements
-					myRTColor cDiff = readColor(token,1);//new myColor(Double.parseDouble(token[1]),Double.parseDouble(token[2]),Double.parseDouble(token[3]));
-					myRTColor cAmb = readColor(token,4);//new myColor(Double.parseDouble(token[4]),Double.parseDouble(token[5]),Double.parseDouble(token[6]));
+					myRTColor cDiff = readColor(tokenAra,1);//new myColor(Double.parseDouble(token[1]),Double.parseDouble(token[2]),Double.parseDouble(token[3]));
+					myRTColor cAmb = readColor(tokenAra,4);//new myColor(Double.parseDouble(token[4]),Double.parseDouble(token[5]),Double.parseDouble(token[6]));
 					myRTColor cSpec = new myRTColor(0,0,0);
 					scene.scFlags[Base_Scene.glblTxtrdTopIDX] = false;
 					scene.scFlags[Base_Scene.glblTxtrdBtmIDX] = false;
@@ -235,10 +249,10 @@ public class myRTFileReader {
 					break;}
 				//use shiny for new refr/refl; use surface for older cli files - handles mix of colors and refr/refl better
 				case "shiny" :{//Cdr Cdg Cdb, Car Cag Cab, Csr Csg Csb, Exp Krefl Ktrans Index 
-					setSurfaceShiny(scene, token, true);
+					setSurfaceShiny(scene, tokenAra, true);
 					break;}
 				case "surface" : {
-					setSurfaceShiny(scene, token, false);
+					setSurfaceShiny(scene, tokenAra, false);
 					break;}
 				//reflective Cdr Cdg Cdb Car Cag Cab k_refl 
 //				This command describes a new kind of surface material. Just as with the 
@@ -250,23 +264,23 @@ public class myRTFileReader {
 				//a reflective surface, this should cause the caustic photon to "bounce", and to travel in a new direction. 
 				//Caustic photons only stop bouncing when they hit a diffuse surface. 				
 				case "reflective" : {//reflective Cdr Cdg Cdb Car Cag Cab k_refl 
-					myRTColor cDiff = readColor(token,1);//new myColor(Double.parseDouble(token[1]),Double.parseDouble(token[2]),Double.parseDouble(token[3]));
-					myRTColor cAmb = readColor(token,4);//new myColor(Double.parseDouble(token[4]),Double.parseDouble(token[5]),Double.parseDouble(token[6]));
+					myRTColor cDiff = readColor(tokenAra,1);//new myColor(Double.parseDouble(token[1]),Double.parseDouble(token[2]),Double.parseDouble(token[3]));
+					myRTColor cAmb = readColor(tokenAra,4);//new myColor(Double.parseDouble(token[4]),Double.parseDouble(token[5]),Double.parseDouble(token[6]));
 					myRTColor cSpec = new myRTColor(0,0,0);
 					scene.scFlags[Base_Scene.glblTxtrdTopIDX] = false;
 					scene.scFlags[Base_Scene.glblTxtrdBtmIDX] = false;
-					double kRefl = Double.parseDouble(token[7]);
+					double kRefl = Double.parseDouble(tokenAra[7]);
 					scene.setSurface(cDiff,cAmb,cSpec,0,kRefl);		
 					break;}
 				
 			    case "perm" : {//load new permiability value - used for refraction
-			    	scene.setRfrIdx(Double.parseDouble(token[1]));
-			    	try {scene.setRfrIdx(Double.parseDouble(token[1]),Double.parseDouble(token[2]),Double.parseDouble(token[3]),Double.parseDouble(token[4]));} catch (Exception e){}
+			    	scene.setRfrIdx(Double.parseDouble(tokenAra[1]));
+			    	try {scene.setRfrIdx(Double.parseDouble(tokenAra[1]),Double.parseDouble(tokenAra[2]),Double.parseDouble(tokenAra[3]),Double.parseDouble(tokenAra[4]));} catch (Exception e){}
 			    	break;}//if perm
-			    case "phong" : {scene.setPhong(Double.parseDouble(token[1]));	break;}//phong
-			    case "krefl" : {scene.setKRefl(Double.parseDouble(token[1]));  	break;}//krefl
-				case "depth" : {scene.setDepth(Double.parseDouble(token[1]));	break;}//depth for subsurface scattering - TODO
-			    case "ktrans" : {scene.setKTrans(Double.parseDouble(token[1]));	break;}//ktrans - //load new permiability value - used for refraction		
+			    case "phong" : {scene.setPhong(Double.parseDouble(tokenAra[1]));	break;}//phong
+			    case "krefl" : {scene.setKRefl(Double.parseDouble(tokenAra[1]));  	break;}//krefl
+				case "depth" : {scene.setDepth(Double.parseDouble(tokenAra[1]));	break;}//depth for subsurface scattering - TODO
+			    case "ktrans" : {scene.setKTrans(Double.parseDouble(tokenAra[1]));	break;}//ktrans - //load new permiability value - used for refraction		
 			    
 			    //accel structs
 			    case "begin_list" :{	    	scene.startTmpObjList();		    break;}
@@ -276,65 +290,66 @@ public class myRTFileReader {
 			    //layouts
 			    case "sierpinski" :{
 			    	//generate sierpinski tet arrangement of named object
-			    	String objName = token[1], useShdr="No";
+			    	String objName = tokenAra[1], useShdr="No";
 			    	float scale = .5f;
 			    	int depth = 5;		//default to 5 layers deep	    	
-			    	try {depth = Integer.parseInt(token[2]);scale = Float.parseFloat(token[3]);	useShdr = token[4];}catch (Exception e) {}	 
+			    	try {depth = Integer.parseInt(tokenAra[2]);scale = Float.parseFloat(tokenAra[3]);	useShdr = tokenAra[4];}catch (Exception e) {}	 
 			    	scene.buildSierpinski(objName, scale, depth, useShdr != "No" );
 			    	break;}
 			    
 			    //instance creation
 			    case "named_object" : {
 			    	//named_object <name>		    	
-			    	String objName = token[1];
+			    	String objName = tokenAra[1];
 			    	scene.setObjectAsNamedObject(objName);			    	
 			    	break;}
 			    	//instance <name>
 			    case "instance" : {
-			    	String objName = token[1];
+			    	String objName = tokenAra[1];
 			    	String useCurShdr = "";				//whether to use the currently set shader for this instance, instead of the default shader for the named object
-			    	try {	    		useCurShdr = token[2];			    	} catch (Exception e){	        			    	}			    	
+			    	try {	    		useCurShdr = tokenAra[2];			    	} catch (Exception e){	        			    	}			    	
 			    	scene.addInstance(objName, useCurShdr != "");		    	
 			    	break;}	
 			    
 			    case "image_texture" :
-			    case "texture" : {//load texture to be used for subsequent objects.  will be overridden by a surface command			    	
-			    	String side = token[1];
-			    	String textureName = token[1];			    	
+			    case "texture" : {//load texture to be used for subsequent objects.  will be overridden by a surface command
+			    	//First token could either be the side (top or bottom) or the textureName (in which case it is assumed to be the top texture)
+			    	String side = tokenAra[1];
+			    	String textureName = tokenAra[1];			    	
 			    	if (side.toLowerCase().equals("bottom")){
-			    		textureName = token[2]; 
+			    		textureName = tokenAra[2]; 
 			    		//if specified as bottom, assume bottom texture
-			    		scene.currTextureBottom = ((my_procApplet)pa).loadImage("..\\data\\"+textureDir+"\\"+textureName);
+			    		scene.currTextureBottom = ((my_procApplet)pa).loadImage(textureDir+textureName);
 			    		scene.scFlags[Base_Scene.glblTxtrdBtmIDX] = true;
-			    		System.out.println("bottom surface texture loaded");      }
+			    		win.getMsgObj().dispInfoMessage("myRTFileReader", "parseStringArray", "Bottom surface texture loaded");      }
 			    	else {
 			    		//if not specified then assume texture goes on top and texture name is specified in first token
-			    		if (side.toLowerCase().equals("top")){  		  	textureName = token[2];   }
-			    		scene.currTextureTop = ((my_procApplet)pa).loadImage("..\\data\\"+textureDir+"\\"+textureName);
+			    		if (side.toLowerCase().equals("top")){  		  	textureName = tokenAra[2];   }
+			    		scene.currTextureTop = ((my_procApplet)pa).loadImage(textureDir+textureName);
 			    		scene.scFlags[Base_Scene.glblTxtrdTopIDX] = true;
-			    		System.out.println("top surface texture loaded");
+			    		win.getMsgObj().dispInfoMessage("myRTFileReader", "parseStringArray", "Top surface texture loaded");
 			    	} 
 			    	scene.txtrType = 1;		//texture type is set to image/none
 			    	break;}			    
 			    
 			    //procedural textures
 			    //noise as txtr -> token[1] is scale value	
-			    case "noise" : {    	scene.setNoise(Double.parseDouble(token[1]), token);    	break; }			    
+			    case "noise" : {    	scene.setNoise(Double.parseDouble(tokenAra[1]), tokenAra);    	break; }			    
 			    //set colors used by procedural texture : <noise color tag> <color r g b> <-specify multiple times for each color
 			    //need to put color commands/list after proc txtr type command in cli file, before object
-			    case "noise_color" :{			    	scene.setTxtrColor(token);				    	break;   }			    
+			    case "noise_color" :{			    	scene.setTxtrColor(tokenAra);				    	break;   }			    
 				//the following may just have <typ> or may have up to color scale, or may have all values - use defaults for all values not specified
 				//<typ> <noise scale> <numOctaves> <turbMult> <pdMult x y z> <multByPI 1/0 1/0 1/0> <useFwdTransform 0/1> 
 			    //		<rndomize colors colorScale - if present then true> <color mult> <num overlays - if present, otherwise 1>
 			    case "marble" :
 			    case "stone" : 
 			    case "wood" : 
-			    case "wood2" : {   	scene.setTexture(token);   	break;    }			 
+			    case "wood2" : {   	scene.setTexture(tokenAra);   	break;    }			 
 			    
 			    //polygons		
 			    //begin shape - defaults to triangle
 			    case "begin" : {
-			    	try {	vertType = token[1];   	} catch (Exception e) {	}      //triangle is default;  quad will be specified
+			    	try {	vertType = tokenAra[1];   	} catch (Exception e) {	}      //triangle is default;  quad will be specified
 			     	myVertCount = 0;
 			      	if (vertType.equals("quad")){	myPoly = new myQuad(scene);} 
 			      	else {				     		myPoly = new myTriangle(scene);}
@@ -342,10 +357,10 @@ public class myRTFileReader {
 			    //texture_coord u v
 			    case "texture_coord" : {
 				//specifies the texture coordinate for the next vertex that is to be created for a triangle. - each "texture_coord" command will come before the corresponding "vertex" command in the .cli files
-			    	((Base_PlanarObject) myPoly).setTxtrCoord(Double.parseDouble(token[1]),Double.parseDouble(token[2]), myVertCount); 
+			    	((Base_PlanarObject) myPoly).setTxtrCoord(Double.parseDouble(tokenAra[1]),Double.parseDouble(tokenAra[2]), myVertCount); 
 			    	break;}
 			    case "vertex" : {
-			    	((Base_PlanarObject) myPoly).setVert(Double.parseDouble(token[1]),Double.parseDouble(token[2]),Double.parseDouble(token[3]), myVertCount);
+			    	((Base_PlanarObject) myPoly).setVert(Double.parseDouble(tokenAra[1]),Double.parseDouble(tokenAra[2]),Double.parseDouble(tokenAra[3]), myVertCount);
 			    	myVertCount++;
 			    	break;}
 			    case "end" : {//end shape - reset vars to add new triangle, finalize triangle, add to arraylist of sceneobjects		
@@ -367,7 +382,7 @@ public class myRTFileReader {
 			    case "sphere" : 	    
 			    case "moving_sphere":   
 			    case "sphereIn" : 
-			    case "ellipsoid" : {	readPrimData(scene, token);   	break;}
+			    case "ellipsoid" : {	readPrimData(scene, tokenAra);   	break;}
 //				hollow_cylinder radius x z ymin ymax
 //				Create a hollow cylinder that has its axis parallel to the y-axis. The hollow cylinder should not have end caps. 
 			    
@@ -376,23 +391,23 @@ public class myRTFileReader {
 			    case "pop" : {   	scene.gtPopMatrix();break;		    }//matrix pop
 			    case "rotate" : {//needs to be in degrees as per assignment
 			    	//builds a rotation matrix and adds to current transformation matrix on stack - angle, x,y,z
-			    	scene.gtRotate(Double.parseDouble(token[1]), Double.parseDouble(token[2]), Double.parseDouble(token[3]), Double.parseDouble(token[4]));
+			    	scene.gtRotate(Double.parseDouble(tokenAra[1]), Double.parseDouble(tokenAra[2]), Double.parseDouble(tokenAra[3]), Double.parseDouble(tokenAra[4]));
 			    	break;}
 			    case "scale" : {
 			    	//builds a scale matrix and adds to current transformation matrix on stack - sx,sy,sz
-			    	scene.gtScale(Double.parseDouble(token[1]), Double.parseDouble(token[2]), Double.parseDouble(token[3]));
+			    	scene.gtScale(Double.parseDouble(tokenAra[1]), Double.parseDouble(tokenAra[2]), Double.parseDouble(tokenAra[3]));
 			    	break;}
 			    case "translate" : {
 			    	//builds a translate matrix and adds to current transformation matrix on stack - tx,ty,tz
-			    	scene.gtTranslate(Double.parseDouble(token[1]), Double.parseDouble(token[2]), Double.parseDouble(token[3]));
+			    	scene.gtTranslate(Double.parseDouble(tokenAra[1]), Double.parseDouble(tokenAra[2]), Double.parseDouble(tokenAra[3]));
 			    	break;}		
 			    default : {
-			    	System.out.println("When reading "+fileName+" unknown command encountered : '"+token[0]+"' on line : ["+i+"] : " + fileStrings[i]);
-			    	printTokenAra(fileStrings[i], i, token);
+			    	win.getMsgObj().dispErrorMessage("myRTFileReader", "parseStringArray", "When reading "+fileName+" unknown command encountered : '"+tokenAra[0]+"' on line : ["+i+"] : " + fileStrings[i]);
+			    	printTokenAra(fileStrings[i], i, tokenAra);
 			    	System.exit(0);
 			    	break;}
 			}//switch on object type from file	
-		}//for each string
+		}//for each token string
 		if((isMainFileScene) && !finalized){finalizeScene(loadedScenes,fileName, scene);	}	//puts finished scene -- only put in if _scene is null, meaning this is root file, not 2ndary read file
 		return scene;
 	}//parseStringArray
@@ -401,7 +416,7 @@ public class myRTFileReader {
 		String tmpToken = "";
 		for(String tok : token) {tmpToken += "|"+tok;}
 		tmpToken += "|";
-		System.out.println("\tLine " + i + ": fileString=`" + fileString + "` | tokens : "+ token.length + " : "+tmpToken);
+		win.getMsgObj().dispInfoMessage("myRTFileReader", "parseStringArray", "\tLine " + i + ": fileString=`" + fileString + "` | tokens : "+ token.length + " : "+tmpToken);
 	}//printTokenAra
 	
 	
@@ -472,7 +487,7 @@ public class myRTFileReader {
 		    			Double.parseDouble(token[4]),Double.parseDouble(token[5]),Double.parseDouble(token[6]));
 		    	break;}
 		    default :{
-		    	System.out.println("Object type not handled : "+ token[0]);
+		    	win.getMsgObj().dispErrorMessage("myRTFileReader", "readPrimData", "Object type not handled : "+ token[0]);
 		    	return;
 		    }
 		}//switch
@@ -511,7 +526,9 @@ public class myRTFileReader {
 			scene.setSurface(cDiff,cAmb,cSpec,phongExp,kRefl,kTrans,rfrIdx);
 			scene.setRfrIdx(rfrIdx);    	
     		scene.setRfrIdx(rfrIdx,Double.parseDouble(token[14]),Double.parseDouble(token[15]),Double.parseDouble(token[16]));    	
-		} catch (Exception e) {}
+		} catch (Exception e) {
+			win.getMsgObj().dispErrorMessage("myRTFileReader", "setSurfaceShiny", "Error : \n"+e.toString());
+		}
 		if((useSimple) && ((kTrans > 0) || (rfrIdx > 0))){scene.scFlags[Base_Scene.simpleRefrIDX] = true;}			
 	}//setSurfaceShiny
 

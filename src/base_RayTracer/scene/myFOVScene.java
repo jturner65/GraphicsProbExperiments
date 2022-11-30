@@ -8,6 +8,8 @@ import base_RayTracer.ray.rayCast;
 import base_RayTracer.ray.rayHit;
 import base_RayTracer.scene.base.Base_Scene;
 import base_RayTracer.scene.geometry.base.Base_Geometry;
+import base_RayTracer.ui.base.Base_RayTracerWin;
+import base_Math_Objects.MyMathUtils;
 import base_Math_Objects.vectorObjs.doubles.myPoint;
 import base_Math_Objects.vectorObjs.doubles.myVector;
 
@@ -17,38 +19,43 @@ public class myFOVScene extends Base_Scene {
 	//public List<Future<Boolean>> callFOVFutures;
 	//public List<myFOVCall> callFOVCalcs;
 
-	public myFOVScene(IRenderInterface _p, String _sceneName, int _numCols, int _numRows) {
-		super(_p,_sceneName,_numCols,_numRows);
+	public myFOVScene(IRenderInterface _p,Base_RayTracerWin _win, String _sceneName, int _numCols, int _numRows, double _fov) {
+		super(_p,_win,_sceneName,_numCols,_numRows);
+		setFOVVals(_fov);
 		//callFOVCalcs= new ArrayList<myFOVCall>();
 		//callFOVFutures = new ArrayList<Future<Boolean>>(); 
 	}
-	public myFOVScene(Base_Scene _scene) {
+	public myFOVScene(Base_Scene _scene, double _fov) {
 		super( _scene);
-		viewZ = ((myFOVScene)(_scene)).viewZ;
+		setFOVVals(_fov);
 		//callFOVCalcs= new ArrayList<myFOVCall>();
 		//callFOVFutures = new ArrayList<Future<Boolean>>(); 
-	}
-	@Override
-	protected void initVarsPriv() {
-		viewZ = -1;		
 	}
 
+	/**
+	 * After image size is changed, recalculate essential scene-specific values that depend on image size
+	 */
 	@Override
-	public void setSceneParams(double[] args){
-		fov = args[0];
-		fovRad = Math.PI*fov/180.0;
-		if (Math.abs(fov - 180) < .001){//if illegal fov value, modify to prevent divide by 0
+	protected final void setImageSize_Indiv() {
+		//Re calc FOV since size has changed
+		setFOVVals(fov);
+	}
+	
+	private void setFOVVals(double _fov) {
+		fov = _fov;
+		fovRad = MyMathUtils.DEG_TO_RAD*fov;
+		if (Math.abs(fov - 180) < MyMathUtils.EPS){//if illegal fov value, modify to prevent divide by 0
 			fov -= .001;
 			fovRad -= .0001;
 		}
 		//virtual view plane exists at some -z so that fov gives sceneCols x sceneRows x and y;-1 for negative z, makes coord system right handed
 		//if depth of field scene, then use lens focal distance as z depth (??)
-		viewZ = -1 *  (Math.max(sceneRows,sceneCols)/2.0)/Math.tan(fovRad/2);
+		viewZ = -0.5 * (MyMathUtils.max(sceneRows,sceneCols)/Math.tan(fovRad/2.0f));
 		if(scFlags[hasDpthOfFldIDX]){//depth of field variables already set from reader - build focal plane
 			focalPlane.setPlaneVals(0, 0, 1,  lens_focal_distance);  		
 			System.out.println("View z : " + viewZ  + "\nfocal plane : "+ focalPlane);
-		}
-	}//setSceneParams
+		}		
+	}
 
 	//getDpthOfFldEyeLoc()
 	//no anti aliasing for depth of field, instead, first find intersection of ray with focal plane, then 
@@ -75,20 +82,13 @@ public class myFOVScene extends Base_Scene {
 		return result;	  
 	}//shootMultiRays	
 	
-	private void renderDepthOfField(){
+	private void renderDepthOfField(int stepIter, boolean skipPxl, int[] pixels){
 		//index of currently written pixel
 		int pixIDX = 0;
 		int progressCount = 0;
 		double rayY, rayX;
 		myRTColor showColor;
-		//myRay ray;
-		boolean skipPxl = false;
-		int stepIter = 1;
-		if(scFlags[glblRefineIDX]){
-			stepIter = RefineIDX[curRefineStep++];
-			skipPxl = curRefineStep != 1;			//skip 0,0 pxl on all sub-images except the first pass
-		} 
-		if(stepIter == 1){scFlags[renderedIDX] = true;			}
+
 		//always uses multi rays in depthOfFld image
 		for (int row = 0; row < sceneRows; row+=stepIter){
 			rayY = (-1 * (row - rayYOffset));        
@@ -96,7 +96,7 @@ public class myFOVScene extends Base_Scene {
 				if(skipPxl){skipPxl = false;continue;}			//skip only 0,0 pxl		
 				rayX = col - rayXOffset;      
 				showColor = shootMultiDpthOfFldRays(rayX,rayY);
-				pixIDX = writePxlSpan(showColor.getInt(),row,col,stepIter,rndrdImg.pixels);
+				pixIDX = writePxlSpan(showColor.getInt(),row,col,stepIter,pixels);
 				if ((1.0 * pixIDX)/(numPxls) > (progressCount * .02)){System.out.print("-|");progressCount++;}//progressbar  
 			}//for col
 		}//for row  
@@ -121,19 +121,11 @@ public class myFOVScene extends Base_Scene {
 		return result;	  
 	}//shootMultiRays	
 	
-	private void renderFOVScene() {
+	private void renderFOVScene(int stepIter, boolean skipPxl, int[] pixels) {
 		//index of currently written pixel
 		int pixIDX = 0;
 		int progressCount = 0;
 		myRTColor showColor;
-		boolean skipPxl = false;
-		int stepIter = 1;
-		if(scFlags[glblRefineIDX]){
-			stepIter = RefineIDX[curRefineStep++];
-			skipPxl = curRefineStep != 1;			//skip 0,0 pxl on all sub-images except the first pass
-		} 
-		if(stepIter == 1){scFlags[renderedIDX] = true;			}
-		
 
 		double rayY, rayX;
 		if (numRaysPerPixel == 1){//only single ray shot into scene for each pixel
@@ -143,7 +135,7 @@ public class myFOVScene extends Base_Scene {
 					if(skipPxl){skipPxl = false;continue;}			//skip only 0,0 pxl					
 					rayX = col - rayXOffset;
 					showColor = reflectRay(new rayCast(this,this.eyeOrigin, new myVector(rayX,rayY,viewZ),0)); 
-					pixIDX = writePxlSpan(showColor.getInt(),row,col,stepIter,rndrdImg.pixels);
+					pixIDX = writePxlSpan(showColor.getInt(),row,col,stepIter,pixels);
 					if ((1.0 * pixIDX)/(numPxls) > (progressCount * .02)){System.out.print("-|");progressCount++;}//progressbar         
 				}//for col
 			}//for row	     
@@ -154,7 +146,7 @@ public class myFOVScene extends Base_Scene {
 					if(skipPxl){skipPxl = false;continue;}			//skip only 0,0 pxl		
 					rayX = col - rayXOffset;      
 					showColor = shootMultiRays(rayX,rayY);
-					pixIDX = writePxlSpan(showColor.getInt(),row,col,stepIter,rndrdImg.pixels);
+					pixIDX = writePxlSpan(showColor.getInt(),row,col,stepIter,pixels);
 					if ((1.0 * pixIDX)/(numPxls) > (progressCount * .02)){System.out.print("-|");progressCount++;}//progressbar  
 				}//for col
 			}//for row  
@@ -163,11 +155,11 @@ public class myFOVScene extends Base_Scene {
 	
 	@Override
 	//distribution render
-	public void renderScene(){
+	public void renderScene(int stepIter, boolean skipPxl, int[] pixels){
 		if(scFlags[hasDpthOfFldIDX]){
-			renderDepthOfField(); 
+			renderDepthOfField(stepIter, skipPxl, pixels); 
 		} else {
-			renderFOVScene();
+			renderFOVScene(stepIter, skipPxl, pixels);
 		}
 		System.out.println("-");
 	}//renderScene

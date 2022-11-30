@@ -25,8 +25,8 @@ public class myTorus extends Base_ImplicitObject{
 		
 		bodyRad = _bodyRad;
 		ringRad = _ringRad;
-	    minVals = this.getMinVec();
-	    maxVals = this.getMaxVec();	    
+	    minVals = getMinVec();
+	    maxVals = getMaxVec();	    
 		postProcBBox();				//cnstrct and define bbox
 	}
 	

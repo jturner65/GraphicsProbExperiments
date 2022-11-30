@@ -21,14 +21,15 @@ public class myHollow_Cylinder extends Base_ImplicitObject{
 		myHeight = _myHeight;
 		yTop = origin.y + myHeight;//top of can
 		yBottom = origin.y; //bottom of can
-	    minVals = this.getMinVec();
-	    maxVals = this.getMaxVec();	    
+	    minVals = getMinVec();
+	    maxVals = getMaxVec();	    
 		postProcBBox();				//cnstrct and define bbox
 	}
 	 
 	//check if passed ray intersects with this cylinder - first using x/z for circular intersection, then planar intersection with end caps, then check which is closest and positive  
-	public rayHit intersectCheck(rayCast _ray, rayCast transRay, myMatrix[] _ctAra){		
-		double a = getAVal(transRay), b = getBVal(transRay), c = getCVal(transRay), discr = ((b*b) - (4*a*c));
+	public rayHit intersectCheck(rayCast _ray, rayCast transRay, myMatrix[] _ctAra){	
+		myPoint pC = originRadCalc(transRay);
+		double a = getAVal(transRay), b = getBVal(transRay, pC), c = getCVal(transRay, pC), discr = ((b*b) - (4*a*c));
 		//quadratic - check first if imaginary - if so then no intersection
 		if (!(discr < 0)){//real roots exist - means ray hits x-z walls somewhere
 			double discr1 = Math.pow(discr,.5),t1 = (-b + discr1)/(2*a),t2 = (-b - discr1)/(2*a);
@@ -67,11 +68,11 @@ public class myHollow_Cylinder extends Base_ImplicitObject{
   	public double getMyHeight(){  return myHeight;}  
   	
   	// calculates the "A" value for the quadratic equation determining the potential intersection of the passed ray with a cylinder of given radius and center
-  	public double getAVal(rayCast _ray){	return ((_ray.direction.x/radX) * (_ray.direction.x/radX)) + ((_ray.direction.z/radZ) * (_ray.direction.z/radZ));  	}  
+  	public double getAVal(rayCast _ray){return ((_ray.direction.x/radX) * (_ray.direction.x/radX)) + ((_ray.direction.z/radZ) * (_ray.direction.z/radZ));  	}  
   	//calculates the "B" value for the quadratic equation determining the potential intersection of the passed ray with a cylinder of given radius and center
-  	public double getBVal(rayCast _ray){myVector pC = originRadCalc(_ray);return 2*(((_ray.direction.x/radX) * pC.x) + ((_ray.direction.z/radZ) * pC.z)); }  
+  	public double getBVal(rayCast _ray, myPoint pC){return 2*(((_ray.direction.x/radX) * pC.x) + ((_ray.direction.z/radZ) * pC.z)); }  
   	//calculates the "C" value for the quadratic equation determining the potential intersection of the passed ray with a cylinder of given radius and center
-  	public double getCVal(rayCast _ray){	myVector pC = originRadCalc(_ray);	return (pC.x * pC.x) + (pC.z * pC.z) - 1; }  
+  	public double getCVal(rayCast _ray, myPoint pC){return (pC.x * pC.x) + (pC.z * pC.z) - 1; }  
 
 	@Override
 	public myVector getMaxVec(){

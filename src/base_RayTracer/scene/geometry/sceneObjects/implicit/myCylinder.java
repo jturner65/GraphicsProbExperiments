@@ -22,15 +22,15 @@ public class myCylinder extends myHollow_Cylinder{
 		topCapEq[3] = -yTop;
 		btmCapEq[3] = yBottom;			//mult by -1 so that normal is pointing down
 		capEqs = new double[][]{topCapEq, btmCapEq};
-	    minVals = this.getMinVec();
-	    maxVals = this.getMaxVec();	    
+	    minVals = getMinVec();
+	    maxVals = getMaxVec();	    
 		postProcBBox();				//cnstrct and define bbox
 	}
  
 	//check if passed ray intersects with this cylinder - first using x/z for circular intersection, then planar intersection with end caps, then check which is closest and positive  
 	public rayHit intersectCheck(rayCast _ray, rayCast transRay, myMatrix[] _ctAra){
-		
-		double a = getAVal(transRay),b = getBVal(transRay), c = getCVal(transRay);
+		myPoint pC = originRadCalc(transRay);
+		double a = getAVal(transRay),b = getBVal(transRay, pC), c = getCVal(transRay, pC);
 		double discr = ((b*b) - (4*a*c));
 		//quadratic - check first if imaginary - if so then no intersection
 		if (!(discr < 0)){//real roots exist - means ray hits x-z walls somewhere

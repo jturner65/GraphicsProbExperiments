@@ -6,6 +6,7 @@ import base_JavaProjTools_IRender.base_Render_Interface.IRenderInterface;
 import base_RayTracer.myRTColor;
 import base_RayTracer.ray.rayCast;
 import base_RayTracer.scene.base.Base_Scene;
+import base_RayTracer.ui.base.Base_RayTracerWin;
 import base_Math_Objects.MyMathUtils;
 import base_Math_Objects.vectorObjs.doubles.myVector;
 
@@ -16,23 +17,28 @@ public class myFishEyeScene extends Base_Scene{
 	//public List<Future<Boolean>> callFishFutures;
 	//public List<myFishCall> callFishCalcs;
 	
-	public myFishEyeScene(IRenderInterface _p, String _sceneName, int _numCols, int _numRows) {
-		super(_p,_sceneName,_numCols,_numRows);	
+	public myFishEyeScene(IRenderInterface _p, Base_RayTracerWin _win, String _sceneName, int _numCols, int _numRows, double _fishEye) {
+		super(_p,_win,_sceneName,_numCols,_numRows);	
+		setFishEye(_fishEye);
 	}
 	
-	public myFishEyeScene(Base_Scene _s){
+	public myFishEyeScene(Base_Scene _s, double _fishEye){
 		super(_s);
+		setFishEye(_fishEye);
+	}
+	
+	/**
+	 * After image size is changed, recalculate essential scene-specific values that depend on image size
+	 */
+	@Override
+	protected final void setImageSize_Indiv() {}
+	
+	private void setFishEye(double _fishEye) {
+		fishEye = _fishEye;
+		fishEyeRad = MyMathUtils.DEG_TO_RAD*fishEye;
+		aperatureHlf = fishEyeRad/2.0;		
 	}
 
-	@Override
-	protected void initVarsPriv() {}
-
-	@Override
-	public void setSceneParams(double[] args) {
-		fishEye = args[0];
-		fishEyeRad = MyMathUtils.PI*fishEye/180.0;
-		aperatureHlf = fishEyeRad/2.0;
-	}//setSceneParams
 
 	@Override
 	public myRTColor shootMultiRays(double xBseVal, double yBseVal) {
@@ -61,22 +67,13 @@ public class myFishEyeScene extends Base_Scene{
 	
 	@Override
 	//distribution draw
-	public void renderScene(){
+	public void renderScene(int stepIter, boolean skipPxl, int[] pixels){
 		//index of currently written pixel
 		int pixIDX = 0;
 		int progressCount = 0;
 		myRTColor showColor;
-		boolean skipPxl = false;
-		int stepIter = 1;			
-		if(scFlags[glblRefineIDX]){
-			stepIter = RefineIDX[curRefineStep++];
-			skipPxl = curRefineStep != 1;			//skip 0,0 pxl on all sub-images except the first pass
-		} 
-		if(stepIter == 1){scFlags[renderedIDX] = true;			}
 		//fisheye assumes plane is 1 away from eye
-
-		
-		double r, phi, theta,yVal, xVal, ySq, sTh, rTmp;
+		double r, phi, theta, yVal, xVal, ySq, sTh, rTmp;
 		//fishRad2 = .5*fishEyeRad;
 
 		if (numRaysPerPixel == 1){											//single ray into scene per pixel
@@ -87,14 +84,14 @@ public class myFishEyeScene extends Base_Scene{
 					if(skipPxl){skipPxl = false;continue;}			//skip only 0,0 pxl	
 					xVal = (col + xStart)* fishMult;
 					rTmp = xVal*xVal+ySq;
-					if(rTmp > 1){	pixIDX = writePxlSpan(blkColor.getInt(),row,col,stepIter,rndrdImg.pixels);	} 
+					if(rTmp > 1){	pixIDX = writePxlSpan(blkColor.getInt(),row,col,stepIter,pixels);	} 
 					else {
 						r = Math.sqrt(rTmp);
 						theta = r * aperatureHlf;
 						phi = Math.atan2(-yVal,xVal); 					
 						sTh = Math.sin(theta);
 						showColor = reflectRay(new rayCast(this,this.eyeOrigin, new myVector(sTh * Math.cos(phi),sTh * Math.sin(phi),-Math.cos(theta)),0)); 
-						pixIDX = writePxlSpan(showColor.getInt(),row,col,stepIter,rndrdImg.pixels);
+						pixIDX = writePxlSpan(showColor.getInt(),row,col,stepIter,pixels);
 					}
 					if ((1.0 * pixIDX)/(numPxls) > (progressCount * .02)){System.out.print("-|");progressCount++;}//progressbar  
 				}//for col
@@ -106,7 +103,7 @@ public class myFishEyeScene extends Base_Scene{
 					if(skipPxl){skipPxl = false;continue;}			//skip only 0,0 pxl		
 					xVal = (col + xStart);
 					showColor = shootMultiRays(xVal, yVal); 			//replace by base radian amt of max(x,y) 
-					pixIDX = writePxlSpan(showColor.getInt(),row,col,stepIter,rndrdImg.pixels);			
+					pixIDX = writePxlSpan(showColor.getInt(),row,col,stepIter,pixels);			
 					if ((1.0 * pixIDX)/(numPxls) > (progressCount * .02)){System.out.print("-|");progressCount++;}//progressbar  
 				}//for col
 			}//for row  

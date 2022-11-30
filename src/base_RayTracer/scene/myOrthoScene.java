@@ -1,11 +1,13 @@
 package base_RayTracer.scene;
 
+import java.util.TreeMap;
 import java.util.concurrent.ThreadLocalRandom;
 
 import base_JavaProjTools_IRender.base_Render_Interface.IRenderInterface;
 import base_RayTracer.myRTColor;
 import base_RayTracer.ray.rayCast;
 import base_RayTracer.scene.base.Base_Scene;
+import base_RayTracer.ui.base.Base_RayTracerWin;
 import base_Math_Objects.vectorObjs.doubles.myVector;
 
 public class myOrthoScene extends Base_Scene{
@@ -15,27 +17,25 @@ public class myOrthoScene extends Base_Scene{
 	//public List<Future<Boolean>> callOrthoFutures;
 	//public List<myOrthoCall> callOrthoCalcs;
 
-	public myOrthoScene(IRenderInterface _p, String _sceneName,int _numCols, int _numRows) {
-		super(_p,_sceneName,_numCols,_numRows);
+	public myOrthoScene(IRenderInterface _p, Base_RayTracerWin _win, String _sceneName,int _numCols, int _numRows, double _orthoWidth, double _orthoHeight) {
+		super(_p,_win,_sceneName,_numCols,_numRows);
+		setOrthoVals(_orthoWidth,_orthoHeight);
 	}
-	public myOrthoScene(Base_Scene _s, int _numCols, int _numRows){
+	public myOrthoScene(Base_Scene _s, double _orthoWidth, double _orthoHeight){
 		super(_s);
+		setOrthoVals(_orthoWidth,_orthoHeight);
 	}
-	@Override
-	protected void initVarsPriv() {
-		orthoWidth = sceneCols;
-		orthoHeight = sceneRows;
-		setOrthoPerRow();
-	}//initVarsPriv()	
-
-	@Override
-	public void setSceneParams(double[] args) {
-		orthoWidth = args[0];
-		orthoHeight = args[1];	
-		setOrthoPerRow();
-	}//setSceneParams
 	
-	private void setOrthoPerRow() {
+	/**
+	 * After image size is changed, recalculate essential scene-specific values that depend on image size
+	 */
+	@Override
+	protected final void setImageSize_Indiv() {}
+	
+	private void setOrthoVals(double _orthoWidth, double _orthoHeight) {
+		orthoWidth = _orthoWidth;
+		orthoHeight = _orthoHeight;
+	
 		double div = Math.min(orthoWidth, orthoHeight);
 		orthPerRow = orthoHeight/div;
 		orthPerCol = orthoWidth/div;		
@@ -59,25 +59,15 @@ public class myOrthoScene extends Base_Scene{
 	}//shootMultiRays	
 	
 	@Override
-	public void renderScene(){
+	public void renderScene(int stepIter, boolean skipPxl, int[] pixels){
 		//we must shoot out rays and determine what is being hit by them
 		//get pixels array, to be modified by ray-shooting
 		//index of currently written pixel
 		int pixIDX = 0;
 		int progressCount = 0;
 		myRTColor showColor;
-		boolean skipPxl = false;
-		int stepIter = 1;
-		
-		
-		//  double redVal, greenVal, blueVal, divVal;
 		double rayY, rayX;
 
-		if(scFlags[glblRefineIDX]){
-			stepIter = RefineIDX[curRefineStep++];
-			skipPxl = curRefineStep != 1;			//skip 0,0 pxl on all sub-images except the first pass
-		} 
-		if(stepIter == 1){scFlags[renderedIDX] = true;			}
 		if (numRaysPerPixel == 1){											//single ray into scene per pixel
 			for (int row = 0; row < sceneRows; row+=stepIter){
 				rayY = orthPerRow * (-1 * (row - rayYOffset));         
@@ -85,7 +75,7 @@ public class myOrthoScene extends Base_Scene{
 					if(skipPxl){skipPxl = false;continue;}			//skip only 0,0 pxl					
 					rayX = orthPerCol * (col - rayXOffset);
 					showColor = reflectRay(new rayCast(this,new myVector(rayX,rayY,0), new myVector(0,0,-1),0)); 
-					pixIDX = writePxlSpan(showColor.getInt(),row,col,stepIter,rndrdImg.pixels);
+					pixIDX = writePxlSpan(showColor.getInt(),row,col,stepIter,pixels);
 					if ((1.0 * pixIDX)/(numPxls) > (progressCount * .02)){System.out.print("-|");progressCount++;}//progressbar         
 				}//for col
 			}//for row	     
@@ -96,7 +86,7 @@ public class myOrthoScene extends Base_Scene{
 					if(skipPxl){skipPxl = false;continue;}			//skip only 0,0 pxl		
 					rayX = orthPerCol * (col - rayXOffset - .5);      
 					showColor = shootMultiRays(rayX,rayY); 
-					pixIDX = writePxlSpan(showColor.getInt(),row,col,stepIter,rndrdImg.pixels);
+					pixIDX = writePxlSpan(showColor.getInt(),row,col,stepIter,pixels);
 					if ((1.0 * pixIDX)/(numPxls) > (progressCount * .02)){System.out.print("-|");progressCount++;}//progressbar  
 				}//for col
 			}//for row  
