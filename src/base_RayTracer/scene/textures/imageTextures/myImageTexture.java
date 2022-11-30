@@ -50,9 +50,9 @@ public class myImageTexture extends Base_TextureHandler{
   		double uMFlU = u - uInt, vMFlV = v - vInt;  		
  		myRTColor texColorVal0 = texColorVal00.interpColor(uMFlU, texColorVal01), texColorVal1 = texColorVal10.interpColor(uMFlU,texColorVal11),texColorVal = texColorVal0.interpColor(vMFlV, texColorVal1);
  		
-  		texColor[R] = texColorVal.RGB.x;
-  		texColor[G] = texColorVal.RGB.y;
-  		texColor[B] = texColorVal.RGB.z;   
+  		texColor[R] = texColorVal.x;
+  		texColor[G] = texColorVal.y;
+  		texColor[B] = texColorVal.z;   
   		return texColor;   
   	}//get texture color at pixel
   	
@@ -66,7 +66,7 @@ public class myImageTexture extends Base_TextureHandler{
   		//get color information from texture on top of object at specific point of intersection
 		if (txtFlags[txtrdTopIDX]){	texTopColor = getTextureColor(hit,myTextureTop);	} 
 		//add if checking for texturedBottom
-		else {						texTopColor[R] = diffuseColor.RGB.x;texTopColor[G] = diffuseColor.RGB.y;texTopColor[B] = diffuseColor.RGB.z;}
+		else {						texTopColor[R] = diffuseColor.x;texTopColor[G] = diffuseColor.y;texTopColor[B] = diffuseColor.z;}
 		//decreasing diffuse color by this constant, reflecting how transparent the object is - only use with complex refraction calc
 		texTopColor[R] *= diffConst;texTopColor[G] *= diffConst;texTopColor[B] *= diffConst;
 		return texTopColor;  	

@@ -64,25 +64,27 @@ public class myObjShader {
 	    setCurrColors();
 	    txtr = new myImageTexture(scene, this);			//default is image texture
 	}
-	public void initFlags(){shdrFlags = new boolean[numFlags];for(int i=0; i<numFlags;++i){shdrFlags[i]=false;}}
-	private double getAvgColor(myRTColor clr){ return (1.0/3.0) * (clr.RGB.x + clr.RGB.y + clr.RGB.z);}
-	private myVector getAvgPhtnColor(myRTColor base, double avg){ return new myVector(base.RGB.x/avg,base.RGB.y/avg,base.RGB.z/avg);}
-	public void setCurrColors(){
-	    diffuseColor.set(scene.currDiffuseColor);
-	    avgDiffClr = getAvgColor(diffuseColor);
-	    //if(avgDiffClr != 0){  phtnDiffScl.set(diffuseColor.RGB.x/avgDiffClr,diffuseColor.RGB.y/avgDiffClr,diffuseColor.RGB.z/avgDiffClr);}
-	    if(avgDiffClr != 0){  phtnDiffScl = getAvgPhtnColor(diffuseColor,avgDiffClr);}
+	private final double third = 1.0/3.0;
+	private double getAvgColor(myRTColor clr){ return third * (clr.x + clr.y + clr.z);}
+	private myVector getAvgPhtnColor(myRTColor base, double avg){ return new myVector(base.x/avg,base.y/avg,base.z/avg);}
+	protected void setCurrColors(){
 	    ambientColor.set(scene.currAmbientColor);
+	    
+		diffuseColor.set(scene.currDiffuseColor);
+	    avgDiffClr = getAvgColor(diffuseColor);
+	    if(avgDiffClr != 0){  phtnDiffScl = getAvgPhtnColor(diffuseColor,avgDiffClr);}
+
 	    specularColor.set(scene.currSpecularColor);
 	    avgSpecClr = getAvgColor(specularColor);    
-	 //   if(avgSpecClr != 0){  phtnSpecScl.set(specularColor.RGB.x/avgSpecClr,specularColor.RGB.y/avgSpecClr,specularColor.RGB.z/avgSpecClr);}
 	    if(avgSpecClr != 0){  phtnSpecScl = getAvgPhtnColor(specularColor,avgSpecClr);}
-	    KRefl = scene.currKRefl;
-	    KReflClr = new myRTColor(scene.currKReflClr.RGB.x,scene.currKReflClr.RGB.y,scene.currKReflClr.RGB.z);
-	    KTrans = scene.currKTrans;
-	    curPermClr = new myRTColor(scene.globCurPermClr.RGB.x,scene.globCurPermClr.RGB.y,scene.globCurPermClr.RGB.z);
+	    
+	    curPermClr = new myRTColor(scene.globCurPermClr);
 	    avgPermClr = getAvgColor(curPermClr);
 	    if(avgPermClr != 0){  phtnPermClr = getAvgPhtnColor(curPermClr,avgPermClr);}
+	    
+	    KRefl = scene.currKRefl;
+	    KReflClr = new myRTColor(scene.currKReflClr);
+	    KTrans = scene.currKTrans;
 	    currPerm = scene.globRfrIdx;
 	    
 	    shdrFlags[hasCaustic] = ((KRefl > 0.0) || (currPerm > 0.0) || (KTrans > 0.0));
@@ -167,9 +169,9 @@ public class myObjShader {
   				shadowRay.direction._normalize();
   				double lightDotProd = shadowRay.direction._dot(hit.objNorm)*ltMult;		//ltMult handles spot light penumbra
   				if (lightDotProd > MyMathUtils.EPS){//hitting top of object
-  					r += texTopColor[R] * light.lightColor.RGB.x * lightDotProd;
-  					g += texTopColor[G] * light.lightColor.RGB.y * lightDotProd;
-  					b += texTopColor[B] * light.lightColor.RGB.z * lightDotProd;
+  					r += texTopColor[R] * light.lightColor.x * lightDotProd;
+  					g += texTopColor[G] * light.lightColor.y * lightDotProd;
+  					b += texTopColor[B] * light.lightColor.z * lightDotProd;
   				}//if light greater than 0	
   				//if phongExp set to 0 then ignore spec color calc
   				if(phongExp == 0){continue;}
@@ -182,9 +184,9 @@ public class myObjShader {
   				if (hDotProd > MyMathUtils.EPS){
   					double  phHdotSq = Math.pow(hDotProd * hDotProd,phongExp);
   					//double phong exponent since we're using the half-angle vector formula
-  					r += specularColor.RGB.x * light.lightColor.RGB.x * phHdotSq;
-  					g += specularColor.RGB.y * light.lightColor.RGB.y * phHdotSq;
-  					b += specularColor.RGB.z * light.lightColor.RGB.z * phHdotSq;
+  					r += specularColor.x * light.lightColor.x * phHdotSq;
+  					g += specularColor.y * light.lightColor.y * phHdotSq;
+  					b += specularColor.z * light.lightColor.z * phHdotSq;
   				}//if dot prod>0
   			}//if light not blocked
   		}//for each light
@@ -295,9 +297,9 @@ public class myObjShader {
   	      	refrRay.setCurrKTrans(KTrans, currPerm, curPermClr);//need to set ktrans for the material this ray is in
   	      	//color where ray hits
   	      	myRTColor refractColor = scene.reflectRay(refrRay);
-  	      	r += (oneMTransReflRatio) * permClr.x * (refractColor.RGB.x);
-  	      	g += (oneMTransReflRatio) * permClr.y * (refractColor.RGB.y);
-  	      	b += (oneMTransReflRatio) * permClr.z * (refractColor.RGB.z);
+  	      	r += (oneMTransReflRatio) * permClr.x * (refractColor.x);
+  	      	g += (oneMTransReflRatio) * permClr.y * (refractColor.y);
+  	      	b += (oneMTransReflRatio) * permClr.z * (refractColor.z);
   	      
   	      	scene.refrRays++;
   		}//if refracting
@@ -313,9 +315,9 @@ public class myObjShader {
   			myRTColor reflectColor = scene.reflectRay(reflRay);
   			//println("internal reflection color r g b : " + red(reflectColor) + "|" + green(reflectColor) + "|" + blue(reflectColor));
   			//added color component for reflection
-  			r += (transReflRatio) *  permClr.x * (reflectColor.RGB.x);
-  			g += (transReflRatio) *  permClr.y * (reflectColor.RGB.y);
-  			b += (transReflRatio) *  permClr.z * (reflectColor.RGB.z);          
+  			r += (transReflRatio) *  permClr.x * (reflectColor.x);
+  			g += (transReflRatio) *  permClr.y * (reflectColor.y);
+  			b += (transReflRatio) *  permClr.z * (reflectColor.z);          
   			scene.reflRays++;
   		}	
   		
@@ -334,9 +336,9 @@ public class myObjShader {
   			//color where ray hits
   			myRTColor reflectColor = scene.reflectRay(reflRay);
   			//added color component for reflection
-  			r += (reflClrVec.x * reflectColor.RGB.x); 
-  			g += (reflClrVec.y * reflectColor.RGB.y); 
-  			b += (reflClrVec.z * reflectColor.RGB.z); 
+  			r += (reflClrVec.x * reflectColor.x); 
+  			g += (reflClrVec.y * reflectColor.y); 
+  			b += (reflClrVec.z * reflectColor.z); 
   		}//reflections from behind can't happen
   		return new double[]{r,g,b};	
   	}//calcReflClr
@@ -465,7 +467,7 @@ public class myObjShader {
   	public myRTColor getColorAtPos(rayHit hit){
   		//need to get color from photon map
   		++dbgRayHits;		
-  		double r = ambientColor.RGB.x, g = ambientColor.RGB.y, b = ambientColor.RGB.z;
+  		double r = ambientColor.x, g = ambientColor.y, b = ambientColor.z;
   		double[] phtnIrr;
   		//TODO separate caustics and indirect into 2 processes
   		if((KRefl == 0.0) && (shdrFlags[usePhotonMap])){
@@ -474,7 +476,7 @@ public class myObjShader {
   			if(shdrFlags[isCausticPhtnIDX]){//visualize photons directly for caustics
   				r += phtnIrr[0]; 		g += phtnIrr[1]; 		b += phtnIrr[2];
   			} else {					// indirect illumination effects
- 				r += diffuseColor.RGB.x * phtnIrr[0]; 		g += diffuseColor.RGB.y * phtnIrr[1]; 		b += diffuseColor.RGB.z * phtnIrr[2]; 
+ 				r += diffuseColor.x * phtnIrr[0]; 		g += diffuseColor.y * phtnIrr[1]; 		b += diffuseColor.z * phtnIrr[2]; 
   			}
   		}  	     		
   		//find contributions for each light
@@ -485,8 +487,8 @@ public class myObjShader {
   		if ((hit.transRay.gen < scene.numRays-2) && shdrFlags[hasCaustic]){
   			//replace with either/or for transparent or reflective			
   			double[] res = new double[]{0,0,0};
-  			if ((KTrans > 0) || (currPerm > 0.0)){				res = calcTransClr(hit, curPermClr.RGB); 			}//TODO clean this up : if refraction happens (also handles reflection - splits rays)
-  			else if (KRefl > 0.0){								res = calcReflClr(hit, KReflClr.RGB); 			}//if reflection happens	
+  			if ((KTrans > 0) || (currPerm > 0.0)){				res = calcTransClr(hit, curPermClr); 			}//TODO clean this up : if refraction happens (also handles reflection - splits rays)
+  			else if (KRefl > 0.0){								res = calcReflClr(hit, KReflClr); 			}//if reflection happens	
   			r += res[0]; 	g += res[1]; 	b += res[2];
   		}//if enough rays to recurse and this material reflects/refracts
  	

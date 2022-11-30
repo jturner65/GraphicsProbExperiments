@@ -42,11 +42,12 @@ public class myCompoundTexture extends Base_TextureHandler{
 		double[] tmpColor, resColor= new double[3];
 		for (int i=0;i<imgTxtrs.size();++i) {
 			tmpColor = imgTxtrs.get(i).getDiffTxtrColor(hit, diffuseColor, diffConst);
-			
+			for(int j=0;j<resColor.length;++j) {resColor[i]+=tmpColor[i];}
 		}
+		//Then get all noise-based texture colors
 		for (int i=0;i<noiseTxtrs.size();++i) {
-			
-			
+			tmpColor = noiseTxtrs.get(i).getDiffTxtrColor(hit, diffuseColor, diffConst);
+			for(int j=0;j<resColor.length;++j) {resColor[i]+=tmpColor[i];}			
 		}
 		
 		// TODO Auto-generated method stub

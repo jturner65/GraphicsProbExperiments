@@ -90,7 +90,7 @@ public abstract class Base_RayTracerWin extends Base_DispWindow {
 		Path path = Paths.get("");
 		cliFilesDir = path.toAbsolutePath().toString()+File.separator+"data";
 		msgObj.dispInfoMessage(className, "Constructor", "Currently Set absolute working directory for CLI Files is :"+cliFilesDir);
-		rdr = new myRTFileReader(pa,cliFilesDir+File.separator+"txtrs"+File.separator);
+		rdr = new myRTFileReader(pa,this, cliFilesDir+File.separator+"txtrs"+File.separator);
 		loadedScenes = new TreeMap<String, Base_Scene>();	
 	}
 
@@ -146,10 +146,8 @@ public abstract class Base_RayTracerWin extends Base_DispWindow {
 	protected final void setupGUIObjsAras(TreeMap<Integer, Object[]> tmpUIObjArray, TreeMap<Integer, String[]> tmpListObjVals){		
 		//set up list of files to load
 		tmpListObjVals.put(gIDX_CurrSceneCLI, gIDX_CurrSceneCLIList);
-
-
-		tmpUIObjArray.put(gIDX_SceneCols, new Object[] {new double[]{200,(int)(rectDim[2]/2),10}, 1.0*initSceneCols, "Image Width (pxls)", GUIObj_Type.IntVal, new boolean[]{true}});
-		tmpUIObjArray.put(gIDX_SceneRows, new Object[] {new double[]{200,(int)(rectDim[3]/2),10}, 1.0*initSceneRows, "Image Height (pxls)", GUIObj_Type.IntVal, new boolean[]{true}});
+		tmpUIObjArray.put(gIDX_SceneCols, new Object[] {new double[]{100,AppMgr.getDisplayWidth(),10}, 1.0*initSceneCols, "Image Width (pxls)", GUIObj_Type.IntVal, new boolean[]{true}});
+		tmpUIObjArray.put(gIDX_SceneRows, new Object[] {new double[]{100,AppMgr.getDisplayHeight(),10}, 1.0*initSceneRows, "Image Height (pxls)", GUIObj_Type.IntVal, new boolean[]{true}});
 		tmpUIObjArray.put(gIDX_CurrSceneCLI, new Object[] {new double[]{0,tmpListObjVals.get(gIDX_CurrSceneCLI).length-1,1}, 0.0, "Scene to Display", GUIObj_Type.ListVal, new boolean[]{true}});
 		sceneCols = initSceneCols;
 		sceneRows = initSceneRows;

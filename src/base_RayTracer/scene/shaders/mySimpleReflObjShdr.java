@@ -123,9 +123,9 @@ public class mySimpleReflObjShdr extends myObjShader{
 	      	//color where ray hits
 	      	myRTColor refractColor = scene.reflectRay(refrRay);
 	      	double preMult1MKtrans = oneMTransReflRatio * KTrans;
-	      	r += preMult1MKtrans * (refractColor.RGB.x);
-	      	g += preMult1MKtrans * (refractColor.RGB.y);
-	      	b += preMult1MKtrans * (refractColor.RGB.z);
+	      	r += preMult1MKtrans * (refractColor.x);
+	      	g += preMult1MKtrans * (refractColor.y);
+	      	b += preMult1MKtrans * (refractColor.z);
 	      
 	      	scene.refrRays++;
 		}//if refracting
@@ -142,9 +142,9 @@ public class mySimpleReflObjShdr extends myObjShader{
 			//println("internal reflection color r g b : " + red(reflectColor) + "|" + green(reflectColor) + "|" + blue(reflectColor));
 			//added color component for reflection
 	      	double preMultKtrans = transReflRatio * KRefl;
-			r += preMultKtrans * (reflectColor.RGB.x);
-			g += preMultKtrans * (reflectColor.RGB.y);
-			b += preMultKtrans * (reflectColor.RGB.z);          
+			r += preMultKtrans * (reflectColor.x);
+			g += preMultKtrans * (reflectColor.y);
+			b += preMultKtrans * (reflectColor.z);          
 			++scene.reflRays;
 		}			
 		return new double[]{r,g,b};			
@@ -154,7 +154,7 @@ public class mySimpleReflObjShdr extends myObjShader{
 	@Override
 	public myRTColor getColorAtPos(rayHit hit){
 		dbgRayHits++;		
-		double r = ambientColor.RGB.x, g = ambientColor.RGB.y, b = ambientColor.RGB.z;
+		double r = ambientColor.x, g = ambientColor.y, b = ambientColor.z;
 		double [] shadowRes = calcShadowColor(hit, txtr.getDiffTxtrColor(hit, diffuseColor, 1.0));
 		r += shadowRes[0]; 	g += shadowRes[1]; 	b += shadowRes[2];
 		   
@@ -164,7 +164,7 @@ public class mySimpleReflObjShdr extends myObjShader{
 			//replace with either/or for transparent or reflective			
 			double[] res = new double[]{0,0,0};
 			if (KTrans > 0){	 				res = calcSimpleTransClr(hit);  			}//if refraction happens
-			else if (KRefl > 0.0){ 				res = calcReflClr(hit, KReflClr.RGB);						}//if reflection happens	
+			else if (KRefl > 0.0){ 				res = calcReflClr(hit, KReflClr);						}//if reflection happens	
 			r += res[0]; 	g += res[1]; 	b += res[2];
 		}//if enough rays to recurse   		
 		return new myRTColor(r,g,b);

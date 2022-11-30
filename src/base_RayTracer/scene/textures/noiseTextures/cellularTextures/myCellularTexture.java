@@ -14,19 +14,27 @@ import base_RayTracer.scene.textures.noiseTextures.cellularTextures.distanceFunc
 import base_RayTracer.scene.textures.noiseTextures.cellularTextures.regionOfInterest.*;
 import base_RayTracer.scene.textures.noiseTextures.cellularTextures.regionOfInterest.base.Base_ROI;
 import base_Math_Objects.MyMathUtils; 
-import base_Math_Objects.vectorObjs.doubles.myVector;
+import base_Math_Objects.vectorObjs.doubles.myPoint;
 
 public class myCellularTexture extends myNoiseTexture{
 	private double avgNumPerCell, mortarThresh;	
 	private int maxMVal = 15, numPtsDist;		//max MVal+1 to calc dist for;# of points in neighborhood
-	private int[] hitLocIDX;
-
+	
 	private ConcurrentSkipListMap<Double, Integer> pdfs;			//inits in cnstrctr - cumulative pdf - just lookup largest key less than rand #
 	private ConcurrentSkipListMap<Double, Integer[]>distToPts;		//declaring so we don't reinit every ray - only a mechanism to quickly hold and sort distances
 	private Random seededGen;
 	
 	private Base_DistFunc distFunc;			//function for dist calculation
 	private Base_ROI roiFunc;					//function for region of interest calculation
+	
+	private static final int hashPrime1 = 1572869;
+	private static final int hashPrime2 = 6291469;
+	//used for worley txtrs
+	private final int[][] nghbrHdCells = new int[][]{
+		{ 0,  0,  0},{ 0,  0,  1},{ 0,  0, -1},{ 0,  1,  0},{ 0,  1,  1},{ 0,  1, -1},{ 0, -1,  0},{ 0, -1,  1},{ 0, -1, -1},
+		{ 1,  0,  0},{ 1,  0,  1},{ 1,  0, -1},{ 1,  1,  0},{ 1,  1,  1},{ 1,  1, -1},{ 1, -1,  0},{ 1, -1,  1},{ 1, -1, -1},
+		{-1,  0,  0},{-1,  0,  1},{-1,  0, -1},{-1,  1,  0},{-1,  1,  1},{-1,  1, -1},{-1, -1,  0},{-1, -1,  1},{-1, -1, -1}		
+	};
 	
 	public myCellularTexture(Base_Scene _scn,myObjShader _shdr, double _scl) {	
 		super(_scn, _shdr,_scl);
@@ -61,8 +69,6 @@ public class myCellularTexture extends myNoiseTexture{
 			cumProb += lastDist;							//build CPDF
 			pdfs.put(cumProb, i);
 		}	
-		
-		hitLocIDX = new int[]{0,0,0};
 		seededGen = new Random(); 
 	}//myCellularTexture
 	
@@ -73,11 +79,11 @@ public class myCellularTexture extends myNoiseTexture{
 		return pdfs.get((null == pdfs.lowerKey(prob) ? pdfs.firstKey() : pdfs.lowerKey(prob)));
 	}	
 	@Override
-	public double[] getDiffTxtrColor(rayHit hit, myRTColor diffuseColor, double diffConst) {
+	public final double[] getDiffTxtrColor(rayHit hit, myRTColor diffuseColor, double diffConst) {
 		distToPts.clear();
-		myVector hitVal = getHitLoc(hit);
+		myPoint hitVal = getHitLoc(hit);
 		hitVal._mult(scale);		//increasing scale here will proportionally decrease the size of the equal-hashed cubes
-		hitLocIDX[0] = fastfloor(hitVal.x);	hitLocIDX[1] = fastfloor(hitVal.y);	hitLocIDX[2] = fastfloor(hitVal.z);
+		int[] hitLocIDX = new int[]{MyMathUtils.floor(hitVal.x),MyMathUtils.floor(hitVal.y),MyMathUtils.floor(hitVal.z)};
 		//need to hash these ints, use resultant hash to be key in prob calc
 		Integer[] cellLoc;
 		int brickClrIDX=2;
@@ -87,9 +93,9 @@ public class myCellularTexture extends myNoiseTexture{
 			seededGen.setSeed(seed);
 			double prob = seededGen.nextDouble();		
 			int numPoints = pdfs.get((null == pdfs.lowerKey(prob) ? pdfs.firstKey() : pdfs.lowerKey(prob)));			
-			myVector pt;
+			myPoint pt;
 			for(int j =0;j<numPoints;++j){
-				pt = new myVector(cellLoc[0]+seededGen.nextDouble(),cellLoc[1]+seededGen.nextDouble(),cellLoc[2]+seededGen.nextDouble());
+				pt = new myPoint(cellLoc[0]+seededGen.nextDouble(),cellLoc[1]+seededGen.nextDouble(),cellLoc[2]+seededGen.nextDouble());
 				distToPts.put(distFunc.calcDist(hitVal, pt), cellLoc);
 			}//for each point
 			//System.out.println("Hash : " + seed + " # points :  " + numPoints + " for vals "+ hitLocIDX[0]+"|"+hitLocIDX[1]+"|"+hitLocIDX[2]);
@@ -108,12 +114,10 @@ public class myCellularTexture extends myNoiseTexture{
 			int seed = hashInts(cellLoc0[0],cellLoc0[1],cellLoc0[2]);
 			seededGen.setSeed(seed);
 			res = seededGen.nextDouble();
-			brickClrIDX = 2*(1+(fastfloor(((colors.length/2) - 1) * res)));
+			brickClrIDX = 2*(1+(MyMathUtils.floor(((colors.length/2) - 1) * res)));
 		}		
-		double[] texTopColor = getClrAra(.65, hitVal, brickClrIDX,brickClrIDX+1);  // pass idxs of colors to interp between - want different colors for different "stones"
-		
-		//decreasing diffuse color by this constant, reflecting how transparent the object is - only use with complex refraction calc
-		if(fastAbs(diffConst - 1.0) > MyMathUtils.EPS){texTopColor[R] *= diffConst;texTopColor[G] *= diffConst;texTopColor[B] *= diffConst;}
+		double[] texTopColor = getClrAra(.65, hitVal, brickClrIDX,brickClrIDX+1, diffConst);  // pass idxs of colors to interp between - want different colors for different "stones"
+
 		return texTopColor;
 	}//getDiffTxtrColor	
 	

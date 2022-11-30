@@ -50,9 +50,9 @@ public class myOrthoScene extends Base_Scene{
 			rayY = yBseVal + (orthPerRow*ThreadLocalRandom.current().nextDouble(-.5,.5));
 			rayX = xBseVal + (orthPerCol*ThreadLocalRandom.current().nextDouble(-.5,.5));				
 			aaResultColor = reflectRay(new rayCast(this, new myVector(rayX,rayY,0), new myVector(0,0,-1),0));
-			redVal += aaResultColor.RGB.x; //(aaResultColor >> 16 & 0xFF)/256.0;//gets red value
-			greenVal += aaResultColor.RGB.y; // (aaResultColor >> 8 & 0xFF)/256.0;//gets green value
-			blueVal += aaResultColor.RGB.z;//(aaResultColor & 0xFF)/256.0;//gets blue value	      
+			redVal += aaResultColor.x; //(aaResultColor >> 16 & 0xFF)/256.0;//gets red value
+			greenVal += aaResultColor.y; // (aaResultColor >> 8 & 0xFF)/256.0;//gets green value
+			blueVal += aaResultColor.z;//(aaResultColor & 0xFF)/256.0;//gets blue value	      
 		}//aaliasR
 		result = new myRTColor ( redVal/numRaysPerPixel, greenVal/numRaysPerPixel, blueVal/numRaysPerPixel); 
 		return result;

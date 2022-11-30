@@ -82,9 +82,9 @@ public class rayCast{
 	public void setCurrKTrans(double _ktrans, double _currPerm, myRTColor _perm){
 		this.currKTrans[0] = _ktrans;
 		this.currKTrans[1] = _currPerm;
-		this.currKTrans[2] = _perm.RGB.x;
-		this.currKTrans[3] = _perm.RGB.y;
-		this.currKTrans[4] = _perm.RGB.z;
+		this.currKTrans[2] = _perm.x;
+		this.currKTrans[3] = _perm.y;
+		this.currKTrans[4] = _perm.z;
 	}
 	
 	public void setCurrKTrans(double[] vals){for(int i=0;i<currKTrans.length;++i){currKTrans[i]=vals[i];}}

@@ -67,9 +67,9 @@ public class myFOVScene extends Base_Scene {
 			rayOrigin = this.getDpthOfFldEyeLoc(lensCtrPoint);										//get some random pt within the lens to use as the ray's origin
 			ray = new rayCast(this, rayOrigin, new myVector(rayOrigin, focalPt),0);
 			aaResultColor = reflectRay(ray);
-			redVal += aaResultColor.RGB.x; //(aaResultColor >> 16 & 0xFF)/256.0;//gets red value
-			greenVal += aaResultColor.RGB.y; // (aaResultColor >> 8 & 0xFF)/256.0;//gets green value
-			blueVal += aaResultColor.RGB.z;//(aaResultColor & 0xFF)/256.0;//gets blue value
+			redVal += aaResultColor.x; //(aaResultColor >> 16 & 0xFF)/256.0;//gets red value
+			greenVal += aaResultColor.y; // (aaResultColor >> 8 & 0xFF)/256.0;//gets green value
+			blueVal += aaResultColor.z;//(aaResultColor & 0xFF)/256.0;//gets blue value
 		}//rayNum
 		result = new myRTColor ( redVal/numRaysPerPixel, greenVal/numRaysPerPixel, blueVal/numRaysPerPixel); 
 		return result;	  
@@ -113,9 +113,9 @@ public class myFOVScene extends Base_Scene {
 			rayX = xBseVal + ThreadLocalRandom.current().nextDouble(-.5,.5);
 			ray = new rayCast(this, this.eyeOrigin, new myVector(rayX,rayY,viewZ),0);
 			aaResultColor = reflectRay(ray);
-			redVal += aaResultColor.RGB.x; //(aaResultColor >> 16 & 0xFF)/256.0;//gets red value
-			greenVal += aaResultColor.RGB.y; // (aaResultColor >> 8 & 0xFF)/256.0;//gets green value
-			blueVal += aaResultColor.RGB.z;//(aaResultColor & 0xFF)/256.0;//gets blue value
+			redVal += aaResultColor.x; //(aaResultColor >> 16 & 0xFF)/256.0;//gets red value
+			greenVal += aaResultColor.y; // (aaResultColor >> 8 & 0xFF)/256.0;//gets green value
+			blueVal += aaResultColor.z;//(aaResultColor & 0xFF)/256.0;//gets blue value
 		}//rayNum
 		result = new myRTColor ( redVal/numRaysPerPixel, greenVal/numRaysPerPixel, blueVal/numRaysPerPixel); 
 		return result;	  

@@ -104,9 +104,6 @@ public abstract class Base_SceneObject extends Base_Geometry{
 
 	public String toString(){
 		String result = super.toString() +"\n"+shdr.toString();
-//		if(rFlags[isTemplateObjIDX]){
-//			result += "Template object not instanced\n";
-//		}
 		return result;
 	}  
 	

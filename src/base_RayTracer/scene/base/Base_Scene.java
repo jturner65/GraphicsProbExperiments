@@ -1036,7 +1036,7 @@ public abstract class Base_Scene {
 			tmpLight = (light instanceof Base_Light) ? tmpLight = (Base_Light)light : ((Base_Light)((ObjInstance)light).obj);
 			System.out.print("Casting " + photonTree.numCast + " Caustic photons for light ID " + tmpLight.ID + ": Progress:");			
 			for(int i =0; i<photonTree.numCast; ++i){
-				photonPwr = new double[]{tmpLight.lightColor.RGB.x * pwrMult,tmpLight.lightColor.RGB.y * pwrMult,tmpLight.lightColor.RGB.z * pwrMult };
+				photonPwr = new double[]{tmpLight.lightColor.x * pwrMult,tmpLight.lightColor.y * pwrMult,tmpLight.lightColor.z * pwrMult };
 				hitChk = findClosestRayHit(tmpLight.genRndPhtnRay());//first hit
 				if((!hitChk.isHit) || (!hitChk.shdr.shdrFlags[myObjShader.hasCaustic])){continue;}			//either hit background or 1st hit is diffuse object - caustic has to hit spec first
 				//System.out.println("hit obj : " + hitChk.obj.ID);
@@ -1090,7 +1090,7 @@ public abstract class Base_Scene {
 			tmpLight = (light instanceof Base_Light) ? tmpLight = (Base_Light)light : ((Base_Light)((ObjInstance)light).obj);
 			System.out.print("Casting " + photonTree.numCast + " Diffuse (indirect) photons for light ID " + tmpLight.ID + ": Progress:");			
 			for(int i =0; i<photonTree.numCast; ++i){
-				photonPwr = new double[]{tmpLight.lightColor.RGB.x * pwrMult,tmpLight.lightColor.RGB.y * pwrMult,tmpLight.lightColor.RGB.z * pwrMult };
+				photonPwr = new double[]{tmpLight.lightColor.x * pwrMult,tmpLight.lightColor.y * pwrMult,tmpLight.lightColor.z * pwrMult };
 				hitChk = findClosestRayHit(tmpLight.genRndPhtnRay());//first hit
 				if(!hitChk.isHit){continue;}							//hit background - ignore
 				//now we hit an object, spec or diffuse - if specular, bounce without storing, if diffuse store and bounce with prob based on avg color				
@@ -1301,13 +1301,16 @@ public abstract class Base_Scene {
 	
 	}//noise_3d
 
-	public void initialize_table() { for(int i=0; i<512; ++i) perm[i]=p[i & 255];}
+	public void initPermTable() { 
+		for(int i=0; i<255; ++i) {perm[i]=pValAra[i];}
+		for(int i=256; i<512; ++i) {perm[i]=pValAra[i & 255];}
+	}
 	/**
 	 * This method is a *lot* faster than using (int)Math.floor(x)
 	 * @param x
 	 * @return
 	 */
-	protected int fastfloor(float x) { return x>0 ? (int)x : (int)x-1;}
+	//protected int fastfloor(float x) { return x>0 ? (int)x : (int)x-1;}
 	/**
 	 * This method is a *lot* faster than using (int)Math.floor(x)
 	 * @param x

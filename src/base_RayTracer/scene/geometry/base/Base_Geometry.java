@@ -177,7 +177,7 @@ public abstract class Base_Geometry {
 	    for (int row = 0; row < 4; ++row){
 	    	result += "[";
 	    	for (int col = 0; col < 4; ++col){   tmp2str = (CTMara[glblIDX].m[row][col] < 0 ? "" : " ") + String.format("%.2f", CTMara[glblIDX].m[row][col]); if (col != 3) {tmp2str += ", ";} result += tmp2str;}    	tmpString = "]";result += tmpString + "      [";
-	    	for (int col = 0; col < 4; ++col){   tmp2str = (CTMara[invIDX].m[row][col] < 0 ? "" : " ")+String.format("%.2f", CTMara[invIDX].m[row][col]); if (col != 3) {tmp2str += ", ";} result += tmp2str;}    	tmpString = "]";  if (row != 3) { tmpString += "\n"; }
+	    	for (int col = 0; col < 4; ++col){   tmp2str = (CTMara[invIDX].m[row][col] < 0 ? "" : " ") + String.format("%.2f", CTMara[invIDX].m[row][col]); if (col != 3) {tmp2str += ", ";} result += tmp2str;}    	tmpString = "]";  if (row != 3) { tmpString += "\n"; }
 	    	result += tmpString;
 	    }
 		result+="\nCTMTrans :                         CTMAdj :\n";

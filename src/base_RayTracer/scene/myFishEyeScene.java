@@ -50,9 +50,9 @@ public class myFishEyeScene extends Base_Scene{
 				double sTh = Math.sin(theta);
 				ray = new rayCast(this,this.eyeOrigin, new myVector(sTh * Math.cos(phi),sTh * Math.sin(phi),-Math.cos(theta)),0);
 				aaResultColor = reflectRay(ray);
-				redVal += aaResultColor.RGB.x; //(aaResultColor >> 16 & 0xFF)/256.0;//gets red value
-				greenVal += aaResultColor.RGB.y; // (aaResultColor >> 8 & 0xFF)/256.0;//gets green value
-				blueVal += aaResultColor.RGB.z;//(aaResultColor & 0xFF)/256.0;//gets blue value
+				redVal += aaResultColor.x; //(aaResultColor >> 16 & 0xFF)/256.0;//gets red value
+				greenVal += aaResultColor.y; // (aaResultColor >> 8 & 0xFF)/256.0;//gets green value
+				blueVal += aaResultColor.z;//(aaResultColor & 0xFF)/256.0;//gets blue value
 			}			
 		}//rayNum
 		result = new myRTColor ( redVal/numRaysPerPixel, greenVal/numRaysPerPixel, blueVal/numRaysPerPixel); 

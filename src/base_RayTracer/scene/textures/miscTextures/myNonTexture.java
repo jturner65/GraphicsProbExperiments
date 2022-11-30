@@ -14,7 +14,7 @@ public class myNonTexture extends Base_TextureHandler{
 	protected void initTextureVals() {}
 	@Override
 	public double[] getDiffTxtrColor(rayHit hit, myRTColor diffuseColor, double diffConst) {
-		return new double[] { diffuseColor.RGB.x*diffConst, diffuseColor.RGB.y*diffConst,diffuseColor.RGB.z*diffConst};
+		return new double[] { diffuseColor.x*diffConst, diffuseColor.y*diffConst,diffuseColor.z*diffConst};
 	}
 
 	@Override

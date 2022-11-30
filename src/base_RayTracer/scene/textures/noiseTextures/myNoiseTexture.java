@@ -11,21 +11,18 @@ import base_Math_Objects.vectorObjs.doubles.myVector;
 
 //noise-based texture
 public class myNoiseTexture extends Base_TextureHandler{
-	public double scale;
-	public myRTColor[] colors;		//light/dark colors - inited here so that can be overwritten in initTexturevals	
-	public Double[] clrWts;			//weights of each color	
+	protected double scale;
+	protected myRTColor[] colors;		//light/dark colors - inited here so that can be overwritten in initTexturevals	
+	protected Double[] clrWts;			//weights of each color	
 	
-	public int numOctaves;		//# of octaves of turbulence
-	public double turbMult;		//multiplier for turbulence effect
+	protected int numOctaves;		//# of octaves of turbulence
+	protected double turbMult;		//multiplier for turbulence effect
 	//color multipliers for randomness
-	public double colorScale, colorMult;
-	public boolean rndColors, useFwdTrans;
+	protected double colorScale, colorMult;
+	protected boolean rndColors, useFwdTrans;
 	
-	public myVector periodMult;	//multiplier in each of 3 dirs for periodic noise texture
-	//debug quants
-	double minVal = Double.MAX_VALUE,
-			maxVal = -Double.MAX_VALUE;
-	
+	protected myVector periodMult;	//multiplier in each of 3 dirs for periodic noise texture
+
 	public myNoiseTexture(Base_Scene _scn, myObjShader _shdr, double _scl) {	
 		super(_scn,_shdr);	
 		scale = _scl;
@@ -46,7 +43,7 @@ public class myNoiseTexture extends Base_TextureHandler{
 	//set colors
 	protected void setColorsAndWts(){
 		colors = new myRTColor[scene.noiseColors.length];
-		for(int i =0; i<scene.noiseColors.length;++i ){colors[i] = new myRTColor(scene.noiseColors[i].RGB.x,scene.noiseColors[i].RGB.y,scene.noiseColors[i].RGB.z);}		
+		for(int i =0; i<scene.noiseColors.length;++i ){colors[i] = new myRTColor(scene.noiseColors[i].x,scene.noiseColors[i].y,scene.noiseColors[i].z);}		
 		clrWts = new Double[scene.clrWts.length];
 		//normalize wts
 		Double sum = 0.0, cnt = 0.0;
@@ -55,30 +52,30 @@ public class myNoiseTexture extends Base_TextureHandler{
 		for(int i =0; i<clrWts.length;++i){	clrWts[i]=scene.clrWts[i]/sum;}
 	}//set colors
 	
-	protected double getNoiseVal(double x, double y, double z){return scene.noise_3d((float)(x*scale), (float)(y*scale), (float)(z*scale));}	//gives vals between -1 and 1
+	protected double getNoiseVal(double x, double y, double z){return scene.perlinNoise3D((float)(x*scale), (float)(y*scale), (float)(z*scale));}	//gives vals between -1 and 1
 		
-	protected double getNoiseVal(myVector hitLoc){
+	protected double getNoiseVal(myPoint hitLoc){
 		hitLoc._mult(scale);
-		return scene.noise_3d(hitLoc);									//gives vals between -1 and 1
+		return scene.perlinNoise3D(hitLoc);									//gives vals between -1 and 1
 	}
 	
 	//turbulence is simulated by taking noise at increasing octaves - sort of like subdividing the noise manifold.
-	protected double getTurbVal(myVector tmp){
+	protected double getTurbVal(myPoint tmp){
 		tmp._mult(scale);		
 		double res = 0, _freqScale = 1.0, _ampScale = 1.0;	//frequency mult of noise, amplitude of 
 		for(int i=0;i<numOctaves;++i){
-			res += scene.noise_3d((float)(tmp.x*_freqScale), (float)(tmp.y*_freqScale), (float)(tmp.z*_freqScale)) * _ampScale;
+			res += scene.perlinNoise3D((float)(tmp.x*_freqScale), (float)(tmp.y*_freqScale), (float)(tmp.z*_freqScale)) * _ampScale;
 			_ampScale *= .5;
 			_freqScale *= 1.92;		//not 2 to avoid noise overlap
 		}	
 		return res;									//gives vals between -1 and 1
 	}
 	//summed octaves of abs noise - from perlin's 1999 GDC talk
-	protected double getAbsTurbVal(myVector tmp){
+	protected double getAbsTurbVal(myPoint tmp){
 		tmp._mult(scale);
 		double res = 0, _freqScale = 1.0, _ampScale = 1.0;	//frequency mult of noise, amplitude of 
 		for(int i=0;i<numOctaves;++i){
-			res += fastAbs(scene.noise_3d((float)(tmp.x*_freqScale), (float)(tmp.y*_freqScale), (float)(tmp.z*_freqScale))) * _ampScale;
+			res += Math.abs(scene.perlinNoise3D((float)(tmp.x*_freqScale), (float)(tmp.y*_freqScale), (float)(tmp.z*_freqScale))) * _ampScale;
 			_ampScale *= .5;
 			_freqScale *= 1.92;		//not 2 to avoid noise overlap
 		}	
@@ -86,7 +83,7 @@ public class myNoiseTexture extends Base_TextureHandler{
 	}//getAbsTurbVal
 	
 	//ugh. have to decide whether to use transformed hit loc(for meshes) or not (for prims) - need to build "mesh" prim
-	protected myVector getHitLoc(rayHit hit){	return (useFwdTrans ? new myVector(hit.fwdTransHitLoc) : new myVector(hit.hitLoc));}
+	protected myPoint getHitLoc(rayHit hit){	return (useFwdTrans ? new myPoint(hit.fwdTransHitLoc) : new myPoint(hit.hitLoc));}
 	
 	@Override
 	public double[] getDiffTxtrColor(rayHit hit, myRTColor diffuseColor, double diffConst) {
@@ -95,36 +92,39 @@ public class myNoiseTexture extends Base_TextureHandler{
 		
 		double[] texTopColor = {val, val ,val};	
 		//decreasing diffuse color by this constant, reflecting how transparent the object is - only use with complex refraction calc
-		if(fastAbs(diffConst - 1.0) > MyMathUtils.EPS){texTopColor[R] *= diffConst;texTopColor[G] *= diffConst;texTopColor[B] *= diffConst;}
+		if(Math.abs(diffConst - 1.0) > MyMathUtils.EPS){texTopColor[R] *= diffConst;texTopColor[G] *= diffConst;texTopColor[B] *= diffConst;}
 		return texTopColor;
 	}//getDiffTxtrColor
 	
-	//debug min & max vals 
-	public void debugMinMaxVals(double val){
-		minVal = (minVal > val ? val : minVal);
-		maxVal = (maxVal < val ? val : maxVal);
-		System.out.println("min and max debug val : " + minVal + " | " + maxVal);
-	}
-	
-	public double linPtVal(myVector vec){return (vec.x*periodMult.x + vec.y*periodMult.y + vec.z*periodMult.z);	}
-	public double sqPtVal(myVector vec){return  Math.sqrt((vec.x * vec.x)*periodMult.x + (vec.y * vec.y)*periodMult.y + (vec.z * vec.z)*periodMult.z);}
-	//return rgb array from two colors, using passed interpolant, and with passed random value used to provide variability - do not use for cellular texture
-	public double[] getClrAra(double distVal, myPoint rawPt, int idx0, int idx1){//noise_3d((float)pt.x, (float)pt.y, (float)pt.z);
+	public double linPtVal(myPoint vec){return (vec.x*periodMult.x + vec.y*periodMult.y + vec.z*periodMult.z);	}
+	public double sqPtVal(myPoint vec){return  Math.sqrt((vec.x * vec.x)*periodMult.x + (vec.y * vec.y)*periodMult.y + (vec.z * vec.z)*periodMult.z);}
+	/**
+	 * return rgb array from two colors, using passed interpolant, and with passed random value used to provide variability. Scale by diffConst
+	 * @param distVal
+	 * @param rawPt
+	 * @param idx0
+	 * @param idx1
+	 * @param diffConst
+	 * @return
+	 */
+	public double[] getClrAra(double distVal, myPoint rawPt, int idx0, int idx1, double diffConst){//noise_3d((float)pt.x, (float)pt.y, (float)pt.z);
 		myPoint pt = new myPoint(rawPt);
 		pt._mult(colorScale);
 		double mult = colorMult;
 
 		double[] rndMult = rndColors ?  new double[]{
-				1.0 + (mult *scene.noise_3d((float)pt.x, (float)pt.z, (float)pt.y)),
-				1.0 + (mult *scene.noise_3d((float)pt.y, (float)pt.x, (float)pt.z)),
-				1.0 + (mult *scene.noise_3d((float)pt.z, (float)pt.y, (float)pt.x))}
+				1.0 + (mult *scene.perlinNoise3D((float)pt.x, (float)pt.z, (float)pt.y)),
+				1.0 + (mult *scene.perlinNoise3D((float)pt.y, (float)pt.x, (float)pt.z)),
+				1.0 + (mult *scene.perlinNoise3D((float)pt.z, (float)pt.y, (float)pt.x))}
 				:
 				new double[]{1.0,1.0,1.0};
 		double[] res = {
-				Math.max(0,Math.min(1.0,(colors[idx0].RGB.x) + rndMult[0]*distVal * ((colors[idx1].RGB.x) - (colors[idx0].RGB.x)))),
-				Math.max(0,Math.min(1.0,(colors[idx0].RGB.y) + rndMult[1]*distVal * ((colors[idx1].RGB.y) - (colors[idx0].RGB.y)))),
-				Math.max(0,Math.min(1.0,(colors[idx0].RGB.z) + rndMult[2]*distVal * ((colors[idx1].RGB.z) - (colors[idx0].RGB.z)))),				
-		};						
+				MyMathUtils.max(0,MyMathUtils.min(1.0,(colors[idx0].x) + rndMult[0]*distVal * ((colors[idx1].x) - (colors[idx0].x)))),
+				MyMathUtils.max(0,MyMathUtils.min(1.0,(colors[idx0].y) + rndMult[1]*distVal * ((colors[idx1].y) - (colors[idx0].y)))),
+				MyMathUtils.max(0,MyMathUtils.min(1.0,(colors[idx0].z) + rndMult[2]*distVal * ((colors[idx1].z) - (colors[idx0].z)))),				
+		};		
+		//decreasing diffuse color by this constant, reflecting how transparent the object is - only use with complex refraction calc
+		if(Math.abs(diffConst - 1.0) > MyMathUtils.EPS){res[R] *= diffConst;res[G] *= diffConst;res[B] *= diffConst;}
 		return res;
 	}//getClrAra
 
