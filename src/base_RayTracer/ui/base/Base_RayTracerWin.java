@@ -399,6 +399,15 @@ public abstract class Base_RayTracerWin extends Base_DispWindow {
 		msgObj.dispMessage(className, "handleSideMenuDebugSelDisable", "End Debug functionality off selection.",MsgCodes.info4);
 	}
 
+	/**
+	 * Load the ray tracer file into a string array
+	 * @param fileName
+	 * @return
+	 */
+	public String[] loadRTStrings(String fileName) {
+		String[] res = fileIO.loadFileIntoStringAra(fileName, "Successfully loaded CLI file", "Failed to load CLI file");
+		return res;
+	}
 	
 	@Override
 	protected final void setCameraIndiv(float[] camVals){		

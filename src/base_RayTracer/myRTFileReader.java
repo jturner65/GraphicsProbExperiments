@@ -63,7 +63,7 @@ public class myRTFileReader {
 		String[] strAra = null;
 		try{
 			//Load the file
-			strAra = ((my_procApplet)pa).loadStrings(filePath + File.separator+fileName);
+			strAra = win.loadRTStrings(filePath + File.separator+fileName);
 			win.getMsgObj().dispInfoMessage("myRTFileReader", "readRTFile", "File path : "+filePath + "|File name : " + fileName + " Size : " + strAra.length);
 		} catch (Exception e) {	win.getMsgObj().dispErrorMessage("myRTFileReader", "readRTFile", "File Read Error : File name : " + fileName + " not found."); return null;		}	 
 	
