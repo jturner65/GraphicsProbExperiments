@@ -342,7 +342,8 @@ public class myRTFileReader {
 				//<typ> <noise scale> <numOctaves> <turbMult> <pdMult x y z> <multByPI 1/0 1/0 1/0> <useFwdTransform 0/1> 
 			    //		<rndomize colors colorScale - if present then true> <color mult> <num overlays - if present, otherwise 1>
 			    case "marble" :
-			    case "stone" : 
+			    case "marble2" :
+				case "stone" : 
 			    case "wood" : 
 			    case "wood2" : {   	scene.setTexture(tokenAra);   	break;    }			 
 			    

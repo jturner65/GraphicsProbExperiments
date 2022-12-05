@@ -7,9 +7,9 @@ import base_RayTracer.scene.shaders.myObjShader;
 import base_RayTracer.scene.textures.base.Base_TextureHandler;
 
 //class for non-textured objects
-public class myNonTexture extends Base_TextureHandler{
+public class myNoneTexture extends Base_TextureHandler{
 
-	public myNonTexture(Base_Scene _scn, myObjShader _shdr) {	super(_scn, _shdr);	}
+	public myNoneTexture(Base_Scene _scn, myObjShader _shdr) {	super(_scn, _shdr);	}
 	@Override
 	protected void initTextureVals() {}
 	@Override

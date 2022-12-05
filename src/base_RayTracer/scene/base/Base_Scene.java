@@ -22,7 +22,7 @@ import base_RayTracer.scene.shaders.myObjShader;
 import base_RayTracer.scene.shaders.mySimpleReflObjShdr;
 import base_RayTracer.scene.textures.base.Base_TextureHandler;
 import base_RayTracer.scene.textures.imageTextures.myImageTexture;
-import base_RayTracer.scene.textures.miscTextures.myNonTexture;
+import base_RayTracer.scene.textures.miscTextures.myNoneTexture;
 import base_RayTracer.scene.textures.noiseTextures.*;
 import base_RayTracer.scene.textures.noiseTextures.cellularTextures.myCellularTexture;
 import base_RayTracer.ui.base.Base_RayTracerWin;
@@ -163,9 +163,9 @@ public abstract class Base_Scene {
 	////////
 	
 	//////////////////
-	// proc txtrs - colors and constants 	
+	// proc & noise txtrs - colors and constants 	
 	public int txtrType;				//set to be 0 : none; 1 : image; 2 : noise; 3 : wood; 4 : marble; 5 : stone/brick
-	public double noiseScale;			//set if using noise-based proc txtr
+	private double noiseScale;			//set if using noise-based proc txtr
 	
 	public myRTColor[] noiseColors = new myRTColor[]{new myRTColor(.7,.7,.7),
 												new myRTColor(.2,.2,.2)};
@@ -185,8 +185,32 @@ public abstract class Base_Scene {
 	public double avgNumPerCell = 1, mortarThresh = .04;						//avg # of particles per cell
 	public int numPtsDist = 2;								//# of closest points we take distance of to get color/effect
 	public int distFunc = 1;								//distance function used for worley noise : 0-> manhattan, 1->euclid
-	public int roiFunc = 1;									//function for determining region of interest in worley noise - 0 : nearest x sum, 1 : alternating linear sum, 2: ...
-	//end proc txtrs
+	//function for determining region of interest in worley noise :
+	// 0 : nearest x sum, 1 : alternating linear sum, 2: ...
+	public int roiFunc = 1;									
+	/**
+	 * 3D gradient locations - midpoints of edges between neighboring cells
+	 */
+	private int grad3[][] = {{1,1,0},{-1,1,0},{1,-1,0},{-1,-1,0},{1,0,1},{-1,0,1},{1,0,-1},{-1,0,-1},{0,1,1},{0,-1,1},{0,1,-1},{0,-1,-1}};
+	private final int pValAra[] = {151,160,137,91,90,15,131,13,201,95,96,53,194,233,7,225,
+		140,36,103,30,69,142,8,99,37,240,21,10,23,190,6,148,247,120,234,75,0,26,197,62,94,
+		252,219,203,117,35,11,32,57,177,33,88,237,149,56,87,174,20,125,136,171,168,68,175,
+		74,165,71,134,139,48,27,166,77,146,158,231,83,111,229,122,60,211,133,230,220,105,92,
+		41,55,46,245,40,244,102,143,54,65,25,63,161,1,216,80,73,209,76,132,187,208,89,18,169,
+		200,196,135,130,116,188,159,86,164,100,109,198,173,186,3,64,52,217,226,250,124,123,
+		5,202,38,147,118,126,255,82,85,212,207,206,59,227,47,16,58,17,182,189,28,42,223,183,
+		170,213,119,248,152,2,44,154,163,70,221,153,101,155,167,43,172,9,129,22,39,253,19,
+		98,108,110,79,113,224,232,178,185,112,104,218,246,97,228,251,34,242,193,238,210,144,
+		12,191,179,162,241, 81,51,145,235,249,14,239,107,49,192,214,31,181,199,106,157,184,
+		84,204,176,115,121,50,45,127,4,150,254,138,236,205,93,222,114,67,29,24,72,243,141,
+		128,195,78,66,215,61,156,180};
+
+	// To remove the need for index wrapping, double the permutation table length
+	private int perm[] = new int[512];
+	
+	
+	
+	//end proc & noise txtrs
 	/////////////////////////////	
 		
 	public Calendar now;
@@ -208,22 +232,7 @@ public abstract class Base_Scene {
 	public float renderTime;	
 	
 	public boolean initFlag = false;
-	public int grad3[][] = {{1,1,0},{-1,1,0},{1,-1,0},{-1,-1,0},{1,0,1},{-1,0,1},{1,0,-1},{-1,0,-1},{0,1,1},{0,-1,1},{0,1,-1},{0,-1,-1}};
-	public final int pValAra[] = {151,160,137,91,90,15,131,13,201,95,96,53,194,233,7,225,
-		140,36,103,30,69,142,8,99,37,240,21,10,23,190,6,148,247,120,234,75,0,26,197,62,94,
-		252,219,203,117,35,11,32,57,177,33,88,237,149,56,87,174,20,125,136,171,168,68,175,
-		74,165,71,134,139,48,27,166,77,146,158,231,83,111,229,122,60,211,133,230,220,105,92,
-		41,55,46,245,40,244,102,143,54,65,25,63,161,1,216,80,73,209,76,132,187,208,89,18,169,
-		200,196,135,130,116,188,159,86,164,100,109,198,173,186,3,64,52,217,226,250,124,123,
-		5,202,38,147,118,126,255,82,85,212,207,206,59,227,47,16,58,17,182,189,28,42,223,183,
-		170,213,119,248,152,2,44,154,163,70,221,153,101,155,167,43,172,9,129,22,39,253,19,
-		98,108,110,79,113,224,232,178,185,112,104,218,246,97,228,251,34,242,193,238,210,144,
-		12,191,179,162,241, 81,51,145,235,249,14,239,107,49,192,214,31,181,199,106,157,184,
-		84,204,176,115,121,50,45,127,4,150,254,138,236,205,93,222,114,67,29,24,72,243,141,
-		128,195,78,66,215,61,156,180};
 
-	// To remove the need for index wrapping, double the permutation table length
-	public int perm[] = new int[512];
 		
 	public Base_Scene(IRenderInterface _p, Base_RayTracerWin _win, String _sceneName, int _numCols, int _numRows) {
 		pa = _p;
@@ -524,39 +533,48 @@ public abstract class Base_Scene {
 		addObjectToScene(tmp);
 	}//addMyDiskLight method	
 	
-	//return a shader built with the current settings
+	/**
+	 * return a shader built with the current settings
+	 */
 	public myObjShader getCurShader(){
 		myObjShader tmp = (scFlags[simpleRefrIDX]) ? new mySimpleReflObjShdr(this) : new myObjShader(this);
 		tmp.txtr = getCurTexture(tmp);				
 		return tmp;
 	}//getCurShader
 	
-	//return appropriate texture handler
+	/**
+	 * return appropriate texture handler
+	 * @param tmp
+	 * @return
+	 */
 	public Base_TextureHandler getCurTexture(myObjShader tmp){
 		switch (txtrType){
-			case 0 : {	return new myNonTexture(this,tmp);}						//diffuse/shiny only
-			case 1 : { 	return new myImageTexture(this,tmp);}					//has an image texture
-			case 2 : {	return new myNoiseTexture(this,tmp,noiseScale);}		//perlin noise
+			case 0 : {	return new myNoneTexture(this,tmp);}						//diffuse/shiny only
+			case 1 : { 	return new myImageTexture(this,tmp);}						//has an image texture
+			case 2 : {	return new myNoiseTexture(this,tmp,noiseScale);}			//perlin noise
 			case 3 : {	return new myBaseWoodTexture(this,tmp,noiseScale);}
 			case 4 : { 	return new myMarbleTexture(this,tmp,noiseScale);}
 			case 5 : { 	return new myCellularTexture(this,tmp,noiseScale);}	
 			case 6 : { 	return new myWoodTexture(this,tmp,noiseScale);}
-			default : { return new myNonTexture(this,tmp);}
+			default : { return new myNoneTexture(this,tmp);}
 		}
-	}//myTextureHandler
-	//return appropriate texture handler
+	}//getCurTexture
+	/**
+	 * return appropriate texture name
+	 * @return
+	 */
 	public String getTxtrName(){
 		switch (txtrType){
 			case 0 : {	return "No Texture";}						//diffuse/shiny only
 			case 1 : { 	return "Image Texture";}					//has an image texture
-			case 2 : {	return "Pure Noise Texture";}		//perlin noise
+			case 2 : {	return "Pure Noise Texture";}				//perlin noise
 			case 3 : {	return "Base Wood Texture";}
 			case 4 : { 	return "Marble Texture";}
 			case 5 : { 	return "Cellular Texture";}	
 			case 6 : { 	return "Alt Wood Texture";}
 			default : { return "No Texture";}
 		}
-	}//myTextureHandler
+	}//getTxtrName
 	
 	//entry point
 	public void addObjectToScene(Base_Geometry _obj){addObjectToScene(_obj,_obj);}
@@ -662,7 +680,7 @@ public abstract class Base_Scene {
 			pdMult = new myVector(Double.parseDouble(vals[4]),Double.parseDouble(vals[5]),Double.parseDouble(vals[6]));
 			myVector pyMult = new myVector(Double.parseDouble(vals[7]),Double.parseDouble(vals[8]),Double.parseDouble(vals[9]));
 			if(pyMult.sqMagn > 0){									//if vector values specified
-				pyMult._mult(MyMathUtils.TWO_PI_F-1.0);				//change 0|1 to 0|2pi-1 vector
+				pyMult._mult(MyMathUtils.TWO_PI-1.0);				//change 0|1 to 0|2pi-1 vector
 				pyMult._add(1.0,1.0,1.0);							//change 0|2pi-1 vector to 1|2pi vector
 				pdMult = myVector._elemMult(pdMult, pyMult);
 			}
@@ -674,36 +692,39 @@ public abstract class Base_Scene {
 				try{	numOverlays = Integer.parseInt(vals[13]);	}	catch (Exception e) {numOverlays = 1;	}		
 			}
 			catch (Exception e) {	
-				win.getMsgObj().dispErrorMessage("Base_Scene", "readProcTxtrPerlinVals","Proc Perlin-based txtr not specifying randomize colors or overlays so defaults are used for txtr type : " + getTxtrName());	
+				win.getMsgObj().dispWarningMessage("Base_Scene", "readProcTxtrPerlinVals","Proc Perlin-based txtr not specifying randomize colors or overlays so defaults are used for txtr type : " + getTxtrName());	
 				rndColors = false;	colorScale = 25.0;colorMult = .1;numOverlays = 1;}	 
 			useDefaults = false;
 			win.getMsgObj().dispInfoMessage("Base_Scene", "readProcTxtrPerlinVals", "Finished loading custom values for texture type : " + getTxtrName());
 		}
 		catch (Exception e) {
-			win.getMsgObj().dispErrorMessage("Base_Scene", "readProcTxtrPerlinVals", "No Proc Texture values specified for texture type : " + getTxtrName() + " so using defaults.");	useDefaults = true;	}	 
+			win.getMsgObj().dispWarningMessage("Base_Scene", "readProcTxtrPerlinVals", "No Proc Texture values specified for texture type : " + getTxtrName() + " so using defaults.");	useDefaults = true;	}	 
 		return useDefaults;	
 	}//readProcTxtrPerlinVals
 	
-	//read in constants configured for worley noise
+	/**
+	 * read in constants configured for worley noise
+	 * @param vals
+	 * @return
+	 */
 	private boolean readProcTxtrWorleyVals(String[] vals){
 		boolean useDefaults;
 		//different format than perlin
 		//may just have <typ> or may have up to color scale, or may have all values - use defaults for all values not specified
 		//<typ> <noise scale> <distfunction 0=man/1=euc> <roiFunc 0=altLinSum/1=?><num pts for dist func - should be even> <avg # pts per cell> <mortar threshold 0.0-1.0> <useFwdTransform 0/1> <?rndomize colors colorScale - if present then true> <color mult> <num overlays - if present, otherwise 1>
 		try{
-			int parseIDX = 1;
-			noiseScale = Double.parseDouble(vals[parseIDX++]);
-			distFunc = Integer.parseInt(vals[parseIDX++]);
-			roiFunc = Integer.parseInt(vals[parseIDX++]);	//function for determining region of interest in worley noise - 0 : nearest lin sum 1 : alternating linear sum, 2+: ....
-			numPtsDist = Integer.parseInt(vals[parseIDX++]);
-			avgNumPerCell = Double.parseDouble(vals[parseIDX++]);
-			mortarThresh = Double.parseDouble(vals[parseIDX++]);
-			useFwdTrans = (Double.parseDouble(vals[parseIDX++]) == 1.0);		//whether or not to use fwd transform on points
+			noiseScale = Double.parseDouble(vals[1]);
+			distFunc = Integer.parseInt(vals[2]);
+			roiFunc = Integer.parseInt(vals[3]);	//function for determining region of interest in worley noise - 0 : nearest lin sum 1 : alternating linear sum, 2+: ....
+			numPtsDist = Integer.parseInt(vals[4]);
+			avgNumPerCell = Double.parseDouble(vals[5]);
+			mortarThresh = Double.parseDouble(vals[6]);
+			useFwdTrans = (Double.parseDouble(vals[7]) == 1.0);		//whether or not to use fwd transform on points
 			try{
-				colorScale = Double.parseDouble(vals[parseIDX++]);
-				colorMult = Double.parseDouble(vals[parseIDX++]);
+				colorScale = Double.parseDouble(vals[8]);
+				colorMult = Double.parseDouble(vals[9]);
 				rndColors = true;
-				try{	numOverlays = Integer.parseInt(vals[parseIDX++]);	}	catch (Exception e) {numOverlays = 1;	}		
+				try{	numOverlays = Integer.parseInt(vals[10]);	}	catch (Exception e) {numOverlays = 1;	}		
 			}
 			catch (Exception e) {	
 				win.getMsgObj().dispErrorMessage("Base_Scene", "readProcTxtrWorleyVals", "Proc txtr not specifying randomize colors or overlays so defaults are used for txtr type : " + getTxtrName());	
@@ -739,7 +760,7 @@ public abstract class Base_Scene {
 					setProcTxtrVals(new int[]{txtrType, 4, 1, 2, 1,1}, 				//int[] ints =  txtrType,  numOctaves,  numOverlays,  numPtsDist,distFunc (not used for perlin), roiFunc (not used for perlin)
 							new boolean[]{true,useCustClrs,false}, 					//boolean[] bools = rndColors , useCustClrs, useFwdTrans -> useFwdTrans needs to be specified in command in cli
 							new double[]{2.0, .4, 25.0, .2, 1.0, 0.05}, 			//double[] dbls = noiseScale, turbMult , colorScale , colorMult, avgNumPerCell,mortarThresh
-							new myVector[]{new myVector(MyMathUtils.TWO_PI_F* 2.7,3.6,4.3)}, 	//myVector[] vecs = pdMult
+							new myVector[]{new myVector(MyMathUtils.TWO_PI* 2.7,3.6,4.3)}, 	//myVector[] vecs = pdMult
 							noiseColors, 											//myColor[] clrs = noiseColors
 							clrWts);												//Double[] wts = clrWts					
 				} break;}		
@@ -752,7 +773,7 @@ public abstract class Base_Scene {
 					setProcTxtrVals(new int[]{txtrType, 8, 1, 2, 1, 1}, 			//int[] ints =  txtrType,  numOctaves,  numOverlays,  numPtsDist,distFunc (not used), roiFunc (not used)
 							new boolean[]{true,useCustClrs,false}, 					//boolean[] bools = rndColors , useCustClrs, useFwdTrans -> useFwdTrans needs to be specified in command in cli
 							new double[]{1.0, .4, 25.0, .3, 1.0, 0.05}, 			//double[] dbls = noiseScale, turbMult , colorScale , colorMult, avgNumPerCell
-							new myVector[]{new myVector(MyMathUtils.TWO_PI_F*3.5,7.9,6.2)}, 	//myVector[] vecs = pdMult
+							new myVector[]{new myVector(MyMathUtils.TWO_PI*3.5,7.9,6.2)}, 	//myVector[] vecs = pdMult
 							noiseColors, 											//myColor[] clrs = noiseColors
 							clrWts);												//Double[] wts = clrWts					
 				} break;}		
@@ -765,10 +786,23 @@ public abstract class Base_Scene {
 				setProcTxtrVals(new int[]{txtrType, 16, 1, 2, 1, 1}, 				//int[] ints =  txtrType,  numOctaves,  numOverlays,  numPtsDist,distFunc (not used), roiFunc (not used)
 							new boolean[]{true,useCustClrs,false}, 					//boolean[] bools = rndColors , useCustClrs, useFwdTrans -> useFwdTrans needs to be specified in command in cli
 							new double[]{1.0, 15.0, 24.0, .1, 1.0, 0.05}, 			//double[] dbls = noiseScale, turbMult , colorScale , colorMult, avgNumPerCell
-							new myVector[]{new myVector(MyMathUtils.TWO_PI_F * 0.1,MyMathUtils.TWO_PI_F * 31.4,MyMathUtils.TWO_PI_F *4.1)}, 	//myVector[] vecs = pdMult
+							new myVector[]{new myVector(MyMathUtils.TWO_PI * 0.1,MyMathUtils.TWO_PI * 31.4,MyMathUtils.TWO_PI *4.1)}, 	//myVector[] vecs = pdMult
 							noiseColors, 											//myColor[] clrs = noiseColors
 							clrWts);												//Double[] wts = clrWts					
-				} break;}			
+				} break;}	
+			case "marble2":{
+				txtrType = 4;
+				boolean useDefaults = readProcTxtrVals(vals, true);
+				if(!useCustClrs){noiseColors = new myRTColor[]{ getClr("clr_nearblack"),	getClr("clr_offwhite")}; clrWts = new Double[] {1.0,1.0};}
+				//turbulence values
+				if(useDefaults){
+				setProcTxtrVals(new int[]{txtrType, 16, 1, 2, 1, 1}, 				//int[] ints =  txtrType,  numOctaves,  numOverlays,  numPtsDist,distFunc (not used), roiFunc (not used)
+							new boolean[]{true,useCustClrs,false}, 					//boolean[] bools = rndColors , useCustClrs, useFwdTrans -> useFwdTrans needs to be specified in command in cli
+							new double[]{1.0, 15.0, 24.0, .1, 1.0, 0.05}, 			//double[] dbls = noiseScale, turbMult , colorScale , colorMult, avgNumPerCell
+							new myVector[]{new myVector(MyMathUtils.TWO_PI * 0.1,MyMathUtils.TWO_PI * 31.4,MyMathUtils.TWO_PI *4.1)}, 	//myVector[] vecs = pdMult
+							noiseColors, 											//myColor[] clrs = noiseColors
+							clrWts);												//Double[] wts = clrWts					
+				} break;}
 			//this uses 
 			case "stone":{
 				txtrType = 5;
@@ -959,9 +993,9 @@ public abstract class Base_Scene {
 	 * @return
 	 */
 	public myPoint getDpthOfFldEyeLoc(myPoint loc){
-		//myVector tmp = p.rotVecAroundAxis(new myVector(0,1,0),new myVector(0,0,-1),ThreadLocalRandom.current().nextDouble(0,MyMathUtils.TWO_PI_F));				//rotate surfTangent by random angle
+		//myVector tmp = p.rotVecAroundAxis(new myVector(0,1,0),new myVector(0,0,-1),ThreadLocalRandom.current().nextDouble(0,MyMathUtils.TWO_PI));				//rotate surfTangent by random angle
 		myVector tmp1 = new myVector(0,1,0);
-		myVector tmp = tmp1.rotMeAroundAxis(new myVector(0,0,-1),ThreadLocalRandom.current().nextDouble(0,MyMathUtils.TWO_PI_F));				//rotate surfTangent by random angle
+		myVector tmp = tmp1.rotMeAroundAxis(new myVector(0,0,-1),ThreadLocalRandom.current().nextDouble(0,MyMathUtils.TWO_PI));				//rotate surfTangent by random angle
 		tmp._normalize();
 		double mult = ThreadLocalRandom.current().nextDouble(0,lens_radius);			//find displacement radius from origin
 		tmp._mult(mult);
@@ -1284,7 +1318,13 @@ public abstract class Base_Scene {
 	public myVector absVec(myVector _v){return new myVector(Math.abs(_v.x),Math.abs(_v.y),Math.abs(_v.z));}
 
 	public double perlinNoise3D(myPoint pt){return perlinNoise3D((float)pt.x, (float)pt.y, (float)pt.z);}
-	//from code given by greg for project 4, 3d perlin noise
+	/**
+	 * Derive Perlin noise value at a particular location
+	 * @param x
+	 * @param y
+	 * @param z
+	 * @return
+	 */
 	public float perlinNoise3D(float x, float y, float z) {		
 		// make sure we've initialized table
 		if (initFlag == false) {	  initPermTable();	  initFlag = true;	}		
@@ -1344,8 +1384,8 @@ public abstract class Base_Scene {
 	}//noise_3d
 
 	public void initPermTable() { 
-		for(int i=0; i<255; ++i) {perm[i]=pValAra[i];}
-		for(int i=256; i<512; ++i) {perm[i]=pValAra[i & 255];}
+		for(int i=0; i<255; ++i) {perm[i] = pValAra[i];}
+		for(int i=256; i<512; ++i) {perm[i] = pValAra[i & 255];}
 	}
 	/**
 	 * This method is a *lot* faster than using (int)Math.floor(x)
