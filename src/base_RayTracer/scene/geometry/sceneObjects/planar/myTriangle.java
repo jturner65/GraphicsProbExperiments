@@ -1,6 +1,5 @@
 package base_RayTracer.scene.geometry.sceneObjects.planar;
 
-import base_RayTracer.ray.rayCast;
 import base_RayTracer.scene.objType;
 import base_RayTracer.scene.base.Base_Scene;
 import base_RayTracer.scene.geometry.sceneObjects.planar.base.Base_PlanarObject;
@@ -11,32 +10,18 @@ import processing.core.PImage;
 public class myTriangle extends Base_PlanarObject{
   
 	public myTriangle(Base_Scene _scn){
-		super(_scn);
-		vCount = 3;
-		type = objType.Triangle;
-		initObjVals();    
-	}	//myTriangle constructor (4)
-
-	public boolean checkInside(myPoint rayPoint, rayCast ray){
-		//find ray from each vertex to the planar intersection point
-		myVector intRay = new myVector(0,0,0);
-		for(int i =0; i<vCount; ++i){
-			int pIdx = (i==0 ? vCount-1 : i-1);
-			intRay.set(rayPoint.x - vertX[i],rayPoint.y - vertY[i], rayPoint.z - vertZ[i]);
-			myVector tmp = intRay._cross(P2P[pIdx]);
-			if(tmp._dot(N) < -epsVal){return false;}		//means opposite to normal direction
-		}
-		return true;
-	}//checkInside method
-
+		super(_scn, 3, objType.Triangle);
+	}	//myTriangle constructor
+	
 	@Override
-	public double[] findTxtrCoords(myPoint isctPt, PImage myTexture, double time){
-	    myVector v2 = new myVector(P[0],isctPt);
-	    double dot20 = v2._dot(P2P[0]), dot21 = v2._dot(PLastP0),
-	    c_u = ((dotVals[2] * dot20) - (dotVals[vCount] * dot21)) * baryIDenomTxtr,
-	    c_v = ((dotVals[0] * dot21) - (dotVals[vCount] * dot20)) * baryIDenomTxtr,
+	public double[] findTxtrCoords(myPoint isCtPt, PImage myTexture, double time){
+	    myVector v2 = normToUse.getVecPtToPassedPt(isCtPt, 0);
+	    double dot20 = v2._dot(normToUse.getP2P(0)), dot21 = v2._dot(normToUse.getPLastP0()),
+	    c_u = ((normToUse.getP2P(2).sqMagn * dot20) - (normToUse.getDotValFinal() * dot21)) * normToUse.getBaryIDenomTxtr(),
+	    c_v = ((normToUse.getP2P(0).sqMagn * dot21) - (normToUse.getDotValFinal() * dot20)) * normToUse.getBaryIDenomTxtr(),
 	    c_w = 1 - c_u - c_v;
-	    double u = vertU[0] * c_w + vertU[1] * c_u + vertU[2]*c_v, v = vertV[0] * c_w + vertV[1] * c_u + vertV[2]*c_v;
+	    double u = normToUse.getVertU(0) * c_w + normToUse.getVertU(1) * c_u + normToUse.getVertU(2)*c_v, 
+	    		v = normToUse.getVertV(0) * c_w + normToUse.getVertV(1) * c_u + normToUse.getVertV(2)*c_v;
 	    return new double[]{u*(myTexture.width-1),(1-v)*(myTexture.height-1)};
 	}
 	
