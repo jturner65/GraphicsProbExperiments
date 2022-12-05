@@ -1,11 +1,20 @@
-# one textured sphere - using more complex wood
 
 rays_per_pixel 1
 
 fov 60
-background .4 .4 .7
-point_light -3 5 5  .5 .5 .5
-point_light 5 3 3   1 1 1
+#background 
+background texture nightSky.png 100 0 -1 -50
+
+# light sources 
+
+point_light  3 4  0  .8 .8 .8
+point_light -3 4  0  .2 .2 .2
+
+# floor
+
+diffuse   0.8 0.8 0.8   0 0 0
+texture checkerboard_small.png
+read smQuadFloor.cli
 
 diffuse   0.8 0.8 0.8   0 0 0
 #instancing attaches txture to base instance
@@ -21,34 +30,6 @@ push
 translate 0 0 -4
 rotate 45  0 1 0
 instance wood_sphere
-pop
-
-
-push
-
-translate 0 -1 -4
-scale 6 6 6
-rotate 90  1 0 0
-translate -0.5 -0.5 0
-
-begin
-texture_coord 0 0
-vertex  0 0 0
-texture_coord 0 1
-vertex  0 1 0
-texture_coord 1 0
-vertex   1 0 0
-end
-
-begin
-texture_coord 1 0
-vertex  1 0 0
-texture_coord 1 1
-vertex  1 1 0
-texture_coord 0 1
-vertex  0 1 0
-end
-
 pop
 
 write p4_t05alt.png

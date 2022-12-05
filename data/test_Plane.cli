@@ -1,0 +1,27 @@
+
+rays_per_pixel 1
+
+fov 60
+#background 
+background texture nightSky.png 100 0 -1 -50
+
+# light sources 
+
+point_light  3 4  0  .8 .8 .8
+point_light -3 4  0  .2 .2 .2
+
+# floor
+
+diffuse   0.8 0.8 0.8   0 0 0
+texture earthMap.jpg
+
+
+push
+
+translate 0 0 -15
+scale 10 10 10
+
+# read plane
+plane 0 0 1 .1
+
+pop

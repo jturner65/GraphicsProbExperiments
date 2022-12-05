@@ -1,0 +1,19 @@
+# two triangles with texture coords forming a quad
+
+begin
+texture_coord 0 0
+vertex  -1 -1 0
+texture_coord 0 1
+vertex  -1 1 0
+texture_coord 1 0
+vertex   1 -1 0
+end
+
+begin
+texture_coord 1 0
+vertex  1 -1 0
+texture_coord 0 1
+vertex  -1 1 0
+texture_coord 1 1
+vertex  1 1 0
+end

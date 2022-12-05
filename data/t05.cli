@@ -16,18 +16,11 @@ caustic_photons  2000000  80 0.05
 # these two triangles acts as a ground plane
 
 diffuse  .8 .8 .8  .2 .2 .2
-
-begin
-vertex -100 -1 -100
-vertex  100 -1 -100
-vertex  100 -1  100
-end
-
-begin
-vertex  100 -1  100
-vertex -100 -1  100
-vertex -100 -1 -100
-end
+push
+translate 0 1 1
+scale 2 2 1
+read sm2TriFloor.cli
+pop
 
 # a sphere on the ground
 
@@ -43,17 +36,8 @@ push
 translate 0 0 -2.5
 rotate 45  1 0 0
 
-begin
-vertex -1 -1 0
-vertex  1 -1 0
-vertex  1  1 0
-end
-
-begin
-vertex  1  1 0
-vertex -1  1 0
-vertex -1 -1 0
-end
+# read 2-triangles with texture coords
+read txtured2Tri.cli
 
 pop
 

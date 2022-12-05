@@ -1,0 +1,13 @@
+# quad with texture coords
+
+begin quad
+texture_coord 0 0
+vertex  -1 -1 0
+texture_coord 0 1
+vertex  -1 1 0
+texture_coord 1 1
+vertex   1 1 0
+texture_coord 1 0
+vertex   1 -1 0
+end
+

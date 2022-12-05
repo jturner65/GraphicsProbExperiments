@@ -10,13 +10,13 @@ background 0 0 0
 
 point_light  0 .98 -2.5  .5 .5 .5
 
-# box
+# Cornell box
 
 diffuse  .8 .8 .8  .2 .2 .2
-
 push
 translate 0 0 -2.5
-read cube.cli
+# load cube
+read cubeQuad.cli
 pop
 
 # reflective sphere (perfect mirror)

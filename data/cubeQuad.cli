@@ -1,0 +1,37 @@
+#Cornell Box via quads
+
+#cube walls
+diffuse  .8 .2 .2  0 0 0
+begin quad
+vertex -1  1 1
+vertex -1 1 -1
+vertex -1 -1 -1
+vertex -1 -1 1
+end
+diffuse  .2 .2 .8  0 0 0
+begin quad
+vertex 1  1 1
+vertex 1 1 -1
+vertex 1 -1 -1
+vertex 1 -1 1
+end
+diffuse  .8 .8 .8  0 0 0
+begin quad
+vertex -1  1 1
+vertex -1  1 -1
+vertex 1  1 -1
+vertex 1  1 1
+end
+begin quad
+vertex -1  -1 1
+vertex -1  -1 -1
+vertex 1  -1 -1
+vertex 1  -1 1
+end
+begin quad
+vertex -1  1 -1
+vertex -1  -1 -1
+vertex 1  -1 -1
+vertex 1  1 -1
+end
+

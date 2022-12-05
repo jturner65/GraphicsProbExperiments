@@ -51,18 +51,29 @@ public abstract class Base_RayTracerWin extends Base_DispWindow {
 		gIDX_SceneRows		= 1,
 		gIDX_CurrSceneCLI	= 2;
 	public final int numGUIObjs = 3;	
+	
+	public String[] gIDX_NoiseTxtrCLIFileList = new String[] {
+			"noiseTxtr_st01.cli","noiseTxtr_st02.cli","noiseTxtr_st03.cli","noiseTxtr_st04.cli","noiseTxtr_st05.cli",
+			"noiseTxtr_st06.cli","noiseTxtr_st07.cli","noiseTxtr_st08.cli","noiseTxtr_st09.cli",
+			"noiseTxtr_t01.cli","noiseTxtr_t02.cli","noiseTxtr_t03.cli","noiseTxtr_t04.cli","noiseTxtr_t05.cli","noiseTxtr_t05Alt.cli",
+			"noiseTxtr_t06_2.cli","noiseTxtr_t06.cli","noiseTxtr_t06Alt.cli","noiseTxtr_t07.cli","noiseTxtr_t08.cli","noiseTxtr_t09.cli"
+	};
 
 	public String[] gIDX_CurrSceneCLIList = new String[] {
-			"trTrans.cli","t01.cli","t02.cli","t03.cli","t04.cli","t05.cli","t06.cli","t07.cli","t08.cli","t09.cli","t10.cli","t11.cli",
-			"p4_st01.cli","p4_st02.cli","p4_st03.cli","p4_st04.cli","p4_st05.cli","p4_st06.cli","p4_st07.cli","p4_st08.cli","p4_st09.cli",
-			"p4_t05.cli","p4_t06.cli","p4_t07.cli","p4_t08.cli","p4_t09.cli","plnts3ColsBunnies.cli","p3_t02_sierp.cli",
+			"trTrans.cli","test_2triTxtures.cli","test_QuadTxtures.cli","test_Plane.cli",
+			"t01.cli","t02.cli","t03.cli","t04.cli","t05.cli","t06.cli","t07.cli","t08.cli","t09.cli","t10.cli","t11.cli",
+			"noiseTxtr_st01.cli","noiseTxtr_st02.cli","noiseTxtr_st03.cli","noiseTxtr_st04.cli","noiseTxtr_st05.cli",
+			"noiseTxtr_st06.cli","noiseTxtr_st07.cli","noiseTxtr_st08.cli","noiseTxtr_st09.cli",
+			"noiseTxtr_t01.cli","noiseTxtr_t02.cli","noiseTxtr_t03.cli","noiseTxtr_t04.cli","noiseTxtr_t05.cli","noiseTxtr_t05Alt.cli",
+			"noiseTxtr_t06_2.cli","noiseTxtr_t06.cli","noiseTxtr_t06Alt.cli","noiseTxtr_t07.cli","noiseTxtr_t08.cli","noiseTxtr_t09.cli",
+			"plnts3ColsBunnies.cli","p3_t02_sierp.cli",
 			"p2_t01.cli", "p2_t02.cli", "p2_t03.cli", "p2_t04.cli", "p2_t05.cli","p2_t06.cli", "p2_t07.cli", "p2_t08.cli", "p2_t09.cli", 			
 			"old_t07c.cli","earthAA1.cli","earthAA2.cli","earthAA3.cli","c2clear.cli","c3shinyBall.cli","c4InSphere.cli","c6.cli", "c6Fish.cli","c2torus.cli",
 			"old_t02.cli","old_t03.cli","old_t04.cli","old_t05.cli","old_t06.cli","old_t07.cli","old_t08.cli","old_t09.cli","old_t10.cli",
 			"planets.cli","planets2.cli","planets3.cli","planets3columns.cli","planets3Ortho.cli",
 			"c0.cli", "c1.cli","c2.cli","c3.cli","c4.cli","c5.cli",
 			"p3_t01.cli","p3_t02.cli","p3_t03.cli","p3_t04.cli","p3_t05.cli","p3_t06.cli","p3_t07.cli","p3_t11_sierp.cli", 	
-			"p4_t06_2.cli", "p4_t09.cli","cylinder1.cli", "tr0.cli","c0Square.cli",  "c1octo.cli",  			
+			"cylinder1.cli", "tr0.cli","c0Square.cli",  "c1octo.cli",		
 			"old_t0rotate.cli","old_t03a.cli", "old_t04a.cli", "old_t05a.cli", "old_t06a.cli", 	"old_t07a.cli",		
 	};
 

@@ -1,4 +1,5 @@
-# big bunny, in acceleration structure
+
+rays_per_pixel 1
 
 fov 60
 #background 
@@ -9,25 +10,16 @@ background texture nightSky.png 100 0 -1 -50
 point_light  3 4  0  .8 .8 .8
 point_light -3 4  0  .2 .2 .2
 
+# floor
 
 diffuse   0.8 0.8 0.8   0 0 0
 texture checkerboard_small.png
-read sm2TriFloor.cli
+read smQuadFloor.cli
 
-# the bunny
-
-translate 0 0 -3
-
-surface  0.9 0.9 0.9 0 0 0  1 1 1  40 .01 
+surface  0.4 0.4 0.4 0 0 0  1 1 1  100 .01 
 #<typ> <noise scale> <numOctaves> <turbMult> <pdMult x y z> <multByPI 1/0 1/0 1/0> <useFwdTransform 0/1> <rndomize colors colorScale - if present then true> <color mult> <num overlays - if present, otherwise 1>
-wood .75 16 0.4 5.0 25.1 17.7 0 0 0 1.0 12.0 .2 1
-#<noise_color spec tag> (<'named'> <clr name>) or (<color r g b>)  <?wt> <-specify once for each color
+marble2 2.0 24 13.4 13.0 25.1 17.7 0 0 0 1.0 12.0 .2 1
 
-begin_list
-read bun69k.cli
-end_accel
+sphere 1  0 0 -4
 
-reset_timer
-write p4_t09.png
-print_timer
-
+write p4_t06Alt.png

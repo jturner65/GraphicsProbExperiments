@@ -20,11 +20,14 @@ disk_light  0 .98 -2.5  0.95  0 -1 0  .8 .8 .8
 #diffuse_photons  9000  1 0.02
 #diffuse_photons  90000  5 0.1
 diffuse_photons  1000000  200 0.1
-# box
+
+
+# Cornell box
+
 diffuse  .8 .8 .8  .2 .2 .2
 push
 translate 0 0 -2.5
-#"light" 
+#"light" as quad 
 diffuse 1 1 1  1 1 1  1 1 1 10 1.0
 begin quad
 vertex -.47 .99 .47
@@ -33,42 +36,9 @@ vertex .47 .99 -.47
 vertex -.47 .99 -.47
 end
 
-#cube walls
-diffuse  .8 .2 .2  0 0 0
-begin quad
-vertex -1  1 1
-vertex -1 1 -1
-vertex -1 -1 -1
-vertex -1 -1 1
-end
-diffuse  .2 .2 .8  0 0 0
-begin quad
-vertex 1  1 1
-vertex 1 1 -1
-vertex 1 -1 -1
-vertex 1 -1 1
-end
-diffuse  .8 .8 .8  0 0 0
-begin quad
-vertex -1  1 1
-vertex -1  1 -1
-vertex 1  1 -1
-vertex 1  1 1
-end
-begin quad
-vertex -1  -1 1
-vertex -1  -1 -1
-vertex 1  -1 -1
-vertex 1  -1 1
-end
-begin quad
-vertex -1  1 -1
-vertex -1  -1 -1
-vertex 1  -1 -1
-vertex 1  1 -1
-end
 
-#read cube.cli
+# load cube
+read cubeQuad.cli
 pop
 
 # reflective sphere (perfect mirror)

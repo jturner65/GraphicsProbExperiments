@@ -5,6 +5,8 @@ push
 translate 0 -1 -4
 scale 6 6 6
 rotate 90  1 0 0
-# read 2-triangles with texture coords
-read txtured2Tri.cli
+
+# read quad with texture coords
+read txturedQuad.cli
+
 pop
