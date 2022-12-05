@@ -4,6 +4,7 @@ import base_RayTracer.ray.rayCast;
 import base_RayTracer.scene.objType;
 import base_RayTracer.scene.base.Base_Scene;
 import base_RayTracer.scene.geometry.sceneObjects.planar.base.Base_PlanarObject;
+import base_Math_Objects.MyMathUtils;
 import base_Math_Objects.vectorObjs.doubles.myPoint;
 import base_Math_Objects.vectorObjs.doubles.myVector;
 import processing.core.PImage;
@@ -60,15 +61,14 @@ public class myPlane extends Base_PlanarObject{
 	public myVector getMinVec(){return  new myVector(-Double.MAX_VALUE,-Double.MAX_VALUE,-Double.MAX_VALUE);}
 	@Override//infinite plane isect is always inside
 	public boolean checkInside(myPoint rayPoint, rayCast ray){	return true;	}//checkInside method
+	//infinite plane txtr coords - repeat at bounds described by planar points. Should look pretty interesting if points do not form convex quad
 	@Override
 	public double[] findTxtrCoords(myPoint isctPt, PImage myTexture, double time){		
 	    myVector v2 = new myVector(P[0],isctPt);
-	    double dot20 = v2._dot(P2P[0]), dot21 = v2._dot(P2P0),
-	    c_u = ((dotVals[2] * dot20) - (dotVals[vCount] * dot21)) * baryIDenomTxtr,
-	    c_v = ((dotVals[0] * dot21) - (dotVals[vCount] * dot20)) * baryIDenomTxtr,
-	    c_w = 1 - c_u - c_v;
-	    double u = vertU[0] * c_w + vertU[1] * c_u + vertU[2]*c_v, v = vertV[0] * c_w + vertV[1] * c_u + vertV[2]*c_v;
-	    return new double[]{u*(myTexture.width-1),(1-v)*(myTexture.height-1)};
+	    double 
+	    uRaw = (v2._dot(P2P[0]) / dotVals[0]), u = uRaw - MyMathUtils.floor(uRaw), 
+	    vRaw = (v2._dot(PLastP0) / dotVals[vCount-1]), v = vRaw - MyMathUtils.floor(vRaw);
+	    return new double[]{(1-u)*(myTexture.width-1),(1-v)*(myTexture.height-1)};
 	}
 	
 }//myPlane

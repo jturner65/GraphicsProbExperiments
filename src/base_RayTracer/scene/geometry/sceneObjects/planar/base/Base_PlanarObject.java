@@ -16,7 +16,7 @@ public abstract class Base_PlanarObject extends Base_SceneObject{
 	//objects used for both square and triangle
 	protected double[] vertX, vertY, vertZ,
 						vertU, vertV;			//texture coordinates corresponding to each vertex of this poly
-	protected myVector N, P2P0;		//Normal, vector from pt2 to pt0
+	protected myVector N, PLastP0;		//Normal, vector from last point to pt0
 	protected myPoint[] P;
 	protected myVector[] P2P;//points of the planar polygon, vectors between each point
 	protected int vCount; //object id, number of verticies in this object - used for square and triangle  
@@ -42,7 +42,7 @@ public abstract class Base_PlanarObject extends Base_SceneObject{
 		dotVals = new double[vCount + 1];
 		P = new myPoint[vCount];
 		P2P = new myVector[vCount];		
-		P2P0 = new myVector(0,0,0);//used for textures
+		PLastP0 = new myVector(0,0,0);//used for textures
 		N = new myVector(0,0,1);
 		for (int i = 0; i < vCount; i ++){
 			P[i] = new myVector(0,0,0);
@@ -53,22 +53,23 @@ public abstract class Base_PlanarObject extends Base_SceneObject{
 	protected void setPointsAndNormal(){
 		double tempX = 0, tempY = 0, tempZ = 0;
 		//set all vectors to correspond to entered points
-		for(int i = 0; i < this.vCount; ++i){
+		int lastPtIDX = vCount-1;
+		for(int i = 0; i < vCount; ++i){
 			tempX += vertX[i];
 			tempY += vertY[i];
 			tempZ += vertZ[i];
 			P[i].set(vertX[i],vertY[i],vertZ[i]);
-			int idx = (i != 0 ? i-1 : vCount-1);
+			int idx = (i != 0 ? i-1 : lastPtIDX);
 			P2P[idx].set(vertX[i]-vertX[idx],vertY[i]-vertY[idx],vertZ[i]-vertZ[idx]); 
-			dotVals[idx] = P2P[idx]._dot(P2P[idx]);//precalc for txtrs
+			dotVals[idx] = P2P[idx].sqMagn;// P2P[idx]._dot(P2P[idx]);//precalc for txtrs
 		}		
 		//P2P0.set(vertX[2]-vertX[0],vertY[2]-vertY[0],vertZ[2]-vertZ[0]);//for textures, precalc
-		P2P0.set(P2P[2]);//for textures, precalc
-		P2P0._mult(-1.0);
+		PLastP0.set(P2P[lastPtIDX]);//for textures, precalc
+		PLastP0._mult(-1.0);
     	//find normals for each vertex
 		//dotVals[vCount] = P2P[0]._dot(P2P0);
-		dotVals[vCount] = -P2P[0]._dot(P2P[2]);
-		baryIDenomTxtr =  1.0 / ((dotVals[0] * dotVals[2]) - (dotVals[vCount] * dotVals[vCount]));
+		dotVals[vCount] = -P2P[0]._dot(P2P[lastPtIDX]);
+		baryIDenomTxtr =  1.0 / ((dotVals[0] * dotVals[lastPtIDX]) - (dotVals[vCount] * dotVals[vCount]));
 		
     	N = P2P[1]._cross(P2P[0]);
     	N._normalize();
@@ -80,13 +81,13 @@ public abstract class Base_PlanarObject extends Base_SceneObject{
 	}
 	
 	protected void invertNormal(){
-		double[] tmpX = new double[this.vCount],
-		tmpY = new double[this.vCount],
-		tmpZ = new double[this.vCount],
-		tmpU = new double[this.vCount],
-		tmpV = new double[this.vCount];
+		double[] tmpX = new double[vCount],
+		tmpY = new double[vCount],
+		tmpZ = new double[vCount],
+		tmpU = new double[vCount],
+		tmpV = new double[vCount];
 		int idx = 0;
-		for(int i = this.vCount-1; i >= 0; --i){
+		for(int i = vCount-1; i >= 0; --i){
 			tmpX[i] = vertX[idx];
 			tmpY[i] = vertY[idx];
 			tmpZ[i] = vertZ[idx];

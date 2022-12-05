@@ -9,36 +9,36 @@ import base_Math_Objects.vectorObjs.doubles.myVector;
 import processing.core.PImage;
 
 public class myTriangle extends Base_PlanarObject{
-	  
-		public myTriangle(Base_Scene _scn){
-			super(_scn);
-			vCount = 3;
-			type = objType.Triangle;
-			initObjVals();    
-		}	//myTriangle constructor (4)
+  
+	public myTriangle(Base_Scene _scn){
+		super(_scn);
+		vCount = 3;
+		type = objType.Triangle;
+		initObjVals();    
+	}	//myTriangle constructor (4)
 
-		public boolean checkInside(myPoint rayPoint, rayCast ray){
-			//find ray from each vertex to the planar intersection point
-			myVector intRay = new myVector(0,0,0);
-			for(int i =0; i<vCount; ++i){
-				int pIdx = (i==0 ? vCount-1 : i-1);
-				intRay.set(rayPoint.x - vertX[i],rayPoint.y - vertY[i], rayPoint.z - vertZ[i]);
-				myVector tmp = intRay._cross(P2P[pIdx]);
-				if(tmp._dot(N) < -epsVal){return false;}		//means opposite to normal direction
-			}
-			return true;
-		}//checkInside method
-
-		@Override
-		public double[] findTxtrCoords(myPoint isctPt, PImage myTexture, double time){
-		    myVector v2 = new myVector(P[0],isctPt);
-		    double dot20 = v2._dot(P2P[0]), dot21 = v2._dot(P2P0),
-		    c_u = ((dotVals[2] * dot20) - (dotVals[vCount] * dot21)) * baryIDenomTxtr,
-		    c_v = ((dotVals[0] * dot21) - (dotVals[vCount] * dot20)) * baryIDenomTxtr,
-		    c_w = 1 - c_u - c_v;
-		    double u = vertU[0] * c_w + vertU[1] * c_u + vertU[2]*c_v, v = vertV[0] * c_w + vertV[1] * c_u + vertV[2]*c_v;
-		    return new double[]{u*(myTexture.width-1),(1-v)*(myTexture.height-1)};
+	public boolean checkInside(myPoint rayPoint, rayCast ray){
+		//find ray from each vertex to the planar intersection point
+		myVector intRay = new myVector(0,0,0);
+		for(int i =0; i<vCount; ++i){
+			int pIdx = (i==0 ? vCount-1 : i-1);
+			intRay.set(rayPoint.x - vertX[i],rayPoint.y - vertY[i], rayPoint.z - vertZ[i]);
+			myVector tmp = intRay._cross(P2P[pIdx]);
+			if(tmp._dot(N) < -epsVal){return false;}		//means opposite to normal direction
 		}
-		
-	}//class myTriangle
+		return true;
+	}//checkInside method
+
+	@Override
+	public double[] findTxtrCoords(myPoint isctPt, PImage myTexture, double time){
+	    myVector v2 = new myVector(P[0],isctPt);
+	    double dot20 = v2._dot(P2P[0]), dot21 = v2._dot(PLastP0),
+	    c_u = ((dotVals[2] * dot20) - (dotVals[vCount] * dot21)) * baryIDenomTxtr,
+	    c_v = ((dotVals[0] * dot21) - (dotVals[vCount] * dot20)) * baryIDenomTxtr,
+	    c_w = 1 - c_u - c_v;
+	    double u = vertU[0] * c_w + vertU[1] * c_u + vertU[2]*c_v, v = vertV[0] * c_w + vertV[1] * c_u + vertV[2]*c_v;
+	    return new double[]{u*(myTexture.width-1),(1-v)*(myTexture.height-1)};
+	}
+	
+}//class myTriangle
 
