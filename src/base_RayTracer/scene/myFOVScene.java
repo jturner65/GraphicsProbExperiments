@@ -52,7 +52,7 @@ public class myFOVScene extends Base_Scene {
 		//if depth of field scene, then use lens focal distance as z depth (??)
 		viewZ = -0.5 * (MyMathUtils.max(sceneRows,sceneCols)/Math.tan(fovRad/2.0f));
 		if(scFlags[hasDpthOfFldIDX]){//depth of field variables already set from reader - build focal plane
-			focalPlane.setPlaneVals(0, 0, 1,  lens_focal_distance);  		
+			focalPlane.setPlaneVals(0, 0, 1,  lens_focal_distance, 1.0);  		
 			System.out.println("View z : " + viewZ  + "\nfocal plane : "+ focalPlane);
 		}		
 	}

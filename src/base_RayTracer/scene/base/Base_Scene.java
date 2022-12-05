@@ -84,8 +84,6 @@ public abstract class Base_Scene {
 	private int[] RefineIDX;
 	private int curRefineStep;
 	
-	
-	
 	public ArrayDeque<String> srcFileNames;
 	
 	public String saveName, folderName;										//name of cli file used to describe this scene, save file, name of containing folder
@@ -580,8 +578,8 @@ public abstract class Base_Scene {
 	public void addObjectToScene(Base_Geometry _obj){addObjectToScene(_obj,_obj);}
 	public void addObjectToScene(Base_Geometry _obj, Base_Geometry _cmpObj){
 		if(scFlags[addToTmpListIDX]){tmpObjList.add(_obj); return;}
-		if(_cmpObj instanceof Base_Light){			lightList.add(_obj);	numLights++;} 
-		else {									objList.add(_obj);		numNonLights++;}
+		if(_cmpObj instanceof Base_Light){			lightList.add(_obj);	++numLights;} 
+		else {									objList.add(_obj);		++numNonLights;}
 		allObjsToFind.add(_obj);
 		objCount++;
 	}//addObjectToScene
@@ -929,7 +927,7 @@ public abstract class Base_Scene {
 		lens_radius = lRad;
 		lens_focal_distance = lFD;
 		scFlags[hasDpthOfFldIDX] = true;
-		focalPlane.setPlaneVals(0, 0, 1, lens_focal_distance);      //needs to be modified so that d = viewZ + lens_focal_distance once FOV has been specified.
+		focalPlane.setPlaneVals(0, 0, 1, lens_focal_distance, 1.0);      //needs to be modified so that d = viewZ + lens_focal_distance once FOV has been specified.
 	}
 	
 	public void setNumRaysPerPxl(int _num){

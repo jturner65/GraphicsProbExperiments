@@ -423,37 +423,38 @@ public class myRTFileReader {
 	
 	/**
 	 * read in prim data from txt file and create object
-	 * @param token
+	 * @param tokens
 	 */
-	private void readPrimData(Base_Scene scn, String[] token){
+	private void readPrimData(Base_Scene scn, String[] tokens){
 		Base_SceneObject tmp = null;
-		switch(token[0]){
+		switch(tokens[0]){
 		    case "box" : {//box xmin ymin zmin xmax ymax zmax :
-		    	double[] xAra = MyMathUtils.minAndMax(new double[]{Double.parseDouble(token[1]),Double.parseDouble(token[4])}),
-		    			yAra = MyMathUtils.minAndMax(new double[]{Double.parseDouble(token[2]),Double.parseDouble(token[5])}),
-		    			zAra = MyMathUtils.minAndMax(new double[]{Double.parseDouble(token[3]),Double.parseDouble(token[6])});
+		    	double[] xAra = MyMathUtils.minAndMax(new double[]{Double.parseDouble(tokens[1]),Double.parseDouble(tokens[4])}),
+		    			yAra = MyMathUtils.minAndMax(new double[]{Double.parseDouble(tokens[2]),Double.parseDouble(tokens[5])}),
+		    			zAra = MyMathUtils.minAndMax(new double[]{Double.parseDouble(tokens[3]),Double.parseDouble(tokens[6])});
 		    	double ctrX = (xAra[0] + xAra[1])*.5,
 		    		ctrY = (yAra[0] + yAra[1])*.5,
 		    		ctrZ = (zAra[0] + zAra[1])*.5;
 		    	//putting box as a rendered bbox to minimize size of pure bboxes - rendered bbox is a bbox + shdr ref + some shdr-related functions and vars.
 		    	tmp = new myRndrdBox(scn,ctrX, ctrY, ctrZ, new myVector(xAra[0], yAra[0], zAra[0]),	new myVector(xAra[1], yAra[1], zAra[1]));
 		    	break;}			    
-		    case "plane" : {			//infinite plane shape
+		    case "plane" : {			//infinite plane shape tkns 1-4 are A-D for plane equation (Ax + By + Cz + D = 0), token[5] is scale value to use for points (if not present default to 1)
 		    	tmp = new myPlane(scn);
-		    	((myPlane)tmp).setPlaneVals(Double.parseDouble(token[1]), Double.parseDouble(token[2]),Double.parseDouble(token[3]),Double.parseDouble(token[4]));
+		    	double scaleVal =  (tokens.length > 5) ? Double.parseDouble(tokens[5]) : 1.0;
+		    	((myPlane)tmp).setPlaneVals(Double.parseDouble(tokens[1]), Double.parseDouble(tokens[2]),Double.parseDouble(tokens[3]),Double.parseDouble(tokens[4]), scaleVal);
 		    	break;}
 		    case "cyl" : {//old cylinder code
-		    	double rad = Double.parseDouble(token[1]), hght = Double.parseDouble(token[2]);
-		    	double xC = Double.parseDouble(token[3]), yC = Double.parseDouble(token[4]),zC = Double.parseDouble(token[5]);
+		    	double rad = Double.parseDouble(tokens[1]), hght = Double.parseDouble(tokens[2]);
+		    	double xC = Double.parseDouble(tokens[3]), yC = Double.parseDouble(tokens[4]),zC = Double.parseDouble(tokens[5]);
 		    	double xO = 0, yO = 1, zO = 0;
 		    	try {
-		    		xO = Double.parseDouble(token[6]);yO = Double.parseDouble(token[7]);zO = Double.parseDouble(token[8]);
+		    		xO = Double.parseDouble(tokens[6]);yO = Double.parseDouble(tokens[7]);zO = Double.parseDouble(tokens[8]);
 		    	} catch (Exception e){	        			    	}
 		    	tmp = new myCylinder(scn, rad,hght,xC,yC,zC,xO,yO,zO);
 		    	break;}			   
 		    case "cylinder" : { //new reqs : cylinder radius x z ymin ymax
-		    	double rad = Double.parseDouble(token[1]), xC = Double.parseDouble(token[2]), zC = Double.parseDouble(token[3]);
-		    	double yMin  = Double.parseDouble(token[4]), yMax = Double.parseDouble(token[5]);
+		    	double rad = Double.parseDouble(tokens[1]), xC = Double.parseDouble(tokens[2]), zC = Double.parseDouble(tokens[3]);
+		    	double yMin  = Double.parseDouble(tokens[4]), yMax = Double.parseDouble(tokens[5]);
 		    	double hght = yMax - yMin;
 		    	
 		    	double xO = 0,yO = 1,zO = 0;
@@ -461,8 +462,8 @@ public class myRTFileReader {
 		    	break;}			    
 
 		    case "hollow_cylinder" : {//hollow_cylinder radius x z ymin ymax
-		    	double rad = Double.parseDouble(token[1]), xC = Double.parseDouble(token[2]), zC = Double.parseDouble(token[3]);
-		    	double yMin  = Double.parseDouble(token[4]), yMax = Double.parseDouble(token[5]);
+		    	double rad = Double.parseDouble(tokens[1]), xC = Double.parseDouble(tokens[2]), zC = Double.parseDouble(tokens[3]);
+		    	double yMin  = Double.parseDouble(tokens[4]), yMax = Double.parseDouble(tokens[5]);
 		    	double hght = yMax - yMin;
 		    	
 		    	double xO = 0,yO = 1,zO = 0;
@@ -470,25 +471,25 @@ public class myRTFileReader {
 		    	break;}
 		    case "sphere" : {
 		    	//create sphere
-		    	tmp = new mySphere(scn, Double.parseDouble(token[1]),Double.parseDouble(token[2]),Double.parseDouble(token[3]),Double.parseDouble(token[4]),true);
+		    	tmp = new mySphere(scn, Double.parseDouble(tokens[1]),Double.parseDouble(tokens[2]),Double.parseDouble(tokens[3]),Double.parseDouble(tokens[4]),true);
 		    	break;}			    
 		    case "moving_sphere": {//moving_sphere radius x1 y1 z1 x2 y2 z2
 		    	tmp = new myMovingSphere(scn, 
-					Double.parseDouble(token[1]),Double.parseDouble(token[2]),Double.parseDouble(token[3]),Double.parseDouble(token[4]), 
-					Double.parseDouble(token[5]),Double.parseDouble(token[6]),Double.parseDouble(token[7]), true);
+					Double.parseDouble(tokens[1]),Double.parseDouble(tokens[2]),Double.parseDouble(tokens[3]),Double.parseDouble(tokens[4]), 
+					Double.parseDouble(tokens[5]),Double.parseDouble(tokens[6]),Double.parseDouble(tokens[7]), true);
 		    	break;}			    
 		    case "sphereIn" : {
 		    	//create sphere with internal reflections - normals point in
-		    	tmp = new mySphere(scn, Double.parseDouble(token[1]),Double.parseDouble(token[2]),Double.parseDouble(token[3]),Double.parseDouble(token[4]),true);
+		    	tmp = new mySphere(scn, Double.parseDouble(tokens[1]),Double.parseDouble(tokens[2]),Double.parseDouble(tokens[3]),Double.parseDouble(tokens[4]),true);
 		    	tmp.setFlags(Base_SceneObject.invertedIDX, true);
 		    	break;}	
 		    case "ellipsoid" : {//create elliptical sphere with 3 radii elements in each of 3 card directions			    	
 		    	tmp = new mySphere(scn, 
-		    			Double.parseDouble(token[1]),Double.parseDouble(token[2]),Double.parseDouble(token[3]),
-		    			Double.parseDouble(token[4]),Double.parseDouble(token[5]),Double.parseDouble(token[6]));
+		    			Double.parseDouble(tokens[1]),Double.parseDouble(tokens[2]),Double.parseDouble(tokens[3]),
+		    			Double.parseDouble(tokens[4]),Double.parseDouble(tokens[5]),Double.parseDouble(tokens[6]));
 		    	break;}
 		    default :{
-		    	win.getMsgObj().dispErrorMessage("myRTFileReader", "readPrimData", "Object type not handled : "+ token[0]);
+		    	win.getMsgObj().dispErrorMessage("myRTFileReader", "readPrimData", "Object type not handled : "+ tokens[0]);
 		    	return;
 		    }
 		}//switch

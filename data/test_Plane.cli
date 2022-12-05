@@ -18,10 +18,10 @@ texture earthMap.jpg
 
 push
 
-translate 0 0 -15
-scale 10 10 10
+translate 0 -1 -15
+scale 6 6 6
 
 # read plane
-plane 0 0 1 .1
+plane 0 0 10 .1 2
 
 pop
