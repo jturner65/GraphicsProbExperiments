@@ -4,7 +4,6 @@ import java.util.ArrayList;
 
 import base_Math_Objects.vectorObjs.doubles.myPoint;
 import base_Math_Objects.vectorObjs.doubles.myVector;
-import base_RayTracer.scene.base.Base_Scene;
 
 /**
  * class to hold a vertex - will be shared by planar objects, will own it's own normal

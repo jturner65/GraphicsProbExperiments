@@ -65,8 +65,7 @@ public class myPlane extends Base_PlanarObject{
 		setVert(nextPt.x, nextPt.y, nextPt.z, 3);		
 		//build arrays of points, vectors and this object's origin
 		setPointsAndNormal(true);
-	}//setPlaneVals
-	
+	}//setPlaneVals	
 	
 	//plane is infinite, so min/max are meaningless.  min/max used for bboxes, and plane isect check is faster than bbox isect check anyway, so shouldn't ever put in bbox
 	@Override

@@ -24,19 +24,12 @@ public abstract class Base_PlanarObject extends Base_SceneObject{
 		super(_scn,0,0,0, _type); 	
 		vCount = _vCount;
 		postProcBBox();				//cnstrct and define bbox - rebuilt when finalizePoly()
-		initObjVals();  
-	}//constructor (4) 
-	/**
-	 *  method to initialize values for triangle, square and other planar objects
-	 *  @param count of verticies
-	 */
-	private void initObjVals(){		
 		normalStructs = new PlanarNormAndEq[2];
 		for(int i=0;i<normalStructs.length;++i) {
 			normalStructs[i] = new PlanarNormAndEq(this, vCount);
 		}
 		setNormToUse(0);
-	}//initObjVals method
+	}//constructor (4) 
 	
 	protected void setPointsAndNormal(boolean updateOrigin){
 		//set all points and normals in normal struct, for both direction of normals
@@ -44,9 +37,7 @@ public abstract class Base_PlanarObject extends Base_SceneObject{
 		normalStructs[1].buildThisAsInvertedNormal(normalStructs[0]);
 		setNormToUse(0);
 	}//setPointsAndNormal
-	
-	//private void setEQ(){peqA = N.x;peqB = N.y;peqC = N.z;peqD = -((peqA * vertX[0]) + (peqB * vertY[0]) + (peqC * vertZ[0]));}		
-	
+
 	/**
 	 * Update the origin for this planar object based on normal calcs/recalcs
 	 * @param x
@@ -56,8 +47,7 @@ public abstract class Base_PlanarObject extends Base_SceneObject{
 	public void updateOriginFromNormCalcs(double x, double y, double z) {
 		origin.set(x, y, z);
     	buildTransOrigin();
-	}
-	
+	}	
 	
 	protected void invertNormal(){
 		//swap which normal struct we are using
@@ -121,8 +111,7 @@ public abstract class Base_PlanarObject extends Base_SceneObject{
 	protected boolean checkInside(myPoint rayPoint, rayCast ray){
 		return normToUse.checkInsideVerts(rayPoint, ray);
 	}//checkInside method
-	
-	
+		
 	/**
 	*  determine this object's normal - with individual objects, the normal will just
 	*  be the normalized cross product of two coplanar vectors.  with meshes, need to
@@ -136,7 +125,7 @@ public abstract class Base_PlanarObject extends Base_SceneObject{
 		myVector res = normToUse.getNorm();
 		res._normalize();
 		return res;
-	}
+	}//getNormalAtPoint
 	
 	/**
 	 * @return the face normal for this planar object, weighted by its area. THIS SHOULD ONLY BE USED BY BaseVertex class
@@ -147,8 +136,7 @@ public abstract class Base_PlanarObject extends Base_SceneObject{
 
 	private void setNormToUse(int idx) {
 		normToUseIDX = (idx % normalStructs.length);
-		normToUse = normalStructs[normToUseIDX];
-		
+		normToUse = normalStructs[normToUseIDX];		
 	}
 	
 	@Override

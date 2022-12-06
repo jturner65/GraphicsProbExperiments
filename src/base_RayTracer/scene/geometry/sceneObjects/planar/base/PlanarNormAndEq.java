@@ -17,7 +17,6 @@ public class PlanarNormAndEq {
 	protected Base_PlanarObject obj;
 	//number of verticies in owning object
 	protected final int vCount; 
-
 	
 	//verts x,y,z; texture coordinates u,v corresponding to each vertex of this poly
 	private double[] vertX, vertY, vertZ,
