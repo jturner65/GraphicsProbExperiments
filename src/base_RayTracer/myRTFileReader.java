@@ -481,7 +481,7 @@ public class myRTFileReader {
 		    case "sphereIn" : {
 		    	//create sphere with internal reflections - normals point in
 		    	tmp = new mySphere(scn, Double.parseDouble(tokens[1]),Double.parseDouble(tokens[2]),Double.parseDouble(tokens[3]),Double.parseDouble(tokens[4]),true);
-		    	tmp.setFlags(Base_SceneObject.invertedIDX, true);
+		    	tmp.setIsInverted(true);
 		    	break;}	
 		    case "ellipsoid" : {//create elliptical sphere with 3 radii elements in each of 3 card directions			    	
 		    	tmp = new mySphere(scn, 

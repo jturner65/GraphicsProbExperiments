@@ -11,49 +11,48 @@ import base_Math_Objects.vectorObjs.doubles.myVector;
 
 public abstract class Base_SceneObject extends Base_Geometry{	
 	
-	public int[] rFlags;					//various state-related flags for this object
-	public static final int 
+	private int[] rFlags;					//various state-related flags for this object
+	private static final int 
 			invertedIDX			= 0,				//normals point in or out
 			isLightIDX			= 1//,
 			//isTemplateObjIDX	= 2
 			;				//this object is used to instance multiple objects (doesn't exist in scene itself)
-	public static final int numFlags = 2;	
+	private static final int numFlags = 2;	
 
 	public Base_SceneObject(Base_Scene _scn, double _x, double _y, double _z, GeomObjType _type){
 		super(_scn, _x, _y, _z, _type);	    
 	    initFlags();
 	    shdr = new myObjShader(scene);//sets currently defined colors for this object also    
-	}//constructor 6 var
-	
+	}//constructor 6 var	
 	
 	/**
 	 * base class flags init
 	 */
-	public final void initFlags(){rFlags = new int[1 + numFlags/32];for(int i =0; i<numFlags;++i){setFlags(i,false);}}			
+	private final void initFlags(){rFlags = new int[1 + numFlags/32];for(int i =0; i<numFlags;++i){setFlags(i,false);}}			
 	/**
 	 * get baseclass flag
 	 * @param idx
 	 * @return
 	 */
-	public final boolean getFlags(int idx){int bitLoc = 1<<(idx%32);return (rFlags[idx/32] & bitLoc) == bitLoc;}	
+	private final boolean getFlags(int idx){int bitLoc = 1<<(idx%32);return (rFlags[idx/32] & bitLoc) == bitLoc;}	
 	
 	/**
 	 * check list of flags
 	 * @param idxs
 	 * @return
-	 */
-	public final boolean getAllFlags(int [] idxs){int bitLoc; for(int idx =0;idx<idxs.length;++idx){bitLoc = 1<<(idx%32);if ((rFlags[idx/32] & bitLoc) != bitLoc){return false;}} return true;}
-	public final boolean getAnyFlags(int [] idxs){int bitLoc; for(int idx =0;idx<idxs.length;++idx){bitLoc = 1<<(idx%32);if ((rFlags[idx/32] & bitLoc) == bitLoc){return true;}} return false;}
-		
+	 */		
 	public final boolean isInverted() {return getFlags(invertedIDX);}
 	public final boolean isLight() {return getFlags(isLightIDX);}
+	
+	public final void setIsInverted(boolean _val) {setFlags(invertedIDX, _val);}
+	public final void setIsLight(boolean _val) {setFlags(isLightIDX, _val);}
 	
 	/**
 	 * set baseclass flags  //setFlags(showIDX, 
 	 * @param idx
 	 * @param val
 	 */
-	public final void setFlags(int idx, boolean val){
+	private final void setFlags(int idx, boolean val){
 		int flIDX = idx/32, mask = 1<<(idx%32);
 		rFlags[flIDX] = (val ?  rFlags[flIDX] | mask : rFlags[flIDX] & ~mask);
 		switch(idx){

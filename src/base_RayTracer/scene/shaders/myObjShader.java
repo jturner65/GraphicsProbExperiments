@@ -44,7 +44,7 @@ public class myObjShader {
 	public static final int R = 0, G = 1, B = 2;
 	
 	private int[] shdrFlags;					//various state-related flags for this shader
-	public static final int 
+	private static final int 
 		hasCausticIDX		= 0,			//this shader will generate a caustic, either reflective or refractive
 		usePhotonMapIDX		= 1,			//this shader should incorporate the effects of a photon map
 		isCausticPhtnIDX 	= 2;

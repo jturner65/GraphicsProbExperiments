@@ -29,7 +29,7 @@ public abstract class Base_Light extends Base_SceneObject{
 	    maxVals = this.getMaxVec();
 	    postProcBBox();
 	    System.out.println("Making light " + ID);
-		setFlags(isLightIDX, true);
+		setIsLight(true);
 		setVals(_lightID, _r,_g,_b,_x,_y,_z);
 	    orientation = new myVector(_dx,_dy,_dz); 
 	    orientation._normalize();

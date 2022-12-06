@@ -19,19 +19,57 @@ import processing.core.PImage;
  */
 public class ObjInstance extends Base_Geometry{
 	public Base_Geometry obj;						//object this is instance of
-	public boolean useShader, isAccel;					//whether to use instance shader or base object shader
+	private int[] instFlags;					//various state-related flags for this object
+	private static final int 
+		useShaderIDX = 0,
+		isAccelStructIDX = 1;
+	private static final int numFlags = 2;
+
 	public ObjInstance(Base_Scene scene, Base_Geometry _obj){
 		super(scene, 0,0,0, GeomObjType.Instance);
+		initFlags();
 		obj = _obj;										//owning object
-		isAccel = (obj instanceof Base_AccelStruct);
+		setAccleStruct(obj instanceof Base_AccelStruct);
 		CTMara = buildCTMara(scene.gtPeekMatrix(), obj.CTMara[glblIDX]);//build this object's transformation matrix - since this is instancing the owning object, pass the owning object's matrix
 	    //CTMara = scene.p.buildCTMara(scene);//build this object's transformation matrix		    
 	    this.minVals = getMinVec();
 	    this.maxVals = getMaxVec();
 		postProcBBox();				//cnstrct and define bbox
 		shdr = null;
-		useShader = false;
+		setUseShader(false);
 	}
+	
+	/**
+	 * base class flags init
+	 */
+	private final void initFlags(){instFlags = new int[1 + numFlags/32];for(int i =0; i<numFlags;++i){setFlags(i,false);}}			
+	/**
+	 * get baseclass flag
+	 * @param idx
+	 * @return
+	 */
+	private final boolean getFlags(int idx){int bitLoc = 1<<(idx%32);return (instFlags[idx/32] & bitLoc) == bitLoc;}	
+		
+	public final boolean doUseShader() {return getFlags(useShaderIDX);}
+	public final boolean isAccleStruct() {return getFlags(isAccelStructIDX);}
+	
+	public final void setUseShader(boolean _val) {setFlags(useShaderIDX, _val);}
+	public final void setAccleStruct(boolean _val) {setFlags(isAccelStructIDX, _val);}
+	
+	
+	/**
+	 * set baseclass flags  //setFlags(showIDX, 
+	 * @param idx
+	 * @param val
+	 */
+	private final void setFlags(int idx, boolean val){
+		int flIDX = idx/32, mask = 1<<(idx%32);
+		instFlags[flIDX] = (val ?  instFlags[flIDX] | mask : instFlags[flIDX] & ~mask);
+		switch(idx){
+			case useShaderIDX			:{break;}		
+			case isAccelStructIDX		:{break;}
+		}				
+	}//setFlags
 	
 	//return vector with maximum x/y/z coords of this object
 	@Override
@@ -48,13 +86,13 @@ public class ObjInstance extends Base_Geometry{
 	@Override
 	public rayHit intersectCheck(rayCast _ray,rayCast transRay, myMatrix[] _ctAra) {
 		rayHit _hit = obj.intersectCheck(transRay, transRay, _ctAra);		//copy trans ray over so that ctm-transformed accel structs will still register hits appropriately TODO make this better
-		if(useShader){_hit.shdr = shdr;}
+		if(doUseShader()){_hit.shdr = shdr;}
 		return _hit;	
 	}
 	@Override
 	public myVector getNormalAtPoint(myPoint point, int[] args) {		return obj.getNormalAtPoint(point, args);		}	
 	//set to override base object's shader
-	public void useInstShader(){	useShader = true; shdr = scene.getCurShader();}//new myObjShader(scene);	}	
+	public void useInstShader(){	setUseShader(true); shdr = scene.getCurShader();}//new myObjShader(scene);	}	
 	//this is probably not the best way to do this - each instance needs to have its own UV coords.  TODOgetTransformedPt(isctPt, CTMara[invIDX]);
 	//public double[] findTxtrCoords(myVector isctPt, PImage myTexture, double time){ return obj.findTxtrCoords(isctPt, myTexture, time);}
 	@Override
@@ -68,7 +106,7 @@ public class ObjInstance extends Base_Geometry{
 
 	
 	@Override
-	public myRTColor getColorAtPos(rayHit hit) {		return (useShader) ? shdr.getColorAtPos(hit) : hit.obj.shdr.getColorAtPos(hit);}//return (hit.obj instanceof mySceneObject) ? ((mySceneObject)hit.obj).shdr.getColorAtPos(hit) : new myColor(-1,-1,-1,1);	}
+	public myRTColor getColorAtPos(rayHit hit) {		return (doUseShader()) ? shdr.getColorAtPos(hit) : hit.obj.shdr.getColorAtPos(hit);}//return (hit.obj instanceof mySceneObject) ? ((mySceneObject)hit.obj).shdr.getColorAtPos(hit) : new myColor(-1,-1,-1,1);	}
 	public String toString(){
 		String result = super.toString() + " which is an instance of : "+obj.type;
 	    return result;
