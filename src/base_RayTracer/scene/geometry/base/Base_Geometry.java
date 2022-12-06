@@ -3,7 +3,6 @@ package base_RayTracer.scene.geometry.base;
 import base_RayTracer.myRTColor;
 import base_RayTracer.ray.rayCast;
 import base_RayTracer.ray.rayHit;
-import base_RayTracer.scene.objType;
 import base_RayTracer.scene.base.Base_Scene;
 import base_RayTracer.scene.geometry.BoundingBox;
 import base_RayTracer.scene.shaders.myObjShader;
@@ -22,7 +21,7 @@ import base_Math_Objects.vectorObjs.doubles.myVector;
 public abstract class Base_Geometry {
 	public Base_Scene scene;
 	public final int ID;
-	public objType type;    //what kind of object this is
+	public Geom_ObjType type;    //what kind of object this is
 	//first 2 vectors of object, center of object,the orientation vector of this object, the min and max values in xyz that this object spans, for bounding box
 	public myPoint origin;
 	public double[] transOrigin;		//used only to speed up initial calcs for bvh structure
@@ -47,7 +46,7 @@ public abstract class Base_Geometry {
 	public Base_Geometry(Base_Scene _scn, double _x, double _y, double _z) {
 		scene = _scn;
 	    ID = scene.objCnt++;
-	    type = objType.None;
+	    type = Geom_ObjType.None;
 	    //build this object's transformation matrix - since this is the base/owning object, pass the identity for "prev obj matrix"
 		minVals = new myPoint(100000,100000,100000);
 		maxVals = new myPoint(-100000,-100000,-100000);

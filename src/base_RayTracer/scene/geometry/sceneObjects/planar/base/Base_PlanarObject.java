@@ -2,8 +2,8 @@ package base_RayTracer.scene.geometry.sceneObjects.planar.base;
 
 import base_RayTracer.ray.rayCast;
 import base_RayTracer.ray.rayHit;
-import base_RayTracer.scene.objType;
 import base_RayTracer.scene.base.Base_Scene;
+import base_RayTracer.scene.geometry.base.Geom_ObjType;
 import base_RayTracer.scene.geometry.sceneObjects.base.Base_SceneObject;
 import processing.core.PImage;
 import base_Math_Objects.matrixObjs.doubles.myMatrix;
@@ -13,14 +13,14 @@ import base_Math_Objects.vectorObjs.doubles.myVector;
 public abstract class Base_PlanarObject extends Base_SceneObject{
 	//Normal structure and inverted normal structure, precalculated
 	private PlanarNormAndEq[] normalStructs;
-	//index of normal struct to use
+	//index of normal struct to use, either outward or inverted precalculated normal
 	private int normToUseIDX;	
 	//normal struct to use
 	protected PlanarNormAndEq normToUse;
 	//number of verts in this object - used for square and triangle  
 	protected final int vCount; 
 		
-	public Base_PlanarObject(Base_Scene _p, int _vCount, objType _type){   
+	public Base_PlanarObject(Base_Scene _p, int _vCount, Geom_ObjType _type){   
 		super(_p,0,0,0); 	
 		vCount = _vCount;
 		type = _type;
@@ -133,21 +133,16 @@ public abstract class Base_PlanarObject extends Base_SceneObject{
 	@Override
 	public myVector getNormalAtPoint(myPoint point, int[] args) {
 		//polygon is flat, normals will all be the same
-		if (isInverted()){
-			invertNormal(); 
-			myVector res = getNorm();
-			res._normalize();
-			return res;
-		} 
-		myVector res = getNorm();
+		if (isInverted()){invertNormal();} 
+		myVector res = normToUse.getNorm();
 		res._normalize();
 		return res;
 	}
 	
 	/**
-	 * @return the base normal. THIS SHOULD ONLY BE USED BY BaseVertex class
+	 * @return the face normal for this planar object, weighted by its area. THIS SHOULD ONLY BE USED BY BaseVertex class
 	 */
-	public myVector getNorm() {
+	public myVector getWeightedNorm() {
 		return normToUse.getNorm();
 	}
 

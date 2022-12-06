@@ -1,8 +1,8 @@
 package base_RayTracer.scene.geometry.sceneObjects.planar;
 
 import base_RayTracer.ray.rayCast;
-import base_RayTracer.scene.objType;
 import base_RayTracer.scene.base.Base_Scene;
+import base_RayTracer.scene.geometry.base.Geom_ObjType;
 import base_RayTracer.scene.geometry.sceneObjects.planar.base.Base_PlanarObject;
 import base_Math_Objects.MyMathUtils;
 import base_Math_Objects.vectorObjs.doubles.myPoint;
@@ -16,7 +16,7 @@ import processing.core.PImage;
  */
 public class myPlane extends Base_PlanarObject{	
 	public myPlane(Base_Scene _scn){
-		super(_scn, 4, objType.Plane);
+		super(_scn, 4, Geom_ObjType.Plane);
 	}
 	/**
 	 * Given a planar equation's coefficients, derive 4 vertices for the plane using coplanar orthogonal vectors

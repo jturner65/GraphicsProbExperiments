@@ -2,26 +2,33 @@ package base_RayTracer.scene.geometry.sceneObjects.planar.base;
 
 import java.util.ArrayList;
 
+import base_Math_Objects.vectorObjs.doubles.myPoint;
 import base_Math_Objects.vectorObjs.doubles.myVector;
 import base_RayTracer.scene.base.Base_Scene;
 
-//class to hold a vertex - will be shared by planar objects, will own it's own normal
+/**
+ * class to hold a vertex - will be shared by planar objects, will own it's own normal
+ * @author 7strb
+ *
+ */
 class BaseVertex implements Comparable<BaseVertex> {
-	public Base_Scene scn;
-	public myVector V, N;
+	public myPoint V;
+	public myVector N;
 	private ArrayList<Base_PlanarObject> owners;
 	
-	public BaseVertex(Base_Scene _scn, myVector _v){
-		scn = _scn;
-		V = new myVector(_v);
+	public BaseVertex( myPoint _v){
+		V = new myPoint(_v);
 		owners = new ArrayList<Base_PlanarObject>();		
 	}
 	
 	public void addOwner(Base_PlanarObject obj){owners.add(obj);}
-	//calc vertex normal of this vertex by finding the verts of each adjacent planar object and adding them
+	/**
+	 * calc vertex normal of this vertex by averaging the face normals of each adjacent face
+	 * @return
+	 */
 	public myVector calcNorm(){
 		myVector res = new myVector(0,0,0);
-		for(Base_PlanarObject obj : owners){res._add(obj.getNorm());}
+		for(Base_PlanarObject obj : owners){res._add(obj.getWeightedNorm());}
 		res._normalize();		
 		return res;		
 	}

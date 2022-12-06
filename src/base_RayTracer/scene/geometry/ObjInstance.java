@@ -3,10 +3,10 @@ package base_RayTracer.scene.geometry;
 import base_RayTracer.myRTColor;
 import base_RayTracer.ray.rayCast;
 import base_RayTracer.ray.rayHit;
-import base_RayTracer.scene.objType;
 import base_RayTracer.scene.base.Base_Scene;
 import base_RayTracer.scene.geometry.accelStruct.base.Base_AccelStruct;
 import base_RayTracer.scene.geometry.base.Base_Geometry;
+import base_RayTracer.scene.geometry.base.Geom_ObjType;
 import base_Math_Objects.matrixObjs.doubles.myMatrix;
 import base_Math_Objects.vectorObjs.doubles.myPoint;
 import base_Math_Objects.vectorObjs.doubles.myVector;
@@ -26,7 +26,7 @@ public class ObjInstance extends Base_Geometry{
 		isAccel = (obj instanceof Base_AccelStruct);
 		CTMara = buildCTMara(scene.gtPeekMatrix(), obj.CTMara[glblIDX]);//build this object's transformation matrix - since this is instancing the owning object, pass the owning object's matrix
 	    //CTMara = scene.p.buildCTMara(scene);//build this object's transformation matrix		    
-	    type = objType.Instance;//"Instance of "+obj.objType;
+	    type = Geom_ObjType.Instance;//"Instance of "+obj.objType;
 	    this.minVals = getMinVec();
 	    this.maxVals = getMaxVec();
 		postProcBBox();				//cnstrct and define bbox

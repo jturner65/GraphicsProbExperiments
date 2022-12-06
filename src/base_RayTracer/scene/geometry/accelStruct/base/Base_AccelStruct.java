@@ -71,7 +71,7 @@ public abstract class Base_AccelStruct extends Base_Geometry{
 		switch(typeOfAccel){
 		case 0 : {return new myRTColor(0,0,0);}
 		case 1 : {return new myRTColor(1,0,1);}//flat list
-		case 2 : {return new myRTColor(0,1,1);}//bvh parrent
+		case 2 : {return new myRTColor(0,1,1);}//bvh parent
 		case 3 : {return new myRTColor(0,0,1);}//a left child
 		case 4 : {return new myRTColor(1,0,0);}//a right child
 		case 5 : {return new myRTColor(1,1,0);}//leaf list

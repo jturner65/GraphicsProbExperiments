@@ -2,8 +2,8 @@ package base_RayTracer.scene.geometry.sceneObjects.implicit;
 
 import base_RayTracer.ray.rayCast;
 import base_RayTracer.ray.rayHit;
-import base_RayTracer.scene.objType;
 import base_RayTracer.scene.base.Base_Scene;
+import base_RayTracer.scene.geometry.base.Geom_ObjType;
 import base_RayTracer.scene.geometry.sceneObjects.implicit.base.Base_ImplicitObject;
 import base_Math_Objects.matrixObjs.doubles.myMatrix;
 import base_Math_Objects.vectorObjs.doubles.myPoint;
@@ -15,7 +15,7 @@ public class myHollow_Cylinder extends Base_ImplicitObject{
 
 	public myHollow_Cylinder(Base_Scene _p, double _myRadius, double _myHeight, double x, double y, double z, double xO,double yO, double zO) {
 		super(_p, x,y,z);
-		type = objType.Hollow_Cylinder;
+		type = Geom_ObjType.Hollow_Cylinder;
 		radX= _myRadius;
 		radZ = _myRadius;
 		myHeight = _myHeight;

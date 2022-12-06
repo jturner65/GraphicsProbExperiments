@@ -21,7 +21,7 @@ push
 translate 0 -1 -15
 scale 6 6 6
 
-# read plane
+# infinite plane
 plane 0 0 10 .1 2
 
 pop

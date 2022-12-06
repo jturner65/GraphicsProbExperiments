@@ -1,7 +1,7 @@
 package base_RayTracer.scene.geometry.sceneObjects.planar;
 
-import base_RayTracer.scene.objType;
 import base_RayTracer.scene.base.Base_Scene;
+import base_RayTracer.scene.geometry.base.Geom_ObjType;
 import base_RayTracer.scene.geometry.sceneObjects.planar.base.Base_PlanarObject;
 import base_Math_Objects.vectorObjs.doubles.myPoint;
 import base_Math_Objects.vectorObjs.doubles.myVector;
@@ -10,7 +10,7 @@ import processing.core.PImage;
 public class myQuad extends Base_PlanarObject{
   
 	public myQuad(Base_Scene _scn){
-		super(_scn, 4, objType.Quad);
+		super(_scn, 4, Geom_ObjType.Quad);
 	}//myQuad constructor
 	
 	@Override

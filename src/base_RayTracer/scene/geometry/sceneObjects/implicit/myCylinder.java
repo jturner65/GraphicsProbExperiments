@@ -2,8 +2,8 @@ package base_RayTracer.scene.geometry.sceneObjects.implicit;
 
 import base_RayTracer.ray.rayCast;
 import base_RayTracer.ray.rayHit;
-import base_RayTracer.scene.objType;
 import base_RayTracer.scene.base.Base_Scene;
+import base_RayTracer.scene.geometry.base.Geom_ObjType;
 import base_Math_Objects.matrixObjs.doubles.myMatrix;
 import base_Math_Objects.vectorObjs.doubles.myPoint;
 import base_Math_Objects.vectorObjs.doubles.myVector;
@@ -13,7 +13,7 @@ public class myCylinder extends myHollow_Cylinder{
   
 	public myCylinder(Base_Scene _p, double _myRadius, double _myHeight, double x, double y, double z, double xO,double yO, double zO){
 		super(_p, _myRadius, _myHeight, x, y, z, xO, yO, zO);
-		type = objType.Cylinder;
+		type = Geom_ObjType.Cylinder;
 		
 		//cap eqs are planar equations for endcaps of cylinder - treat xO,yO,zO (orientation vector) as direction of top cap 
 		double [] topCapEq = new double[4], btmCapEq = new double[4];		//ax + by + cz + d = 0 : a,b,c are normal, d is -distance from origin

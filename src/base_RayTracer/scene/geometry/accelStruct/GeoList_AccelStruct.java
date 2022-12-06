@@ -4,10 +4,10 @@ import java.util.ArrayList;
 
 import base_RayTracer.ray.rayCast;
 import base_RayTracer.ray.rayHit;
-import base_RayTracer.scene.objType;
 import base_RayTracer.scene.base.Base_Scene;
 import base_RayTracer.scene.geometry.accelStruct.base.Base_AccelStruct;
 import base_RayTracer.scene.geometry.base.Base_Geometry;
+import base_RayTracer.scene.geometry.base.Geom_ObjType;
 import base_Math_Objects.matrixObjs.doubles.myMatrix;
 
 public class GeoList_AccelStruct extends Base_AccelStruct{
@@ -15,7 +15,7 @@ public class GeoList_AccelStruct extends Base_AccelStruct{
 	public GeoList_AccelStruct(Base_Scene _scn){
 		super(_scn,0,0,0);
 		objList = new ArrayList<Base_Geometry>();
-		type = objType.AccelFlatList;
+		type = Geom_ObjType.AccelFlatList;
 		setTypeOfAccel(0);
 		postProcAccelStruct();
 	}

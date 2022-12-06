@@ -2,8 +2,8 @@ package base_RayTracer.scene.geometry.sceneObjects.implicit;
 
 import base_RayTracer.ray.rayCast;
 import base_RayTracer.ray.rayHit;
-import base_RayTracer.scene.objType;
 import base_RayTracer.scene.base.Base_Scene;
+import base_RayTracer.scene.geometry.base.Geom_ObjType;
 import base_RayTracer.scene.geometry.sceneObjects.implicit.base.Base_ImplicitObject;
 import base_Math_Objects.matrixObjs.doubles.myMatrix;
 import base_Math_Objects.vectorObjs.doubles.myPoint;
@@ -21,7 +21,7 @@ public class myTorus extends Base_ImplicitObject{
 		super(_p,_xC,_yC,_zC);
 		//calculate torus as a collection of numPolys facets indexed by relative position of center of poly
 		//with the intention of making ray collision detection faster 
-		type = objType.Torus;
+		type = Geom_ObjType.Torus;
 		
 		bodyRad = _bodyRad;
 		ringRad = _ringRad;
