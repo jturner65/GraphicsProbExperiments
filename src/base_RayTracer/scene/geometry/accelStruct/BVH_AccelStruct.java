@@ -8,12 +8,17 @@ import java.util.Map.Entry;
 import base_RayTracer.ray.rayCast;
 import base_RayTracer.ray.rayHit;
 import base_RayTracer.scene.base.Base_Scene;
+import base_RayTracer.scene.geometry.accelStruct.base.AccelStructType;
 import base_RayTracer.scene.geometry.accelStruct.base.Base_AccelStruct;
 import base_RayTracer.scene.geometry.base.Base_Geometry;
-import base_RayTracer.scene.geometry.base.Geom_ObjType;
+import base_RayTracer.scene.geometry.base.GeomObjType;
 import base_Math_Objects.matrixObjs.doubles.myMatrix;
 
-//bvh structure 
+/**
+ * bvh structure 
+ * @author 7strb
+ *
+ */
 public class BVH_AccelStruct extends Base_AccelStruct{
 	public boolean isLeaf;					//whether this is a leaf or a branch of the structure
 	
@@ -22,12 +27,10 @@ public class BVH_AccelStruct extends Base_AccelStruct{
 	public double splitVal;					//value to split on	
 	
 	public BVH_AccelStruct leftChild, rightChild;
-	//public int treedepth;
+
 	public BVH_AccelStruct(Base_Scene _scn){
-		super(_scn, 0, 0, 0);
-		type = Geom_ObjType.AccelBVH;
-		setTypeOfAccel(1);
-		treedepth = 0;
+		super(_scn, 0, 0, 0, GeomObjType.AccelBVH);
+		setTypeOfAccel(AccelStructType.BVHTree);
 		isLeaf = true;
 		maxSpanSplitIDX = -1;						//can use this to determine if this is a leaf or not
 		leafVals = new GeoList_AccelStruct(scene);
@@ -36,7 +39,7 @@ public class BVH_AccelStruct extends Base_AccelStruct{
 	
 	public BVH_AccelStruct buildChild(){
 		BVH_AccelStruct res =  new BVH_AccelStruct(scene);
-		res.treedepth = this.treedepth + 1;//buildIdentCTMara()
+		res.treeDepth = this.treeDepth + 1;//buildIdentCTMara()
 		res.CTMara = CTMara;
 		//res.CTMara = scene.p.buildIdentCTMara();
 		return res;
@@ -65,7 +68,12 @@ public class BVH_AccelStruct extends Base_AccelStruct{
 		return resAra;
 	}//buildSortedObjAras
 	
-	//add list of objects to the bvh tree
+	/**
+	 * add list of objects to the bvh tree
+	 * @param _addObjsList
+	 * @param stIDX
+	 * @param endIDX
+	 */
 	public void addObjList(List<Base_Geometry>[] _addObjsList, int stIDX, int endIDX){//incl->excl
 		int objListSize = endIDX - stIDX;
 		if(objListSize <= scene.maxPrimsPerLeaf){//fewer objs than limit of prims per leaf - just use as list object
@@ -74,7 +82,7 @@ public class BVH_AccelStruct extends Base_AccelStruct{
 			leafVals.CTMara = CTMara;
 			//leafVals.CTMara = scene.p.buildIdentCTMara();
 			for(Base_Geometry _obj : _addObjsList[0]){	leafVals.addObj(_obj);		}
-			leafVals.setTypeOfAccel(5);
+			leafVals.setTypeOfAccel(AccelStructType.BVHLeafList);
 			_bbox.expandMeByBox(leafVals.getBBox());
 		} else {
 			isLeaf = false;
@@ -86,9 +94,9 @@ public class BVH_AccelStruct extends Base_AccelStruct{
 			leftChild = buildChild();
 			rightChild = buildChild();
 			leftChild.addObjList(buildSortedObjAras(_addObjsList[maxSpanSplitIDX].subList(0, _araSplitIDX),maxSpanSplitIDX), stIDX, stIDX+_araSplitIDX);
-			leftChild.setTypeOfAccel(3);
+			leftChild.setTypeOfAccel(AccelStructType.BVHLeftChild);
 			rightChild.addObjList(buildSortedObjAras( _addObjsList[maxSpanSplitIDX].subList( _araSplitIDX,objListSize),maxSpanSplitIDX), stIDX+_araSplitIDX, endIDX);
-			rightChild.setTypeOfAccel(4);
+			rightChild.setTypeOfAccel(AccelStructType.BVHRightChild);
 			_bbox.expandMeByBox(leftChild._bbox);
 			_bbox.expandMeByBox(rightChild._bbox);
 		}
@@ -112,19 +120,25 @@ public class BVH_AccelStruct extends Base_AccelStruct{
 		return 0;
 	}//calcShadowHit	
 	
+	/**
+	 * build traversal based on _ray - go through all objects in structure
+	 * @param _ray ray cast
+	 * @param _transRay transformed ray cast
+	 * @param _ctAra transformation matrix for the ray
+	 */
 	@Override
-	public rayHit traverseStruct(rayCast _ray,rayCast _trans, myMatrix[] _ctAra){
-		if(isLeaf){return leafVals.traverseStruct(_ray,_trans, _ctAra);}		
-		rayHit _hit = leftChild._bbox.intersectCheck(_ray,_trans,_ctAra);
+	public rayHit traverseStruct(rayCast _ray, rayCast _transRay, myMatrix[] _ctAra){
+		if(isLeaf){return leafVals.traverseStruct(_ray,_transRay, _ctAra);}		
+		rayHit _hit = leftChild._bbox.intersectCheck(_ray,_transRay,_ctAra);
 //		int dpthToEnd = 18;
 //		if((_hit.isHit) && (this.treedepth < dpthToEnd)){
 		if(_hit.isHit){
-			_hit = leftChild.traverseStruct(_ray,_trans, _ctAra);
+			_hit = leftChild.traverseStruct(_ray,_transRay, _ctAra);
 		}
-		rayHit _hit2 = rightChild._bbox.intersectCheck(_ray,_trans,_ctAra);
+		rayHit _hit2 = rightChild._bbox.intersectCheck(_ray,_transRay,_ctAra);
 //		if((_hit2.isHit) && (this.treedepth < dpthToEnd) && (!_hit.isHit || (_hit2.t < _hit.t))){
 		if((_hit2.isHit) && (!_hit.isHit || (_hit2.t < _hit.t))){
-			_hit2 = rightChild.traverseStruct(_ray,_trans, _ctAra);
+			_hit2 = rightChild.traverseStruct(_ray,_transRay, _ctAra);
 		}		
 		return  _hit.t <= _hit2.t ? _hit : _hit2;
 	}//traverseStruct
