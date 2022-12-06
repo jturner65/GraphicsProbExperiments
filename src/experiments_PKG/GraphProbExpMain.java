@@ -4,9 +4,9 @@ import base_UI_Objects.*;
 import base_UI_Objects.windowUI.base.Base_DispWindow;
 import base_UI_Objects.windowUI.sidebar.SidebarMenu;
 import experiments_PKG.classGradeExp.ui.Grade2DWindow;
-import experiments_PKG.graphProbExp.RayTracerExpWindow;
 import experiments_PKG.probabilityExp.ui.Alt2DWindow;
 import experiments_PKG.probabilityExp.ui.Main3DWindow;
+import experiments_PKG.rayTracerProbExp.RayTracerExpWindow;
 
 /**
  * Testbed to experiment with synthesizing probablity distributions and displaying the results

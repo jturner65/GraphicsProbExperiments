@@ -137,7 +137,7 @@ public class myRTFileReader {
 				//file save and read subordinate file
 				//NEEDS TO RENDER SCENE and then save it so that rendering can be timed - doesn't work with refine currently
 			    case "write" : {		
-			    	scene.saveName = tokenAra[1];			    	
+			    	scene.setSaveName(tokenAra[1]);			    	
 			    	finalizeScene(loadedScenes,fileName, scene);		
 			    	finalized = true;
 			    	//render scene -here- - needs to be modified to not stop until scene is finished rendering (for incremental/refine scene renders)

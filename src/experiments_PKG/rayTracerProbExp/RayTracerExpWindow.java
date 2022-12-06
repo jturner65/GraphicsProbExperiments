@@ -1,4 +1,4 @@
-package experiments_PKG.graphProbExp;
+package experiments_PKG.rayTracerProbExp;
 
 import java.io.File;
 import java.util.ArrayList;

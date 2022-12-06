@@ -9,6 +9,7 @@ import base_JavaProjTools_IRender.base_Render_Interface.IRenderInterface;
 import base_Math_Objects.MyMathUtils;
 import base_Math_Objects.vectorObjs.doubles.myPoint;
 import base_Math_Objects.vectorObjs.doubles.myVector;
+import base_RayTracer.myRTColor;
 import base_RayTracer.myRTFileReader;
 import base_RayTracer.scene.base.Base_Scene;
 import base_UI_Objects.GUI_AppManager;
@@ -31,8 +32,8 @@ public abstract class Base_RayTracerWin extends Base_DispWindow {
 	//////////////////////////////////
 	//initial values of UI variables
 	//ints
-	protected final int initSceneCols = 600;
-	protected final int initSceneRows = 600;
+	protected final int initSceneCols = 300;
+	protected final int initSceneRows = 300;
 
 	//local versions of UI values
 	protected int sceneCols;
@@ -53,6 +54,18 @@ public abstract class Base_RayTracerWin extends Base_DispWindow {
 		gIDX_SceneRows		= 1,
 		gIDX_CurrSceneCLI	= 2;
 	public final int numGUIObjs = 3;	
+	
+	/**
+	 * Used by scene for refinement
+	 */
+	public static final int[] pow2 = new int[]{1,2,4,8,16,32,64,128,256,512,1024,2048,4096,8192,16384,32768};
+
+	/**
+	 * Used for Sierpinski calc
+	 */
+	public static final float 
+		sqrt66 = (float) (Math.sqrt(6.0f)/6.0f), 
+		sqrt612 = .5f*sqrt66;
 	
 	public String[] gIDX_NoiseTxtrCLIFileList = new String[] {
 			"noiseTxtr_st01.cli","noiseTxtr_st02.cli","noiseTxtr_st03.cli","noiseTxtr_st04.cli","noiseTxtr_st05.cli",
@@ -438,7 +451,80 @@ public abstract class Base_RayTracerWin extends Base_DispWindow {
 	private float mix(float a, float b, float t) { return (1-t)*a + t*b;}
 	//Quintic interpolant calc
 	private float fade(float t) { return t*t*t*(t*(t*6-15)+10);}
-	//end given code, 3d perlin noise
+	//end 3d perlin noise code
+	
+	/**
+	 * build miniTet - call recursively to build successively smaller tets 
+	 * Set shader for object based on current level - pastel bunnies
+	 * @param level
+	 * @param maxLevel
+	 */
+	private void setSierpShdr(Base_Scene _s, int level, int maxLevel){
+		float bVal = 1.0f - MyMathUtils.min(1.0f,(1.5f*level/maxLevel)), 
+				rVal = 1.0f - bVal, 
+				tmp = MyMathUtils.min((1.2f*(level-(maxLevel/2)))/(1.0f*maxLevel),1.0f), 
+				gVal = (tmp*tmp);
+		myRTColor cDiff = new myRTColor(MyMathUtils.min(1.0f,rVal+.5f), MyMathUtils.min(1.0f,gVal+.5f), MyMathUtils.min(1.0f,bVal+.5f));
+		_s.setHasGlblTxtrdTop(false);
+		_s.setHasGlblTxtrdBtm(false);
+		_s.setSurface(cDiff,new myRTColor(0,0,0),new myRTColor(0,0,0),0,0);
+	}
+
+	private final double s120 = .5*MyMathUtils.SQRT_3, c120 = -.5;
+	
+	/**
+	 * Recursively build sierpenski tetrahedron - dim is relative dimension, decreases at each recursive call
+	 * @param dim
+	 * @param scVal
+	 * @param instName instance name of object to use in layout
+	 * @param level
+	 * @param maxLevel
+	 * @param addShader
+	 */
+	public void buildSierpSubTri(Base_Scene _s, float dim, float scVal, String instName, int level, int maxLevel, boolean addShader){
+		if(level>=maxLevel){return;}
+		float newDim = scVal*dim;
+		
+		_s.gtPushMatrix();
+		_s.gtTranslate(0,.1f*dim,0);
+		_s.gtRotate(70, 0, 1, 0);	
+		if(addShader){	setSierpShdr(_s,level, maxLevel);	}
+		//add instance of object here
+		_s.addInstance(instName,addShader);
+		_s.gtPopMatrix();
+		
+		double newTrans = sqrt66*dim, 
+				c120NewTrans = c120*newTrans, 
+				s120NewTrans = s120*newTrans;
+		//up object
+		_s.gtPushMatrix();		
+		_s.gtTranslate(0,newTrans,0);
+		_s.gtScale(scVal,scVal,scVal);
+		buildSierpSubTri(_s,newDim, scVal, instName,level+1,maxLevel,addShader);
+		_s.gtPopMatrix();
+		//front object
+		_s.gtPushMatrix();	
+		_s.gtTranslate(0,c120NewTrans,s120NewTrans);
+		_s.gtScale(scVal,scVal,scVal);
+		buildSierpSubTri(_s,newDim, scVal,instName,level+1,maxLevel,addShader);
+		_s.gtPopMatrix();
+		//left object
+		_s.gtPushMatrix();		
+		_s.gtRotate(120,0,1,0);
+		_s.gtTranslate(0,c120NewTrans,s120NewTrans);
+		_s.gtRotate(-120,0,1,0);
+		_s.gtScale(scVal,scVal,scVal);
+		buildSierpSubTri(_s,newDim, scVal,instName,level+1,maxLevel,addShader);
+		_s.gtPopMatrix();		
+		//right object
+		_s.gtPushMatrix();		
+		_s.gtRotate(-120,0,1,0);
+		_s.gtTranslate(0,c120NewTrans,s120NewTrans);
+		_s.gtRotate(120,0,1,0);
+		_s.gtScale(scVal,scVal,scVal);
+		buildSierpSubTri(_s,newDim,scVal,instName,level+1,maxLevel,addShader);
+		_s.gtPopMatrix();		
+	}//buildSierpSubTri
 	
 	/////////////////////////////////////
 	// Drawing

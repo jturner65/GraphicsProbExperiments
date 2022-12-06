@@ -44,7 +44,6 @@ public class myOrthoScene extends Base_Scene{
 	public myRTColor shootMultiRays(double xBseVal, double yBseVal) {
 		myRTColor result,aaResultColor;
 		double redVal = 0, greenVal = 0, blueVal = 0, rayY, rayX;//,rayYOffset = 1.0/sceneRows, rayXOffset = 1.0/sceneCols;
-		//myRay ray;
 		//first ray can be straight in
 		aaResultColor = reflectRay(new rayCast(this, new myVector(xBseVal,yBseVal,0), new myVector(0,0,-1),0));
 		redVal += aaResultColor.x; //(aaResultColor >> 16 & 0xFF)/256.0;//gets red value

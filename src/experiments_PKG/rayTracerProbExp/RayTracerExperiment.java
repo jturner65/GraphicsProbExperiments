@@ -1,4 +1,4 @@
-package experiments_PKG.graphProbExp;
+package experiments_PKG.rayTracerProbExp;
 
 import base_JavaProjTools_IRender.base_Render_Interface.IRenderInterface;
 import base_ProbTools.baseProbExpMgr;

@@ -42,26 +42,20 @@ import base_Math_Objects.vectorObjs.doubles.myVector;
  *
  */
 public abstract class Base_Scene {
-	public static IRenderInterface pa;
+	protected static IRenderInterface pa;
 	//Owning window
 	protected Base_RayTracerWin win;
 	
 	//multi-threaded stuff
-	public ExecutorService th_exec;
+	protected ExecutorService th_exec;
 	
 	//max # of prims per leaf of accel structure 
 	public final int maxPrimsPerLeaf = 5;
 
-	//used for determining refinement array
-	public static final int[] pow2 = new int[]{1,2,4,8,16,32,64,128,256,512,1024,2048,4096,8192,16384,32768};
-	public static final float 
-		sqrt66 = (float) (Math.sqrt(6.0f)/6.0f), 
-		sqrt612 = .5f*sqrt66;
-
 	////
 	//constants and control variables for a particular scene - make changeable via .cli reader
 	//maximum height/depth of matrix stack
-	public int matStackMaxHeight = 20;
+	private final int matStackMaxHeight = 20;
 
 	//row and col values of scene - scene dimensions in pxls
 	protected int sceneCols = 300;
@@ -71,13 +65,10 @@ public abstract class Base_Scene {
 	public int numRays = 8;
 
 	//origin of eye rays
-	public myVector eyeOrigin;
+	protected myVector eyeOrigin;
 	
 	//halfway point in rows and cols
 	protected double rayYOffset, rayXOffset;
-	
-	//epsilon value for double calcs; 
-	public int objCnt = 0;
 	
 	/////////////////////////////
 	//refining index list
@@ -86,7 +77,7 @@ public abstract class Base_Scene {
 	
 	public ArrayDeque<String> srcFileNames;
 	
-	public String saveName, fileName, folderName;										//name of cli file used to describe this scene, save file, name of containing folder
+	protected String saveName, fileName, folderName;										//name of cli file used to describe this scene, save file, name of containing folder
 	
 	//the current texture to be used for subsequent objects for either their "top" or "bottom" as determined by their normal, the texture for the background, result image of rendering
 	public PImage currTextureTop, currTextureBottom, currBkgTexture; 
@@ -383,73 +374,6 @@ public abstract class Base_Scene {
 		addObjectToScene(accelObjList);
 	}//endTmpObjList
 	
-	//build miniTet - call recursively to build successively smaller tets
-	//set shader for object based on current level - pastel bunnies
-	private void setSierpShdr(int level, int maxLevel){
-		float bVal = 1.0f - MyMathUtils.min(1.0f,(1.5f*level/maxLevel)), 
-				rVal = 1.0f - bVal, 
-				tmp = MyMathUtils.min((1.2f*(level-(maxLevel/2)))/(1.0f*maxLevel),1.0f), 
-				gVal = (tmp*tmp);
-		myRTColor cDiff = new myRTColor(MyMathUtils.min(1.0f,rVal+.5f), MyMathUtils.min(1.0f,gVal+.5f), MyMathUtils.min(1.0f,bVal+.5f));
-		setHasGlblTxtrdTop(false);
-		setHasGlblTxtrdBtm(false);
-		setSurface(cDiff,new myRTColor(0,0,0),new myRTColor(0,0,0),0,0);
-	}
-	/**
-	 * recursively build sierpenski tetrahedron - dim is relative dimension, decreases at each recursive call
-	 * @param dim
-	 * @param scVal
-	 * @param instName
-	 * @param level
-	 * @param maxLevel
-	 * @param addShader
-	 */
-	private void buildSierpSubTri(float dim, float scVal, String instName, int level, int maxLevel, boolean addShader){
-		if(level>=maxLevel){return;}
-		float newDim = scVal*dim;
-		
-		gtPushMatrix();
-		gtTranslate(0,.1f*dim,0);
-		gtRotate(70, 0, 1, 0);	
-		if(addShader){	setSierpShdr(level, maxLevel);	}
-		addInstance(instName,addShader);
-		gtPopMatrix();
-		//up bunny
-		float newTrans = sqrt66*dim;
-		gtPushMatrix();		
-		gtTranslate(0,newTrans,0);
-		gtScale(scVal,scVal,scVal);
-		buildSierpSubTri(newDim, scVal, instName,level+1,maxLevel,addShader);
-		gtPopMatrix();
-		//front bunny
-		gtPushMatrix();	
-		sierpShiftObj(newTrans);
-		gtScale(scVal,scVal,scVal);
-		buildSierpSubTri(newDim, scVal,instName,level+1,maxLevel,addShader);
-		gtPopMatrix();
-		//left bunny
-		gtPushMatrix();		
-		gtRotate(120,0,1,0);
-		sierpShiftObj(newTrans);
-		gtRotate(-120,0,1,0);
-		gtScale(scVal,scVal,scVal);
-		buildSierpSubTri(newDim, scVal,instName,level+1,maxLevel,addShader);
-		gtPopMatrix();		
-		//right bunny
-		gtPushMatrix();		
-		gtRotate(-120,0,1,0);
-		sierpShiftObj(newTrans);
-		gtRotate(120,0,1,0);
-		gtScale(scVal,scVal,scVal);
-		buildSierpSubTri(newDim,scVal,instName,level+1,maxLevel,addShader);
-		gtPopMatrix();		
-	}
-	
-	private void sierpShiftObj(float newTrans){
-		gtRotate(120,1,0,0);
-		gtTranslate(0,newTrans,0);
-		gtRotate(-120,1,0,0);		
-	}
 	/**
 	 * Build a sierpinski tet arrangement using instances of object name.
 	 * @param name
@@ -459,7 +383,7 @@ public abstract class Base_Scene {
 	 */
 	public void buildSierpinski(String name, float scVal, int depth, boolean useShdr){
 		startTmpObjList();
-		buildSierpSubTri(8,scVal, name,0,depth,useShdr);
+		win.buildSierpSubTri(this, 8,scVal, name,0,depth,useShdr);
 		endTmpObjList(1);			//bvh of sierp objs
 		win.getMsgObj().dispInfoMessage("Base_Scene", "buildSierpinski", "Total Objects : "+((Math.pow(4, depth)-1)/3.0f));
 	}	
@@ -933,7 +857,7 @@ public abstract class Base_Scene {
 		//build refinement #pxls array dynamically by finding average dim of image and then math.
 		int refIDX = (int)(Math.log((this.sceneCols + this.sceneRows)/32.0)/ MyMathUtils.LOG_2);
 		RefineIDX = new int[(refIDX+1)];
-		for(int i =refIDX; i >=0; --i){	RefineIDX[refIDX-i]=pow2[i];}
+		for(int i =refIDX; i >=0; --i){	RefineIDX[refIDX-i]=Base_RayTracerWin.pow2[i];}
 	}//setRefine
 		
 	public void setDpthOfFld(double lRad, double lFD){				//depth of field effect
@@ -1418,8 +1342,6 @@ public abstract class Base_Scene {
 	//public abstract myColor calcAAColor(double pRayX, double pRayY, double xIncr, double yIncr);
 	public abstract myRTColor shootMultiRays(double pRayX, double pRayY);
 	
-
-	
 	public final void draw() {
 		//if not rendered yet, render and then draw
 		if (!isRendered()){	
@@ -1445,6 +1367,8 @@ public abstract class Base_Scene {
 	
 	protected abstract void renderScene(int stepIter, boolean skipPxl, int[] pixels);
 	
+	
+	public void setSaveName(String _saveName) {saveName = _saveName;}
 	/**
 	 * file save
 	 */
@@ -1585,6 +1509,19 @@ public abstract class Base_Scene {
 		}				
 	}//setFlags
 	
+	public void dispInfoMessage(String _class, String _method, String _message) {
+		win.getMsgObj().dispInfoMessage(_class, _method, _message);
+	}
+	
+	
+	public void dispWarningMessage(String _class, String _method, String _message) {
+		win.getMsgObj().dispWarningMessage(_class, _method, _message);
+	}
+	
+	
+	public void dispErrorMessage(String _class, String _method, String _message) {
+		win.getMsgObj().dispErrorMessage(_class, _method, _message);
+	}
 	
 	/**
 	*  build translate, scale and rotation matricies to use for scene descriptions
