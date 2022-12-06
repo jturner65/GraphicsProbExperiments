@@ -1,0 +1,6 @@
+
+# 4 simple point lights to illuminate the face of procedural texture objects
+point_light  3 4  0  .6 .6 .6
+point_light -3 4  0  .2 .2 .2
+point_light  3 0  0  .6 .6 .6
+point_light -3 0  0  .2 .2 .2

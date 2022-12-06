@@ -5,8 +5,7 @@ background texture nightSky.png 100 0 -1 -50
 
 # light sources 
 
-point_light  3 4  0  .8 .8 .8
-point_light -3 4  0  .2 .2 .2
+read fourPointLights.cli
 
 # floor
 
