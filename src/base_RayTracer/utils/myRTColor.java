@@ -1,4 +1,4 @@
-package base_RayTracer;
+package base_RayTracer.utils;
 
 import base_Math_Objects.MyMathUtils;
 import base_Math_Objects.vectorObjs.doubles.myPoint;

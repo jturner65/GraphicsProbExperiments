@@ -3,10 +3,10 @@ package base_RayTracer.scene;
 import java.util.concurrent.ThreadLocalRandom;
 
 import base_JavaProjTools_IRender.base_Render_Interface.IRenderInterface;
-import base_RayTracer.myRTColor;
 import base_RayTracer.ray.rayCast;
 import base_RayTracer.scene.base.Base_Scene;
 import base_RayTracer.ui.base.Base_RayTracerWin;
+import base_RayTracer.utils.myRTColor;
 import base_Math_Objects.MyMathUtils;
 import base_Math_Objects.vectorObjs.doubles.myVector;
 

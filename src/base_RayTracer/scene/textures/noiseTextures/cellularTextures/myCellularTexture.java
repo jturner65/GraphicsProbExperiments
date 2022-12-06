@@ -3,7 +3,6 @@ package base_RayTracer.scene.textures.noiseTextures.cellularTextures;
 import java.util.Random;
 import java.util.concurrent.ConcurrentSkipListMap;
 
-import base_RayTracer.myRTColor;
 import base_RayTracer.ray.rayHit;
 import base_RayTracer.scene.base.Base_Scene;
 import base_RayTracer.scene.shaders.myObjShader;
@@ -13,6 +12,7 @@ import base_RayTracer.scene.textures.noiseTextures.cellularTextures.distanceFunc
 import base_RayTracer.scene.textures.noiseTextures.cellularTextures.distanceFuncs.base.Base_DistFunc;
 import base_RayTracer.scene.textures.noiseTextures.cellularTextures.regionOfInterest.*;
 import base_RayTracer.scene.textures.noiseTextures.cellularTextures.regionOfInterest.base.Base_ROI;
+import base_RayTracer.utils.myRTColor;
 import base_Math_Objects.MyMathUtils; 
 import base_Math_Objects.vectorObjs.doubles.myPoint;
 

@@ -1,7 +1,6 @@
 package base_RayTracer.scene.shaders;
 
 
-import base_RayTracer.myRTColor;
 import base_RayTracer.ray.rayCast;
 import base_RayTracer.ray.rayHit;
 import base_RayTracer.scene.base.Base_Scene;
@@ -11,6 +10,7 @@ import base_RayTracer.scene.geometry.sceneObjects.lights.base.Base_Light;
 import base_RayTracer.scene.photonMapping.myPhoton;
 import base_RayTracer.scene.textures.base.Base_TextureHandler;
 import base_RayTracer.scene.textures.imageTextures.myImageTexture;
+import base_RayTracer.utils.myRTColor;
 
 import java.util.PriorityQueue;
 

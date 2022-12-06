@@ -1,12 +1,12 @@
 package base_RayTracer.scene.geometry;
 
-import base_RayTracer.myRTColor;
 import base_RayTracer.ray.rayCast;
 import base_RayTracer.ray.rayHit;
 import base_RayTracer.scene.base.Base_Scene;
 import base_RayTracer.scene.geometry.accelStruct.base.Base_AccelStruct;
 import base_RayTracer.scene.geometry.base.Base_Geometry;
 import base_RayTracer.scene.geometry.base.GeomObjType;
+import base_RayTracer.utils.myRTColor;
 import base_Math_Objects.matrixObjs.doubles.myMatrix;
 import base_Math_Objects.vectorObjs.doubles.myPoint;
 import base_Math_Objects.vectorObjs.doubles.myVector;

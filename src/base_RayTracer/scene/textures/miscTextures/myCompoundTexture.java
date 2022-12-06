@@ -2,13 +2,13 @@ package base_RayTracer.scene.textures.miscTextures;
 
 import java.util.ArrayList;
 
-import base_RayTracer.myRTColor;
 import base_RayTracer.ray.rayHit;
 import base_RayTracer.scene.base.Base_Scene;
 import base_RayTracer.scene.shaders.myObjShader;
 import base_RayTracer.scene.textures.base.Base_TextureHandler;
 import base_RayTracer.scene.textures.imageTextures.myImageTexture;
 import base_RayTracer.scene.textures.noiseTextures.myNoiseTexture;
+import base_RayTracer.utils.myRTColor;
 
 /**
  * class holding multiple textures, to provide complex surfaces

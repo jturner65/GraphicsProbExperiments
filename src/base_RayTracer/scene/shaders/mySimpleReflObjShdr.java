@@ -1,9 +1,9 @@
 package base_RayTracer.scene.shaders;
 
-import base_RayTracer.myRTColor;
 import base_RayTracer.ray.rayCast;
 import base_RayTracer.ray.rayHit;
 import base_RayTracer.scene.base.Base_Scene;
+import base_RayTracer.utils.myRTColor;
 import base_Math_Objects.MyMathUtils;
 import base_Math_Objects.vectorObjs.doubles.myPoint;
 import base_Math_Objects.vectorObjs.doubles.myVector;

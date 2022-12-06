@@ -1,10 +1,10 @@
 package base_RayTracer.scene.textures.miscTextures;
 
-import base_RayTracer.myRTColor;
 import base_RayTracer.ray.rayHit;
 import base_RayTracer.scene.base.Base_Scene;
 import base_RayTracer.scene.shaders.myObjShader;
 import base_RayTracer.scene.textures.base.Base_TextureHandler;
+import base_RayTracer.utils.myRTColor;
 
 //class for non-textured objects
 public class myNoneTexture extends Base_TextureHandler{

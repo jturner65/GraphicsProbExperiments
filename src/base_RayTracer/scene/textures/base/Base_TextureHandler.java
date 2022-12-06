@@ -1,9 +1,9 @@
 package base_RayTracer.scene.textures.base;
 
-import base_RayTracer.myRTColor;
 import base_RayTracer.ray.rayHit;
 import base_RayTracer.scene.base.Base_Scene;
 import base_RayTracer.scene.shaders.myObjShader;
+import base_RayTracer.utils.myRTColor;
 
 /**
  * class to handle base texture functionality

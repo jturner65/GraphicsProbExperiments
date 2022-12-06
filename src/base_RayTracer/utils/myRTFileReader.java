@@ -1,4 +1,4 @@
-package base_RayTracer;
+package base_RayTracer.utils;
 
 import java.io.File;
 import java.util.*;

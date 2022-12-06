@@ -2,13 +2,13 @@ package base_RayTracer.scene.geometry.sceneObjects.lights.base;
 
 import java.util.concurrent.ThreadLocalRandom;
 
-import base_RayTracer.myRTColor;
 import base_RayTracer.ray.rayCast;
 import base_RayTracer.ray.rayHit;
 import base_RayTracer.scene.base.Base_Scene;
 import base_RayTracer.scene.geometry.base.GeomObjType;
 import base_RayTracer.scene.geometry.sceneObjects.base.Base_SceneObject;
 import base_RayTracer.scene.photonMapping.Photon_KDTree;
+import base_RayTracer.utils.myRTColor;
 import processing.core.PImage;
 import base_Math_Objects.matrixObjs.doubles.myMatrix;
 import base_Math_Objects.vectorObjs.doubles.myPoint;
