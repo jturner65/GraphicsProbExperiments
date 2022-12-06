@@ -17,14 +17,14 @@ public class myImageTexture extends Base_TextureHandler{
 	//initialize constants used to store extremal texture map conversion coords
 	@Override
 	protected void initTextureVals(){
-		txtFlags[txtrdTopIDX] = scene.hasGlblTxtrdTop();
-		txtFlags[txtrdBtmIDX] =  scene.hasGlblTxtrdBtm();
-	    if (txtFlags[txtrdTopIDX]){
+		setHasTxtrdTop(scene.hasGlblTxtrdTop());
+		setHasTxtrdBtm(scene.hasGlblTxtrdBtm());
+	    if (getHasTxtrdTop()){
 	    	myTextureTop = scene.currTextureTop;
 	    	myTextureTop.loadPixels();		    } 
 	    else {					       myTextureTop = null;	    }
 	    
-	    if (txtFlags[txtrdBtmIDX]){      	
+	    if (getHasTxtrdBtm()){      	
 	    	myTextureBottom =  scene.currTextureBottom;		
 	    	myTextureBottom.loadPixels();	     } 
 	    else {	       					myTextureBottom = null;	    }
@@ -58,13 +58,13 @@ public class myImageTexture extends Base_TextureHandler{
   	
   	public double [] getDiffTxtrColor(rayHit hit, myRTColor diffuseColor, double diffConst){
   		double[] texTopColor = {0, 0 ,0}, texBotColor = {0, 0, 0};	
-		if (txtFlags[txtrdBtmIDX]){//get color information from texture on b of object at specific point of intersection
+		if (getHasTxtrdBtm()){//get color information from texture on b of object at specific point of intersection
 			texBotColor = getTextureColor(hit,myTextureBottom);
 			texBotColor[R] *= diffConst;texBotColor[G] *= diffConst;texBotColor[B] *= diffConst;    
 			return texBotColor;
 		}   		
   		//get color information from texture on top of object at specific point of intersection
-		if (txtFlags[txtrdTopIDX]){	texTopColor = getTextureColor(hit,myTextureTop);	} 
+		if (getHasTxtrdTop()){	texTopColor = getTextureColor(hit,myTextureTop);	} 
 		//add if checking for texturedBottom
 		else {						texTopColor[R] = diffuseColor.x;texTopColor[G] = diffuseColor.y;texTopColor[B] = diffuseColor.z;}
 		//decreasing diffuse color by this constant, reflecting how transparent the object is - only use with complex refraction calc

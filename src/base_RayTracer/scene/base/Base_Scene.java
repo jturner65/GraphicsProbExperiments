@@ -1564,15 +1564,14 @@ public abstract class Base_Scene {
 		if (showObjInfo()){
 			
 			for (Base_Geometry obj : allObjsToFind){
-				dispStr += obj.toString();
+				dispStr += obj.toString() +"\n";
 	     		if(obj instanceof Base_SceneObject){
-		     		if (((Base_SceneObject)obj).shdr.txtr.txtFlags[Base_TextureHandler.txtrdTopIDX]){
+		     		if (((Base_SceneObject)obj).shdr.txtr.getHasTxtrdTop()){
 		     			dispStr += ((Base_SceneObject)obj).showUV() +"\n";
 		     		}//if textured
-	     		}
-		     	else if(obj instanceof ObjInstance){
+	     		} else if(obj instanceof ObjInstance){
 		     		ObjInstance inst = (ObjInstance)obj;
-		     		if ((inst.obj instanceof Base_SceneObject) && (((Base_SceneObject)inst.obj).shdr.txtr.txtFlags[Base_TextureHandler.txtrdTopIDX])){			//TODO need to modify this when using instanced polys having textures - each instance will need a notion of where it should sample from
+		     		if ((inst.obj instanceof Base_SceneObject) && (((Base_SceneObject)inst.obj).shdr.txtr.getHasTxtrdTop())){			//TODO need to modify this when using instanced polys having textures - each instance will need a notion of where it should sample from
 		     			dispStr += ((Base_SceneObject)inst.obj).showUV()+"\n";
 		     		}	     	
 		     	}
