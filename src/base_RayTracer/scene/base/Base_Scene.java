@@ -86,7 +86,7 @@ public abstract class Base_Scene {
 	
 	public ArrayDeque<String> srcFileNames;
 	
-	public String saveName, folderName;										//name of cli file used to describe this scene, save file, name of containing folder
+	public String saveName, fileName, folderName;										//name of cli file used to describe this scene, save file, name of containing folder
 	
 	//the current texture to be used for subsequent objects for either their "top" or "bottom" as determined by their normal, the texture for the background, result image of rendering
 	public PImage currTextureTop, currTextureBottom, currBkgTexture; 
@@ -210,8 +210,6 @@ public abstract class Base_Scene {
 	
 	//end proc & noise txtrs
 	/////////////////////////////	
-		
-	public Calendar now;
 	//global values set by surface parameter
 	public myRTColor currDiffuseColor, currAmbientColor, currSpecularColor,globCurPermClr, currKReflClr, backgroundColor;//, foregroundColor;
 	public double currPhongExp, currKRefl,globRfrIdx,currKTrans, currDepth, lens_radius, lens_focal_distance;   //value representing the visible depth of a colloid (i.e. subsurface experiment) 
@@ -241,9 +239,8 @@ public abstract class Base_Scene {
 		scFlags[showObjInfoIDX] = true;    												//default to showing info
 		
 		gtInitialize();       															 //sets up matrix stack
-		
-		now = Calendar.getInstance();
-		folderName = "pics." +getDateTimeString();
+
+		folderName = "pics." + win.getAppFileSubdirName();
 		initPermTable();
 		
 		allObjsToFind = new ArrayList<Base_Geometry>();
@@ -261,15 +258,14 @@ public abstract class Base_Scene {
 	
 	public Base_Scene(Base_Scene _old){//copy ctor, for when scene type is being set - only use when old scene is being discarded (shallow copy)
 		//pa = _old.pa;
+		win = _old.win;
+		folderName = _old.folderName;
+		
 		initFlags();
-		for(int i=0;i<scFlags.length;++i) {	scFlags[i] = _old.scFlags[1];}
+		for(int i=0;i<scFlags.length;++i) {	scFlags[i] = _old.scFlags[i];}
 		
 		gtInitialize();       															 //sets up matrix stack
 		
-		now = _old.now;
-		win = _old.win;
-		folderName = _old.folderName;
-
 		allObjsToFind = new ArrayList<Base_Geometry>(_old.allObjsToFind);
 		lightList = new ArrayList<Base_Geometry>(_old.lightList);
 		objList = new ArrayList<Base_Geometry>(_old.objList);
@@ -289,7 +285,7 @@ public abstract class Base_Scene {
 	private void initFlags(){scFlags=new boolean[numFlags];for(int i=0;i<numFlags;++i){scFlags[i]=false;}}
 	
 	//scene-wide variables set during loading of scene info from .cli file
-	private void initVars(String _saveName, int _numCols, int _numRows){
+	private void initVars(String _sceneName, int _numCols, int _numRows){
 		setImageSize(_numCols, _numRows);	
 		currTextureTop = null;
 		currTextureBottom = null;
@@ -300,7 +296,8 @@ public abstract class Base_Scene {
 		kNhood = 0;
 		photonMaxNearDist = 0;
 		
-		saveName = _saveName;
+		fileName = _sceneName;
+		saveName = _sceneName;
 		txtrType = 0;
 		noiseScale = 1;
 		numNonLights = 0;
@@ -334,6 +331,8 @@ public abstract class Base_Scene {
 		currTextureBottom = _old.currTextureBottom;
 		currBkgTexture = _old.currBkgTexture;
 		saveName = _old.saveName;
+
+		fileName = _old.fileName;
 		txtrType = _old.txtrType;
 		noiseScale = _old.noiseScale;
 		
@@ -1500,6 +1499,7 @@ public abstract class Base_Scene {
 	 */
 	protected void finishImage(){
 		if (scFlags[saveImageIDX]){		saveFile();	}//if savefile is true, save the file
+		else {win.getMsgObj().dispInfoMessage("Base_Scene", "finishImage", "Apparently not saving this file : "+saveName);}
 		String dispStr = "";
 		if (scFlags[showObjInfoIDX]){
 			
@@ -1642,20 +1642,6 @@ public abstract class Base_Scene {
 	/////
 	//end matrix stuff
 	/////	
-
-	//build a date with each component separated by token
-	public String getDateTimeString(){return getDateTimeString(true, false,".");}
-	public String getDateTimeString(boolean useYear, boolean toSecond, String token){
-		String result = "";
-		int val;
-		if(useYear){val = now.get(Calendar.YEAR);		result += ""+val+token;}
-		val = now.get(Calendar.MONTH)+1;				result += (val < 10 ? "0"+val : ""+val)+ token;
-		val = now.get(Calendar.DAY_OF_MONTH);			result += (val < 10 ? "0"+val : ""+val)+ token;
-		val = now.get(Calendar.HOUR);					result += (val < 10 ? "0"+val : ""+val)+ token;
-		val = now.get(Calendar.MINUTE);					result += (val < 10 ? "0"+val : ""+val);
-		if(toSecond){val = now.get(Calendar.SECOND);	result += token + (val < 10 ? "0"+val : ""+val);}
-		return result;
-	}
 	
 	//describe scene
 	public String toString(){

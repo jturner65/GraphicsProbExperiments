@@ -71,6 +71,7 @@ begin_list
 read bun69k.cli
 end_accel
 pop
+
 #further right
 push
 translate 1 -.5 -2
@@ -81,6 +82,8 @@ begin_list
 read bun69k.cli
 end_accel
 pop
+
+
 #further left bunny
 push
 translate -1 -.5 -2

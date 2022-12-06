@@ -60,7 +60,7 @@ public abstract class Base_RayTracerWin extends Base_DispWindow {
 	};
 
 	public String[] gIDX_CurrSceneCLIList = new String[] {
-			"trTrans.cli","test_2triTxtures.cli","test_QuadTxtures.cli","test_Plane.cli",
+			"trTrans.cli","plnts3BunInstances.cli","test_2triTxtures.cli","test_QuadTxtures.cli","test_Plane.cli",
 			"t01.cli","t02.cli","t03.cli","t04.cli","t05.cli","t06.cli","t07.cli","t08.cli","t09.cli","t10.cli","t11.cli",
 			"noiseTxtr_st01.cli","noiseTxtr_st02.cli","noiseTxtr_st03.cli","noiseTxtr_st04.cli","noiseTxtr_st05.cli",
 			"noiseTxtr_st06.cli","noiseTxtr_st07.cli","noiseTxtr_st08.cli","noiseTxtr_st09.cli",

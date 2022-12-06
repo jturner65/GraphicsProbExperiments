@@ -1,0 +1,128 @@
+# several reflective spheres
+
+fov 90
+refine on
+# background texture
+
+background texture nightSky.png 2000 0 -1 -1000
+#antialias 3 3
+#rays_per_pixel 10
+
+# point_light sources
+
+spotlight 1 1 3   0 0 -1   15 40   .4 .4 .4
+spotlight 5 10 1   -5 -10 -1   15 40 .4 .4 .4
+spotlight -5 10 1   5 -10 -1   15 40 .4 .4 .4
+
+point_light 12 8 -3 .4 .4 .4
+point_light 5 10 1 .4 .4 .4
+point_light 8 10 6 .4 .4 .4
+
+# square ground plane
+
+surface  0 0 0  .01 .01 .01  0 0 0  1  0.5
+push
+
+
+read smQuadFloor.cli
+pop
+
+# reflective spheres
+surface   0 0 0   0 0 0.05   .2 .2 .2   5  0
+texture top earthMap.jpg
+sphere 1     1.5    0   -6
+texture top venusmap.jpg
+sphere .5    1.5   -0.5 -3.5
+texture top mars_1k_color.jpg
+sphere 0.6  -1.2 -0.4 -4
+texture top jupitermap.jpg
+sphere 3    -2    2   -15
+
+surface  0.01 0.01 0 0.01 0.01 0.01  1 1 1  160 .01 1.5 .9 1.0 .4 .8
+sphere 1    -6    2.8   -8
+
+#surface  0 0 0 0.01 0.01 0.01  1 1 1  160 0.9
+#from cyl rad hght ctr(x,y,z) orient(x,y,z)
+cyl .5  3    -6    -1   -8
+
+surface  0.01 0.01 0 0.01 0.01 0.01  1 1 1  160 .01 1.5  .9 1.0 1.0 .2
+sphere 1    -3    1.8   -7
+cyl .5  2    -3    -1   -7
+
+surface  0.01 0.01 0 0.01 0.01 0.01  1 1 1  160 0.1 1.5 .9 1.0 .2 .2 
+sphere 1     4    2.8   -7
+
+#surface  0 0 0 0.01 0.01 0.01  1 1 1  160 0.9
+cyl .5  3    4    -1   -7
+
+#transparent ball in front
+#dif r g b amb r g b spec r g b phong krefl ktrans perm permR permG permB
+#surface  0.01 0.01 0 0.01 0.01 0.01  1 1 1  160 0.1 1.5 .9 .5 1.0 .8
+#sphere 0.3   0   .1 -2
+
+push
+begin_list
+read bun69k.cli
+end_accel
+named_object big_bunny
+pop
+
+#close blue bunny
+push
+translate  0 -.5 -1.5
+rotate 10 0 1 0
+scale .5 .5 .5
+surface  0.01 0.01 0.1 0.01 0.01 0.01  1 1 1  40 .01 1.5 .9 .1 .5 .9
+#begin_list
+#read bun69k.cli
+#end_accel
+instance big_bunny
+pop
+
+#further right
+push
+translate 1 -.5 -2
+rotate 100 0 1 0
+scale .5 .5 .5
+surface  0.5 0 0 0 0 0  1 1 1  10 .01 1.5 .9 .9 .1 .3
+#begin_list
+#read bun69k.cli
+#end_accel
+instance big_bunny
+pop
+
+#further left bunny
+push
+translate -1 -.5 -2
+rotate 20 0 1 0
+scale .5 .5 .5
+surface  0.8 0.8 0.8 0 0 0  1 1 1  20 .01 
+#<typ> <noise scale> <numOctaves> <turbMult> <pdMult x y z> <multByPI 1/0 1/0 1/0> <useFwdTransform 0/1> <rndomize colors colorScale - if present then true> <color mult> <num overlays - if present, otherwise 1>
+marble 2.0 24 43.4 13.0 25.1 17.7 1 0 0 1.0 12.0 .2 1
+#begin_list
+#read bun69k.cli
+#end_accel
+instance big_bunny
+pop
+
+surface  0 0 0 0.01 0.01 0.01  1 1 1  160 0.9
+sphere 0.3   -4   -0.7 -6
+sphere 0.4   3   -0.6 -4
+
+texture top checkersphere.jpg
+sphere 0.4   1   -0.6 -4
+
+surface  0.01 0.01 0 0.01 0.01 0.01  1 1 1  160 .01 1.5 .9 .5 .2 .9
+sphere 0.5  -2.7 -0.5 -4
+
+surface  0 0 0 0.01 0.01 0.01  1 1 1  160 0.9
+sphere 0.5  -3.7 -0.5 -4
+
+surface  .1 0 0 0 .2 0 .1 0 .2  120 0.1 1.5 .9 .8 1.0 1.0
+sphere 20    0    18   -37
+
+surface  0 0 0 0.01 0.01 0.01  1 1 1  160 0.9
+sphere 15    0    31   -50
+
+write plnts3BunInstances.png
+
