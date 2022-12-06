@@ -1,5 +1,6 @@
 # testing different lenses, with long line of spheres
 # this test uses a fisheye lens
+rays_per_pixel 4
 
 fisheye 180
 point_light 0 0 0  0.2 0.2 0.2
