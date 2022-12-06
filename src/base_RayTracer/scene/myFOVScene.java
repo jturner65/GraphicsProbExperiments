@@ -107,12 +107,16 @@ public class myFOVScene extends Base_Scene {
 	public myRTColor shootMultiRays(double xBseVal, double yBseVal) {
 		myRTColor result,aaResultColor;
 		double redVal = 0, greenVal = 0, blueVal = 0, rayY, rayX;//, rayYOffset = sceneRows/2.0, rayXOffset = sceneCols/2.0;
-		rayCast ray;		
-		for(int rayNum = 0; rayNum < numRaysPerPixel; ++rayNum){//vary by +/- .5
+		//first ray can be straight in
+		aaResultColor = reflectRay(new rayCast(this, this.eyeOrigin, new myVector(xBseVal,yBseVal,viewZ),0));
+		redVal += aaResultColor.x; //(aaResultColor >> 16 & 0xFF)/256.0;//gets red value
+		greenVal += aaResultColor.y; // (aaResultColor >> 8 & 0xFF)/256.0;//gets green value
+		blueVal += aaResultColor.z;//(aaResultColor & 0xFF)/256.0;//gets blue value
+	
+		for(int rayNum = 1; rayNum < numRaysPerPixel; ++rayNum){//vary by +/- .5
 			rayY = yBseVal + ThreadLocalRandom.current().nextDouble(-.5,.5);
 			rayX = xBseVal + ThreadLocalRandom.current().nextDouble(-.5,.5);
-			ray = new rayCast(this, this.eyeOrigin, new myVector(rayX,rayY,viewZ),0);
-			aaResultColor = reflectRay(ray);
+			aaResultColor = reflectRay(new rayCast(this, this.eyeOrigin, new myVector(rayX,rayY,viewZ),0));
 			redVal += aaResultColor.x; //(aaResultColor >> 16 & 0xFF)/256.0;//gets red value
 			greenVal += aaResultColor.y; // (aaResultColor >> 8 & 0xFF)/256.0;//gets green value
 			blueVal += aaResultColor.z;//(aaResultColor & 0xFF)/256.0;//gets blue value

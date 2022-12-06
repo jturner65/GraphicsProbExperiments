@@ -38,24 +38,36 @@ public class myFishEyeScene extends Base_Scene{
 		fishEyeRad = MyMathUtils.DEG_TO_RAD*fishEye;
 		aperatureHlf = fishEyeRad/2.0;		
 	}
+	
+	private myRTColor getColorFromRayCast(double xVal, double yVal, double rSqTmp) {
+		double theta = Math.sqrt(rSqTmp) * aperatureHlf;
+		double phi = Math.atan2(-yVal,xVal); 					
+		double sTh = Math.sin(theta);
+		rayCast ray = new rayCast(this,this.eyeOrigin, new myVector(sTh * Math.cos(phi),sTh * Math.sin(phi),-Math.cos(theta)),0);
+		return reflectRay(ray);
+	}
 
 
 	@Override
 	public myRTColor shootMultiRays(double xBseVal, double yBseVal) {
 		myRTColor result,aaResultColor;
-		double xVal, yVal, r, rSqTmp, theta, phi, redVal = 0, greenVal = 0, blueVal = 0;		
-		rayCast ray;
-		for(int rayNum = 0; rayNum < numRaysPerPixel; ++rayNum){//vary by +/- .5
+		double xVal, yVal, rSqTmp, redVal = 0, greenVal = 0, blueVal = 0;
+		//first ray can be straight in
+		yVal = yBseVal *fishMult;
+		xVal = xBseVal *fishMult; 
+		rSqTmp = yVal*yVal + xVal*xVal;
+		if(rSqTmp <= 1){
+			aaResultColor = getColorFromRayCast(xVal, yVal, rSqTmp);
+			redVal += aaResultColor.x; //(aaResultColor >> 16 & 0xFF)/256.0;//gets red value
+			greenVal += aaResultColor.y; // (aaResultColor >> 8 & 0xFF)/256.0;//gets green value
+			blueVal += aaResultColor.z;//(aaResultColor & 0xFF)/256.0;//gets blue value
+		}
+		for(int rayNum = 1; rayNum < numRaysPerPixel; ++rayNum){//vary by +/- .5
 			yVal = (yBseVal + ThreadLocalRandom.current().nextDouble(-.5,.5)) *fishMult;
 			xVal = (xBseVal + ThreadLocalRandom.current().nextDouble(-.5,.5)) *fishMult; 
 			rSqTmp = yVal*yVal + xVal*xVal;
 			if(rSqTmp <= 1){
-				r = Math.sqrt(rSqTmp);
-				theta = r * aperatureHlf;
-				phi = Math.atan2(-yVal,xVal); 					
-				double sTh = Math.sin(theta);
-				ray = new rayCast(this,this.eyeOrigin, new myVector(sTh * Math.cos(phi),sTh * Math.sin(phi),-Math.cos(theta)),0);
-				aaResultColor = reflectRay(ray);
+				aaResultColor = getColorFromRayCast(xVal, yVal, rSqTmp);
 				redVal += aaResultColor.x; //(aaResultColor >> 16 & 0xFF)/256.0;//gets red value
 				greenVal += aaResultColor.y; // (aaResultColor >> 8 & 0xFF)/256.0;//gets green value
 				blueVal += aaResultColor.z;//(aaResultColor & 0xFF)/256.0;//gets blue value
@@ -73,9 +85,7 @@ public class myFishEyeScene extends Base_Scene{
 		int progressCount = 0;
 		myRTColor showColor;
 		//fisheye assumes plane is 1 away from eye
-		double r, phi, theta, yVal, xVal, ySq, sTh, rTmp;
-		//fishRad2 = .5*fishEyeRad;
-
+		double yVal, xVal, ySq, rTmp;
 		if (numRaysPerPixel == 1){											//single ray into scene per pixel
 			for (int row = 0; row < sceneRows; row+=stepIter){
 				yVal = (row + yStart) * fishMult;
@@ -86,11 +96,7 @@ public class myFishEyeScene extends Base_Scene{
 					rTmp = xVal*xVal+ySq;
 					if(rTmp > 1){	pixIDX = writePxlSpan(blkColor.getInt(),row,col,stepIter,pixels);	} 
 					else {
-						r = Math.sqrt(rTmp);
-						theta = r * aperatureHlf;
-						phi = Math.atan2(-yVal,xVal); 					
-						sTh = Math.sin(theta);
-						showColor = reflectRay(new rayCast(this,this.eyeOrigin, new myVector(sTh * Math.cos(phi),sTh * Math.sin(phi),-Math.cos(theta)),0)); 
+						showColor = getColorFromRayCast(xVal, yVal, rTmp);
 						pixIDX = writePxlSpan(showColor.getInt(),row,col,stepIter,pixels);
 					}
 					if ((1.0 * pixIDX)/(numPxls) > (progressCount * .02)){System.out.print("-|");progressCount++;}//progressbar  

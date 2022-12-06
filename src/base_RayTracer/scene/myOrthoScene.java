@@ -45,7 +45,13 @@ public class myOrthoScene extends Base_Scene{
 		myRTColor result,aaResultColor;
 		double redVal = 0, greenVal = 0, blueVal = 0, rayY, rayX;//,rayYOffset = 1.0/sceneRows, rayXOffset = 1.0/sceneCols;
 		//myRay ray;
-		for(int rayNum = 0; rayNum < numRaysPerPixel; ++rayNum){//vary by +/- .5
+		//first ray can be straight in
+		aaResultColor = reflectRay(new rayCast(this, new myVector(xBseVal,yBseVal,0), new myVector(0,0,-1),0));
+		redVal += aaResultColor.x; //(aaResultColor >> 16 & 0xFF)/256.0;//gets red value
+		greenVal += aaResultColor.y; // (aaResultColor >> 8 & 0xFF)/256.0;//gets green value
+		blueVal += aaResultColor.z;//(aaResultColor & 0xFF)/256.0;//gets blue value	      
+		
+		for(int rayNum = 1; rayNum < numRaysPerPixel; ++rayNum){//vary by +/- .5
 			rayY = yBseVal + (orthPerRow*ThreadLocalRandom.current().nextDouble(-.5,.5));
 			rayX = xBseVal + (orthPerCol*ThreadLocalRandom.current().nextDouble(-.5,.5));				
 			aaResultColor = reflectRay(new rayCast(this, new myVector(rayX,rayY,0), new myVector(0,0,-1),0));
