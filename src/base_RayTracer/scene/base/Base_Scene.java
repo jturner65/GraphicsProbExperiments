@@ -1024,6 +1024,7 @@ public abstract class Base_Scene {
 	//final gather procedure
 	public void setFinalGather(String[] token){
 		numGatherRays = Integer.parseInt(token[1]);
+		win.getMsgObj().dispInfoMessage("Base_Scene", "setFinalGather", "Final gather ray count : "+numRays);		
 	}
 	/////////////
 
@@ -1141,12 +1142,14 @@ public abstract class Base_Scene {
 								sqmag = (x*x) + (y*y);
 							}
 							while ((sqmag >= 1.0) || (sqmag < MyMathUtils.EPS));
-							z = Math.sqrt(1 - sqmag);							//cosine weighting preserved by projecting up to sphere
-							//then build ortho basis from normal - n' , q' , r' 
-					  		myVector n = new myVector(hitChk.objNorm),_p = new myVector(),_q = new myVector(); 
+							//cosine weighting preserved by projecting up to sphere
+							z = Math.sqrt(1 - sqmag);							
+							//then build ortho basis from normal : n' , q' , r' 
+					  		myVector n = hitChk.objNorm,_p = new myVector(),_q = new myVector(); 
 					  				//tmpV = (((n.x > n.y) && (n.x > n.z)) || ((-n.x > -n.y) && (-n.x > -n.z))  ? new myVector(0,0,1)  : new myVector(1,0,0));//find vector not close to n or -n to use to find tangent
 							double nxSq = n.x * n.x, nySq = n.y * n.y, nzSq = n.z * n.z;
-							myVector tmpV = (((nxSq > nySq) && (nxSq > nzSq))  ? new myVector(0,0,1)  : new myVector(1,0,0));//find vector not close to n or -n to use to find tangent
+							//find vector not close to n or -n to use to find tangent
+							myVector tmpV = (((nxSq > nySq) && (nxSq > nzSq))  ? new myVector(0,0,1) : new myVector(1,0,0));
 					  		//set _p to be tangent, _q to be binorm
 					  		_p = n._cross(tmpV);	_q = _p._cross(n);
 					  		//if(_p.sqMagn < p.MyMathUtils.EPS){System.out.println("bad _p : " + _p + " | n : " + n + " | tmpV : " + tmpV);}

@@ -16,7 +16,6 @@ public class DistRayTracer extends GUI_AppManager {
 	public String prjNmLong = "Testbed for base ray tracer", prjNmShrt = "RayTracerBaseExp";
 	
 	//don't use sphere background for this program
-	//private boolean useSphereBKGnd = false;	
 	private final int
 		showUIMenu 			= 0,
 		show2DRayTracerIDX	= 1;			//whether to show 1st window
@@ -63,7 +62,7 @@ public class DistRayTracer extends GUI_AppManager {
 	 */
 	@Override
 	protected void initMainFlags_Indiv() {
-		setMainFlagToShow_debugMode(false);
+		setMainFlagToShow_debugMode(true);
 		setMainFlagToShow_saveAnim(true); 
 		setMainFlagToShow_runSim(false);
 		setMainFlagToShow_singleStep(false);
@@ -144,123 +143,9 @@ public class DistRayTracer extends GUI_AppManager {
 		case 'A' : {toggleSaveAnim();break;}						//start/stop saving every frame for making into animation
 		case 's' :
 		case 'S' : {break;}//saveSS(prjNmShrt);break;}//save picture of current image
-		
-//			case '`' : {if(!gCurrentFile.equals("")){ loadedScenes.get(gCurrentFile).flipNormal();}   break;}//flip poly norms
-//			case '1':  {gCurrentFile = currentDir + "t01.cli";      loadFile();       break;}		//photon map cli's
-//			case '2':  {gCurrentFile = currentDir + "t02.cli";      loadFile();       break;}
-//			case '3':  {gCurrentFile = currentDir + "t03.cli";      loadFile();       break;}
-//			case '4':  {gCurrentFile = currentDir + "t04.cli";      loadFile();       break;}
-//			case '5':  {gCurrentFile = currentDir + "t05.cli";      loadFile();       break;}
-//			case '6':  {gCurrentFile = currentDir + "t06.cli";      loadFile();       break;}
-//			case '7':  {gCurrentFile = currentDir + "t07.cli";      loadFile();       break;}
-//			case '8':  {gCurrentFile = currentDir + "t08.cli";      loadFile();       break;}
-//			case '9':  {gCurrentFile = currentDir + "t09.cli";      loadFile();       break;}
-//			case '0':  {gCurrentFile = currentDir + "t10.cli";      loadFile();       break;}
-//			case '-':  {gCurrentFile = currentDir + "t11.cli";      loadFile();       break;}		//cornell box			
-//		    case '!':  {gCurrentFile = currentDir + "p4_st01.cli";  loadFile();       break;}		//worley textures on spheres
-//		    case '@':  {gCurrentFile = currentDir + "p4_st02.cli";  loadFile();       break;}
-//		    case '#':  {gCurrentFile = currentDir + "p4_st03.cli";  loadFile();       break;}
-//		    case '$':  {gCurrentFile = currentDir + "p4_st04.cli";  loadFile();       break;}
-//		    case '%':  {gCurrentFile = currentDir + "p4_st05.cli";  loadFile();       break;}
-//		    case '^':  {gCurrentFile = currentDir + "p4_st06.cli";  loadFile();       break;}
-//		    case '&':  {gCurrentFile = currentDir + "p4_st07.cli";  loadFile();       break;}	    
-//		    case '*':  {gCurrentFile = currentDir + "p4_st08.cli";  loadFile();       break;}		    
-//		    case 'l':  {gCurrentFile = currentDir + "p4_st09.cli";  loadFile();       break;}	    
-//		    case ';':  {gCurrentFile = currentDir + "p4_t09.cli";   loadFile();       break;}		    
-//			case 'O':  {gCurrentFile = currentDir + "p4_t05.cli";   loadFile();       break;}		//wood bunny texture
-//			case 'P':  {gCurrentFile = currentDir + "p4_t06.cli";   loadFile();       break;}		//marble bunny texture
-//			case '(':  {gCurrentFile = currentDir + "p4_t07.cli";   loadFile();       break;}		//worley circles bunny texture
-//			case ')':  {gCurrentFile = currentDir + "p4_t08.cli";   loadFile();       break;}		//crackle bunny texture		
-//			case '_':  {gCurrentFile = currentDir + "p3_t10.cli"; 	loadFile();		break;}
-//			case '=':  {gCurrentFile = currentDir + "plnts3ColsBunnies.cli"; loadFile(); break;}
-//		    case '+':  {gCurrentFile = currentDir + "p3_t02_sierp.cli"; loadFile();	break;}		//TODO INVESTIGATE THIS		    
-//		    case 'A':  {gCurrentFile = currentDir + "p2_t01.cli"; 		loadFile();	break;}	//these are images from project 2
-//		    case 'S':  {gCurrentFile = currentDir + "p2_t02.cli"; 		loadFile();	break;}
-//		    case 'D':  {gCurrentFile = currentDir + "p2_t03.cli"; 		loadFile();	break;}
-//		    case 'F':  {gCurrentFile = currentDir + "p2_t04.cli"; 		loadFile();	break;}
-//		    case 'G':  {gCurrentFile = currentDir + "p2_t05.cli"; 		loadFile();	break;}
-//		    case 'H':  {gCurrentFile = currentDir + "p2_t06.cli"; 		loadFile();	break;}
-//		    case 'J':  {gCurrentFile = currentDir + "p2_t07.cli"; 		loadFile();	break;}
-//		    case 'K':  {gCurrentFile = currentDir + "p2_t08.cli"; 		loadFile();	break;}
-//		    case 'L':  {gCurrentFile = currentDir + "p2_t09.cli"; 		loadFile();	break;}
-//		    case ':':  {gCurrentFile = currentDir + "old_t07c.cli"; 	loadFile();	break;}
-//			case 'a':  {gCurrentFile = currentDir + "earthAA1.cli";   	loadFile();	break;}
-//			case 's':  {gCurrentFile = currentDir + "earthAA2.cli";   	loadFile();	break;}
-//			case 'd':  {gCurrentFile = currentDir + "earthAA3.cli";   	loadFile();	break;}
-//			case 'f':  {gCurrentFile = currentDir + "c2clear.cli";   	loadFile();	break;}
-//			case 'g':  {gCurrentFile = currentDir + "c3shinyBall.cli";  loadFile(); 	break;}
-//			case 'h':  {gCurrentFile = currentDir + "c4InSphere.cli";   loadFile();	break;}
-//			case 'j':  {gCurrentFile = currentDir + "c6.cli";   		loadFile();	break;}
-//			case 'k':  {gCurrentFile = currentDir + "c6Fish.cli";   	loadFile();	break;}				
-//		    case 'Q':  {gCurrentFile = currentDir + "c2torus.cli"; 		loadFile();	break;}			    
-//		    case 'W':  {gCurrentFile = currentDir + "old_t02.cli"; 		loadFile();	break;}//this is the most recent block of images for project 1b
-//		    case 'E':  {gCurrentFile = currentDir + "old_t03.cli"; 		loadFile();	break;}
-//		    case 'R':  {gCurrentFile = currentDir + "old_t04.cli"; 		loadFile();	break;}
-//		    case 'T':  {gCurrentFile = currentDir + "old_t05.cli"; 		loadFile();	break;}
-//		    case 'Y':  {gCurrentFile = currentDir + "old_t06.cli"; 		loadFile();	break;}
-//		    case 'U':  {gCurrentFile = currentDir + "old_t07.cli"; 		loadFile();	break;}
-//		    case 'I':  {gCurrentFile = currentDir + "old_t08.cli"; 		loadFile();	break;}
-//			case '{':  {gCurrentFile = currentDir + "old_t09.cli"; 		loadFile();	break;}
-//			case '}':  {gCurrentFile = currentDir + "old_t10.cli"; 		loadFile();	break;}			
-//			case 'q':  {gCurrentFile = currentDir + "planets.cli"; 		loadFile();	break; }
-//			case 'w':  {gCurrentFile = currentDir + "planets2.cli"; 	loadFile();	break;}
-//			case 'e':  {gCurrentFile = currentDir + "planets3.cli"; 	loadFile();	break;}
-//			case 'r':  {gCurrentFile = currentDir + "planets3columns.cli";loadFile();   break;}
-//			case 't' : {gCurrentFile = currentDir + "trTrans.cli";   	loadFile();	break;}
-//			case 'y':  {gCurrentFile = currentDir + "planets3Ortho.cli";loadFile(); 	break;}			
-//			case 'u':  {gCurrentFile = currentDir + "c1.cli";  			loadFile();	break;}
-//			case 'i':  {gCurrentFile = currentDir + "c2.cli";  			loadFile();	break;}
-//			case 'o':  {gCurrentFile = currentDir + "c3.cli";  			loadFile();	break;}
-//			case 'p':  {gCurrentFile = currentDir + "c4.cli";  			loadFile();	break;}
-//			case '[':  {gCurrentFile = currentDir + "c5.cli";  			loadFile();	break;}
-//			case ']':  {gCurrentFile = currentDir + "c0.cli";  			loadFile();	break;}		    
-//			case 'Z':  {gCurrentFile = currentDir + "p3_t01.cli"; 		loadFile();	break;}
-//			case 'X':  {gCurrentFile = currentDir + "p3_t02.cli"; 		loadFile();	break;}
-//			case 'C':  {gCurrentFile = currentDir + "p3_t03.cli"; 		loadFile();	break;}
-//			case 'V':  {gCurrentFile = currentDir + "p3_t04.cli"; 		loadFile();	break;}
-//			case 'B':  {gCurrentFile = currentDir + "p3_t05.cli"; 		loadFile();	break;}
-//			case 'N':  {gCurrentFile = currentDir + "p3_t06.cli"; 		loadFile();	break;}
-//			case 'M':  {gCurrentFile = currentDir + "p3_t07.cli"; 		loadFile();	break;}
-//			case '<':  {gCurrentFile = currentDir + "p4_t06_2.cli"; 	loadFile();	break;}
-//			case '>':  {gCurrentFile = currentDir + "p4_t09.cli"; 		loadFile();	break;}
-//			case '?':  {gCurrentFile = currentDir + "p3_t11_sierp.cli"; loadFile();		break;}		//my bunny scene		
-//			case 'z':  {gCurrentFile = currentDir + "cylinder1.cli";  	loadFile();	break;}
-//			case 'x':  {gCurrentFile = currentDir + "tr0.cli";   		loadFile();	break;}
-//			case 'c':  {gCurrentFile = currentDir + "c0Square.cli";  	loadFile();	break;}
-//			case 'v':  {gCurrentFile = currentDir + "c1octo.cli";  		loadFile();	break;}
-//			case 'b':  {gCurrentFile = currentDir + "old_t0rotate.cli"; loadFile(); 	break;}
-//		    case 'n':  {gCurrentFile = currentDir + "old_t03a.cli"; 	loadFile();	break;}	//this block contains the first set of images given with assignment 1b 
-//		    case 'm':  {gCurrentFile = currentDir + "old_t04a.cli"; 	loadFile();	break;}
-//		    case ',':  {gCurrentFile = currentDir + "old_t05a.cli"; 	loadFile();	break;}
-//		    case '.':  {gCurrentFile = currentDir + "old_t06a.cli"; 	loadFile();	break;}
-//		    case '/':  {gCurrentFile = currentDir + "old_t07a.cli"; 	loadFile();	break;}			
-			default : {return;}
+		default : {return;}
 		}//switch		
 	}//handleKeyPress
-	
-//	private void loadFile() {
-//		if(!gCurrentFile.equals("")){
-//			Base_Scene tmp = rdr.readRTFile(loadedScenes, gCurrentFile, null, sceneCols, sceneRows);//pass null as scene so that we don't add to an existing scene
-//			if(null==tmp) {gCurrentFile = "";}
-//		}		
-//	}
-	
-//	public String getDirName(){	if(currentDir.equals("")){	return "data/";}	return "data/"+currentDir;}
-//	public void setCurDir(int input){
-//		switch (input){
-//		case 0 :{currentDir = "";break;}
-//		case 1 :{currentDir = "old/";break;}
-//		case 2 :{currentDir = "project1_1/";break;}
-//		case 3 :{currentDir = "project1_2/";break;}
-//		case 4 :{currentDir = "project2_1/";break;}
-//		case 5 :{currentDir = "project2_2/";break;}
-//		case 6 :{currentDir = "project3/";break;}
-//		case 7 :{currentDir = "project4/";break;}
-//		case 8 :{currentDir = "project5/";break;}
-//		default :{currentDir = "";break;}
-//		}
-//	}//setCurDir
-
 
 	//////////////////////////////////////////
 	/// graphics and base functionality utilities and variables

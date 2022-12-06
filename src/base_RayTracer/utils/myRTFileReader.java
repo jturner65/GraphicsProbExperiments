@@ -201,7 +201,8 @@ public class myRTFileReader {
 					break;}
 //				case "foreground" : {//visible foreground behind camera - positive infinite z - rgb - modify this to also allow for textures as in background, but mapped to billboard behind viewer?
 //					scene.setForegroundColor(Double.parseDouble(token[1]),Double.parseDouble(token[2]),Double.parseDouble(token[3]));
-//					break;}				
+//					break;}	
+				
 				//lights
 				case "point_light" : {
 					scene.addMyPointLight(tokenAra);	      
@@ -213,7 +214,8 @@ public class myRTFileReader {
 				case "disk_light" : {//disk_light x y z radius dx dy dz r g b
 					scene.addMyDiskLight(tokenAra);
 					break;}	
-
+				
+				//photon mapping
 				case "caustic_photons" : //caustic_photons num_cast num_near max_near_dist
 				case "diffuse_photons" : {//diffuse_photons num_cast num_near max_near_dist 
 					scene.setPhotonHandling(tokenAra);
@@ -228,17 +230,12 @@ public class myRTFileReader {
 //				illumination at a surface point, you will shoot num_rays rays in random directions on the hemisphere 
 //				surrounding this point. You will then query the kD-tree at each surface that such a ray hit, and use 
 //				this to determine how much light should reach the point in question from this surface. This will produce 
-//				much better images, but will also be significantly slower. Speeding this up would require irradiance caching, 
-//				but we will not implement this due to lack of time. 
+//				much better images, but will also be significantly slower.
 				case "final_gather" : {//final_gather num_rays
-					int numRays = Integer.parseInt(tokenAra[1]);
-					
-					//TODO handle final gather ray count
-					win.getMsgObj().dispInfoMessage("myRTFileReader", "parseStringArray", "Final gather ray count : "+numRays);
-					//
+					scene.setPhotonHandling(tokenAra);
 					break;}
 			
-			//color commands
+			//material/color commands
 				case "diffuse" : {//new assignment requirements
 					myRTColor cDiff = readColor(tokenAra,1);//new myColor(Double.parseDouble(token[1]),Double.parseDouble(token[2]),Double.parseDouble(token[3]));
 					myRTColor cAmb = readColor(tokenAra,4);//new myColor(Double.parseDouble(token[4]),Double.parseDouble(token[5]),Double.parseDouble(token[6]));
@@ -271,8 +268,7 @@ public class myRTFileReader {
 					scene.setHasGlblTxtrdBtm(false);
 					double kRefl = Double.parseDouble(tokenAra[7]);
 					scene.setSurface(cDiff,cAmb,cSpec,0,kRefl);		
-					break;}
-				
+					break;}				
 			    case "perm" : {//load new permiability value - used for refraction
 			    	scene.setRfrIdx(Double.parseDouble(tokenAra[1]));
 			    	try {scene.setRfrIdx(Double.parseDouble(tokenAra[1]),Double.parseDouble(tokenAra[2]),Double.parseDouble(tokenAra[3]),Double.parseDouble(tokenAra[4]));} catch (Exception e){}

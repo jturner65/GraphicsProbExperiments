@@ -20,8 +20,8 @@ public abstract class Base_SceneObject extends Base_Geometry{
 	private static final int numFlags = 2;	
 
 	public Base_SceneObject(Base_Scene _scn, double _x, double _y, double _z, GeomObjType _type){
-		super(_scn, _x, _y, _z, _type);	    
-	    initFlags();
+		super(_scn, _x, _y, _z, _type);
+		initFlags();
 	    shdr = new myObjShader(scene);//sets currently defined colors for this object also    
 	}//constructor 6 var	
 	

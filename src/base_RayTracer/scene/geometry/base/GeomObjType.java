@@ -8,22 +8,11 @@ import java.util.*;
  *
  */
 public enum GeomObjType {
-	None(0),
-	BBox(1),
-	RenderedBBox(2),
-	Instance(3),
-	PointLight(4),
-	SpotLight(5),
-	DiskLight(6),
-	Triangle(7),
-	Quad(8),
-	Plane(9),
-	Sphere(10),
-	Cylinder(11),
-	Hollow_Cylinder(12),
-	Torus(13),
-	AccelFlatList(14),
-	AccelBVH(15);	
+	None(0),BBox(1),RenderedBBox(2),Instance(3),
+	PointLight(4),SpotLight(5),	DiskLight(6),
+	Triangle(7),Quad(8),Plane(9),
+	Sphere(10),	Cylinder(11),Hollow_Cylinder(12),Torus(13),
+	AccelFlatList(14),AccelBVH(15);	
 	private int value; 
 
 	private String[] _typeExplanation = new String[] {
@@ -43,6 +32,7 @@ public enum GeomObjType {
 			"Implicit Torus",
 			"Flat List of Objects",
 			"Bounding Volume Hierarchy Structure Holding Objects"};
+	
 	private static String[] _typeName = new String[] {
 			"None","Bounding Box","Rendered BBox", "Object Instance",
 			"Point Light","Spot Light","Disk Light",

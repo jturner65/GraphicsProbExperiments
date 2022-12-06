@@ -19,7 +19,7 @@ import base_Math_Objects.vectorObjs.doubles.myVector;
  *
  */
 public abstract class Base_Geometry {
-	public Base_Scene scene;
+	protected Base_Scene scene;
 	public final int ID;
 	private static int count = 0;
 	public final GeomObjType type;    //what kind of object this is
