@@ -5,7 +5,7 @@ import java.util.concurrent.ThreadLocalRandom;
 import base_RayTracer.ray.rayCast;
 import base_RayTracer.ray.rayHit;
 import base_RayTracer.scene.base.Base_Scene;
-import base_RayTracer.scene.geometry.base.Geom_ObjType;
+import base_RayTracer.scene.geometry.base.GeomObjType;
 import base_RayTracer.scene.geometry.sceneObjects.lights.base.Base_Light;
 import base_Math_Objects.vectorObjs.doubles.myPoint;
 import base_Math_Objects.vectorObjs.doubles.myVector;
@@ -32,8 +32,7 @@ public class mySpotLight extends Base_Light{
 			double _x, double _y, double _z, 
 			double _dx, double _dy, double _dz, 
 			double _inThet, double _outThet) {
-		super(_scn, _lightID, _r, _g, _b, _x, _y, _z, _dx, _dy, _dz);
-		type = Geom_ObjType.SpotLight;
+		super(_scn, _lightID, _r, _g, _b, _x, _y, _z, _dx, _dy, _dz, GeomObjType.SpotLight);
 		setSpotlightVals(_inThet,_outThet);
 	}
 	
@@ -90,7 +89,7 @@ public class mySpotLight extends Base_Light{
 	@Override
 	public String toString(){  
 		String res = super.toString();
-		res+= "\nSpotlight : Direction : " + orientation + " inner angle rad : " + innerThetRad + " outer angle rad : " + outerThetRad;
+		res+= "\nSpotlight : Direction : " + orientation + " inner angle rad : " + innerThetRad + " outer angle rad : " + outerThetRad + "\n";
 		return res;
 	}
 }//class mySpotLight

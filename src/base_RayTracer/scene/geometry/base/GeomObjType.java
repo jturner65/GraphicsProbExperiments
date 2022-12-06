@@ -7,7 +7,7 @@ import java.util.*;
  * @author 7strb
  *
  */
-public enum Geom_ObjType {
+public enum GeomObjType {
 	None(0),
 	BBox(1),
 	RenderedBBox(2),
@@ -49,14 +49,14 @@ public enum Geom_ObjType {
 			"Triangle","Quad","Plane","Sphere","Capped Cylinder","Cylindrical Tube","Torus",
 			"Flat List","BVH"};
 	public static String[] getListOfTypes() {return _typeName;}
-	private static Map<Integer, Geom_ObjType> map = new HashMap<Integer, Geom_ObjType>(); 
-	static { for (Geom_ObjType enumV : Geom_ObjType.values()) { map.put(enumV.value, enumV);}}
-	private Geom_ObjType(int _val){value = _val;} 
+	private static Map<Integer, GeomObjType> map = new HashMap<Integer, GeomObjType>(); 
+	static { for (GeomObjType enumV : GeomObjType.values()) { map.put(enumV.value, enumV);}}
+	private GeomObjType(int _val){value = _val;} 
 	public int getVal(){return value;}
-	public static Geom_ObjType getVal(int idx){return map.get(idx);}
+	public static GeomObjType getVal(int idx){return map.get(idx);}
 	public static int getNumVals(){return map.size();}						//get # of values in enum
 	public String getName() {return _typeName[value];}
 	@Override
     public String toString() { return ""+value + ":"+_typeExplanation[value]; }	
 
-}//enum objType
+}//enum GeomObjType

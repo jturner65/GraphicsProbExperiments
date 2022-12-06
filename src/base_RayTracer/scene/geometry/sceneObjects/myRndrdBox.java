@@ -3,7 +3,7 @@ package base_RayTracer.scene.geometry.sceneObjects;
 import base_RayTracer.ray.rayCast;
 import base_RayTracer.ray.rayHit;
 import base_RayTracer.scene.base.Base_Scene;
-import base_RayTracer.scene.geometry.base.Geom_ObjType;
+import base_RayTracer.scene.geometry.base.GeomObjType;
 import base_RayTracer.scene.geometry.sceneObjects.base.Base_SceneObject;
 import base_Math_Objects.matrixObjs.doubles.myMatrix;
 import base_Math_Objects.vectorObjs.doubles.myPoint;
@@ -18,10 +18,9 @@ import processing.core.PImage;
 public class myRndrdBox extends Base_SceneObject{
 
 	public myRndrdBox(Base_Scene _scn, double _x, double _y, double _z, myVector _minVals, myVector _maxVals) {
-		super(_scn, _x, _y, _z);
+		super(_scn, _x, _y, _z,GeomObjType.RenderedBBox);
 	    minVals.set(_minVals);
 	    maxVals.set(_maxVals);
-	    type = Geom_ObjType.RenderedBBox;
 		postProcBBox();				//cnstrct and define bbox
 	}
 	@Override

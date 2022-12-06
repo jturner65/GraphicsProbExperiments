@@ -3,7 +3,7 @@ package base_RayTracer.scene.geometry.sceneObjects.planar.base;
 import base_RayTracer.ray.rayCast;
 import base_RayTracer.ray.rayHit;
 import base_RayTracer.scene.base.Base_Scene;
-import base_RayTracer.scene.geometry.base.Geom_ObjType;
+import base_RayTracer.scene.geometry.base.GeomObjType;
 import base_RayTracer.scene.geometry.sceneObjects.base.Base_SceneObject;
 import processing.core.PImage;
 import base_Math_Objects.matrixObjs.doubles.myMatrix;
@@ -20,10 +20,9 @@ public abstract class Base_PlanarObject extends Base_SceneObject{
 	//number of verts in this object - used for square and triangle  
 	protected final int vCount; 
 		
-	public Base_PlanarObject(Base_Scene _p, int _vCount, Geom_ObjType _type){   
-		super(_p,0,0,0); 	
+	public Base_PlanarObject(Base_Scene _scn, int _vCount, GeomObjType _type){   
+		super(_scn,0,0,0, _type); 	
 		vCount = _vCount;
-		type = _type;
 		postProcBBox();				//cnstrct and define bbox - rebuilt when finalizePoly()
 		initObjVals();  
 	}//constructor (4) 

@@ -4,7 +4,7 @@ import java.util.concurrent.ThreadLocalRandom;
 
 import base_RayTracer.ray.rayCast;
 import base_RayTracer.scene.base.Base_Scene;
-import base_RayTracer.scene.geometry.base.Geom_ObjType;
+import base_RayTracer.scene.geometry.base.GeomObjType;
 import base_RayTracer.scene.geometry.sceneObjects.lights.base.Base_Light;
 import base_Math_Objects.vectorObjs.doubles.myPoint;
 import base_Math_Objects.vectorObjs.doubles.myVector;
@@ -26,8 +26,7 @@ public class myDiskLight extends Base_Light{
 			double _x, double _y, double _z, 
 			double _dx, double _dy, double _dz, 
 			double _radius) {
-		super(_scn, _lightID, _r, _g, _b, _x, _y, _z, _dx, _dy, _dz);
-		type = Geom_ObjType.DiskLight;
+		super(_scn, _lightID, _r, _g, _b, _x, _y, _z, _dx, _dy, _dz, GeomObjType.DiskLight);
 		setDisklightVals(_radius);
 	}
 	//generates a ray to park a photon in the photon map
@@ -78,5 +77,5 @@ public class myDiskLight extends Base_Light{
 	@Override
 	public myVector getMinVec(){myVector res = new myVector(origin);res._add(-radius,-radius,-radius);return res;}
 	@Override
-	public String toString(){  return super.toString() + "\nDiskLight : Direction : " + orientation + " radius : " + radius;}	
+	public String toString(){  return super.toString() + "\nDiskLight : Direction : " + orientation + " radius : " + radius +"\n";}	
 }//class myDiskLight

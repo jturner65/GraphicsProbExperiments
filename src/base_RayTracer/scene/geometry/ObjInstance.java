@@ -6,7 +6,7 @@ import base_RayTracer.ray.rayHit;
 import base_RayTracer.scene.base.Base_Scene;
 import base_RayTracer.scene.geometry.accelStruct.base.Base_AccelStruct;
 import base_RayTracer.scene.geometry.base.Base_Geometry;
-import base_RayTracer.scene.geometry.base.Geom_ObjType;
+import base_RayTracer.scene.geometry.base.GeomObjType;
 import base_Math_Objects.matrixObjs.doubles.myMatrix;
 import base_Math_Objects.vectorObjs.doubles.myPoint;
 import base_Math_Objects.vectorObjs.doubles.myVector;
@@ -21,12 +21,11 @@ public class ObjInstance extends Base_Geometry{
 	public Base_Geometry obj;						//object this is instance of
 	public boolean useShader, isAccel;					//whether to use instance shader or base object shader
 	public ObjInstance(Base_Scene scene, Base_Geometry _obj){
-		super(scene, 0,0,0);
+		super(scene, 0,0,0, GeomObjType.Instance);
 		obj = _obj;										//owning object
 		isAccel = (obj instanceof Base_AccelStruct);
 		CTMara = buildCTMara(scene.gtPeekMatrix(), obj.CTMara[glblIDX]);//build this object's transformation matrix - since this is instancing the owning object, pass the owning object's matrix
 	    //CTMara = scene.p.buildCTMara(scene);//build this object's transformation matrix		    
-	    type = Geom_ObjType.Instance;//"Instance of "+obj.objType;
 	    this.minVals = getMinVec();
 	    this.maxVals = getMaxVec();
 		postProcBBox();				//cnstrct and define bbox

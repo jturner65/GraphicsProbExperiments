@@ -5,7 +5,7 @@ import base_RayTracer.ray.rayCast;
 import base_RayTracer.ray.rayHit;
 import base_RayTracer.scene.base.Base_Scene;
 import base_RayTracer.scene.geometry.base.Base_Geometry;
-import base_RayTracer.scene.geometry.base.Geom_ObjType;
+import base_RayTracer.scene.geometry.base.GeomObjType;
 import base_Math_Objects.MyMathUtils;
 import base_Math_Objects.matrixObjs.doubles.myMatrix;
 import base_Math_Objects.vectorObjs.doubles.myPoint;
@@ -26,8 +26,7 @@ public class BoundingBox extends Base_Geometry {
 	public int maxExtentIdx;						//idx  (0,1,2) of maximum extent in this bounding box
 	public myVector sArea;
 	public BoundingBox(Base_Scene _scn, myPoint _minVals, myPoint _maxVals){
-		super (_scn, 0, 0, 0);
-		type = Geom_ObjType.BBox;
+		super (_scn, 0, 0, 0, GeomObjType.BBox);
 		calcMinMaxCtrVals(_minVals, _maxVals);
 		_bbox = null;							//a bbox should not have a bounding box
 	}

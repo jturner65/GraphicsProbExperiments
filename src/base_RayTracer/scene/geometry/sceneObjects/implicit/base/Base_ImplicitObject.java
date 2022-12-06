@@ -3,6 +3,7 @@ package base_RayTracer.scene.geometry.sceneObjects.implicit.base;
 import processing.core.PImage;
 import base_RayTracer.ray.rayCast;
 import base_RayTracer.scene.base.Base_Scene;
+import base_RayTracer.scene.geometry.base.GeomObjType;
 import base_RayTracer.scene.geometry.sceneObjects.base.Base_SceneObject;
 import base_Math_Objects.vectorObjs.doubles.myPoint;
 
@@ -10,8 +11,8 @@ import base_Math_Objects.vectorObjs.doubles.myPoint;
 public abstract class Base_ImplicitObject extends Base_SceneObject {
 	protected double radX, radY, radZ;  
 
-	public Base_ImplicitObject(Base_Scene _p, double _x, double _y, double _z) {
-		super(_p, _x, _y, _z);
+	public Base_ImplicitObject(Base_Scene _scn, double _x, double _y, double _z, GeomObjType _type){
+		super(_scn, _x, _y, _z, _type);
 	}
 
 	/**

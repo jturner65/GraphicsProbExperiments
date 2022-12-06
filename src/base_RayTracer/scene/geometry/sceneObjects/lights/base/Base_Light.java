@@ -6,6 +6,7 @@ import base_RayTracer.myRTColor;
 import base_RayTracer.ray.rayCast;
 import base_RayTracer.ray.rayHit;
 import base_RayTracer.scene.base.Base_Scene;
+import base_RayTracer.scene.geometry.base.GeomObjType;
 import base_RayTracer.scene.geometry.sceneObjects.base.Base_SceneObject;
 import base_RayTracer.scene.photonMapping.Photon_KDTree;
 import processing.core.PImage;
@@ -22,8 +23,8 @@ public abstract class Base_Light extends Base_SceneObject{
 	
 	//TODO light intensity should fall off by inverse sq dist
 	
-	public Base_Light(Base_Scene _scn, int _lightID, double _r, double _g, double _b, double _x, double _y, double _z, double _dx, double _dy, double _dz) {
-		super(_scn, _x,_y,_z);
+	public Base_Light(Base_Scene _scn, int _lightID, double _r, double _g, double _b, double _x, double _y, double _z, double _dx, double _dy, double _dz, GeomObjType _type) {
+		super(_scn, _x,_y,_z, _type);
 	    minVals = this.getMinVec();
 	    maxVals = this.getMaxVec();
 	    postProcBBox();

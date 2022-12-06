@@ -3,7 +3,7 @@ package base_RayTracer.scene.geometry.sceneObjects.implicit;
 import base_RayTracer.ray.rayCast;
 import base_RayTracer.ray.rayHit;
 import base_RayTracer.scene.base.Base_Scene;
-import base_RayTracer.scene.geometry.base.Geom_ObjType;
+import base_RayTracer.scene.geometry.base.GeomObjType;
 import base_RayTracer.scene.geometry.sceneObjects.implicit.base.Base_ImplicitObject;
 import base_Math_Objects.MyMathUtils;
 import base_Math_Objects.matrixObjs.doubles.myMatrix;
@@ -14,8 +14,7 @@ import processing.core.PImage;
 public class mySphere extends Base_ImplicitObject{
 	  
 		public mySphere(Base_Scene _p, double _radX, double _radY, double _radZ, double x, double y, double z){
-			super(_p, x,y,z);
-			type = Geom_ObjType.Sphere;
+			super(_p, x,y,z, GeomObjType.Sphere);
 			radX = _radX;
 			radY = _radY;
 			radZ = _radZ;
@@ -135,5 +134,5 @@ public class mySphere extends Base_ImplicitObject{
 			res._add(-tmpVal,-tmpVal,-tmpVal);
 			return res;
 		}
-		public String toString(){   return super.toString() + "\n"+ type +"-Specific : Radius : [" + radX+ "|" + radY+  "|" +radZ+"]"; }
+		public String toString(){   return super.toString() + "\n"+ type +"-Specific : Radius : [" + radX+ "|" + radY+  "|" +radZ+"]\n"; }
 	}//class mySphere
