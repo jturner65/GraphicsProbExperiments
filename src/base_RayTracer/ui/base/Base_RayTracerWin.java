@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.TreeMap;
 
 import base_JavaProjTools_IRender.base_Render_Interface.IRenderInterface;
+import base_Math_Objects.MyMathUtils;
 import base_Math_Objects.vectorObjs.doubles.myPoint;
 import base_Math_Objects.vectorObjs.doubles.myVector;
 import base_RayTracer.myRTFileReader;
@@ -30,8 +31,8 @@ public abstract class Base_RayTracerWin extends Base_DispWindow {
 	//////////////////////////////////
 	//initial values of UI variables
 	//ints
-	protected final int initSceneCols = 300;
-	protected final int initSceneRows = 300;
+	protected final int initSceneCols = 600;
+	protected final int initSceneRows = 600;
 
 	//local versions of UI values
 	protected int sceneCols;
@@ -40,10 +41,11 @@ public abstract class Base_RayTracerWin extends Base_DispWindow {
 	
 	//////////////////////////////////////
 	//private child-class flags - window specific
-	public static final int 
-		shootRays			 		= 0,					//shoot rays
-		flipNorms					= 1;
-	public static final int numPrivFlags = 2;
+	protected static final int 
+		shootRaysIDX		 		= 0,					//shoot rays
+		flipNormsIDX				= 1,
+		initPerlinNoiseIDX			= 2;
+	protected static final int numPrivFlags = 3;
 	
 	//idxs - need one per object
 	public final static int
@@ -66,12 +68,12 @@ public abstract class Base_RayTracerWin extends Base_DispWindow {
 			"noiseTxtr_st06.cli","noiseTxtr_st07.cli","noiseTxtr_st08.cli","noiseTxtr_st09.cli",
 			"noiseTxtr_t01.cli","noiseTxtr_t02.cli","noiseTxtr_t03.cli","noiseTxtr_t04.cli","noiseTxtr_t05.cli","noiseTxtr_t05Alt.cli",
 			"noiseTxtr_t06_2.cli","noiseTxtr_t06.cli","noiseTxtr_t06Alt.cli","noiseTxtr_t07.cli","noiseTxtr_t08.cli","noiseTxtr_t09.cli",
-			"plnts3ColsBunnies.cli","p3_t02_sierp.cli",
+			"plnts3ColsBunnies.cli","p3_t02_sierp.cli","fish_t10.cli",
 			"p2_t01.cli", "p2_t02.cli", "p2_t03.cli", "p2_t04.cli", "p2_t05.cli","p2_t06.cli", "p2_t07.cli", "p2_t08.cli", "p2_t09.cli", 			
 			"old_t07c.cli","earthAA1.cli","earthAA2.cli","earthAA3.cli","c2clear.cli","c3shinyBall.cli","c4InSphere.cli","c6.cli", "c6Fish.cli","c2torus.cli",
 			"old_t02.cli","old_t03.cli","old_t04.cli","old_t05.cli","old_t06.cli","old_t07.cli","old_t08.cli","old_t09.cli","old_t10.cli",
 			"planets.cli","planets2.cli","planets3.cli","planets3columns.cli","planets3Ortho.cli",
-			"c0.cli", "c1.cli","c2.cli","c3.cli","c4.cli","c5.cli",
+			"c0.cli", "c1.cli","c2.cli","c3.cli","c4.cli","c5.cli","c5Fish.cli","c6.cli","c6Fish.cli",
 			"p3_t01.cli","p3_t02.cli","p3_t03.cli","p3_t04.cli","p3_t05.cli","p3_t06.cli","p3_t07.cli","p3_t11_sierp.cli", 	
 			"cylinder1.cli", "tr0.cli","c0Square.cli",  "c1octo.cli",		
 			"old_t0rotate.cli","old_t03a.cli", "old_t04a.cli", "old_t05a.cli", "old_t06a.cli", 	"old_t07a.cli",		
@@ -81,13 +83,36 @@ public abstract class Base_RayTracerWin extends Base_DispWindow {
 	 * Ray Tracer cli file reader/interpreter
 	 */
 	protected myRTFileReader rdr; 		
-	
+	/**
+	 * Directory where cli files can be found. TODO break up into individual subdirs based on scene topic
+	 */
 	protected final String cliFilesDir;
 	/**
 	 * holds references to all loaded scenes
 	 */
 	public TreeMap<String, Base_Scene> loadedScenes;
+	
+	//////////////////////////////////
+	// Perlin noise variables
+	/**
+	 * 3D gradient locations - midpoints of edges between neighboring cells
+	 */
+	private int grad3[][] = {{1,1,0},{-1,1,0},{1,-1,0},{-1,-1,0},{1,0,1},{-1,0,1},{1,0,-1},{-1,0,-1},{0,1,1},{0,-1,1},{0,1,-1},{0,-1,-1}};
+	private final int pValAra[] = {151,160,137,91,90,15,131,13,201,95,96,53,194,233,7,225,
+		140,36,103,30,69,142,8,99,37,240,21,10,23,190,6,148,247,120,234,75,0,26,197,62,94,
+		252,219,203,117,35,11,32,57,177,33,88,237,149,56,87,174,20,125,136,171,168,68,175,
+		74,165,71,134,139,48,27,166,77,146,158,231,83,111,229,122,60,211,133,230,220,105,92,
+		41,55,46,245,40,244,102,143,54,65,25,63,161,1,216,80,73,209,76,132,187,208,89,18,169,
+		200,196,135,130,116,188,159,86,164,100,109,198,173,186,3,64,52,217,226,250,124,123,
+		5,202,38,147,118,126,255,82,85,212,207,206,59,227,47,16,58,17,182,189,28,42,223,183,
+		170,213,119,248,152,2,44,154,163,70,221,153,101,155,167,43,172,9,129,22,39,253,19,
+		98,108,110,79,113,224,232,178,185,112,104,218,246,97,228,251,34,242,193,238,210,144,
+		12,191,179,162,241, 81,51,145,235,249,14,239,107,49,192,214,31,181,199,106,157,184,
+		84,204,176,115,121,50,45,127,4,150,254,138,236,205,93,222,114,67,29,24,72,243,141,
+		128,195,78,66,215,61,156,180};
 
+	// To remove the need for index wrapping, double the permutation table length
+	private int perm[] = new int[512];
 	
 	/**
 	 * @param _p
@@ -97,7 +122,7 @@ public abstract class Base_RayTracerWin extends Base_DispWindow {
 	 */
 	public Base_RayTracerWin(IRenderInterface _p, GUI_AppManager _AppMgr, int _winIdx, int _flagIdx) {
 		super(_p, _AppMgr, _winIdx, _flagIdx);
-		
+
 		Path path = Paths.get("");
 		cliFilesDir = path.toAbsolutePath().toString()+File.separator+"data";
 		msgObj.dispInfoMessage(className, "Constructor", "Currently Set absolute working directory for CLI Files is :"+cliFilesDir);
@@ -117,6 +142,8 @@ public abstract class Base_RayTracerWin extends Base_DispWindow {
 		custMenuOffset = uiClkCoords[3];		
 		//instance-specific init
 		initMe_Indiv();
+		//Initialize permuation table
+		initPermTable();
 		//call first ray trace
 		startRayTrace();
 	}
@@ -128,8 +155,8 @@ public abstract class Base_RayTracerWin extends Base_DispWindow {
 	@Override
 	public final int initAllPrivBtns(ArrayList<Object[]> tmpBtnNamesArray) {
 		//give true labels, false labels and specify the indexes of the booleans that should be tied to UI buttons
-		tmpBtnNamesArray.add(new Object[]{"Shooting Rays", "Shoot Rays", shootRays});  
-		tmpBtnNamesArray.add(new Object[]{"Norms are Flipped", "Flip Normals", flipNorms}); 
+		tmpBtnNamesArray.add(new Object[]{"Shooting Rays", "Shoot Rays", shootRaysIDX});  
+		tmpBtnNamesArray.add(new Object[]{"Norms are Flipped", "Flip Normals", flipNormsIDX}); 
 		return initAllPrivBtns_Indiv(tmpBtnNamesArray);
 	}//initAllPrivBtns	
 	
@@ -205,13 +232,13 @@ public abstract class Base_RayTracerWin extends Base_DispWindow {
 		int flIDX = idx/32, mask = 1<<(idx%32);
 		privFlags[flIDX] = (val ?  privFlags[flIDX] | mask : privFlags[flIDX] & ~mask);
 		switch(idx){
-			case shootRays : {//build new image
+			case shootRaysIDX : {//build new image
 				if (val) {
 					startRayTrace();
 					addPrivBtnToClear(idx);
 				}
 				break;}
-			case flipNorms : {
+			case flipNormsIDX : {
 				setFlipNorms();
 				break;}
 			default : {setPrivFlags_Indiv(idx, val);}
@@ -330,6 +357,91 @@ public abstract class Base_RayTracerWin extends Base_DispWindow {
 	 * 
 	 */
 	public final Base_Scene getCurrScene() { return loadedScenes.get(currDispSceneName);}
+	
+	/////////////////////////////////////
+	// Utilities
+
+	public double perlinNoise3D(myPoint pt){return perlinNoise3D((float)pt.x, (float)pt.y, (float)pt.z);}
+
+	/**
+	 * Derive Perlin noise value at a particular 3D location
+	 * @param x
+	 * @param y
+	 * @param z
+	 * @return
+	 */
+	public float perlinNoise3D(float x, float y, float z) {
+		// Find unit grid cell containing point
+		int X = MyMathUtils.floor(x),Y = MyMathUtils.floor(y), Z = MyMathUtils.floor(z);		
+		// Get relative xyz coordinates of point within that cell
+		x = x - X;	y = y - Y;	z = z - Z;		
+		// Wrap the integer cells at 255 (smaller integer period can be introduced here)
+		X = X & 255;	Y = Y & 255;	Z = Z & 255;		
+		// Calculate a set of eight hashed gradient indices
+		int Xp1 = X+1, Yp1 = Y+1, Zp1 = Z+1 ;
+		int pYpZ = perm[Y+perm[Z]];
+		int pYpZ1 = perm[Y+perm[Zp1]];
+		int pY1pZ = perm[Yp1+perm[Z]];
+		int pY1pZ1 = perm[Yp1+perm[Zp1]];
+
+		int gi000 = perm[X+pYpZ] % 12;
+		int gi001 = perm[X+pYpZ1] % 12;
+		int gi010 = perm[X+pY1pZ] % 12;
+		int gi011 = perm[X+pY1pZ1] % 12;
+		int gi100 = perm[Xp1+pYpZ] % 12;
+		int gi101 = perm[Xp1+pYpZ1] % 12;
+		int gi110 = perm[Xp1+pY1pZ] % 12;
+		int gi111 = perm[Xp1+pY1pZ1] % 12;
+		
+		float xm1 = x-1, ym1 = y-1, zm1 = z-1;
+		// Calculate noise contributions from each of the eight corners
+		float n000 = dot(grad3[gi000], x, y, z);
+		float n100 = dot(grad3[gi100], xm1, y, z);
+		float n010 = dot(grad3[gi010], x, ym1, z);
+		float n110 = dot(grad3[gi110], xm1, ym1, z);
+		float n001 = dot(grad3[gi001], x, y, zm1);
+		float n101 = dot(grad3[gi101], xm1, y, zm1);
+		float n011 = dot(grad3[gi011], x, ym1, zm1);
+		float n111 = dot(grad3[gi111], xm1, ym1, zm1);
+		
+		// Compute the fade curve value for each of x, y, z
+		float u = fade(x), v = fade(y), w = fade(z);
+		return mix(mix(mix(n000, n100, u), mix(n010, n110, u), v), mix(mix(n001, n101, u), mix(n011, n111, u), v), w);
+	
+	}//noise_3d
+	
+	/**
+	 * Initialize perlin noise permuation table
+	 */
+	private void initPermTable() { 
+		for(int i=0; i<255; ++i) {perm[i] = pValAra[i];}
+		for(int i=256; i<512; ++i) {perm[i] = pValAra[i & 255];}
+		setPrivFlags(initPerlinNoiseIDX, true);
+	}
+
+	/**
+	 * Dot product between array and individual values
+	 * @param g
+	 * @param x
+	 * @param y
+	 * @param z
+	 * @return
+	 */
+	private float dot(int g[], float x, float y, float z) { return g[0]*x + g[1]*y + g[2]*z;}
+	/**
+	 * Interpolate between both values
+	 * @param a
+	 * @param b
+	 * @param t
+	 * @return
+	 */
+	private float mix(float a, float b, float t) { return (1-t)*a + t*b;}
+	//Quintic interpolant calc
+	private float fade(float t) { return t*t*t*(t*(t*6-15)+10);}
+	//end given code, 3d perlin noise
+	
+	/////////////////////////////////////
+	// Drawing
 
 	@Override
 	protected final void drawMe(float animTimeMod) {

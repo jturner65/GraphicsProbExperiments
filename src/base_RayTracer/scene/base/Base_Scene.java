@@ -186,27 +186,7 @@ public abstract class Base_Scene {
 	//function for determining region of interest in worley noise :
 	// 0 : nearest x sum, 1 : alternating linear sum, 2: ...
 	public int roiFunc = 1;									
-	/**
-	 * 3D gradient locations - midpoints of edges between neighboring cells
-	 */
-	private int grad3[][] = {{1,1,0},{-1,1,0},{1,-1,0},{-1,-1,0},{1,0,1},{-1,0,1},{1,0,-1},{-1,0,-1},{0,1,1},{0,-1,1},{0,1,-1},{0,-1,-1}};
-	private final int pValAra[] = {151,160,137,91,90,15,131,13,201,95,96,53,194,233,7,225,
-		140,36,103,30,69,142,8,99,37,240,21,10,23,190,6,148,247,120,234,75,0,26,197,62,94,
-		252,219,203,117,35,11,32,57,177,33,88,237,149,56,87,174,20,125,136,171,168,68,175,
-		74,165,71,134,139,48,27,166,77,146,158,231,83,111,229,122,60,211,133,230,220,105,92,
-		41,55,46,245,40,244,102,143,54,65,25,63,161,1,216,80,73,209,76,132,187,208,89,18,169,
-		200,196,135,130,116,188,159,86,164,100,109,198,173,186,3,64,52,217,226,250,124,123,
-		5,202,38,147,118,126,255,82,85,212,207,206,59,227,47,16,58,17,182,189,28,42,223,183,
-		170,213,119,248,152,2,44,154,163,70,221,153,101,155,167,43,172,9,129,22,39,253,19,
-		98,108,110,79,113,224,232,178,185,112,104,218,246,97,228,251,34,242,193,238,210,144,
-		12,191,179,162,241, 81,51,145,235,249,14,239,107,49,192,214,31,181,199,106,157,184,
-		84,204,176,115,121,50,45,127,4,150,254,138,236,205,93,222,114,67,29,24,72,243,141,
-		128,195,78,66,215,61,156,180};
 
-	// To remove the need for index wrapping, double the permutation table length
-	private int perm[] = new int[512];
-	
-	
 	
 	//end proc & noise txtrs
 	/////////////////////////////	
@@ -245,7 +225,6 @@ public abstract class Base_Scene {
 		gtInitialize();       															 //sets up matrix stack
 
 		folderName = "pics." + win.getAppFileSubdirName();
-		initPermTable();
 		
 		allObjsToFind = new ArrayList<Base_Geometry>();
 		lightList = new ArrayList<Base_Geometry>();
@@ -323,6 +302,7 @@ public abstract class Base_Scene {
 		reflRays = 0;
 		refrRays = 0;
 		globRayCount = 0;
+		numRaysPerPixel = 1;
 		focalPlane = new myPlane(this);
 	}//initVars method
 	
@@ -366,6 +346,8 @@ public abstract class Base_Scene {
 		reflRays = _old.reflRays;
 		refrRays = _old.refrRays;
 		globRayCount = _old.globRayCount;
+		
+		numRaysPerPixel = _old.numRaysPerPixel;
 
 		lens_radius = _old. lens_radius;
 		lens_focal_distance = _old.lens_focal_distance;		
@@ -1367,14 +1349,14 @@ public abstract class Base_Scene {
 		globRayCount = 0;
 		rebuildPhotonTree();
 		for (Base_Geometry obj : objList){//set for all scene objects or instances of sceneobjects
-			if(obj instanceof Base_SceneObject){((Base_SceneObject)obj).setFlags(Base_SceneObject.invertedIDX, doFlipNorms());}//either a scene object or an instance of a scene object
-			else {if(obj instanceof ObjInstance && ((ObjInstance)obj).obj instanceof Base_SceneObject){((Base_SceneObject)((ObjInstance)obj).obj).setFlags(Base_SceneObject.invertedIDX, doFlipNorms());}}
+			if(obj instanceof Base_SceneObject){((Base_SceneObject)obj).setIsInverted(doFlipNorms());}//either a scene object or an instance of a scene object
+			else {if(obj instanceof ObjInstance && ((ObjInstance)obj).obj instanceof Base_SceneObject){((Base_SceneObject)((ObjInstance)obj).obj).setIsInverted(doFlipNorms());}}
 		}
 	}//flipNormal	
 	//return abs vals of vector as vector
 	public myVector absVec(myVector _v){return new myVector(Math.abs(_v.x),Math.abs(_v.y),Math.abs(_v.z));}
 
-	public double perlinNoise3D(myPoint pt){return perlinNoise3D((float)pt.x, (float)pt.y, (float)pt.z);}
+	public double perlinNoise3D(myPoint pt){return win.perlinNoise3D((float)pt.x, (float)pt.y, (float)pt.z);}
 	/**
 	 * Derive Perlin noise value at a particular location
 	 * @param x
@@ -1382,86 +1364,8 @@ public abstract class Base_Scene {
 	 * @param z
 	 * @return
 	 */
-	public float perlinNoise3D(float x, float y, float z) {		
-		// make sure we've initialized table
-		if (initFlag == false) {	  initPermTable();	  initFlag = true;	}		
-		// Find unit grid cell containing point
-		int X = fastfloor(x),Y = fastfloor(y), Z = fastfloor(z);		
-		// Get relative xyz coordinates of point within that cell
-		x = x - X;	y = y - Y;	z = z - Z;		
-		// Wrap the integer cells at 255 (smaller integer period can be introduced here)
-		X = X & 255;	Y = Y & 255;	Z = Z & 255;		
-		// Calculate a set of eight hashed gradient indices
-		int Xp1 = X+1, Yp1 = Y+1, Zp1 = Z+1 ;
-		int pYpZ = perm[Y+perm[Z]];
-		int pYpZ1 = perm[Y+perm[Zp1]];
-		int pY1pZ = perm[Yp1+perm[Z]];
-		int pY1pZ1 = perm[Yp1+perm[Zp1]];
+	public float perlinNoise3D(float x, float y, float z) {return win.perlinNoise3D(x,y,z);}//noise_3d
 
-		int gi000 = perm[X+pYpZ] % 12;
-		int gi001 = perm[X+pYpZ1] % 12;
-		int gi010 = perm[X+pY1pZ] % 12;
-		int gi011 = perm[X+pY1pZ1] % 12;
-		int gi100 = perm[Xp1+pYpZ] % 12;
-		int gi101 = perm[Xp1+pYpZ1] % 12;
-		int gi110 = perm[Xp1+pY1pZ] % 12;
-		int gi111 = perm[Xp1+pY1pZ1] % 12;
-		
-		// The gradients of each corner are now:
-		// gXXX = grad3[giXXX];
-		
-		// Calculate noise contributions from each of the eight corners
-		float n000= dot(grad3[gi000], x, y, z);
-		float n100= dot(grad3[gi100], x-1, y, z);
-		float n010= dot(grad3[gi010], x, y-1, z);
-		float n110= dot(grad3[gi110], x-1, y-1, z);
-		float n001= dot(grad3[gi001], x, y, z-1);
-		float n101= dot(grad3[gi101], x-1, y, z-1);
-		float n011= dot(grad3[gi011], x, y-1, z-1);
-		float n111= dot(grad3[gi111], x-1, y-1, z-1);
-		
-		// Compute the fade curve value for each of x, y, z
-		float u = fade(x), v = fade(y), w = fade(z);
-		
-//		// Interpolate along x the contributions from each of the corners
-//		float nx00 = mix(n000, n100, u);
-//		float nx01 = mix(n001, n101, u);
-//		float nx10 = mix(n010, n110, u);
-//		float nx11 = mix(n011, n111, u);
-//		
-//		// Interpolate the four results along y
-//		float nxy0 = mix(nx00, nx10, v);
-//		float nxy1 = mix(nx01, nx11, v);
-//		
-//		// Interpolate the two last results along z
-//	
-//		return mix(nxy0, nxy1, w);
-		return mix(mix(mix(n000, n100, u), mix(n010, n110, u), v), mix(mix(n001, n101, u), mix(n011, n111, u), v), w);
-	
-	}//noise_3d
-
-	public void initPermTable() { 
-		for(int i=0; i<255; ++i) {perm[i] = pValAra[i];}
-		for(int i=256; i<512; ++i) {perm[i] = pValAra[i & 255];}
-	}
-	/**
-	 * This method is a *lot* faster than using (int)Math.floor(x)
-	 * @param x
-	 * @return
-	 */
-	//protected int fastfloor(float x) { return x>0 ? (int)x : (int)x-1;}
-	/**
-	 * This method is a *lot* faster than using (int)Math.floor(x)
-	 * @param x
-	 * @return
-	 */
-	protected int fastfloor(double x) { return x>0 ? (int)x : (int)x-1;}
-	
-	private float dot(int g[], float x, float y, float z) { return g[0]*x + g[1]*y + g[2]*z;}
-	private float mix(float a, float b, float t) { return (1-t)*a + t*b;}
-	//Quintic interpolant calc
-	private float fade(float t) { return t*t*t*(t*(t*6-15)+10);}
-	//end given code, 3d perlin noise
 	
 	//utility functions
 	/**
