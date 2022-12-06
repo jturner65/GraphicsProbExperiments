@@ -103,8 +103,8 @@ public class BoundingBox extends Base_Geometry {
 	@Override //_ctAra is ara of ctm for object held by bbox, and responsible for transformation of transray
 	public rayHit intersectCheck(rayCast _ray,rayCast transRay, myMatrix[] _ctAra) {
 		//iterate through first low and then high values
-		double[] rayO = transRay.originAra,//new double[]{transRay.origin.x,transRay.origin.y,transRay.origin.z},
-				rayD = transRay.dirAra,//new double[]{transRay.direction.x,transRay.direction.y,transRay.direction.z},
+		double[] rayO = transRay.originHAra,//new double[]{transRay.origin.x,transRay.origin.y,transRay.origin.z},
+				rayD = transRay.dirHAra,//new double[]{transRay.direction.x,transRay.direction.y,transRay.direction.z},
 				minValsAra = minVals.asArray(), maxValsAra = maxVals.asArray(),
 				tmpVals1 = new double[]{-Double.MAX_VALUE,-1,-1},tmpVals2 = new double[]{-1,-1,-1},
 				tMinVals = new double[]{Double.MAX_VALUE,Double.MAX_VALUE,Double.MAX_VALUE}, tMaxVals = new double[]{-Double.MAX_VALUE,-Double.MAX_VALUE,-Double.MAX_VALUE};

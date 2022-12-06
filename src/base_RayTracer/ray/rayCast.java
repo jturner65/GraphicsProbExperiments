@@ -12,16 +12,16 @@ import base_Math_Objects.vectorObjs.doubles.myVector;
 public class rayCast{
 
 	//the transmission constant of the material this ray is inside - will have 4 elements
-	public Base_Scene scn;
-	public double[] currRfrIdx;
+	private Base_Scene scn;
+	//private double[] currRfrIdx;
 	public double[] currKTrans;
 	
 	public myPoint origin;
 	public myVector originAsVec;
 	public myVector direction;
 	
-	public double[] originAra;
-	public double[] dirAra;
+	public double[] originHAra;
+	public double[] dirHAra;
 	/**
 	 * for motion blur - ray has a time value
 	 */
@@ -35,25 +35,25 @@ public class rayCast{
 	public rayCast(Base_Scene _scn, myPoint _origin, myVector _direction, int _gen){
 		//use this constructor when making rays r0 + t(dR) (direction is direction vector
 		//all vectors originate at origin
-		this.scn = _scn;
-	    this.scn.globRayCount++;
+		scn = _scn;
+	    scn.globRayCount++;
 	    currKTrans = new double[5];
-	    currRfrIdx = new double[5];				//TODO
+	    //currRfrIdx = new double[5];				//TODO
 	    for (int i = 0; i < 5; i++){
 	      //initializing to air values for permiability and index of refraction
-	      this.currKTrans[i] = 1;  
+	      currKTrans[i] = 1;  
 	    }
-	    this.gen = _gen;
-	    this.origin = new myPoint(_origin);
-	    this.originAsVec = new myVector(this.origin);
-	    this.originAra = this.origin.asArray();
-	    this.direction = new myVector(_direction);
-	    this.direction._normalize();
-	    this.dirAra = this.direction.asArray();
+	    gen = _gen;
+	    origin = new myPoint(_origin);
+	    originAsVec = new myVector(origin);
+	    originHAra = origin.asHAraPt();
+	    direction = new myVector(_direction);
+	    direction._normalize();
+	    dirHAra = direction.asHAraVec();
 	    //sorted list of all hits for this ray
 	    //scale = 1.0;
 	    //for blur
-	    //this.time = ThreadLocalRandom.current().nextDouble(0,1.0);
+	    //time = ThreadLocalRandom.current().nextDouble(0,1.0);
 	}//myray constructor (5)
 	
 	public double getTime() {
@@ -63,16 +63,16 @@ public class rayCast{
 	
 	//used by ray transformation of object's inv CTM
 	private void setRayVals(double[] originVals, double[] dirVals){
-	    this.origin.set(originVals[0],originVals[1],originVals[2]);
-	    this.originAsVec.set(originVals[0],originVals[1],originVals[2]);
-	    this.originAra = this.origin.asArray();
-	    this.direction.set(dirVals[0],dirVals[1],dirVals[2]);
-	    this.dirAra = this.direction.asArray();
-	    //this.scale = this.direction._mag();
+	    origin.set(originVals[0],originVals[1],originVals[2]);
+	    originAsVec.set(originVals[0],originVals[1],originVals[2]);
+	    originHAra = origin.asHAraPt();
+	    direction.set(dirVals[0],dirVals[1],dirVals[2]);
+	    dirHAra = direction.asHAraVec();
+	    //scale = direction._mag();
 	    //don't want to normalize direction when this is a transformed ray, or t's won't correspond properly 
 	    //^- normalizng here was the cause of the weird shadow edge on the concentric cube image
 	    //if(normDir){
-	    //this.direction._normalize();//}
+	    //direction._normalize();//}
 	}
 		
 	  /**
@@ -80,11 +80,11 @@ public class rayCast{
 	  *  might be a good way to mock up a light or metamaterials
 	  */
 	public void setCurrKTrans(double _ktrans, double _currPerm, myRTColor _perm){
-		this.currKTrans[0] = _ktrans;
-		this.currKTrans[1] = _currPerm;
-		this.currKTrans[2] = _perm.x;
-		this.currKTrans[3] = _perm.y;
-		this.currKTrans[4] = _perm.z;
+		currKTrans[0] = _ktrans;
+		currKTrans[1] = _currPerm;
+		currKTrans[2] = _perm.x;
+		currKTrans[3] = _perm.y;
+		currKTrans[4] = _perm.z;
 	}
 	
 	public void setCurrKTrans(double[] vals){for(int i=0;i<currKTrans.length;++i){currKTrans[i]=vals[i];}}
@@ -107,8 +107,8 @@ public class rayCast{
 	public rayCast getTransformedRay(rayCast ray, myMatrix trans){
 		double[] rayOrigin,rayDirection;
 		ray.direction._normalize();
-		rayOrigin = trans.multVert(ray.origin.asHAraPt());
-		rayDirection = trans.multVert(ray.direction.asHAraVec());
+		rayOrigin = trans.multVert(ray.originHAra);
+		rayDirection = trans.multVert(ray.dirHAra);
 		//make new ray based on these new quantitiies
 		rayCast newRay = new rayCast(scn, ray.origin, ray.direction, ray.gen);
 		newRay.setRayVals(rayOrigin, rayDirection);
