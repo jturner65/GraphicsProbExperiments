@@ -184,7 +184,7 @@ public class myRTFileReader {
 						//load texture to be used for background
 						String textureName = tokenAra[2];
 						scene.currBkgTexture = ((my_procApplet)pa).loadImage(textureDir+textureName);
-						scene.scFlags[Base_Scene.glblTxtrdBkgIDX] = true;
+						scene.setHasGlblTxtrdBkg(true);
 						win.getMsgObj().dispInfoMessage("myRTFileReader", "parseStringArray", "Background texture loaded");
 						//build "skydome" - textured sphere encircling scene
 						double rad = Double.parseDouble(tokenAra[3]);
@@ -243,8 +243,8 @@ public class myRTFileReader {
 					myRTColor cDiff = readColor(tokenAra,1);//new myColor(Double.parseDouble(token[1]),Double.parseDouble(token[2]),Double.parseDouble(token[3]));
 					myRTColor cAmb = readColor(tokenAra,4);//new myColor(Double.parseDouble(token[4]),Double.parseDouble(token[5]),Double.parseDouble(token[6]));
 					myRTColor cSpec = new myRTColor(0,0,0);
-					scene.scFlags[Base_Scene.glblTxtrdTopIDX] = false;
-					scene.scFlags[Base_Scene.glblTxtrdBtmIDX] = false;
+					scene.setHasGlblTxtrdTop(false);
+					scene.setHasGlblTxtrdBtm(false);
 					scene.setSurface(cDiff,cAmb,cSpec,0,0);					
 					break;}
 				//use shiny for new refr/refl; use surface for older cli files - handles mix of colors and refr/refl better
@@ -267,8 +267,8 @@ public class myRTFileReader {
 					myRTColor cDiff = readColor(tokenAra,1);//new myColor(Double.parseDouble(token[1]),Double.parseDouble(token[2]),Double.parseDouble(token[3]));
 					myRTColor cAmb = readColor(tokenAra,4);//new myColor(Double.parseDouble(token[4]),Double.parseDouble(token[5]),Double.parseDouble(token[6]));
 					myRTColor cSpec = new myRTColor(0,0,0);
-					scene.scFlags[Base_Scene.glblTxtrdTopIDX] = false;
-					scene.scFlags[Base_Scene.glblTxtrdBtmIDX] = false;
+					scene.setHasGlblTxtrdTop(false);
+					scene.setHasGlblTxtrdBtm(false);
 					double kRefl = Double.parseDouble(tokenAra[7]);
 					scene.setSurface(cDiff,cAmb,cSpec,0,kRefl);		
 					break;}
@@ -320,13 +320,13 @@ public class myRTFileReader {
 			    		textureName = tokenAra[2]; 
 			    		//if specified as bottom, assume bottom texture
 			    		scene.currTextureBottom = ((my_procApplet)pa).loadImage(textureDir+textureName);
-			    		scene.scFlags[Base_Scene.glblTxtrdBtmIDX] = true;
+			    		scene.setHasGlblTxtrdBtm(true);
 			    		win.getMsgObj().dispInfoMessage("myRTFileReader", "parseStringArray", "Bottom surface texture loaded");      }
 			    	else {
 			    		//if not specified then assume texture goes on top and texture name is specified in first token
 			    		if (side.toLowerCase().equals("top")){  		  	textureName = tokenAra[2];   }
 			    		scene.currTextureTop = ((my_procApplet)pa).loadImage(textureDir+textureName);
-			    		scene.scFlags[Base_Scene.glblTxtrdTopIDX] = true;
+			    		scene.setHasGlblTxtrdTop(true);
 			    		win.getMsgObj().dispInfoMessage("myRTFileReader", "parseStringArray", "Top surface texture loaded");
 			    	} 
 			    	scene.txtrType = 1;		//texture type is set to image/none
@@ -518,8 +518,8 @@ public class myRTFileReader {
 		double kRefl = Double.parseDouble(token[11]);
 		double kTrans = 0;
 		double rfrIdx = 0;
-		scene.scFlags[Base_Scene.glblTxtrdTopIDX] = false;
-		scene.scFlags[Base_Scene.glblTxtrdBtmIDX] = false;
+		scene.setHasGlblTxtrdTop(false);
+		scene.setHasGlblTxtrdBtm(false);
 		scene.setSurface(cDiff,cAmb,cSpec,phongExp,kRefl);
 		try {//if ktrans value in format file, grab it and re-initialize surfaces
 			kTrans = Double.parseDouble( token[12]);  
@@ -531,7 +531,7 @@ public class myRTFileReader {
 		} catch (Exception e) {
 			win.getMsgObj().dispErrorMessage("myRTFileReader", "setSurfaceShiny", "Error : \n"+e.toString());
 		}
-		if((useSimple) && ((kTrans > 0) || (rfrIdx > 0))){scene.scFlags[Base_Scene.simpleRefrIDX] = true;}			
+		if((useSimple) && ((kTrans > 0) || (rfrIdx > 0))){scene.setHasSimpleRefr(true);}			
 	}//setSurfaceShiny
 
 }//class myRTFileReader 

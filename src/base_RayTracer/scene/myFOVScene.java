@@ -51,7 +51,7 @@ public class myFOVScene extends Base_Scene {
 		//virtual view plane exists at some -z so that fov gives sceneCols x sceneRows x and y;-1 for negative z, makes coord system right handed
 		//if depth of field scene, then use lens focal distance as z depth (??)
 		viewZ = -0.5 * (MyMathUtils.max(sceneRows,sceneCols)/Math.tan(fovRad/2.0f));
-		if(scFlags[hasDpthOfFldIDX]){//depth of field variables already set from reader - build focal plane
+		if(hasDpthOfFld()){//depth of field variables already set from reader - build focal plane
 			focalPlane.setPlaneVals(0, 0, 1,  lens_focal_distance, 1.0);  		
 			System.out.println("View z : " + viewZ  + "\nfocal plane : "+ focalPlane);
 		}		
@@ -156,7 +156,7 @@ public class myFOVScene extends Base_Scene {
 	@Override
 	//distribution render
 	public void renderScene(int stepIter, boolean skipPxl, int[] pixels){
-		if(scFlags[hasDpthOfFldIDX]){
+		if(hasDpthOfFld()){
 			renderDepthOfField(stepIter, skipPxl, pixels); 
 		} else {
 			renderFOVScene(stepIter, skipPxl, pixels);

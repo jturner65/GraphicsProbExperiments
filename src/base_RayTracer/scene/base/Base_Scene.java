@@ -115,9 +115,9 @@ public abstract class Base_Scene {
 	//debug - count rays refracted, reflected
 	public long refrRays = 0, reflRays = 0, globRayCount = 0;
 	
-	public boolean[] scFlags;			//boolean flags describing characteristics of this scene
+	private int[] scFlags;			//boolean flags describing characteristics of this scene
 	
-	public static final int	
+	private static final int	
 		//scene/global level flags
 		debugIDX			= 0,		//enable debug functionality
 		renderedIDX 		= 1,		//this scene has been rendered since any changes were made
@@ -228,15 +228,19 @@ public abstract class Base_Scene {
 	public float renderTime;	
 	
 	public boolean initFlag = false;
-
+	
+	//Matrix stack used to process transformations from file descriptions
+	private myMatStack matrixStack;
+	//current depth in matrix stack - starts at 0;
+	private int currMatrixDepthIDX;	
 		
 	public Base_Scene(IRenderInterface _p, Base_RayTracerWin _win, String _sceneName, int _numCols, int _numRows) {
 		pa = _p;
 		win = _win;
 		initFlags();
-		scFlags[saveImageIDX] = true;    												//default to saving image
-		scFlags[saveImgInDirIDX] = true;    											//save to timestamped directories, to keep track of changing images
-		scFlags[showObjInfoIDX] = true;    												//default to showing info
+		setFlags(saveImageIDX, true);    												//default to saving image
+		setFlags(saveImgInDirIDX, true);    											//save to timestamped directories, to keep track of changing images
+		setFlags(showObjInfoIDX, true);    												//default to showing info
 		
 		gtInitialize();       															 //sets up matrix stack
 
@@ -282,8 +286,6 @@ public abstract class Base_Scene {
 		matrixStack = _old.matrixStack;
 	}//myScene
 	
-	private void initFlags(){scFlags=new boolean[numFlags];for(int i=0;i<numFlags;++i){scFlags[i]=false;}}
-	
 	//scene-wide variables set during loading of scene info from .cli file
 	private void initVars(String _sceneName, int _numCols, int _numRows){
 		setImageSize(_numCols, _numRows);	
@@ -295,7 +297,7 @@ public abstract class Base_Scene {
 		numPhotons = 0;
 		kNhood = 0;
 		photonMaxNearDist = 0;
-		
+		//save file name and source file name should be the same unless overridden by command in scene description file
 		fileName = _sceneName;
 		saveName = _sceneName;
 		txtrType = 0;
@@ -372,7 +374,7 @@ public abstract class Base_Scene {
 
 	public void startTmpObjList(){
 		tmpObjList = new ArrayList<Base_Geometry>();
-		scFlags[addToTmpListIDX] = true;
+		setAddToTmpList(true);
 	}
 	
 	/**
@@ -380,7 +382,7 @@ public abstract class Base_Scene {
 	 * @param lstType
 	 */
 	public void endTmpObjList(int lstType){
-		scFlags[addToTmpListIDX] = false;
+		setAddToTmpList(false);
 		Base_AccelStruct accelObjList = null;
 		if(lstType == 0){//flat geomlist
 			accelObjList = new GeoList_AccelStruct(this);
@@ -407,8 +409,8 @@ public abstract class Base_Scene {
 				tmp = MyMathUtils.min((1.2f*(level-(maxLevel/2)))/(1.0f*maxLevel),1.0f), 
 				gVal = (tmp*tmp);
 		myRTColor cDiff = new myRTColor(MyMathUtils.min(1.0f,rVal+.5f), MyMathUtils.min(1.0f,gVal+.5f), MyMathUtils.min(1.0f,bVal+.5f));
-		scFlags[glblTxtrdTopIDX]  = false;
-		scFlags[glblTxtrdBtmIDX] = false;
+		setHasGlblTxtrdTop(false);
+		setHasGlblTxtrdBtm(false);
 		setSurface(cDiff,new myRTColor(0,0,0),new myRTColor(0,0,0),0,0);
 	}
 	/**
@@ -466,13 +468,18 @@ public abstract class Base_Scene {
 		gtTranslate(0,newTrans,0);
 		gtRotate(-120,1,0,0);		
 	}
-	//build a sierpinski tet arrangement using instances of object name
-	//depth is how deep to build the tetrahedron, useShdr is whether or not to use changing shader based on depth
+	/**
+	 * Build a sierpinski tet arrangement using instances of object name.
+	 * @param name
+	 * @param scVal
+	 * @param depth how deep to build the tetrahedrons
+	 * @param useShdr whether or not to use changing shader based on depth
+	 */
 	public void buildSierpinski(String name, float scVal, int depth, boolean useShdr){
 		startTmpObjList();
 		buildSierpSubTri(8,scVal, name,0,depth,useShdr);
 		endTmpObjList(1);			//bvh of sierp objs
-		win.getMsgObj().dispInfoMessage("Base_Scene", "buildSierpinski", "Total buns : "+((Math.pow(4, depth)-1)/3.0f));
+		win.getMsgObj().dispInfoMessage("Base_Scene", "buildSierpinski", "Total Objects : "+((Math.pow(4, depth)-1)/3.0f));
 	}	
 	/**
 	 * remove most recent object from list of objects and instead add to instance object struct.
@@ -534,7 +541,7 @@ public abstract class Base_Scene {
 	 * return a shader built with the current settings
 	 */
 	public myObjShader getCurShader(){
-		myObjShader tmp = (scFlags[simpleRefrIDX]) ? new mySimpleReflObjShdr(this) : new myObjShader(this);
+		myObjShader tmp = (doSimpleRefr()) ? new mySimpleReflObjShdr(this) : new myObjShader(this);
 		tmp.txtr = getCurTexture(tmp);				
 		return tmp;
 	}//getCurShader
@@ -576,7 +583,7 @@ public abstract class Base_Scene {
 	//entry point
 	public void addObjectToScene(Base_Geometry _obj){addObjectToScene(_obj,_obj);}
 	public void addObjectToScene(Base_Geometry _obj, Base_Geometry _cmpObj){
-		if(scFlags[addToTmpListIDX]){tmpObjList.add(_obj); return;}
+		if(doAddToTmpList()){tmpObjList.add(_obj); return;}
 		if(_cmpObj instanceof Base_Light){			lightList.add(_obj);	++numLights;} 
 		else {									objList.add(_obj);		++numNonLights;}
 		allObjsToFind.add(_obj);
@@ -604,25 +611,36 @@ public abstract class Base_Scene {
 				new Double[]{.5,.5});
 	}//resetDfltTxtrVals
 
-	//int[] ints =  txtrType,  numOctaves,  numOverlays,  numPtsDist,distFunc, roiFunc
-	//boolean[] bools = rndColors , useCustClrs, useFwdTrans
-	//double[] dbls = noiseScale, turbMult , colorScale , colorMult, avgNumPerCell, mortarThresh
-	//myVector[] vecs = pdMult
-	//myColor[] clrs = noiseColors
-	//Double[] wts = clrWts
+	/**
+	 * Set procedural texture values from values in loaded scene description
+	 * @param ints 	: txtrType, numOctaves, numOverlays, numPtsDist,distFunc, roiFunc
+	 * @param bools : rndColors, useCustClrs, useFwdTrans
+	 * @param dbls  : noiseScale, turbMult, colorScale, colorMult, avgNumPerCell, mortarThresh
+	 * @param vecs  : pdMult
+	 * @param clrs  : noiseColors
+	 * @param wts   : clrWts
+	 */
 	private void setProcTxtrVals(int[] ints, boolean[] bools, double[] dbls, myVector[] vecs, myRTColor[] clrs, Double[] wts){
 		txtrType = ints[0];	numOctaves = ints[1];numOverlays = ints[2];	numPtsDist = ints[3];	distFunc = ints[4];	roiFunc = ints[5];	
-		rndColors = bools[0];useCustClrs = bools[1];useFwdTrans = bools[2];		
-		noiseScale = dbls[0];turbMult = dbls[1];colorScale = dbls[2];colorMult = dbls[3];avgNumPerCell = dbls[4];	mortarThresh = dbls[5];		
+		rndColors = bools[0]; useCustClrs = bools[1];useFwdTrans = bools[2];		
+		noiseScale = dbls[0]; turbMult = dbls[1];colorScale = dbls[2];colorMult = dbls[3];avgNumPerCell = dbls[4];	mortarThresh = dbls[5];		
 		pdMult = vecs[0];		
 		noiseColors = clrs;
 //		clrWts = wts;		
 	}//setProcTxtrVals
 	
-	//build a color value from a string array read in from a cli file.  stIdx is position in array where first color resides
+	/**
+	 * build a color value from a string array read in from a cli file.  stIdx is position in array where first color resides
+	 * @param token
+	 * @param stIdx
+	 * @return
+	 */
 	private myRTColor readColor(String[] token, int stIdx){return new myRTColor(Double.parseDouble(token[stIdx]),Double.parseDouble(token[stIdx+1]),Double.parseDouble(token[stIdx+2]));}
 
-	//set colors used by proc texture
+	/**
+	 * set colors used by proc texture
+	 * @param clrs
+	 */
 	public void setTxtrColor(String[] clrs){
 		//get current noise color array
 		if(!useCustClrs){
@@ -664,8 +682,12 @@ public abstract class Base_Scene {
 		}	 		
 		noiseColors = tmpAra.toArray(new myRTColor[0]);
 	}//setTxtrColors
-	
-	//read in constants configured for perlin noise
+
+	/**
+	 * read in constants configured for perlin noise
+	 * @param vals
+	 * @return
+	 */
 	private boolean readProcTxtrPerlinVals(String[] vals){
 		boolean useDefaults;
 		//may just have <typ> or may have up to color scale, or may have all values - use defaults for all values not specified
@@ -733,7 +755,12 @@ public abstract class Base_Scene {
 		return useDefaults;	
 	}//readProcTxtrWorleyVals
 	
-	//read in procedural texture values for perlin noise and populate globals used to build txtr
+	/**
+	 * read in procedural texture values for perlin noise and populate globals used to build txtr
+	 * @param vals
+	 * @param isPerlin
+	 * @return
+	 */
 	public boolean readProcTxtrVals(String[] vals, boolean isPerlin){
 		if(isPerlin){return readProcTxtrPerlinVals(vals);}
 		else { return readProcTxtrWorleyVals(vals);}
@@ -894,6 +921,11 @@ public abstract class Base_Scene {
 		}//switch
 	}//getClr
 	
+	/**
+	 * Set the destination rendered image size
+	 * @param numCols
+	 * @param numRows
+	 */
 	private void setImageSize(int numCols, int numRows){//set size and all size-related variables, including image dims
 		sceneCols = numCols;
 		sceneRows = numRows;
@@ -915,7 +947,7 @@ public abstract class Base_Scene {
 	//refining
 	public void setRefine(String refState){
     	curRefineStep = 0;
-		scFlags[glblRefineIDX] = refState.toLowerCase().equals("on");
+		setHasGlblRefine(refState.toLowerCase().equals("on"));
 		//build refinement #pxls array dynamically by finding average dim of image and then math.
 		int refIDX = (int)(Math.log((this.sceneCols + this.sceneRows)/32.0)/ MyMathUtils.LOG_2);
 		RefineIDX = new int[(refIDX+1)];
@@ -925,7 +957,7 @@ public abstract class Base_Scene {
 	public void setDpthOfFld(double lRad, double lFD){				//depth of field effect
 		lens_radius = lRad;
 		lens_focal_distance = lFD;
-		scFlags[hasDpthOfFldIDX] = true;
+		setHasDpthOfFld(true);
 		focalPlane.setPlaneVals(0, 0, 1, lens_focal_distance, 1.0);      //needs to be modified so that d = viewZ + lens_focal_distance once FOV has been specified.
 	}
 	
@@ -934,6 +966,14 @@ public abstract class Base_Scene {
 		this.numRaysPerPixel = _num;
 	}
 	
+	/**
+	 * Set current material surface properties
+	 * @param Cdiff
+	 * @param Camb
+	 * @param Cspec
+	 * @param phongExp
+	 * @param newKRefl
+	 */
 	public void setSurface(myRTColor Cdiff, myRTColor Camb, myRTColor Cspec, double phongExp, double newKRefl){
 		txtrType = 0;			//set to be no texture
 		currDiffuseColor.set(Cdiff);
@@ -946,13 +986,32 @@ public abstract class Base_Scene {
 		globRfrIdx = 0;
 		globCurPermClr.set(0,0,0);
 	}//setSurface method
-
+	
+	/**
+	 * Set current material surface properties
+	 * @param Cdiff
+	 * @param Camb
+	 * @param Cspec
+	 * @param phongExp
+	 * @param KRefl
+	 * @param KTrans
+	 */
 	public void setSurface(myRTColor Cdiff, myRTColor Camb, myRTColor Cspec, double phongExp, double KRefl, double KTrans){
 		setSurface(Cdiff,Camb, Cspec,phongExp, KRefl);
 		currKTrans = KTrans;
 		setRfrIdx(0, 0, 0, 0);	
 	}//setSurface method with refractance
-
+	
+	/**
+	 * Set current material surface properties
+	 * @param Cdiff
+	 * @param Camb
+	 * @param Cspec
+	 * @param phongExp
+	 * @param KRefl
+	 * @param KTrans
+	 * @param rfrIdx
+	 */
 	public void setSurface(myRTColor Cdiff, myRTColor Camb, myRTColor Cspec, double phongExp, double KRefl, double KTrans, double rfrIdx){
 		setSurface(Cdiff,Camb, Cspec,phongExp, KRefl, KTrans);
 		//set permiability of object to light
@@ -976,7 +1035,6 @@ public abstract class Base_Scene {
 	  currKReflClr.set(kr,kg,kb);
 	}
 	public void setBackgroundColor(double r, double g, double b){  backgroundColor.set(r,g,b);}//initBackground 3 color method
-//	public void setForegroundColor(double r, double g, double b){  foregroundColor.set(r,g,b);  scFlags[useFGColorIDX] = true;}//initBackground 3 color method
 	////////
 	///end setting values
 	////////
@@ -1032,21 +1090,21 @@ public abstract class Base_Scene {
 	//determine color of a reflected ray - careful with recursive depth  
 	public myRTColor reflectRay(rayCast _ray){
 		rayHit hitChk = findClosestRayHit(_ray);
-		//if ((hitChk.isHit)) {												return(hitChk.obj.getColorAtPos(hitChk));}//to debug BVH use this - displays colors of leaf boxes (red/blue)
-		if (hitChk.isHit) {													return(hitChk.shdr.getColorAtPos(hitChk));}
-		else if (scFlags[glblTxtrdBkgIDX]) {								return getBackgroundTextureColor(_ray);	} 	//using skydome
+		//if ((hitChk.isHit)) {										return(hitChk.obj.getColorAtPos(hitChk));}//to debug BVH use this - displays colors of leaf boxes (red/blue)
+		if (hitChk.isHit) {											return(hitChk.shdr.getColorAtPos(hitChk));}
+		else if (hasGlblTxtrdBkg()) {								return getBackgroundTextureColor(_ray);	} 	//using skydome
 //		else if ((_ray.direction.z > MyMathUtils.EPS) && (scFlags[useFGColorIDX])){	return foregroundColor;	} 					//for getting color reflected from behind viewer
-		else {																return backgroundColor;	}
+		else {														return backgroundColor;	}
 	}//reflectRay	
 	
 	
 	///////////////
 	//setup photon handling kdtree
 	public void setPhotonHandling(String[] token){
-		scFlags[usePhotonMapIDX] = true;
-		scFlags[isPhtnMapRndrdIDX] = false;
+		setUsePhotonMap(true);
+		setIsPhtnMapRndrd(false);
 		String type = token[0];
-		scFlags[isCausticPhtnIDX] = type.contains("caustic");
+		setIsCausticPhtn(type.contains("caustic"));
 		//type is "caustic_photons" or "diffuse_photons"
 		//caustic_photons 80000000  80 0.05
 		numPhotons = Integer.parseInt(token[1]);
@@ -1227,7 +1285,9 @@ public abstract class Base_Scene {
 	//initialize drawing routine - build photon map if it exists
 	protected void initRender(){
 		rndrdImg.loadPixels();
-		if ((scFlags[usePhotonMapIDX]) && (!scFlags[isPhtnMapRndrdIDX])){	if (scFlags[isCausticPhtnIDX]) {sendCausticPhotons(); } else {sendDiffusePhotons();scFlags[isPhtnMapRndrdIDX] = true;}}		
+		if ((usePhotonMap()) && (!isPhtnMapRndrd())){	
+			if (isCausticPhtn()) {sendCausticPhotons(); } 
+			else {sendDiffusePhotons();setIsPhtnMapRndrd(true);}}		
 	}//initRender	
 	
 	public boolean isSameSize(int numCols, int numRows) {
@@ -1245,11 +1305,11 @@ public abstract class Base_Scene {
 		reflRays = 0;
 		refrRays = 0;
 		globRayCount = 0;
-		if (scFlags[usePhotonMapIDX]) {
+		if (usePhotonMap()) {
 			rebuildPhotonTree();
 		}
-		scFlags[saveImageIDX] =  true;				//save image with new size
-		scFlags[renderedIDX] = false;
+		setSaveImage(true);				//save image with new size
+		setRendered(false);
 	}//setNewSize
 	
 	private void rebuildPhotonTree() {
@@ -1298,17 +1358,17 @@ public abstract class Base_Scene {
 	//////////////////
 	//flip the normal directions for this scene
 	public void flipNormal(){
-		scFlags[flipNormsIDX] = !scFlags[flipNormsIDX];
-		scFlags[renderedIDX] = false;				//so will be re-rendered
-		scFlags[saveImageIDX] =  true;				//save image with flipped norm
+		setFlipNorms(!doFlipNorms());
+		setRendered(false);				//so will be re-rendered
+		setSaveImage(true);				//save image with flipped norm
 		curRefineStep = 0;
 		reflRays = 0;
 		refrRays = 0;
 		globRayCount = 0;
 		rebuildPhotonTree();
 		for (Base_Geometry obj : objList){//set for all scene objects or instances of sceneobjects
-			if(obj instanceof Base_SceneObject){((Base_SceneObject)obj).setFlags(Base_SceneObject.invertedIDX, scFlags[flipNormsIDX]);}//either a scene object or an instance of a scene object
-			else {if(obj instanceof ObjInstance && ((ObjInstance)obj).obj instanceof Base_SceneObject){((Base_SceneObject)((ObjInstance)obj).obj).setFlags(Base_SceneObject.invertedIDX, scFlags[flipNormsIDX]);}}
+			if(obj instanceof Base_SceneObject){((Base_SceneObject)obj).setFlags(Base_SceneObject.invertedIDX, doFlipNorms());}//either a scene object or an instance of a scene object
+			else {if(obj instanceof ObjInstance && ((ObjInstance)obj).obj instanceof Base_SceneObject){((Base_SceneObject)((ObjInstance)obj).obj).setFlags(Base_SceneObject.invertedIDX, doFlipNorms());}}
 		}
 	}//flipNormal	
 	//return abs vals of vector as vector
@@ -1458,22 +1518,22 @@ public abstract class Base_Scene {
 	
 	public final void draw() {
 		//if not rendered yet, render and then draw
-		if (!scFlags[renderedIDX]){	
+		if (!isRendered()){	
 			initRender();
 			int stepIter = 1;
 			boolean skipPxl = false;
-			if(scFlags[glblRefineIDX]){
+			if(useGlblRefine()){
 				stepIter = RefineIDX[curRefineStep++];
 				skipPxl = curRefineStep != 1;			//skip 0,0 pxl on all sub-images except the first pass
 			} 
-			if(stepIter == 1){scFlags[renderedIDX] = true;			}
+			if(stepIter == 1){setRendered(true);			}
 			
 			//Render specific scene
 			renderScene(stepIter, skipPxl, rndrdImg.pixels);			
 			//Finish up
 			//update the display based on the pixels array
 			rndrdImg.updatePixels();
-			if(scFlags[renderedIDX]){	finishImage();	}
+			if(isRendered()){	finishImage();	}
 		}
 		((my_procApplet) pa).imageMode(PConstants.CORNER);
 		((my_procApplet) pa).image(rndrdImg,0,0);	
@@ -1487,21 +1547,21 @@ public abstract class Base_Scene {
 	private void saveFile(){
 		String tmpSaveName;
 		String[] tmp = saveName.split("\\.(?=[^\\.]+$)");				//remove extension from given savename
-		if (scFlags[saveImgInDirIDX]){	tmpSaveName = folderName.toString() + "\\"  + tmp[0]+(scFlags[Base_Scene.flipNormsIDX] ? "_normFlipped" : "")+ ".png";} //rebuild name to include directory and image name including render time
-		else {							tmpSaveName = tmp[0]+(scFlags[Base_Scene.flipNormsIDX] ? "_normFlipped" : "")+".png";		}
+		if (saveImageInDir()){	tmpSaveName = folderName.toString() + "\\"  + tmp[0]+(doFlipNorms() ? "_normFlipped" : "")+ ".png";} //rebuild name to include directory and image name including render time
+		else {							tmpSaveName = tmp[0]+(doFlipNorms() ? "_normFlipped" : "")+".png";		}
 		win.getMsgObj().dispInfoMessage("Base_Scene", "saveFile", "File saved as  : "+ tmpSaveName);
 		rndrdImg.save(tmpSaveName);
-		scFlags[saveImageIDX] =  false;//don't keep saving every frame
+		setSaveImage(false);//don't keep saving every frame
 	}//save image
 	  
 	/**
 	 * common finalizing for all rendering methods
 	 */
 	protected void finishImage(){
-		if (scFlags[saveImageIDX]){		saveFile();	}//if savefile is true, save the file
+		if (saveImage()){		saveFile();	}//if savefile is true, save the file
 		else {win.getMsgObj().dispInfoMessage("Base_Scene", "finishImage", "Apparently not saving this file : "+saveName);}
 		String dispStr = "";
-		if (scFlags[showObjInfoIDX]){
+		if (showObjInfo()){
 			
 			for (Base_Geometry obj : allObjsToFind){
 				dispStr += obj.toString();
@@ -1520,12 +1580,107 @@ public abstract class Base_Scene {
 	     	}
 			win.getMsgObj().dispMultiLineInfoMessage("Base_Scene", "finishImage", dispStr);
 		}//for objects and instances, to print out info
-		if (scFlags[glblTxtrdBkgIDX]){
+		if (hasGlblTxtrdBkg()){
 			dispStr += "\nBackground : " + mySkyDome.showUV() + "\n";  
 		}
 		dispStr += "Total # of rays : " + globRayCount + " | refl/refr rays " + reflRays +"/" + refrRays + "\n\nImage rendered from file name : " + saveName;
 		win.getMsgObj().dispMultiLineInfoMessage("Base_Scene", "finishImage", dispStr);
 	}
+	
+	
+	/**
+	 * base class flags init
+	 */
+	public final void initFlags(){scFlags = new int[1 + numFlags/32];for(int i =0; i<numFlags;++i){setFlags(i,false);}}			
+	/**
+	 * get baseclass flag
+	 * @param idx
+	 * @return
+	 */
+	public final boolean getFlags(int idx){int bitLoc = 1<<(idx%32);return (scFlags[idx/32] & bitLoc) == bitLoc;}	
+	
+	/**
+	 * check list of flags
+	 * @param idxs
+	 * @return
+	 */
+	public final boolean getAllFlags(int [] idxs){int bitLoc; for(int idx =0;idx<idxs.length;++idx){bitLoc = 1<<(idx%32);if ((scFlags[idx/32] & bitLoc) != bitLoc){return false;}} return true;}
+	public final boolean getAnyFlags(int [] idxs){int bitLoc; for(int idx =0;idx<idxs.length;++idx){bitLoc = 1<<(idx%32);if ((scFlags[idx/32] & bitLoc) == bitLoc){return true;}} return false;}
+
+	public final boolean getDebug() {return getFlags(debugIDX);}
+	public final boolean isRendered() {return getFlags(renderedIDX);}
+	public final boolean saveImage() {return getFlags(saveImageIDX);}
+	public final boolean saveImageInDir() {return getFlags(saveImgInDirIDX);}
+	public final boolean doSimpleRefr() {return getFlags(simpleRefrIDX);}
+	public final boolean doFlipNorms() {return getFlags(flipNormsIDX);}
+	public final boolean hasDpthOfFld() {return getFlags(hasDpthOfFldIDX);}
+	public final boolean showObjInfo() {return getFlags(showObjInfoIDX);}
+	public final boolean doAddToTmpList() {return getFlags(addToTmpListIDX);}
+	public final boolean doTimedRender() {return getFlags(timeRndrIDX);}
+	public final boolean hasGlblTxtrdBkg() {return getFlags(glblTxtrdBkgIDX);}
+	public final boolean useGlblRefine() {return getFlags(glblRefineIDX);}
+	public final boolean useFGColor() {return getFlags(useFGColorIDX);}
+	public final boolean hasGlblTxtrdTop() {return getFlags(glblTxtrdTopIDX);}
+	public final boolean hasGlblTxtrdBtm() {return getFlags(glblTxtrdBtmIDX);}
+	public final boolean usePhotonMap() {return getFlags(usePhotonMapIDX);}
+	public final boolean isCausticPhtn() {return getFlags(isCausticPhtnIDX);}
+	public final boolean isPhtnMapRndrd() {return getFlags(isPhtnMapRndrdIDX);}
+	public final boolean doFinalGather() {return getFlags(doFinalGatherIDX);}
+	
+
+	public final void setDebug(boolean _val) {setFlags(debugIDX, _val);}
+	public final void setRendered(boolean _val) {setFlags(renderedIDX, _val);}
+	public final void setSaveImage(boolean _val) {setFlags(saveImageIDX, _val);}
+	public final void setSaveImageInDir(boolean _val) {setFlags(saveImgInDirIDX, _val);}
+	public final void setHasSimpleRefr(boolean _val) {setFlags(simpleRefrIDX, _val);}
+	public final void setFlipNorms(boolean _val) {setFlags(flipNormsIDX, _val);}
+	public final void setHasDpthOfFld(boolean _val) {setFlags(hasDpthOfFldIDX, _val);}
+	public final void setShowObjInfo(boolean _val) {setFlags(showObjInfoIDX, _val);}
+	public final void setAddToTmpList(boolean _val) {setFlags(addToTmpListIDX, _val);}
+	public final void setTimedRender(boolean _val) {setFlags(timeRndrIDX, _val);}
+	public final void setHasGlblTxtrdBkg(boolean _val) {setFlags(glblTxtrdBkgIDX, _val);}
+	public final void setHasGlblRefine(boolean _val) {setFlags(glblRefineIDX, _val);}
+	public final void setUseFGColor(boolean _val) {setFlags(useFGColorIDX, _val);}
+	public final void setHasGlblTxtrdTop(boolean _val) {setFlags(glblTxtrdTopIDX, _val);}
+	public final void setHasGlblTxtrdBtm(boolean _val) {setFlags(glblTxtrdBtmIDX, _val);}
+	public final void setUsePhotonMap(boolean _val) {setFlags(usePhotonMapIDX, _val);}
+	public final void setIsCausticPhtn(boolean _val) {setFlags(isCausticPhtnIDX, _val);}
+	public final void setIsPhtnMapRndrd(boolean _val) {setFlags(isPhtnMapRndrdIDX, _val);}
+	public final void setDoFinalGather(boolean _val) {setFlags(doFinalGatherIDX, _val);}
+	
+	/**
+	 * set baseclass flags  //setFlags(showIDX, 
+	 * @param idx
+	 * @param val
+	 */
+	public final void setFlags(int idx, boolean val){
+		int flIDX = idx/32, mask = 1<<(idx%32);
+		scFlags[flIDX] = (val ?  scFlags[flIDX] | mask : scFlags[flIDX] & ~mask);
+		switch(idx){			
+			case debugIDX			:{break;}//enable debug functionality
+			case renderedIDX 		:{break;}//this scene has been rendered since any changes were made
+			case saveImageIDX		:{break;}//whether or not to save an image
+			case saveImgInDirIDX	:{break;}	//save image inside specific image directory, rather than root
+			case simpleRefrIDX		:{break;}//whether scene should use simplified refraction (intended to minimize refactorization requirement in mySceneObject)
+			case flipNormsIDX		:{break;}//whether or not we should flip the normal directions in this scene
+			case hasDpthOfFldIDX	:{break;}	//using depth of field
+			case showObjInfoIDX 	:{break;}	//print out object info after rendering image
+			case addToTmpListIDX	:{break;}	//add object to the temp list, so that the objects will be added to some accel structure.
+			case timeRndrIDX		:{break;}	//time the length of rendering and display the results.
+			case glblTxtrdBkgIDX	:{break;}	//whether the background is to be textured
+			case glblRefineIDX 		:{break;}//whether scene should be rendered using iterative refinement technique
+			case useFGColorIDX		:{break;}//whether or not to use a foregroundcolor in this scene
+	        case glblTxtrdTopIDX	:{break;}	//whether the currently loading object should be txtred on the top
+			case glblTxtrdBtmIDX	:{break;}	//whether the currently loading object should be txtred on the bottom
+		    case usePhotonMapIDX	:{break;}	//whether to use a photon map for caustics, indirect illumination
+			case isCausticPhtnIDX	:{break;}//whether to use caustic photons or indirect illumination photons (hacky)
+			case isPhtnMapRndrdIDX	:{break;}//whether or not photons have been cast yet
+			case doFinalGatherIDX	:{break;}//whether to do final gather
+			default :{
+				
+			}
+		}				
+	}//setFlags
 	
 	
 	/**
@@ -1536,12 +1691,8 @@ public abstract class Base_Scene {
 	*  subject the rays attempting to intersect with it by the inverse of these operations to find which rays will actually intersect with it.
 	*/
 	///////
-	//transformation stack stuff
+	//transformation stack stuff - uses "gt" prefix instead of "gl" because cute.
 	//
-	private myMatStack matrixStack;
-	//current depth in matrix stack - starts at 0;
-	private int currMatrixDepthIDX;	
-	
 	 public void gtDebugStack(String caller){ win.getMsgObj().dispMultiLineInfoMessage("Base_Scene", "gtDebugStack", "Caller : "+caller + "\nCurrent stack status : \n"+matrixStack.toString()); }//gtdebugStack method
 
 	 private void gtInitialize() {
@@ -1554,11 +1705,11 @@ public abstract class Base_Scene {
 		if (currMatrixDepthIDX < matStackMaxHeight){
 	    	matrixStack.push();
 	    	++currMatrixDepthIDX;
-		} else {	System.out.println("Error, matrix depth maximum " + matStackMaxHeight + " exceeded");	}	  
+		} else {	win.getMsgObj().dispErrorMessage("Base_Scene","gtPushMatrix","Error, matrix depth maximum " + matStackMaxHeight + " exceeded");	}	  
 	}//gtPushMatrix method
 
 	public void gtPopMatrix() { 
-		if (matrixStack.top == 0){System.out.println("Error : Cannot pop the last matrix in the matrix stack");} 
+		if (matrixStack.top == 0){win.getMsgObj().dispErrorMessage("Base_Scene","gtPopMatrix","Error : Cannot pop the last matrix in the matrix stack");} 
 		else {		//temp was last matrix at top of stack - referencing only for debugging purposes
 			@SuppressWarnings("unused")
 			myMatrix temp = matrixStack.pop();
@@ -1567,78 +1718,25 @@ public abstract class Base_Scene {
 	}//gtPopMatrix method
 	
 	
-	public myMatrix gtPeekMatrix() {
-		return matrixStack.peek();
-	}
+	public myMatrix gtPeekMatrix() {return matrixStack.peek();}
 
 	public void gtTranslate(double tx, double ty, double tz) { 
-		//build and push onto stack the translation matrix
-		myMatrix TransMat = new myMatrix();
-		//set the 4th column vals to be the translation coordinates
-		TransMat.setValByIdx(0,3,tx);
-		TransMat.setValByIdx(1,3,ty);
-		TransMat.setValByIdx(2,3,tz);
-		updateCTM(TransMat);
+		matrixStack.translate(tx, ty, tz);
 	}//gtTranslate method
 
 	public void gtScale(double sx, double sy, double sz) {
-		//build and push onto stack the scale matrix
-		myMatrix ScaleMat = new myMatrix();
-		//set the diagonal vals to be the scale coordinates
-		ScaleMat.setValByIdx(0,0,sx);
-		ScaleMat.setValByIdx(1,1,sy);
-		ScaleMat.setValByIdx(2,2,sz);
-		updateCTM(ScaleMat);
+		matrixStack.scale(sx, sy, sz);
 	}//gtScale method
 
 	/**
 	*  sets a rotation matrix to be in "angle" degrees CCW around the axis given by ax,ay,az
 	*  and multiples this matrix against the CTM
 	*/
-	public void gtRotate(double angle, double ax, double ay, double az) { 
-		// build and add to top of stack the rotation matrix
-		double angleRad = angle * MyMathUtils.DEG_TO_RAD;
-		myMatrix RotMat = new myMatrix();
-		myMatrix RotMatrix1 = new myMatrix();      //translates given axis to x axis
-		myMatrix RotMatrix2 = new myMatrix();      //rotation around x axis by given angle
-		myMatrix RotMatrix1Trans = new myMatrix();
-	  
-		myVector axisVect, axisVectNorm, bVect, bVectNorm, cVect, cVectNorm, normVect;
-		//first build rotation matrix to rotate ax,ay,az to lie in line with x axis		
-		axisVect = new myVector(ax,ay,az);
-		axisVectNorm = axisVect._normalized();
-	  
-		if (ax == 0) { 	normVect = new myVector(1,0,0);} 
-		else {			normVect = new myVector(0,1,0);}
-		bVect = axisVectNorm._cross(normVect);
-		bVectNorm = bVect._normalized();
-	  
-		cVect = axisVectNorm._cross(bVectNorm);
-		cVectNorm = cVect._normalized();
-	  
-		RotMatrix1.setValByRow(0,axisVectNorm);
-		RotMatrix1.setValByRow(1,bVectNorm);
-		RotMatrix1.setValByRow(2,cVectNorm);
-		
-		RotMatrix1Trans = RotMatrix1.transpose();
-		//second build rotation matrix to rotate around x axis by angle
-		//need to set 1,1 ; 1,2 ; 2,1 ; and 2,2 to cos thet, neg sine thet, sine thet, cos thet, respectively
-		double cosVal = (Math.cos(angleRad)), sinVal =(Math.sin(angleRad)); 
-		RotMatrix2.setValByIdx(1,1,cosVal);
-		RotMatrix2.setValByIdx(1,2,-sinVal);
-		RotMatrix2.setValByIdx(2,1,sinVal);
-		RotMatrix2.setValByIdx(2,2,cosVal);
-		//lastly, calculate full rotation matrix
-
-		myMatrix tmp = RotMatrix2.multMat(RotMatrix1);
-		RotMat = RotMatrix1Trans.multMat(tmp);
-		updateCTM(RotMat);
+	public void gtRotate(double angle, double ax, double ay, double az) {
+		matrixStack.rotate(angle, ax, ay, az);
 	}//gtrotate
 	
-	private void updateCTM(myMatrix _mat){		
-		myMatrix CTM = matrixStack.peek();
-		matrixStack.replaceTop(CTM.multMat(_mat));
-	}
+
 	/////
 	//end matrix stuff
 	/////	

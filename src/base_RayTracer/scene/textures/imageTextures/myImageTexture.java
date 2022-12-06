@@ -17,8 +17,8 @@ public class myImageTexture extends Base_TextureHandler{
 	//initialize constants used to store extremal texture map conversion coords
 	@Override
 	protected void initTextureVals(){
-		txtFlags[txtrdTopIDX] = scene.scFlags[Base_Scene.glblTxtrdTopIDX];
-		txtFlags[txtrdBtmIDX] =  scene.scFlags[Base_Scene.glblTxtrdBtmIDX];
+		txtFlags[txtrdTopIDX] = scene.hasGlblTxtrdTop();
+		txtFlags[txtrdBtmIDX] =  scene.hasGlblTxtrdBtm();
 	    if (txtFlags[txtrdTopIDX]){
 	    	myTextureTop = scene.currTextureTop;
 	    	myTextureTop.loadPixels();		    } 

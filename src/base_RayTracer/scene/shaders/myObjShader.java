@@ -94,8 +94,8 @@ public class myObjShader {
 
     
 	    setHasCaustic((KRefl > 0.0) || (currPerm > 0.0) || (KTrans > 0.0));
-	    setUsePhotonMap(scene.scFlags[Base_Scene.usePhotonMapIDX]);
-	    setIsCausticPtn(scene.scFlags[Base_Scene.isCausticPhtnIDX]);
+	    setUsePhotonMap(scene.usePhotonMap());
+	    setIsCausticPtn(scene.isCausticPhtn());
 	    
 	    diffConst = 1 - currPerm;	        
 	    phongExp = scene.currPhongExp;
