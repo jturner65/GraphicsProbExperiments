@@ -14,11 +14,14 @@ import base_Math_Objects.vectorObjs.doubles.myVector;
 public class rayHit implements Comparable<rayHit>{
 	public rayCast transRay;
 	public Base_Geometry obj;
-	public myVector objNorm, fwdTransRayDir;
-	public myPoint hitLoc, fwdTransHitLoc;
+	public myVector objNorm;
+	public myVector fwdTransRayDir;
+	public myPoint hitLoc;
+	public myPoint fwdTransHitLoc;
 	public myObjShader shdr;				//what shader to use for the hit object
-	public double t, ltMult;				//certain objects have multiple hit values - spotlight has light multiplier to make penumbra
-	public int[] iSectArgs;
+	public double t;
+	public double ltMult;				//certain objects have multiple hit values - spotlight has light multiplier to make penumbra
+	private int[] iSectArgs;
 	public boolean isHit;
 	public double[] phtnPwr;
 	//ara of object hit by ray that this object represents 
@@ -48,7 +51,10 @@ public class rayHit implements Comparable<rayHit>{
 		isHit = _isHit;
 		t = Double.MAX_VALUE;
 	}
-	//enable recalculation of hit normal based on modified/updated CTMara
+	/**
+	 * enable recalculation of hit normal based on modified/updated CTMara
+	 * @param _ctMtrx
+	 */
 	public void reCalcCTMHitNorm(myMatrix[] _ctMtrx){
 		CTMara = _ctMtrx;
 		fwdTransHitLoc = transRay.getTransformedPt(hitLoc, CTMara[glblIDX]);
