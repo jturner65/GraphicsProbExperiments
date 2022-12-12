@@ -11,9 +11,10 @@ import base_Math_Objects.vectorObjs.doubles.myVector;
 
 public class rayCast{
 
-	//the transmission constant of the material this ray is inside - will have 4 elements
 	private Base_Scene scn;
+	
 	//private double[] currRfrIdx;
+	//the transmission constant of the material this ray is inside - will have 4 elements
 	public double[] currKTrans;
 	
 	public myPoint origin;
@@ -39,7 +40,7 @@ public class rayCast{
 	    scn.globRayCount++;
 	    currKTrans = new double[5];
 	    //currRfrIdx = new double[5];				//TODO
-	    for (int i = 0; i < 5; i++){
+	    for (int i = 0; i < 5; ++i){
 	      //initializing to air values for permiability and index of refraction
 	      currKTrans[i] = 1;  
 	    }
@@ -50,31 +51,40 @@ public class rayCast{
 	    direction = new myVector(_direction);
 	    direction._normalize();
 	    dirHAra = direction.asHAraVec();
-	    //sorted list of all hits for this ray
-	    //scale = 1.0;
-	    //for blur
-	    //time = ThreadLocalRandom.current().nextDouble(0,1.0);
 	}//myray constructor (5)
 	
+	/**
+	 * build new copy of passed ray, transformed by passed transformation.
+	 * @param _otr
+	 * @param trans
+	 */
+	public rayCast(rayCast _otr, myMatrix trans) {
+		scn = _otr.scn;
+		scn.globRayCount++;
+	    currKTrans = new double[_otr.currKTrans.length];
+	    System.arraycopy(_otr.currKTrans, 0, currKTrans, 0, currKTrans.length);
+	    gen = _otr.gen;
+	    double[] _originVals = trans.multVert(_otr.originHAra);
+	    double[] _dirVals = trans.multVert(_otr.dirHAra);
+	    
+	    origin = new myPoint(_originVals[0],_originVals[1],_originVals[2]);
+	    originAsVec = new myVector(origin);
+	    originHAra = origin.asHAraPt();
+	    direction = new myVector(_dirVals[0],_dirVals[1],_dirVals[2]);
+	    //do not normalize direction since this is post transformation
+	    dirHAra = direction.asHAraVec();
+		
+	}//copy existing ray with alternate/transformed origin and direction
+	
+	/**
+	 * For shadow and motion blur calcs
+	 * @return
+	 */
 	public double getTime() {
 		if(time==-1) { time = ThreadLocalRandom.current().nextDouble(0,1.0);}
 		return time;
 	}
 	
-	//used by ray transformation of object's inv CTM
-	private void setRayVals(double[] originVals, double[] dirVals){
-	    origin.set(originVals[0],originVals[1],originVals[2]);
-	    originAsVec.set(originVals[0],originVals[1],originVals[2]);
-	    originHAra = origin.asHAraPt();
-	    direction.set(dirVals[0],dirVals[1],dirVals[2]);
-	    dirHAra = direction.asHAraVec();
-	    //scale = direction._mag();
-	    //don't want to normalize direction when this is a transformed ray, or t's won't correspond properly 
-	    //^- normalizng here was the cause of the weird shadow edge on the concentric cube image
-	    //if(normDir){
-	    //direction._normalize();//}
-	}
-		
 	  /**
 	  *  set this ray's current 1/n transmission values - n never less than 1 currently
 	  *  might be a good way to mock up a light or metamaterials
@@ -86,8 +96,6 @@ public class rayCast{
 		currKTrans[3] = _perm.y;
 		currKTrans[4] = _perm.z;
 	}
-	
-	public void setCurrKTrans(double[] vals){for(int i=0;i<currKTrans.length;++i){currKTrans[i]=vals[i];}}
   
 	public double[] getCurrKTrans(){   return currKTrans; }
 	public myPoint pointOnRay(double t){
@@ -97,25 +105,12 @@ public class rayCast{
 	    return result;  
 	}
 	/**
-	 * these are placed here for potential multi-threading - will pivot threads on rays 
-	 * this will apply the inverse of the current transformation matrix to the ray passed as a parameter and return the transformed ray 
+	 * This will apply the passed transformation matrix to this ray and return a new instance of the transformed ray 
 	 * pass correct matrix to use for transformation
-	 * @param ray
 	 * @param trans
 	 * @return
 	 */
-	public rayCast getTransformedRay(rayCast ray, myMatrix trans){
-		double[] rayOrigin,rayDirection;
-		ray.direction._normalize();
-		rayOrigin = trans.multVert(ray.originHAra);
-		rayDirection = trans.multVert(ray.dirHAra);
-		//make new ray based on these new quantitiies
-		rayCast newRay = new rayCast(scn, ray.origin, ray.direction, ray.gen);
-		newRay.setRayVals(rayOrigin, rayDirection);
-		newRay.setCurrKTrans(ray.currKTrans);
-		//don't want to normalize, or t's won't correspond properly <--YES
-		return newRay;
-	}//getTransformedRay
+	public rayCast getTransformedRay(myMatrix trans){	return new rayCast(this, trans);}//getTransformedRay
 
 	/**
 	 * get transformed/inverse transformed point - homogeneous coords
@@ -140,6 +135,7 @@ public class rayCast{
 		myVector newVec = new myVector(newVecAra[0],newVecAra[1],newVecAra[2]);
 		return newVec;
 	}	
+	
 	/**
 	 * build object for hit - contains all relevant info from intersection, including CTM matrix array 
 	 * args ara : idx 0 is cylinder stuff, idx 1 is bound box plane idx (0-5) args is used only in normal calc

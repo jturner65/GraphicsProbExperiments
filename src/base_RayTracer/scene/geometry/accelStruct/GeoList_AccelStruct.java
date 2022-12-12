@@ -40,7 +40,7 @@ public class GeoList_AccelStruct extends Base_AccelStruct{
 		if(_bbox.calcShadowHit( _ray, _trans, _ctAra, distToLight) == 0 ){return 0;}				//no hit of bounding box, then no hit 	
 		rayCast _objTransRay;
 		for (Base_Geometry obj : objList){
-			_objTransRay = _ray.getTransformedRay(_ray, obj.CTMara[invIDX]);
+			_objTransRay = _ray.getTransformedRay(obj.CTMara[invIDX]);
 			//double dist = distToLight/_objTransRay.scale;
 			if(obj.calcShadowHit( _ray, _objTransRay, _ctAra, distToLight)==1){return 1;}
 		}//for each object in scene
@@ -60,7 +60,7 @@ public class GeoList_AccelStruct extends Base_AccelStruct{
 		rayCast _objTransRay, _closestTransRay = null;
 		Base_Geometry _clsObj = null;
 		for (Base_Geometry obj : objList){
-			_objTransRay = _ray.getTransformedRay(_ray, obj.CTMara[invIDX]);
+			_objTransRay = _ray.getTransformedRay(obj.CTMara[invIDX]);
 			//checking if from instance so we can propagate the instance transform mat
 			rayHit _hit =  obj.intersectCheck(_ray, _objTransRay, obj.CTMara);	//scene.p.reBuildCTMara(obj.CTMara[glblIDX], _ctAra[glblIDX])
 			if (_hit.t < _clsT ){

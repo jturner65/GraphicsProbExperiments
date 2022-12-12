@@ -67,7 +67,7 @@ public class myFOVScene extends Base_Scene {
 		lensCtrPoint._normalize();
 		rayCast ray = new rayCast(this, eyeOrigin, lensCtrPoint, 0);					//initial ray - find intersection with focal plane
 		//find intersection point with focal plane, use this point to build lens rays
-		rayHit hit = focalPlane.intersectCheck( ray, ray.getTransformedRay(ray, focalPlane.CTMara[Base_Geometry.invIDX]),focalPlane.CTMara);						//should always hit
+		rayHit hit = focalPlane.intersectCheck( ray, ray.getTransformedRay(focalPlane.CTMara[Base_Geometry.invIDX]),focalPlane.CTMara);						//should always hit
 		myPoint rayOrigin;
 		myPoint focalPt = hit.hitLoc;
 		for(int rayNum = 0; rayNum < numRaysPerPixel; ++rayNum){

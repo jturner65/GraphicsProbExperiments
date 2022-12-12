@@ -972,7 +972,7 @@ public abstract class Base_Scene {
 	public int calcShadow(rayCast _ray, double distToLight){
 		//for each object in scene, check if intersecting any objects before hitting light
 		for (Base_Geometry obj : objList){
-			if(obj.calcShadowHit(_ray, _ray.getTransformedRay(_ray, obj.CTMara[Base_Geometry.invIDX]), obj.CTMara, distToLight) == 1){	return 1;}
+			if(obj.calcShadowHit(_ray, _ray.getTransformedRay(obj.CTMara[Base_Geometry.invIDX]), obj.CTMara, distToLight) == 1){	return 1;}
 		}//for each object in scene
 		return 0;
 	}//findLight method
@@ -986,7 +986,7 @@ public abstract class Base_Scene {
 		for (Base_Geometry obj : objList){	
 //			rayHit _hit = null;
 //			try{
-			rayHit _hit = obj.intersectCheck(_ray,_ray.getTransformedRay(_ray, obj.CTMara[Base_Geometry.invIDX]),obj.CTMara);		
+			rayHit _hit = obj.intersectCheck(_ray,_ray.getTransformedRay(obj.CTMara[Base_Geometry.invIDX]),obj.CTMara);		
 //			} catch (Exception e){
 //				msgObj.dispErrorMessage("Base_Scene ("+fileName+")", "findClosestRayHit", "exception :\n"+e);
 //			}
