@@ -43,6 +43,7 @@ public class mySpotLight extends Base_Light{
 		outerThetRad = outerThet * MyMathUtils.DEG_TO_RAD;		
 		radDiff = outerThetRad - innerThetRad;				//for interpolation 
 		oPhAxis = getOrthoVec(orientation);			//for rotation of dir vector for generating photons
+		setMinAndMaxVals(epsVal);
 	}//setSpotlightVals	
 	@Override
 	public rayHit intersectCheck(rayCast _ray, rayCast transRay, myMatrix[] _ctAra){  
@@ -62,8 +63,7 @@ public class mySpotLight extends Base_Light{
 			angle = ThreadLocalRandom.current().nextDouble(0,outerThetRad);
 			prob = getAngleProb(angle, innerThetRad, outerThetRad, radDiff);			
 		//} while (prob > ThreadLocalRandom.current().nextDouble(0,1));
-		} while (prob > checkProb);
-		
+		} while (prob > checkProb);		
 		
 		tmp.set(orientation.rotMeAroundAxis(oPhAxis,angle));	
 		tmp._normalize();
@@ -72,20 +72,14 @@ public class mySpotLight extends Base_Light{
 		
 		return new rayCast(scene, CTMara[glblIDX].transformPoint(origin), tmp, 0);
 	}	
-	@Override //no need for surface normal of light (??)
-	public myVector getNormalAtPoint(myPoint point, int[] args) {	return new myVector(0,1,0);	}
+
+	//TODO textured light could give different color light to scene based on location? BATSIGNAL!
 	@Override
-	public myPoint getMaxVec(){
-		myPoint res = new myPoint(origin);
-		res._add(epsVal,epsVal,epsVal);
-		return res;
-	}
+	protected double findTextureU_Indiv(myPoint isctPt, double v, double time){ return 0.0; }
+	//TODO textured light could give different color light to scene based on location? BATSIGNAL!
 	@Override
-	public myPoint getMinVec(){
-		myPoint res = new myPoint(origin);
-		res._add(-epsVal,-epsVal,-epsVal);
-		return res;
-	}	
+	protected double findTextureV_Indiv(myPoint isctPt, double time){	return 0.0;  } 	
+	
 	@Override
 	public String toString(){  
 		String res = super.toString();

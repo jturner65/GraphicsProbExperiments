@@ -6,9 +6,9 @@ import base_RayTracer.ray.rayCast;
 import base_RayTracer.scene.base.Base_Scene;
 import base_RayTracer.scene.geometry.base.GeomObjType;
 import base_RayTracer.scene.geometry.sceneObjects.lights.base.Base_Light;
+import base_Math_Objects.MyMathUtils;
 import base_Math_Objects.vectorObjs.doubles.myPoint;
 import base_Math_Objects.vectorObjs.doubles.myVector;
-import processing.core.PConstants;
 
 /**
  * Create a disk-shaped light source. The center of the disk is (x, y, z), the radius is rad, and a normal vector to the disk is (dx, dy, dz). 
@@ -16,8 +16,7 @@ import processing.core.PConstants;
  * it sould cast a shadow that is soft on the edges. For each shadow ray that is cast at this light source, you should select a random position on this disk. 
  */
 public class myDiskLight extends Base_Light{	
-	public double radius;
-	public int lightDistType;		//TODO support more than just normal light distribution (i.e. gaussian)
+	public final double radius;
 	public myVector surfTangent;	//unit vector tangent to surface of light - randomly rotate around normal and extend from 0->radius to get random position	
 	public myPoint curShadowTarget;		//current target for this light - changes every time shadow ray is sent
 	
@@ -27,9 +26,12 @@ public class myDiskLight extends Base_Light{
 			double _dx, double _dy, double _dz, 
 			double _radius) {
 		super(_scn, _lightID, _r, _g, _b, _x, _y, _z, _dx, _dy, _dz, GeomObjType.DiskLight);
-		setDisklightVals(_radius);
-	}
-	//generates a ray to park a photon in the photon map
+		radius = _radius;	
+		surfTangent = getOrthoVec(orientation);
+		setMinAndMaxVals(radius);	}
+	/**
+	 * generates a ray to park a photon in the photon map
+	 */
 	@Override
 	public rayCast genRndPhtnRay() {
 		myVector dir = new myVector();
@@ -42,40 +44,36 @@ public class myDiskLight extends Base_Light{
 		dir._normalize();
 		//rotate in phi dir for random direction
 		//dir = myVector._rotAroundAxis(dir, orientation,ThreadLocalRandom.current().nextDouble(0,PConstants.TWO_PI));		
-		dir = dir.rotMeAroundAxis(orientation,ThreadLocalRandom.current().nextDouble(0,PConstants.TWO_PI));		
+		dir = dir.rotMeAroundAxis(orientation,ThreadLocalRandom.current().nextDouble(0,MyMathUtils.TWO_PI));		
 		myPoint loc = getRandomDiskPos();
 		return new rayCast(scene, CTMara[glblIDX].transformPoint(loc), dir, 0);
 	}//genRndPhtnRay
-	
-	public void setDisklightVals(double _radius){
-		radius = _radius;	
-		surfTangent = getOrthoVec(orientation);
-	}//setSpotlightVals	
-	
+		
 	//find random position within this light disk to act as target
 	//TODO : t is time in ray - use this to determine if this light is moving
 	protected myPoint getRandomDiskPos(){
-		myVector tmp = surfTangent.rotMeAroundAxis(orientation,ThreadLocalRandom.current().nextDouble(0,PConstants.TWO_PI));				//rotate surfTangent by random angle
+		myVector tmp = surfTangent.rotMeAroundAxis(orientation,ThreadLocalRandom.current().nextDouble(0,MyMathUtils.TWO_PI));				//rotate surfTangent by random angle
 		tmp._normalize();
 		double mult = ThreadLocalRandom.current().nextDouble(0,radius);			//find displacement radius from origin
 		tmp._mult(mult);
 		tmp._add(origin);																														//find displacement point on origin
 		return tmp;
 	}			
-	@Override //normal is used for illumination of an object, are we going to illuminate/render a light?
-	public myVector getNormalAtPoint(myPoint point, int[] args) {	return new myVector(0,1,0);	}
+
 	@Override
 	public myPoint getOrigin(double t) {	
 		//do this 2x if light is moving, and interpolate between two values
 		curShadowTarget = getRandomDiskPos(); 
 		return curShadowTarget;
 	}
-
-	//improve these - need disk dimensions, but using sphere is ok for now
+	
+	//TODO textured light could give different color light to scene based on location? BATSIGNAL!
 	@Override
-	public myVector getMaxVec(){myVector res = new myVector(origin);res._add(radius,radius,radius);return res;}	
+	protected double findTextureU_Indiv(myPoint isctPt, double v, double time){ return 0.0; }
+	//TODO textured light could give different color light to scene based on location? BATSIGNAL!
 	@Override
-	public myVector getMinVec(){myVector res = new myVector(origin);res._add(-radius,-radius,-radius);return res;}
+	protected double findTextureV_Indiv(myPoint isctPt, double time){	return 0.0;  } 
+	
 	@Override
 	public String toString(){  return super.toString() + "\nDiskLight : Direction : " + orientation + " radius : " + radius +"\n";}	
 }//class myDiskLight
