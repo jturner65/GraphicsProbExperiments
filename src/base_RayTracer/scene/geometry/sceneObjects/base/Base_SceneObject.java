@@ -63,7 +63,7 @@ public abstract class Base_SceneObject extends Base_Geometry{
 
 	//determine if shadow ray is a hit or not
 	@Override
-	public int calcShadowHit(rayCast _ray, rayCast transRay, myMatrix[] _ctAra, double distToLight){		
+	public final int calcShadowHit(rayCast _ray, rayCast transRay, myMatrix[] _ctAra, double distToLight){		
 		rayHit hitChk = intersectCheck(_ray,transRay,_ctAra);			
 		if (hitChk.isHit && (distToLight - hitChk.t) > epsVal){	return 1;}  
 		//if (distToLight - hitChk.t > scene.epsVal){	return 1;}  

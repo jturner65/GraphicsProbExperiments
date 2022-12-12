@@ -101,13 +101,14 @@ public class BoundingBox extends Base_Geometry {
 	
 	//only says if bbox is hit
 	@Override //_ctAra is ara of ctm for object held by bbox, and responsible for transformation of transray
-	public rayHit intersectCheck(rayCast _ray,rayCast transRay, myMatrix[] _ctAra) {
+	public final rayHit intersectCheck(rayCast _ray,rayCast transRay, myMatrix[] _ctAra) {
 		//iterate through first low and then high values
 		double[] rayO = transRay.originHAra,//new double[]{transRay.origin.x,transRay.origin.y,transRay.origin.z},
 				rayD = transRay.dirHAra,//new double[]{transRay.direction.x,transRay.direction.y,transRay.direction.z},
 				minValsAra = minVals.asArray(), maxValsAra = maxVals.asArray(),
-				tmpVals1 = new double[]{-Double.MAX_VALUE,-1,-1},tmpVals2 = new double[]{-1,-1,-1},
-				tMinVals = new double[]{Double.MAX_VALUE,Double.MAX_VALUE,Double.MAX_VALUE}, tMaxVals = new double[]{-Double.MAX_VALUE,-Double.MAX_VALUE,-Double.MAX_VALUE};
+				tmpVals1 = new double[]{-1,-1,-1},tmpVals2 = new double[]{-1,-1,-1},
+				tMinVals = new double[]{Double.MAX_VALUE,Double.MAX_VALUE,Double.MAX_VALUE}, 
+				tMaxVals = new double[]{-Double.MAX_VALUE,-Double.MAX_VALUE,-Double.MAX_VALUE};
 		double biggestMin = -Double.MAX_VALUE;
 		int idx = -1;
 		//for this to be inside, the max min value has to be smaller than the min max value 
@@ -119,23 +120,28 @@ public class BoundingBox extends Base_Geometry {
 			if(tmpVals1[i] < tmpVals2[i]){
 				tMinVals[i] = tmpVals1[i];
 				tMaxVals[i] = tmpVals2[i];
-				if(biggestMin < tmpVals1[i]){		idx = i;	biggestMin = tmpVals1[i];	}
+				if(biggestMin < tMinVals[i]){		idx = i;	biggestMin = tMinVals[i];	}//find biggest min val
 			} else {
 				tMinVals[i] = tmpVals2[i];
 				tMaxVals[i] = tmpVals1[i];
-				if(biggestMin < tmpVals2[i]){		idx = i + 3;	biggestMin = tmpVals2[i];}
+				if(biggestMin < tMinVals[i]){		idx = i + 3;	biggestMin = tMinVals[i];}
 			}
 		}		
 		if((MyMathUtils.min(tMaxVals) > MyMathUtils.max(tMinVals)) && biggestMin > 0){ //hit happens
 			//pass args array to rayHit args : use idx[1] : this is idx (0 - 5) of plane intersected (low const x plane, low const y plane, low const z plane, high const x plane, high const y plane, high const z plane
-			//return (obj instanceof myRndrdBox) ? transRay.objHit(transRay,obj,  _ctAra, transRay.pointOnRay(biggestMin),new int[]{0,idx},biggestMin) : obj.intersectCheck(ray, transRay, _ctAra);
-			return transRay.objHit(obj,transRay.getTransformedVec(transRay.direction, _ctAra[glblIDX]),  _ctAra, transRay.pointOnRay(biggestMin),new int[]{0,idx},biggestMin);		//TODO - should we use obj ctara or bbox ctara? should they be same?
+			//return (obj instanceof myRndrdBox) ? 
+				//transRay.objHit(transRay,obj,  _ctAra, transRay.pointOnRay(biggestMin),new int[]{0,idx},biggestMin) : 
+				//obj.intersectCheck(ray, transRay, _ctAra);
+			//TODO - should we use obj ctara or bbox ctara? should they be same?
+			return transRay.objHit(obj,
+					transRay.getTransformedVec(transRay.direction, _ctAra[glblIDX]), 
+					_ctAra, transRay.pointOnRay(biggestMin),new int[]{0,idx},biggestMin);		
 		} else {	return new rayHit(false);}			//does not hit		
-	}
+	}//intersectCheck
 	
 	//determine if shadow ray is a hit or not - returns if object bounded by box is a hit
 	@Override
-	public int calcShadowHit(rayCast _ray,rayCast _trans, myMatrix[] _ctAra, double distToLight){		
+	public final int calcShadowHit(rayCast _ray,rayCast _trans, myMatrix[] _ctAra, double distToLight){		
 		rayHit hitChk = intersectCheck(_ray,_trans,_ctAra);			
 		if (hitChk.isHit && (distToLight - hitChk.t) > epsVal){	return 1;}   
 		return 0;

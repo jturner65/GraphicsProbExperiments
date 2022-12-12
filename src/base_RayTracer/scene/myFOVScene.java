@@ -97,7 +97,7 @@ public class myFOVScene extends Base_Scene {
 				rayX = col - rayXOffset;      
 				showColor = shootMultiDpthOfFldRays(rayX,rayY);
 				pixIDX = writePxlSpan(showColor.getInt(),row,col,stepIter,pixels);
-				if ((1.0 * pixIDX)/(numPxls) > (progressCount * .02)){System.out.print("-|");progressCount++;}//progressbar  
+				if ((1.0 * pixIDX)/(numPxls) > (progressCount * .02)){System.out.print("-|");++progressCount;}//progressbar  
 			}//for col
 		}//for row  
 	}//drawDpthOfFld
@@ -140,7 +140,7 @@ public class myFOVScene extends Base_Scene {
 					rayX = col - rayXOffset;
 					showColor = reflectRay(new rayCast(this,this.eyeOrigin, new myVector(rayX,rayY,viewZ),0)); 
 					pixIDX = writePxlSpan(showColor.getInt(),row,col,stepIter,pixels);
-					if ((1.0 * pixIDX)/(numPxls) > (progressCount * .02)){System.out.print("-|");progressCount++;}//progressbar         
+					if ((1.0 * pixIDX)/(numPxls) > (progressCount * .02)){System.out.print("-|");++progressCount;}//progressbar         
 				}//for col
 			}//for row	     
 		} else{    //multiple rays shot into scene per pxl
@@ -151,7 +151,7 @@ public class myFOVScene extends Base_Scene {
 					rayX = col - rayXOffset;      
 					showColor = shootMultiRays(rayX,rayY);
 					pixIDX = writePxlSpan(showColor.getInt(),row,col,stepIter,pixels);
-					if ((1.0 * pixIDX)/(numPxls) > (progressCount * .02)){System.out.print("-|");progressCount++;}//progressbar  
+					if ((1.0 * pixIDX)/(numPxls) > (progressCount * .02)){System.out.print("-|");++progressCount;}//progressbar  
 				}//for col
 			}//for row  
 		}//if antialiasing

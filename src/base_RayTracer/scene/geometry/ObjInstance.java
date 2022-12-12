@@ -78,14 +78,15 @@ public class ObjInstance extends Base_Geometry{
 	@Override
 	public myPoint getMinVec(){return obj.CTMara[glblIDX].transformPoint(obj.getMinVec());}
 	@Override
-	public int calcShadowHit(rayCast _ray,rayCast _trans, myMatrix[] _ctAra, double distToLight) {
+	public final int calcShadowHit(rayCast _ray, rayCast _trans, myMatrix[] _ctAra, double distToLight) {
 		return obj.calcShadowHit(_trans, _trans, _ctAra, distToLight);
 	}
 	@Override
 	public myPoint getOrigin(double t) {	return obj.CTMara[glblIDX].transformPoint(obj.getOrigin(t));}
 	@Override
-	public rayHit intersectCheck(rayCast _ray,rayCast transRay, myMatrix[] _ctAra) {
-		rayHit _hit = obj.intersectCheck(transRay, transRay, _ctAra);		//copy trans ray over so that ctm-transformed accel structs will still register hits appropriately TODO make this better
+	public rayHit intersectCheck(rayCast _ray, rayCast transRay, myMatrix[] _ctAra) {
+		//copy trans ray over so that ctm-transformed accel structs will still register hits appropriately TODO make this better
+		rayHit _hit = obj.intersectCheck(transRay, transRay, _ctAra);		
 		if(doUseShader()){_hit.shdr = shdr;}
 		return _hit;	
 	}

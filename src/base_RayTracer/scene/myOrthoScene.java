@@ -80,7 +80,7 @@ public class myOrthoScene extends Base_Scene{
 					rayX = orthPerCol * (col - rayXOffset);
 					showColor = reflectRay(new rayCast(this,new myVector(rayX,rayY,0), new myVector(0,0,-1),0)); 
 					pixIDX = writePxlSpan(showColor.getInt(),row,col,stepIter,pixels);
-					if ((1.0 * pixIDX)/(numPxls) > (progressCount * .02)){System.out.print("-|");progressCount++;}//progressbar         
+					if ((1.0 * pixIDX)/(numPxls) > (progressCount * .02)){System.out.print("-|");++progressCount;}//progressbar         
 				}//for col
 			}//for row	     
 		} else{    //anti aliasing
@@ -91,7 +91,7 @@ public class myOrthoScene extends Base_Scene{
 					rayX = orthPerCol * (col - rayXOffset - .5);      
 					showColor = shootMultiRays(rayX,rayY); 
 					pixIDX = writePxlSpan(showColor.getInt(),row,col,stepIter,pixels);
-					if ((1.0 * pixIDX)/(numPxls) > (progressCount * .02)){System.out.print("-|");progressCount++;}//progressbar  
+					if ((1.0 * pixIDX)/(numPxls) > (progressCount * .02)){System.out.print("-|");++progressCount;}//progressbar  
 				}//for col
 			}//for row  
 		}//if antialiasing			

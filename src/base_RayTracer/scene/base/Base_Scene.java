@@ -27,7 +27,7 @@ import base_RayTracer.scene.textures.noiseTextures.cellularTextures.myCellularTe
 import base_RayTracer.ui.base.Base_RayTracerWin;
 import base_RayTracer.utils.myRTColor;
 import base_UI_Objects.*;
-import base_Utils_Objects.io.messaging.MsgCodes;
+import base_Utils_Objects.io.messaging.*;
 import processing.core.PConstants;
 import processing.core.PImage;
 import base_Math_Objects.MyMathUtils;
@@ -45,6 +45,7 @@ public abstract class Base_Scene {
 	protected static IRenderInterface pa;
 	//Owning window
 	protected Base_RayTracerWin win;
+	protected MessageObject msgObj;
 	
 	//multi-threaded stuff
 	protected ExecutorService th_exec;
@@ -208,6 +209,7 @@ public abstract class Base_Scene {
 	public Base_Scene(IRenderInterface _p, Base_RayTracerWin _win, String _sceneName, int _numCols, int _numRows) {
 		pa = _p;
 		win = _win;
+		msgObj = win.getMsgObj();
 		initFlags();
 		setFlags(saveImageIDX, true);    												//default to saving image
 		setFlags(saveImgInDirIDX, true);    											//save to timestamped directories, to keep track of changing images
@@ -233,6 +235,7 @@ public abstract class Base_Scene {
 	public Base_Scene(Base_Scene _old){//copy ctor, for when scene type is being set - only use when old scene is being discarded (shallow copy)
 		//pa = _old.pa;
 		win = _old.win;
+		msgObj = _old.msgObj;
 		folderName = _old.folderName;
 		
 		initFlags();
@@ -362,14 +365,14 @@ public abstract class Base_Scene {
 			//int objAdded = 1;
 			for(Base_Geometry obj : tmpObjList){		((GeoList_AccelStruct)accelObjList).addObj(obj);	}
 		} else if(lstType == 1){//bvh tree
-			win.getMsgObj().dispInfoMessage("Base_Scene", "endTmpObjList", "Begin adding to BVH structure - # objs : " + tmpObjList.size());
+			msgObj.dispInfoMessage("Base_Scene ("+fileName+")", "endTmpObjList", "Begin adding to BVH structure - # objs : " + tmpObjList.size());
 			accelObjList = new BVH_AccelStruct(this);
 			List<Base_Geometry>[] _tmpCtr_ObjList = ((BVH_AccelStruct)accelObjList).buildSortedObjAras(tmpObjList,-1);
 			((BVH_AccelStruct)accelObjList).addObjList(_tmpCtr_ObjList, 0, _tmpCtr_ObjList[0].size()-1);
-			win.getMsgObj().dispInfoMessage("Base_Scene", "endTmpObjList", "Done Adding to BVH structure");
+			msgObj.dispInfoMessage("Base_Scene ("+fileName+")", "endTmpObjList", "Done Adding to BVH structure");
 		} else if(lstType == 2){//KDtree/octree TODO
-			win.getMsgObj().dispInfoMessage("Base_Scene", "endTmpObjList", "Begin adding to octree structure TODO");
-			win.getMsgObj().dispInfoMessage("Base_Scene", "endTmpObjList", "Done Adding to octree structure TODO");
+			msgObj.dispInfoMessage("Base_Scene ("+fileName+")", "endTmpObjList", "Begin adding to octree structure TODO");
+			msgObj.dispInfoMessage("Base_Scene ("+fileName+")", "endTmpObjList", "Done Adding to octree structure TODO");
 		}
 		addObjectToScene(accelObjList);
 	}//endTmpObjList
@@ -385,7 +388,7 @@ public abstract class Base_Scene {
 		startTmpObjList();
 		win.buildSierpSubTri(this, 8,scVal, name,0,depth,useShdr);
 		endTmpObjList(1);			//bvh of sierp objs
-		win.getMsgObj().dispInfoMessage("Base_Scene", "buildSierpinski", "Total Objects : "+((Math.pow(4, depth)-1)/3.0f));
+		msgObj.dispInfoMessage("Base_Scene ("+fileName+")", "buildSierpinski", "Total Objects : "+((Math.pow(4, depth)-1)/3.0f));
 	}	
 	/**
 	 * remove most recent object from list of objects and instead add to instance object struct.
@@ -411,7 +414,7 @@ public abstract class Base_Scene {
 	
 	// adds a new pointlight to the array of lights :   @params rgb - color, xyz - location
 	public void addMyPointLight(String[] token){
-		win.getMsgObj().dispInfoMessage("Base_Scene", "addMyPointLight", "Point Light : current # of lights : " + numLights);
+		msgObj.dispInfoMessage("Base_Scene ("+fileName+")", "addMyPointLight", "Point Light : current # of lights : " + numLights);
 		myPointLight tmp = new myPointLight(this, numLights, 
 				Double.parseDouble(token[4]),Double.parseDouble(token[5]),Double.parseDouble(token[6]),
 				Double.parseDouble(token[1]),Double.parseDouble(token[2]),Double.parseDouble(token[3]));
@@ -422,7 +425,7 @@ public abstract class Base_Scene {
 	public void addMySpotLight(String[] token){
 		double _inThet = Double.parseDouble(token[7]);
 		double _outThet = Double.parseDouble(token[8]);
-		win.getMsgObj().dispInfoMessage("Base_Scene", "addMySpotLight", "Spotlight : current # of lights : " + numLights + " inner angle : " + _inThet + " outer angle : " + _outThet);
+		msgObj.dispInfoMessage("Base_Scene ("+fileName+")", "addMySpotLight", "Spotlight : current # of lights : " + numLights + " inner angle : " + _inThet + " outer angle : " + _outThet);
 		mySpotLight tmp = new mySpotLight(this, numLights,
 				Double.parseDouble(token[9]),Double.parseDouble(token[10]),Double.parseDouble(token[11]),
 				Double.parseDouble(token[1]),Double.parseDouble(token[2]),Double.parseDouble(token[3]),
@@ -434,7 +437,7 @@ public abstract class Base_Scene {
 	// adds a new disklight to the array of lights : disk_light x y z radius dx dy dz r g b
 	public void addMyDiskLight(String[] token){
 		double radius = Double.parseDouble(token[4]);
-		win.getMsgObj().dispInfoMessage("Base_Scene", "addMyDiskLight", "Disk Light : current # of lights : " + numLights + " radius : " + radius);
+		msgObj.dispInfoMessage("Base_Scene ("+fileName+")", "addMyDiskLight", "Disk Light : current # of lights : " + numLights + " radius : " + radius);
 		myDiskLight tmp = new myDiskLight(this, numLights,
 				Double.parseDouble(token[8]),Double.parseDouble(token[9]),Double.parseDouble(token[10]),
 				Double.parseDouble(token[1]),Double.parseDouble(token[2]),Double.parseDouble(token[3]),
@@ -503,7 +506,7 @@ public abstract class Base_Scene {
 	public void setNoise(double scale, String[] vals){
 		resetDfltTxtrVals();//reset values for next call
 		txtrType = 2;
-		win.getMsgObj().dispInfoMessage("Base_Scene", "setNoise","Setting Noise to scale : " + scale);	
+		msgObj.dispInfoMessage("Base_Scene ("+fileName+")", "setNoise","Setting Noise to scale : " + scale);	
 		noiseScale = scale;		//only specified value is scale currently
 	}//setNoise
 	
@@ -578,13 +581,13 @@ public abstract class Base_Scene {
 				}
 				tmpWtAra.add(tmpWt);
 			}//catch		
-			win.getMsgObj().dispInfoMessage("Base_Scene", "setTxtrColor","Finished loading color : " + tmp + " for txtr " + getTxtrName());
+			msgObj.dispInfoMessage("Base_Scene ("+fileName+")", "setTxtrColor","Finished loading color : " + tmp + " for txtr " + getTxtrName());
 		}
 		catch (Exception e) {
 			String res = "Invalid color specification : \n" ;	
 			for(int i =0; i<clrs.length;++i){res+=" {"+clrs[i]+"} \n";}
 			res+=" so color not added to array\n";
-			win.getMsgObj().dispMultiLineMessage("Base_Scene", "addMyPointLight",res, MsgCodes.error1);
+			msgObj.dispMultiLineMessage("Base_Scene ("+fileName+")", "addMyPointLight",res, MsgCodes.error1);
 		}	 		
 		noiseColors = tmpAra.toArray(new myRTColor[0]);
 	}//setTxtrColors
@@ -617,13 +620,13 @@ public abstract class Base_Scene {
 				try{	numOverlays = Integer.parseInt(vals[13]);	}	catch (Exception e) {numOverlays = 1;	}		
 			}
 			catch (Exception e) {	
-				win.getMsgObj().dispWarningMessage("Base_Scene", "readProcTxtrPerlinVals","Proc Perlin-based txtr not specifying randomize colors or overlays so defaults are used for txtr type : " + getTxtrName());	
+				msgObj.dispWarningMessage("Base_Scene ("+fileName+")", "readProcTxtrPerlinVals","Proc Perlin-based txtr not specifying randomize colors or overlays so defaults are used for txtr type : " + getTxtrName());	
 				rndColors = false;	colorScale = 25.0;colorMult = .1;numOverlays = 1;}	 
 			useDefaults = false;
-			win.getMsgObj().dispInfoMessage("Base_Scene", "readProcTxtrPerlinVals", "Finished loading custom values for texture type : " + getTxtrName());
+			msgObj.dispInfoMessage("Base_Scene ("+fileName+")", "readProcTxtrPerlinVals", "Finished loading custom values for texture type : " + getTxtrName());
 		}
 		catch (Exception e) {
-			win.getMsgObj().dispWarningMessage("Base_Scene", "readProcTxtrPerlinVals", "No Proc Texture values specified for texture type : " + getTxtrName() + " so using defaults.");	useDefaults = true;	}	 
+			msgObj.dispWarningMessage("Base_Scene ("+fileName+")", "readProcTxtrPerlinVals", "No Proc Texture values specified for texture type : " + getTxtrName() + " so using defaults.");	useDefaults = true;	}	 
 		return useDefaults;	
 	}//readProcTxtrPerlinVals
 	
@@ -652,12 +655,12 @@ public abstract class Base_Scene {
 				try{	numOverlays = Integer.parseInt(vals[10]);	}	catch (Exception e) {numOverlays = 1;	}		
 			}
 			catch (Exception e) {	
-				win.getMsgObj().dispErrorMessage("Base_Scene", "readProcTxtrWorleyVals", "Proc txtr not specifying randomize colors or overlays so defaults are used for txtr type : " + getTxtrName());	
+				msgObj.dispErrorMessage("Base_Scene ("+fileName+")", "readProcTxtrWorleyVals", "Proc txtr not specifying randomize colors or overlays so defaults are used for txtr type : " + getTxtrName());	
 				rndColors = false;	colorScale = 25.0;colorMult = .1;numOverlays = 1;}	 
 			useDefaults = false;
-			win.getMsgObj().dispInfoMessage("Base_Scene", "readProcTxtrWorleyVals", "Finished loading custom values for texture type : " + getTxtrName());
+			msgObj.dispInfoMessage("Base_Scene ("+fileName+")", "readProcTxtrWorleyVals", "Finished loading custom values for texture type : " + getTxtrName());
 		}
-		catch (Exception e) {win.getMsgObj().dispErrorMessage("Base_Scene", "readProcTxtrWorleyVals", "No Proc Texture values specified for texture type : " + getTxtrName() + " so using defaults.");	useDefaults = true;	}	 
+		catch (Exception e) {msgObj.dispErrorMessage("Base_Scene ("+fileName+")", "readProcTxtrWorleyVals", "No Proc Texture values specified for texture type : " + getTxtrName() + " so using defaults.");	useDefaults = true;	}	 
 		return useDefaults;	
 	}//readProcTxtrWorleyVals
 	
@@ -751,9 +754,9 @@ public abstract class Base_Scene {
 							noiseColors, 											//myColor[] clrs = noiseColors
 							clrWts);											//Double[] wts = clrWts					
 				} break;}
-			default : {	win.getMsgObj().dispErrorMessage("Base_Scene", "setTexture", "Unknown Texture type : " + _typ); txtrType = 0; return;}
+			default : {	msgObj.dispErrorMessage("Base_Scene ("+fileName+")", "setTexture", "Unknown Texture type : " + _typ); txtrType = 0; return;}
 		}
-		win.getMsgObj().dispInfoMessage("Base_Scene", "setTexture", "Set Texture type : " + _typ); 
+		msgObj.dispInfoMessage("Base_Scene ("+fileName+")", "setTexture", "Set Texture type : " + _typ); 
 	}//setTexture
 	
 	
@@ -823,7 +826,7 @@ public abstract class Base_Scene {
 	    	case "clr_faintcyan"  	    : { return new myRTColor(0,0.43,0.43);}
 	    	case "clr_faintmagenta"  	: { return new myRTColor(0.43,0,0.43);}    	
 	    	case "clr_offwhite"			: { return new myRTColor(0.95,0.98,0.92);}
-	    	default         		    : { win.getMsgObj().dispErrorMessage("Base_Scene", "getClr", "Color not found : " + colorVal + " so using white.");	return new myRTColor(1.0,1.0,1.0);}    
+	    	default         		    : { msgObj.dispErrorMessage("Base_Scene ("+fileName+")", "getClr", "Color not found : " + colorVal + " so using white.");	return new myRTColor(1.0,1.0,1.0);}    
 		}//switch
 	}//getClr
 	
@@ -868,7 +871,7 @@ public abstract class Base_Scene {
 	}
 	
 	public void setNumRaysPerPxl(int _num){
-		win.getMsgObj().dispInfoMessage("Base_Scene", "setNumRaysPerPxl", "Num Rays Per Pixel : " + _num);
+		msgObj.dispInfoMessage("Base_Scene ("+fileName+")", "setNumRaysPerPxl", "Num Rays Per Pixel : " + _num);
 		this.numRaysPerPixel = _num;
 	}
 	
@@ -985,7 +988,7 @@ public abstract class Base_Scene {
 //			try{
 			rayHit _hit = obj.intersectCheck(_ray,_ray.getTransformedRay(_ray, obj.CTMara[Base_Geometry.invIDX]),obj.CTMara);		
 //			} catch (Exception e){
-//				win.getMsgObj().dispErrorMessage("Base_Scene", "findClosestRayHit", "exception :\n"+e);
+//				msgObj.dispErrorMessage("Base_Scene ("+fileName+")", "findClosestRayHit", "exception :\n"+e);
 //			}
 			if(_hit.isHit){			objsAtRayHits.put(_hit, _hit.obj);		}
 		}//for obj in scenelist
@@ -999,7 +1002,6 @@ public abstract class Base_Scene {
 		//if ((hitChk.isHit)) {										return(hitChk.obj.getColorAtPos(hitChk));}//to debug BVH use this - displays colors of leaf boxes (red/blue)
 		if (hitChk.isHit) {											return(hitChk.shdr.getColorAtPos(hitChk));}
 		else if (hasGlblTxtrdBkg()) {								return getBackgroundTextureColor(_ray);	} 	//using skydome
-//		else if ((_ray.direction.z > MyMathUtils.EPS) && (scFlags[useFGColorIDX])){	return foregroundColor;	} 					//for getting color reflected from behind viewer
 		else {														return backgroundColor;	}
 	}//reflectRay	
 	
@@ -1017,14 +1019,14 @@ public abstract class Base_Scene {
 		kNhood = Integer.parseInt(token[2]);
 		photonMaxNearDist = Float.parseFloat(token[3]);
 		float sqDist = photonMaxNearDist*photonMaxNearDist;
-		win.getMsgObj().dispInfoMessage("Base_Scene", "setPhotonHandling", "# photons : "+ numPhotons+ " Hood size :"+kNhood+" Max Near Dist :" +photonMaxNearDist);
+		msgObj.dispInfoMessage("Base_Scene ("+fileName+")", "setPhotonHandling", "# photons : "+ numPhotons+ " Hood size :"+kNhood+" Max Near Dist :" +photonMaxNearDist);
 		//build photon tree
 		photonTree = new Photon_KDTree(numPhotons, kNhood, sqDist);
 	}
 	//final gather procedure
 	public void setFinalGather(String[] token){
 		numGatherRays = Integer.parseInt(token[1]);
-		win.getMsgObj().dispInfoMessage("Base_Scene", "setFinalGather", "Final gather ray count : "+numRays);		
+		msgObj.dispInfoMessage("Base_Scene ("+fileName+")", "setFinalGather", "Final gather ray count : "+numRays);		
 	}
 	/////////////
 
@@ -1040,9 +1042,9 @@ public abstract class Base_Scene {
   	}//getReflDir
   				
   	private void _buildKDTree(String _type) {
-		win.getMsgObj().dispInfoMessage("Base_Scene", "_buildKDTree", "Building KD Tree for "+_type+" Photons");
+		msgObj.dispInfoMessage("Base_Scene ("+fileName+")", "_buildKDTree", "Building KD Tree for "+_type+" Photons");
 		photonTree.buildKDTree();
-		win.getMsgObj().dispInfoMessage("Base_Scene", "_buildKDTree", "KD Tree Built for "+_type+" Photons"); 		
+		msgObj.dispInfoMessage("Base_Scene ("+fileName+")", "_buildKDTree", "KD Tree Built for "+_type+" Photons"); 		
   	}
   	
   	//TODO set  up seperate maps for caustic and diffuse photons
@@ -1060,12 +1062,12 @@ public abstract class Base_Scene {
 		//TODO scale # of photons sent into scene by light intensity
 		for(Base_Geometry light : lightList){//either a light or an instance of a light
 			tmpLight = (light instanceof Base_Light) ? tmpLight = (Base_Light)light : ((Base_Light)((ObjInstance)light).obj);
-			System.out.print("Casting " + photonTree.numCast + " Caustic photons for light ID " + tmpLight.ID + ": Progress:");			
+			msgObj.dispInfoMessage("Base_Scene ("+fileName+")","sendCausticPhotons","Casting " + photonTree.numCast + " Caustic photons for light ID " + tmpLight.ID + ": Progress:");			
 			for(int i =0; i<photonTree.numCast; ++i){
 				photonPwr = new double[]{tmpLight.lightColor.x * pwrMult,tmpLight.lightColor.y * pwrMult,tmpLight.lightColor.z * pwrMult };
 				hitChk = findClosestRayHit(tmpLight.genRndPhtnRay());//first hit
 				if((!hitChk.isHit) || (!hitChk.shdr.getHasCaustic())){continue;}			//either hit background or 1st hit is diffuse object - caustic has to hit spec first
-				//System.out.println("hit obj : " + hitChk.obj.ID);
+				//msgObj.dispInfoMessage("Base_Scene ("+fileName+")","sendCausticPhotons","Hit obj : " + hitChk.obj.ID);
 				//we have first hit here at caustic-generating surface.  need to propagate through to first diffuse surface
 				hitChk.phtnPwr = photonPwr;
 				do{
@@ -1087,7 +1089,7 @@ public abstract class Base_Scene {
 				if(i > lastCastCnt){
 					lastCastCnt += numCastPerDisp;					
 					System.out.print((starCount % pctCastCnt == 0) ? (10.0*starCount/pctCastCnt) + "%" : "*");
-					starCount++;
+					++starCount;
 				}
 			}//for each photon of light
 			System.out.println("100.0%");
@@ -1109,16 +1111,19 @@ public abstract class Base_Scene {
 		double[] tmpPwr,photonPwr;
 		rayHit hitChk;
 		myPhoton phn;
-		//TODO scale # of photons sent into scene by light intensity
+		//random instance		
+  		myVector _p = new myVector(),_q = new myVector(); 
+  		
+  		//TODO scale # of photons sent into scene by light intensity
 		for(Base_Geometry light : lightList){//either a light or an instance of a light
 			tmpLight = (light instanceof Base_Light) ? tmpLight = (Base_Light)light : ((Base_Light)((ObjInstance)light).obj);
-			System.out.print("Casting " + photonTree.numCast + " Diffuse (indirect) photons for light ID " + tmpLight.ID + ": Progress:");			
+			msgObj.dispInfoMessage("Base_Scene ("+fileName+")","sendDiffusePhotons","Casting " + photonTree.numCast + " Diffuse (indirect) photons for light ID " + tmpLight.ID + ": Progress:");			
 			for(int i =0; i<photonTree.numCast; ++i){
 				photonPwr = new double[]{tmpLight.lightColor.x * pwrMult,tmpLight.lightColor.y * pwrMult,tmpLight.lightColor.z * pwrMult };
 				hitChk = findClosestRayHit(tmpLight.genRndPhtnRay());//first hit
 				if(!hitChk.isHit){continue;}							//hit background - ignore
 				//now we hit an object, spec or diffuse - if specular, bounce without storing, if diffuse store and bounce with prob based on avg color				
-				//System.out.println("hit obj : " + hitChk.obj.ID);
+				//msgObj.dispInfoMessage("Base_Scene ("+fileName+")","sendDiffusePhotons","Hit obj : " + hitChk.obj.ID);
 				//we have first hit here at caustic-generating surface.  need to propagate through to first diffuse surface
 				hitChk.phtnPwr = photonPwr;
 				boolean done = false, firstDiff = true;
@@ -1145,12 +1150,11 @@ public abstract class Base_Scene {
 							//cosine weighting preserved by projecting up to sphere
 							z = Math.sqrt(1 - sqmag);							
 							//then build ortho basis from normal : n' , q' , r' 
-					  		myVector n = hitChk.objNorm,_p = new myVector(),_q = new myVector(); 
-					  				//tmpV = (((n.x > n.y) && (n.x > n.z)) || ((-n.x > -n.y) && (-n.x > -n.z))  ? new myVector(0,0,1)  : new myVector(1,0,0));//find vector not close to n or -n to use to find tangent
+					  		myVector n = hitChk.objNorm;//,_p = new myVector(),_q = new myVector(); 
 							double nxSq = n.x * n.x, nySq = n.y * n.y, nzSq = n.z * n.z;
 							//find vector not close to n or -n to use to find tangent
 							myVector tmpV = (((nxSq > nySq) && (nxSq > nzSq))  ? new myVector(0,0,1) : new myVector(1,0,0));
-					  		//set _p to be tangent, _q to be binorm
+					  		//set _p to be tangent, _q to be binorm (make frame)
 					  		_p = n._cross(tmpV);	_q = _p._cross(n);
 					  		//if(_p.sqMagn < p.MyMathUtils.EPS){System.out.println("bad _p : " + _p + " | n : " + n + " | tmpV : " + tmpV);}
 					  		//lastly multiply ortho basis vectors by x,y,z : x * p, y * q', z*n', and then sum these products - z is projection/hemisphere dir, so should coincide with normal
@@ -1182,7 +1186,7 @@ public abstract class Base_Scene {
 				if(i > lastCastCnt){
 					lastCastCnt += numCastPerDisp;					
 					System.out.print((starCount % pctCastCnt == 0) ? (10.0*starCount/pctCastCnt) + "%" : "*");
-					starCount++;
+					++starCount;
 				}
 			}
 			System.out.println("100.0%");
@@ -1250,7 +1254,7 @@ public abstract class Base_Scene {
 		}//if positive t
 		else {
 			//should never get here - any ray that is sent to this function hasn't intersected with any other
-			win.getMsgObj().dispErrorMessage("Base_Scene", "findSkyDomeT", "Error - non-colliding ray doesn't hit sky dome.  b^2 - 4ac , eval : "+ b + "^2 - 4 " + a + "*" + c + " : " + discr);
+			msgObj.dispErrorMessage("Base_Scene ("+fileName+")", "findSkyDomeT", "Error - non-colliding ray doesn't hit sky dome.  b^2 - 4ac , eval : "+ b + "^2 - 4 " + a + "*" + c + " : " + discr);
 		}
 		return t;
 	}//findSkjDomeT func
@@ -1380,7 +1384,7 @@ public abstract class Base_Scene {
 		String[] tmp = saveName.split("\\.(?=[^\\.]+$)");				//remove extension from given savename
 		if (saveImageInDir()){	tmpSaveName = folderName.toString() + "\\"  + tmp[0]+(doFlipNorms() ? "_normFlipped" : "")+ ".png";} //rebuild name to include directory and image name including render time
 		else {							tmpSaveName = tmp[0]+(doFlipNorms() ? "_normFlipped" : "")+".png";		}
-		win.getMsgObj().dispInfoMessage("Base_Scene", "saveFile", "File saved as  : "+ tmpSaveName);
+		msgObj.dispInfoMessage("Base_Scene ("+fileName+")", "saveFile", "File saved as  : "+ tmpSaveName);
 		rndrdImg.save(tmpSaveName);
 		setSaveImage(false);//don't keep saving every frame
 	}//save image
@@ -1390,7 +1394,7 @@ public abstract class Base_Scene {
 	 */
 	protected void finishImage(){
 		if (saveImage()){		saveFile();	}//if savefile is true, save the file
-		else {win.getMsgObj().dispInfoMessage("Base_Scene", "finishImage", "Apparently not saving this file : "+saveName);}
+		else {msgObj.dispInfoMessage("Base_Scene ("+fileName+")", "finishImage", "Apparently not saving this file : "+saveName);}
 		String dispStr = "";
 		if (showObjInfo()){
 			
@@ -1408,13 +1412,13 @@ public abstract class Base_Scene {
 		     	}
 	     		dispStr += "_________________________________________________________________________\n";
 	     	}
-			win.getMsgObj().dispMultiLineInfoMessage("Base_Scene", "finishImage", dispStr);
+			msgObj.dispMultiLineInfoMessage("Base_Scene ("+fileName+")", "finishImage", dispStr);
 		}//for objects and instances, to print out info
 		if (hasGlblTxtrdBkg()){
 			dispStr += "\nBackground : " + mySkyDome.showUV() + "\n";  
 		}
 		dispStr += "Total # of rays : " + globRayCount + " | refl/refr rays " + reflRays +"/" + refrRays + "\n\nImage rendered from file name : " + saveName;
-		win.getMsgObj().dispMultiLineInfoMessage("Base_Scene", "finishImage", dispStr);
+		msgObj.dispMultiLineInfoMessage("Base_Scene ("+fileName+")", "finishImage", dispStr);
 	}
 	
 	
@@ -1512,20 +1516,6 @@ public abstract class Base_Scene {
 		}				
 	}//setFlags
 	
-	public void dispInfoMessage(String _class, String _method, String _message) {
-		win.getMsgObj().dispInfoMessage(_class, _method, _message);
-	}
-	
-	
-	public void dispWarningMessage(String _class, String _method, String _message) {
-		win.getMsgObj().dispWarningMessage(_class, _method, _message);
-	}
-	
-	
-	public void dispErrorMessage(String _class, String _method, String _message) {
-		win.getMsgObj().dispErrorMessage(_class, _method, _message);
-	}
-	
 	/**
 	*  build translate, scale and rotation matricies to use for scene descriptions
 	*  will apply inverses of these matricies to generated ray so that object is rendered in appropriate manner :
@@ -1536,7 +1526,7 @@ public abstract class Base_Scene {
 	///////
 	//transformation stack stuff - uses "gt" prefix instead of "gl" because cute.
 	//
-	 public void gtDebugStack(String caller){ win.getMsgObj().dispMultiLineInfoMessage("Base_Scene", "gtDebugStack", "Caller : "+caller + "\nCurrent stack status : \n"+matrixStack.toString()); }//gtdebugStack method
+	 public void gtDebugStack(String caller){ msgObj.dispMultiLineInfoMessage("Base_Scene ("+fileName+")", "gtDebugStack", "Caller : "+caller + "\nCurrent stack status : \n"+matrixStack.toString()); }//gtdebugStack method
 
 	 private void gtInitialize() {
 		 currMatrixDepthIDX = 0;
@@ -1548,11 +1538,11 @@ public abstract class Base_Scene {
 		if (currMatrixDepthIDX < matStackMaxHeight){
 	    	matrixStack.push();
 	    	++currMatrixDepthIDX;
-		} else {	win.getMsgObj().dispErrorMessage("Base_Scene","gtPushMatrix","Error, matrix depth maximum " + matStackMaxHeight + " exceeded");	}	  
+		} else {	msgObj.dispErrorMessage("Base_Scene ("+fileName+")","gtPushMatrix","Error, matrix depth maximum " + matStackMaxHeight + " exceeded");	}	  
 	}//gtPushMatrix method
 
 	public void gtPopMatrix() { 
-		if (matrixStack.top == 0){win.getMsgObj().dispErrorMessage("Base_Scene","gtPopMatrix","Error : Cannot pop the last matrix in the matrix stack");} 
+		if (matrixStack.top == 0){msgObj.dispErrorMessage("Base_Scene ("+fileName+")","gtPopMatrix","Error : Cannot pop the last matrix in the matrix stack");} 
 		else {		//temp was last matrix at top of stack - referencing only for debugging purposes
 			@SuppressWarnings("unused")
 			myMatrix temp = matrixStack.pop();

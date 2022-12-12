@@ -111,7 +111,7 @@ public class BVH_AccelStruct extends Base_AccelStruct{
 //	}//addObj
 //	
 	@Override
-	public int calcShadowHit(rayCast _ray, rayCast _trans, myMatrix[] _ctAra, double distToLight) {
+	public final int calcShadowHit(rayCast _ray, rayCast _trans, myMatrix[] _ctAra, double distToLight) {
 		if(isLeaf){return leafVals.calcShadowHit(_ray,_trans, _ctAra, distToLight);}
 		int leftRes = leftChild._bbox.calcShadowHit(_ray,_trans, _ctAra, distToLight);
 		if((leftRes == 1) && leftChild.calcShadowHit(_ray,_trans, _ctAra, distToLight) == 1){return 1;}

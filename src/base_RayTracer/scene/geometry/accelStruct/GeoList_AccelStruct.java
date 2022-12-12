@@ -36,7 +36,7 @@ public class GeoList_AccelStruct extends Base_AccelStruct{
 	}
 	@Override  
 	//check if object's contents block the light - check if any are accel structs or instance of accel struct
-	public int calcShadowHit(rayCast _ray,rayCast _trans, myMatrix[] _ctAra, double distToLight) {
+	public final int calcShadowHit(rayCast _ray,rayCast _trans, myMatrix[] _ctAra, double distToLight) {
 		if(_bbox.calcShadowHit( _ray, _trans, _ctAra, distToLight) == 0 ){return 0;}				//no hit of bounding box, then no hit 	
 		rayCast _objTransRay;
 		for (Base_Geometry obj : objList){
