@@ -100,7 +100,7 @@ public class myFishEyeScene extends Base_Scene{
 						showColor = getColorFromRayCast(xVal, yVal, rTmp);
 						pixIDX = writePxlSpan(showColor.getInt(),row,col,stepIter,pixels);
 					}
-					if ((1.0 * pixIDX)/(numPxls) > (progressCount * .02)){System.out.print("-|");++progressCount;}//progressbar  
+					progressCount = dispProgressBar(pixIDX, progressCount);//if ((1.0 * pixIDX)/(numPxls) > (progressCount * .02)){System.out.print("-|");++progressCount;}//progressbar  
 				}//for col
 			}//for row	     
 		} else{    
@@ -111,7 +111,7 @@ public class myFishEyeScene extends Base_Scene{
 					xVal = (col + xStart);
 					showColor = shootMultiRays(xVal, yVal); 			//replace by base radian amt of max(x,y) 
 					pixIDX = writePxlSpan(showColor.getInt(),row,col,stepIter,pixels);			
-					if ((1.0 * pixIDX)/(numPxls) > (progressCount * .02)){System.out.print("-|");++progressCount;}//progressbar  
+					progressCount = dispProgressBar(pixIDX, progressCount);//if ((1.0 * pixIDX)/(numPxls) > (progressCount * .02)){System.out.print("-|");++progressCount;}//progressbar  
 				}//for col
 			}//for row  
 		}//if antialiasing

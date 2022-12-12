@@ -103,7 +103,11 @@ public abstract class Base_Scene {
 	public mySphere mySkyDome;	
 	
 	//current number of lights, number of objects built, used for ID field in mySceneObject constructor and addNewLights, num non-light objects
-	public int numLights, objCount, numNonLights, numPxls, numNamedObjs;
+	public int numLights, objCount, numNonLights, numNamedObjs;
+	//# of pixels in image, for progress bar
+	//private int numPxls;
+	//some constant value over the number of pixels in the image, for progress bar display
+	private float progressScale;
 	//debug - count rays refracted, reflected
 	public long refrRays = 0, reflRays = 0, globRayCount = 0;
 	
@@ -838,7 +842,8 @@ public abstract class Base_Scene {
 	private void setImageSize(int numCols, int numRows){//set size and all size-related variables, including image dims
 		sceneCols = numCols;
 		sceneRows = numRows;
-		numPxls = sceneRows * sceneCols;
+		int numPxls = sceneRows * sceneCols;
+		progressScale = 50.0f/numPxls;
 		rayYOffset = sceneRows/2.0;
 		rayXOffset = sceneCols/2.0;
 		
@@ -1358,9 +1363,11 @@ public abstract class Base_Scene {
 			if(useGlblRefine()){
 				stepIter = RefineIDX[curRefineStep++];
 				skipPxl = curRefineStep != 1;			//skip 0,0 pxl on all sub-images except the first pass
-			} 
+				System.out.print("Render Scene Iteration " +curRefineStep +" Progress : ");
+			} else {
+				System.out.print("Render Scene Progress : ");
+			}
 			if(stepIter == 1){setRendered(true);			}
-			
 			//Render specific scene
 			renderScene(stepIter, skipPxl, rndrdImg.pixels);			
 			//Finish up
@@ -1421,6 +1428,10 @@ public abstract class Base_Scene {
 		msgObj.dispMultiLineInfoMessage("Base_Scene ("+fileName+")", "finishImage", dispStr);
 	}
 	
+	protected final int dispProgressBar(float pixIDX, int progressCount) {
+		if (progressScale * pixIDX > progressCount){System.out.print("-|");++progressCount;}
+		return progressCount;
+	}
 	
 	/**
 	 * base class flags init
