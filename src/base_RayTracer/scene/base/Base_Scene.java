@@ -1397,9 +1397,10 @@ public abstract class Base_Scene {
 		else {msgObj.dispInfoMessage("Base_Scene ("+fileName+")", "finishImage", "Apparently not saving this file : "+saveName);}
 		String dispStr = "";
 		if (showObjInfo()){
-			
+			dispStr += "Object Debug Info : # objects : " + allObjsToFind.size() +" : \n";
+			int i = 0;
 			for (Base_Geometry obj : allObjsToFind){
-				dispStr += obj.toString() +"\n";
+				dispStr += "\nObject " + (++i) +"|"+obj.toString() +"\n";
 	     		if(obj instanceof Base_SceneObject){
 		     		if (((Base_SceneObject)obj).shdr.txtr.getHasTxtrdTop()){
 		     			dispStr += ((Base_SceneObject)obj).showUV() +"\n";
@@ -1412,7 +1413,6 @@ public abstract class Base_Scene {
 		     	}
 	     		dispStr += "_________________________________________________________________________\n";
 	     	}
-			msgObj.dispMultiLineInfoMessage("Base_Scene ("+fileName+")", "finishImage", dispStr);
 		}//for objects and instances, to print out info
 		if (hasGlblTxtrdBkg()){
 			dispStr += "\nBackground : " + mySkyDome.showUV() + "\n";  

@@ -47,6 +47,7 @@ public enum GeomObjType {
 	public static int getNumVals(){return map.size();}						//get # of values in enum
 	public String getName() {return _typeName[value];}
 	@Override
-    public String toString() { return ""+value + ":"+_typeExplanation[value]; }	
+    public String toString() { return ""+_typeExplanation[value] + "("+value+")"; }	
+    public String toStrBrf() { return ""+_typeExplanation[value]; }	
 
 }//enum GeomObjType

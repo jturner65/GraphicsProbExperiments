@@ -152,7 +152,7 @@ public abstract class Base_PlanarObject extends Base_SceneObject{
 	protected double findTextureV(myPoint isctPt, PImage myTexture, double time){	return 0.0;  } 
 	@Override
 	public String toString(){
-		return super.toString()+ type + normalStructs[0].toString();
+		return super.toString() +"\n"+ type + normalStructs[0].toString();
 	}
 }//class myPlanarObject
 

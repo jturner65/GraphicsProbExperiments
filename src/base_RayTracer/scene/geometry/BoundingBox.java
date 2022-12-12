@@ -172,7 +172,7 @@ public class BoundingBox extends Base_Geometry {
 	public myRTColor getColorAtPos(rayHit transRay) {	return new myRTColor(1,0,0);}
 
 	public String toString(){
-		String res = "\t\tBBOX : "+ ID + " BBox bounds : Min : " + minVals + " | Max : " + maxVals + " | Ctr " + origin + " Obj type : " + obj.type+"\n";
+		String res = "\tBBOX : "+ ID + " BBox bounds : Min : " + minVals + " | Max : " + maxVals + " | Ctr " + origin + " Obj type : " + obj.type.toStrBrf()+"\n";
 		return res;		
 	}
 

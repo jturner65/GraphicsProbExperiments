@@ -593,9 +593,9 @@ public class myObjShader {
 
 	public String toString(){
 		String result = "Shader type : " + shType +  " |\t ray hits on obj : " + dbgRayHits;
-		result += "\n\tDIFFUSE : " + diffuseColor.toString() + " | AMBIENT : " + ambientColor.toString() + " | SPECULAR : " + specularColor.toString();
+		result += "\n\tDiffuse " + diffuseColor.toStrBrf() + " | Ambient " + ambientColor.toStrBrf() + " | Specular " + specularColor.toStrBrf();
 		result += "\n\tDiffuse const : " + diffConst + " | phongExp : " + phongExp + " | krefl : " + KRefl+ " | ktrans : " + KTrans;
-		result += "\n\tcurrent 'permiability' : " + currPerm + " perm for r g b : " + curPermClr.toString()+"\n";
+		result += "\n\tCurrent 'permiability' : " + currPerm + " | Perm Color : " + curPermClr.toStrBrf()+"\n";
 		return result;
 	} 
 }//myObjShader

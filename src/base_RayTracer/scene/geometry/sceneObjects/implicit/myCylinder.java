@@ -82,12 +82,13 @@ public class myCylinder extends Base_Cylinder{
   	public String toString(){  
   		String[] eqvals = new String[]{"x + ","y + ","z + ",""};
   		String res = super.toString();
-  		res += "\n cap eqs : ";
+  		res += "\nCap equations : ";
   		for(int i =0;i<capEqs.length;++i){
-  			res +="\n";
+  			res +="\n\tCap "+i+": ";
   			for(int j=0; j<capEqs[i].length;++j){
-  				res+="" + capEqs[i][j]+ eqvals[j];
+  				if (capEqs[i][j]!= 0) {res+="" + capEqs[i][j]+ eqvals[j];}
   			}
+  			res += " = 0";
   		}
   		res+="\n";
   		return res;

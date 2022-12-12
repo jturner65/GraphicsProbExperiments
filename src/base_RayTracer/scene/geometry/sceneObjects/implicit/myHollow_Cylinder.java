@@ -54,6 +54,6 @@ public class myHollow_Cylinder extends Base_Cylinder{
   		return result;
   	}//method getNormalAtPoint  		
 
-  	public String toString(){  return super.toString() + "\n"+ type +"-Specific : Height : " + myHeight + " radius : [" + radX+ "|" +radZ+"] y End : " + yBottom +"\n"; 	}
+  	public String toString(){  return super.toString()+"\n"; 	}
 
 }//myHollow_Cylinder

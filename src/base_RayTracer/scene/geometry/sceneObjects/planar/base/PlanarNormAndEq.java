@@ -15,7 +15,7 @@ import base_RayTracer.ray.rayCast;
 public class PlanarNormAndEq {
 	//owning object
 	protected Base_PlanarObject obj;
-	//number of verticies in owning object
+	//number of vertices in owning object
 	protected final int vCount; 
 	
 	//verts x,y,z; texture coordinates u,v corresponding to each vertex of this poly
@@ -56,7 +56,7 @@ public class PlanarNormAndEq {
 		PLastP0 = new myVector(0,0,0);//used for textures
 		N = new myVector(0,0,1);
 		for (int i = 0; i < vCount; i ++){
-			P[i] = new myVector(0,0,0);
+			P[i] = new myPoint(0,0,0);
 			P2P[i] = new myVector(0,0,0);
 		}  
 	}//initObjVals method
@@ -192,9 +192,9 @@ public class PlanarNormAndEq {
 	
 	@Override
 	public String toString(){
-		String res = "-Specific : Normal :  " + N + " Planar eq : " + peqA+"x + "+peqB+"y  + " + peqC+"z + "+peqD + " = 0\n";  
+		String res = "-Specific : Normal : " + N + "\nPlanar eq : " + peqA+"x + "+peqB+"y  + " + peqC+"z + "+peqD + " = 0\n";  
 		res += "Vertices :\n";
-		for(int i =0; i<P.length;++i){	res+="i : " + P[i]+"\n";}
+		for(int i =0; i<P.length;++i){	res+=""+i+":" + P[i].toStrBrf()+"\n";}
 		return res;
 	}
 	

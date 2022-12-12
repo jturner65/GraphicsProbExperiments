@@ -109,7 +109,7 @@ public class ObjInstance extends Base_Geometry{
 	@Override
 	public myRTColor getColorAtPos(rayHit hit) {		return (doUseShader()) ? shdr.getColorAtPos(hit) : hit.obj.shdr.getColorAtPos(hit);}//return (hit.obj instanceof mySceneObject) ? ((mySceneObject)hit.obj).shdr.getColorAtPos(hit) : new myColor(-1,-1,-1,1);	}
 	public String toString(){
-		String result = super.toString() + " which is an instance of : "+obj.type;
+		String result = super.toString() + " which is an instance of : "+obj.type.toStrBrf();
 	    return result;
 	}
 

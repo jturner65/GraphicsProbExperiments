@@ -171,7 +171,7 @@ public abstract class Base_Geometry {
 	
 	
 	public String toString(){
-		String result = "Object Type : " + type + " ID:"+ID+" origin : " + origin;
+		String result = "Object Type : " + type.toStrBrf() + " ID:"+ID+" origin : " + origin;
 		result+="\nCTM :                         CTMInv :\n";
 		String tmpString,tmp2str;
 	    for (int row = 0; row < 4; ++row){
@@ -188,7 +188,7 @@ public abstract class Base_Geometry {
 	    	for (int col = 0; col < 4; ++col){   tmp2str = (CTMara[invTransIDX].m[row][col] < 0 ? "" : " ")+String.format("%.2f", CTMara[invTransIDX].m[row][col]); if (col != 3) {tmp2str += ", ";} result += tmp2str;}    	tmpString = "]";  if (row != 3) { tmpString += "\n"; }
 	    	result += tmpString;
 	    }
-	    if(_bbox != null){		result += "\nBounding box : " + _bbox.toString();}
+	    if(_bbox != null){		result += "\nBounding box :\n" + _bbox.toString();}
 	    return result;
 	}
 	

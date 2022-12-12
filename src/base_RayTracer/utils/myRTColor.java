@@ -24,6 +24,6 @@ public class myRTColor extends myPoint {
 	private static double gate(double val) {return MyMathUtils.max(0, MyMathUtils.min(1.0,val));}
 	
 	public int getInt(){int retVal = ((int)(255) << 24) + ((int)(x * 255) << 16) + ((int)(y * 255) << 8) + (int)(z * 255);return retVal;}
-	public String toString(){	String res = "Color : r : "+ x+" | g : "+y+" | b : "+z;//+" | alpha : "+alpha;	
-		return res;	}
+	public String toString(){	String res = "Color : r : "+ x+" | g : "+y+" | b : "+z;return res;	}
+	public String toStrBrf(){	String res = "Color (RGB) : " + super.toStrBrf();return res;	}
 }//mycolor class

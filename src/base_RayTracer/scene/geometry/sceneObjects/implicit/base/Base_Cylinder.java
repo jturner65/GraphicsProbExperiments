@@ -116,6 +116,6 @@ public abstract class Base_Cylinder extends Base_ImplicitObject {
 		return res;
 	}	
 	@Override
- 	public String toString(){  return super.toString() + "\n"+ type +"-Specific : Height : " + myHeight + " radius : [" + radX+ "|" +radZ+"] y End : " + yBottom; 	}
+ 	public String toString(){  return super.toString() + "\n"+ type.toStrBrf() +"-Specific : Height : " + myHeight + " radius : [" + radX+ "|" +radZ+"] y End : " + yBottom; 	}
 
 }//class Base_Cylinder

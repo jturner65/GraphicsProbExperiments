@@ -134,5 +134,5 @@ public class mySphere extends Base_ImplicitObject{
 			res._add(-tmpVal,-tmpVal,-tmpVal);
 			return res;
 		}
-		public String toString(){   return super.toString() + "\n"+ type +"-Specific : Radius : [" + radX+ "|" + radY+  "|" +radZ+"]\n"; }
+		public String toString(){   return super.toString() + "\n"+ type.toStrBrf() +"-Specific : Radius : [" + radX+ "|" + radY+  "|" +radZ+"]\n"; }
 	}//class mySphere
