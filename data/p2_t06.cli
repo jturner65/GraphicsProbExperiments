@@ -16,18 +16,12 @@ point_light -3 4 0  .2 .2 .2
 # these two triangles acts as a ground plane
 
 diffuse  .8 .8 .8  .2 .2 .2
+push
+translate 0 1 1
+scale 2 2 1
+read sm2TriFloor.cli
+pop
 
-begin
-vertex -100 -1 -100
-vertex  100 -1 -100
-vertex  100 -1  100
-end
-
-begin
-vertex  100 -1  100
-vertex -100 -1  100
-vertex -100 -1 -100
-end
 
 # sphere resting on ground
 
