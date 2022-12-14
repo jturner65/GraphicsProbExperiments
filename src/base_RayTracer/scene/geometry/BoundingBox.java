@@ -13,7 +13,7 @@ import base_Math_Objects.vectorObjs.doubles.myVector;
 import processing.core.PImage;
  
 /**
- * use this just to enclose other objects - make a mySceneObj box to render a box
+ * use this just to enclose other objects - make a myRndrdBox to render a box
  * @author 7strb
  *
  */
@@ -24,14 +24,17 @@ public class BoundingBox extends Base_Geometry {
 	private Base_Geometry obj;						
 	
 	public int maxExtentIdx;						//idx  (0,1,2) of maximum extent in this bounding box
-	public myVector sArea;
+	public myPoint sArea;
 	public BoundingBox(Base_Scene _scn, myPoint _minVals, myPoint _maxVals){
 		super (_scn, 0, 0, 0, GeomObjType.BBox);
 		calcMinMaxCtrVals(_minVals, _maxVals);
 		_bbox = null;							//a bbox should not have a bounding box
 	}
 
-	//expand passed bbox to hold passed point - point is in box coords
+	/**
+	 * expand passed bbox to hold passed point - point is in box coords
+	 * @param newPt
+	 */
 	private void expandMePt(myPoint newPt) {
 		minVals.x = (minVals.x < newPt.x) ?minVals.x : newPt.x; 
 		minVals.y = (minVals.y < newPt.y) ?minVals.y : newPt.y; 
@@ -42,7 +45,11 @@ public class BoundingBox extends Base_Geometry {
 		calcMinMaxCtrVals(minVals,maxVals);
 	}
 
-	//expand bbox to encompass passed box
+	/**
+	 * expand bbox to encompass passed box
+	 * @param srcBox
+	 * @param fwdTrans
+	 */
 	public void expandMeByTransBox(BoundingBox srcBox, myMatrix fwdTrans) {
 		expandMePt(fwdTrans.transformPoint(srcBox.minVals));
 		expandMePt(fwdTrans.transformPoint(srcBox.maxVals));
@@ -51,12 +58,15 @@ public class BoundingBox extends Base_Geometry {
 		expandMePt(srcBox.minVals);
 		expandMePt(srcBox.maxVals);
 	}
-	//expand bbox by delta in all dir
+	/**
+	 * expand bbox by delta in all dir
+	 * @param delta
+	 */
 	public void expandMeBoxDel(double delta) {
-		myVector delVec = new myVector(minVals);
+		myPoint delVec = new myPoint(minVals);
 		delVec._sub(delta, delta, delta);
 		expandMePt(delVec);
-		delVec = new myVector(maxVals);
+		delVec.set(maxVals);
 		delVec._add(delta, delta, delta);
 		expandMePt(delVec);		
 	}
@@ -80,9 +90,13 @@ public class BoundingBox extends Base_Geometry {
 		double maxVal = MyMathUtils.max(difVals);
 		maxExtentIdx = (maxVal == difVals[0] ? 0 : maxVal == difVals[1] ? 1 : 2);
 		//myVector dif = new myVector(minVals,maxVals);
-		sArea =  new myVector (difs.y*difs.z, difs.x*difs.z, difs.x*difs.y);						
+		sArea = new myPoint(difs.y*difs.z, difs.x*difs.z, difs.x*difs.y);						
 	}
-
+	
+	/**
+	 * Set the object this bounding box bounds
+	 * @param _obj
+	 */
 	public void addObj(Base_Geometry _obj) {		
 		obj = _obj;	
 		CTMara = obj.CTMara;

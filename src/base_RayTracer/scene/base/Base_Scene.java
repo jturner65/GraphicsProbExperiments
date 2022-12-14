@@ -1047,7 +1047,7 @@ public abstract class Base_Scene {
   	}//getReflDir
   				
   	private void _buildKDTree(String _type) {
-		msgObj.dispInfoMessage("Base_Scene ("+fileName+")", "_buildKDTree", "Building KD Tree for "+_type+" Photons");
+		msgObj.dispInfoMessage("Base_Scene ("+fileName+")", "_buildKDTree", "Building KD Tree for " + photonTree.getNumNodeObjs() +" "+_type+" Photons");
 		photonTree.buildKDTree();
 		msgObj.dispInfoMessage("Base_Scene ("+fileName+")", "_buildKDTree", "KD Tree Built for "+_type+" Photons"); 		
   	}
@@ -1067,7 +1067,7 @@ public abstract class Base_Scene {
 		//TODO scale # of photons sent into scene by light intensity
 		for(Base_Geometry light : lightList){//either a light or an instance of a light
 			tmpLight = (light instanceof Base_Light) ? tmpLight = (Base_Light)light : ((Base_Light)((ObjInstance)light).obj);
-			msgObj.dispInfoMessage("Base_Scene ("+fileName+")","sendCausticPhotons","Casting " + photonTree.numCast + " Caustic photons for light ID " + tmpLight.ID + ": Progress:");			
+			msgObj.dispInfoMessage("Base_Scene ("+fileName+")","sendCausticPhotons","Casting " + photonTree.numCast + " Caustic photons for light : " + tmpLight.toStrBrf() + " : Progress:");			
 			for(int i =0; i<photonTree.numCast; ++i){
 				photonPwr = new double[]{tmpLight.lightColor.x * pwrMult,tmpLight.lightColor.y * pwrMult,tmpLight.lightColor.z * pwrMult };
 				hitChk = findClosestRayHit(tmpLight.genRndPhtnRay());//first hit

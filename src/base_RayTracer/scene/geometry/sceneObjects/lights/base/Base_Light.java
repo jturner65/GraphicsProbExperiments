@@ -110,7 +110,9 @@ public abstract class Base_Light extends Base_SceneObject{
 	 * @param radDiff
 	 * @return
 	 */
-	protected double getAngleProb(double angle, double innerThetRad, double outerThetRad, double radDiff){return (angle < innerThetRad ) ? 1 : (angle > outerThetRad ) ? 0 : (outerThetRad - angle)/radDiff;}	
+	protected double getAngleProb(double angle, double innerThetRad, double outerThetRad, double radDiff){
+		return (angle < innerThetRad ) ? 1 : (angle > outerThetRad ) ? 0 : (outerThetRad - angle)/radDiff;
+	}	
 	/**
 	 * send direction vector, finds multiplier for penumbra effect
 	 * @param dir
@@ -133,7 +135,9 @@ public abstract class Base_Light extends Base_SceneObject{
 	
 	public myVector getOrientation(double _t){	return orientation;	}
 
-	public String toString(){  return super.toString() + " \ncolor : " + this.lightColor + " light ID : " + this.lightID;  }
+	public String toString(){  return super.toString() + this.toStrBrf();  }
+	
+	public String toStrBrf() {return "Light Type : "+type.toStrBrf() + "|ID : "+lightID+"| Color : "+lightColor;}
 }//class myLight
 
 

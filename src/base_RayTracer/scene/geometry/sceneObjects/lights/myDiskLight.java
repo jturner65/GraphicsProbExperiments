@@ -13,12 +13,15 @@ import base_Math_Objects.vectorObjs.doubles.myVector;
 /**
  * Create a disk-shaped light source. The center of the disk is (x, y, z), the radius is rad, and a normal vector to the disk is (dx, dy, dz). 
  * As with point lights, there is also a color associated with the light (r, g, b). Since this light source has a non-zero area, 
- * it sould cast a shadow that is soft on the edges. For each shadow ray that is cast at this light source, you should select a random position on this disk. 
+ * it should cast a shadow that is soft on the edges. For each shadow ray that is cast at this light source, 
+ * select a random position on this disk for the source of the light. 
  */
 public class myDiskLight extends Base_Light{	
 	public final double radius;
-	public myVector surfTangent;	//unit vector tangent to surface of light - randomly rotate around normal and extend from 0->radius to get random position	
-	public myPoint curShadowTarget;		//current target for this light - changes every time shadow ray is sent
+	//unit vector tangent to surface of light - randomly rotate around normal and extend from 0->radius to get random position
+	public myVector surfTangent;	
+	//current target for this light - changes every time shadow ray is sent
+	public myPoint curShadowTarget;
 	
 	public myDiskLight(Base_Scene _scn, int _lightID, 
 			double _r, double _g, double _b, 
@@ -37,13 +40,12 @@ public class myDiskLight extends Base_Light{
 		myVector dir = new myVector();
 		double prob, angle;
 		do{//penumbra isn't as likely
-			angle = ThreadLocalRandom.current().nextDouble(0,Math.PI);
-			prob = getAngleProb(angle, 0, Math.PI, Math.PI);			
+			angle = ThreadLocalRandom.current().nextDouble(0,MyMathUtils.PI);
+			prob = getAngleProb(angle, 0, MyMathUtils.PI, MyMathUtils.PI);			
 		} while (prob > ThreadLocalRandom.current().nextDouble(0,1));
 		dir.set(orientation.rotMeAroundAxis(surfTangent,angle));
 		dir._normalize();
 		//rotate in phi dir for random direction
-		//dir = myVector._rotAroundAxis(dir, orientation,ThreadLocalRandom.current().nextDouble(0,PConstants.TWO_PI));		
 		dir = dir.rotMeAroundAxis(orientation,ThreadLocalRandom.current().nextDouble(0,MyMathUtils.TWO_PI));		
 		myPoint loc = getRandomDiskPos();
 		return new rayCast(scene, CTMara[glblIDX].transformPoint(loc), dir, 0);
