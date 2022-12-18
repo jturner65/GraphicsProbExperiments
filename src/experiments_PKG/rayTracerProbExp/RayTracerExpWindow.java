@@ -10,7 +10,7 @@ import base_RayTracer.ui.base.Base_RayTracerWin;
 import base_UI_Objects.GUI_AppManager;
 
 /**
- * @author 7strb
+ * @author John Turner
  *
  */
 public class RayTracerExpWindow extends Base_RayTracerWin {
