@@ -8,7 +8,6 @@ import base_RayTracer.scene.geometry.sceneObjects.implicit.base.Base_ImplicitObj
 import base_Math_Objects.matrixObjs.doubles.myMatrix;
 import base_Math_Objects.vectorObjs.doubles.myPoint;
 import base_Math_Objects.vectorObjs.doubles.myVector;
-import processing.core.PImage;
 
 
 //TODO quartic torus
@@ -32,13 +31,13 @@ public class myTorus extends Base_ImplicitObject{
 	public myTorus(Base_Scene _p, double primeRad, double secondRad){this(_p,primeRad,secondRad,0,0,0); }
 
 	@Override
-	protected double findTextureU(myPoint isctPt, double v, PImage myTexture, double time){
+	protected double findTextureU(myPoint isctPt, double v, int textureH, int textureW, double time){
 		double u = 0.0;
 		return u;
 	}    
 	      
 	@Override
-	protected double findTextureV(myPoint isctPt, PImage myTexture, double time){
+	protected double findTextureV(myPoint isctPt, int textureH, int textureW, double time){
 		double v = 0.0;
 		return v;
 	}

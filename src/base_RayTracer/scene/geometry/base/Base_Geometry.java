@@ -6,7 +6,6 @@ import base_RayTracer.scene.base.Base_Scene;
 import base_RayTracer.scene.geometry.BoundingBox;
 import base_RayTracer.scene.shaders.myObjShader;
 import base_RayTracer.utils.myRTColor;
-import processing.core.PImage;
 import base_Math_Objects.MyMathUtils;
 import base_Math_Objects.matrixObjs.doubles.myMatrix;
 import base_Math_Objects.vectorObjs.doubles.myPoint;
@@ -138,30 +137,33 @@ public abstract class Base_Geometry {
 	 */
 	public abstract myRTColor getColorAtPos(rayHit transRay);
 	/**
-	 * get texture coordinates
+	 * Get Texture Coordinates
 	 * @param isctPt
-	 * @param myTexture
+	 * @param textureH height of the texture
+	 * @param textureW width of the texture
 	 * @param time
 	 * @return
 	 */
-	public abstract double[] findTxtrCoords(myPoint isctPt, PImage myTexture, double time);
+	public abstract double[] findTxtrCoords(myPoint isctPt, int textureH, int textureW, double time);
 	/**
 	 * 
 	 * @param isctPt
 	 * @param v
-	 * @param myTexture
+	 * @param textureH height of the texture
+	 * @param textureW width of the texture
 	 * @param time
 	 * @return
 	 */
-	protected abstract double findTextureU(myPoint isctPt, double v, PImage myTexture, double time);  
+	protected abstract double findTextureU(myPoint isctPt, double v, int textureH, int textureW, double time);  
 	/**
 	 * 
 	 * @param isctPt
-	 * @param myTexture
+	 * @param textureH height of the texture
+	 * @param textureW width of the texture
 	 * @param time
 	 * @return
 	 */
-	protected abstract double findTextureV(myPoint isctPt, PImage myTexture, double time); 
+	protected abstract double findTextureV(myPoint isctPt, int textureH, int textureW, double time); 
 	
 	/**
 	 * Accessor

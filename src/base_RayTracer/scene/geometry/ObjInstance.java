@@ -10,7 +10,6 @@ import base_RayTracer.utils.myRTColor;
 import base_Math_Objects.matrixObjs.doubles.myMatrix;
 import base_Math_Objects.vectorObjs.doubles.myPoint;
 import base_Math_Objects.vectorObjs.doubles.myVector;
-import processing.core.PImage;
 
 /**
  * an instance of an instanced object - used to minimize memory footprint - only have a reference of the object, and then the relevant transformation matrices
@@ -97,13 +96,13 @@ public class ObjInstance extends Base_Geometry{
 	//this is probably not the best way to do this - each instance needs to have its own UV coords.  TODOgetTransformedPt(isctPt, CTMara[invIDX]);
 	//public double[] findTxtrCoords(myVector isctPt, PImage myTexture, double time){ return obj.findTxtrCoords(isctPt, myTexture, time);}
 	@Override
-	public double[] findTxtrCoords(myPoint isctPt, PImage myTexture, double time){ 
-		return obj.findTxtrCoords(CTMara[invIDX].transformPoint(isctPt), myTexture, time);}
+	public double[] findTxtrCoords(myPoint isctPt, int textureH, int textureW, double time){ 
+		return obj.findTxtrCoords(CTMara[invIDX].transformPoint(isctPt), textureH, textureW, time);}
 
 	@Override
-	protected double findTextureU(myPoint isctPt, double v, PImage myTexture, double time){ return 0.0; }
+	protected double findTextureU(myPoint isctPt, double v, int textureH, int textureW, double time){ return 0.0; }
 	@Override
-	protected double findTextureV(myPoint isctPt, PImage myTexture, double time){	return 0.0;  } 
+	protected double findTextureV(myPoint isctPt, int textureH, int textureW, double time){	return 0.0;  } 
 
 	
 	@Override

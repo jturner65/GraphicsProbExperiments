@@ -1266,8 +1266,9 @@ public abstract class Base_Scene {
 	
 	public myRTColor getBackgroundTextureColor(rayCast ray){
 		double t = findSkyDomeT(ray);
-		myPoint isctPt = ray.pointOnRay(t);
-		double[] bkgTxtrUV = mySkyDome.findTxtrCoords(isctPt, (((myImageTexture)mySkyDome.shdr.txtr).myTextureBottom), t);
+		myPoint isctPt = ray.pointOnRay(t);  
+		PImage myTexture = (((myImageTexture)mySkyDome.shdr.txtr).myTextureBottom);
+		double[] bkgTxtrUV = mySkyDome.findTxtrCoords(isctPt, myTexture.height, myTexture.width, t);
 		//double v = findBkgTextureV(isctPt, t), u = findBkgTextureU(isctPt, v, t);
 		double u = bkgTxtrUV[0], v = bkgTxtrUV[1];
 		return new myRTColor(((myImageTexture)mySkyDome.shdr.txtr).myTextureBottom.pixels[(int)v * ((myImageTexture)mySkyDome.shdr.txtr).myTextureBottom.width + (int)u]);

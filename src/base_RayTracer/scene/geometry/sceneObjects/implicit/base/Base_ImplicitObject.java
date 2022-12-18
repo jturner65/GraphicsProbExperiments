@@ -1,6 +1,5 @@
 package base_RayTracer.scene.geometry.sceneObjects.implicit.base;
 
-import processing.core.PImage;
 import base_RayTracer.ray.rayCast;
 import base_RayTracer.scene.base.Base_Scene;
 import base_RayTracer.scene.geometry.base.GeomObjType;
@@ -27,9 +26,9 @@ public abstract class Base_ImplicitObject extends Base_SceneObject {
 	    return result;  
 	}//method originRadCalc
 	@Override
-	public double[] findTxtrCoords(myPoint isctPt, PImage myTexture, double time){
-		double v = findTextureV(isctPt,myTexture,time);	
-		return new double[]{findTextureU(isctPt,v,myTexture,time),v};
+	public final double[] findTxtrCoords(myPoint isctPt, int textureH, int textureW, double time){
+		double v = findTextureV(isctPt,textureH,textureW,time);	
+		return new double[]{findTextureU(isctPt,v,textureH,textureW,time),v};
 	}
 }//class myImpObject
 

@@ -33,12 +33,12 @@ public class myImageTexture extends Base_TextureHandler{
   	 * interpolated via UV
   	 * @param hit
   	 * @param myTexture
-  	 * @return
+  	 * @return int textureH, int textureW,
   	 */
 	protected double[] getTextureColor(rayHit hit, PImage myTexture){
   		double [] texColor = new double[3];
   		
-  		double[] tCoords = hit.obj.findTxtrCoords(hit.hitLoc, myTexture, hit.transRay.getTime());
+  		double[] tCoords = hit.obj.findTxtrCoords(hit.hitLoc, myTexture.height, myTexture.width, hit.transRay.getTime());
   		double v = tCoords[1],u = tCoords[0];
   		//texColorRC - R is row(v), C is column(u)
   		

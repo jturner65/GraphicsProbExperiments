@@ -8,7 +8,6 @@ import base_RayTracer.scene.geometry.sceneObjects.base.Base_SceneObject;
 import base_Math_Objects.matrixObjs.doubles.myMatrix;
 import base_Math_Objects.vectorObjs.doubles.myPoint;
 import base_Math_Objects.vectorObjs.doubles.myVector;
-import processing.core.PImage;
 
 /**
  * a scene object representing a box - basically a bounding box + a shader
@@ -24,14 +23,14 @@ public class myRndrdBox extends Base_SceneObject{
 		postProcBBox();				//cnstrct and define bbox
 	}
 	@Override
-	public double[] findTxtrCoords(myPoint isctPt, PImage myTexture, double time){
-		double v = findTextureV(isctPt,myTexture,time);	
-		return new double[]{findTextureU(isctPt,v,myTexture,time),v};
+	public double[] findTxtrCoords(myPoint isctPt, int textureH, int textureW, double time){
+		double v = findTextureV(isctPt,textureH, textureW,time);	
+		return new double[]{findTextureU(isctPt,v,textureH, textureW,time),v};
 	}
 	@Override
-	protected double findTextureU(myPoint isctPt, double v, PImage myTexture, double time){ return 0.0; }
+	protected double findTextureU(myPoint isctPt, double v, int textureH, int textureW, double time){ return 0.0; }
 	@Override
-	protected double findTextureV(myPoint isctPt, PImage myTexture, double time){	return 0.0;  } 
+	protected double findTextureV(myPoint isctPt, int textureH, int textureW, double time){	return 0.0;  } 
 
 	@Override
 	public myPoint getMaxVec() {		return _bbox.getMaxVec();}

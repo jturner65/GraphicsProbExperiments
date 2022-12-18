@@ -7,7 +7,6 @@ import base_RayTracer.scene.geometry.sceneObjects.planar.base.Base_PlanarObject;
 import base_Math_Objects.MyMathUtils;
 import base_Math_Objects.vectorObjs.doubles.myPoint;
 import base_Math_Objects.vectorObjs.doubles.myVector;
-import processing.core.PImage;
 
 /**
  * infinite plane object
@@ -79,13 +78,13 @@ public class myPlane extends Base_PlanarObject{
 	public final boolean checkInside(myPoint rayPoint, rayCast ray){	return true;	}//checkInside method
 	//infinite plane txtr coords - tiled at bounds described by planar points. Should look pretty interesting if points do not form convex quad
 	@Override
-	public double[] findTxtrCoords(myPoint isCtPt, PImage myTexture, double time){		
+	public double[] findTxtrCoords(myPoint isCtPt, int textureH, int textureW, double time){		
 		myVector v2 = normToUse.getVecPtToPassedPt(isCtPt, 0), p2p0 = normToUse.getP2P(0), p2pLast = normToUse.getPLastP0();
 	    double 
 	    // will tile infinite plane
 	    uRaw = (v2._dot(p2p0) / p2p0.sqMagn), u = uRaw - MyMathUtils.floor(uRaw), 
 	    vRaw = (v2._dot(p2pLast) / p2pLast.sqMagn), v = vRaw - MyMathUtils.floor(vRaw);
-	    return new double[]{(1-u)*(myTexture.width-1),(1-v)*(myTexture.height-1)};
+	    return new double[]{(1-u)*(textureW-1),(1-v)*(textureH-1)};
 	}
 	
 }//myPlane

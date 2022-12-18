@@ -9,7 +9,6 @@ import base_Math_Objects.MyMathUtils;
 import base_Math_Objects.matrixObjs.doubles.myMatrix;
 import base_Math_Objects.vectorObjs.doubles.myPoint;
 import base_Math_Objects.vectorObjs.doubles.myVector;
-import processing.core.PImage;
 
 public class mySphere extends Base_ImplicitObject{
 	  
@@ -93,10 +92,10 @@ public class mySphere extends Base_ImplicitObject{
 		}//intersectCheck method
 		//find the u (x) value in a texture to plot to a specific point on the sphere
 		@Override
-		protected double findTextureU(myPoint isctPt, double v, PImage myTexture, double time){		
+		protected final double findTextureU(myPoint isctPt, double v, int textureH, int textureW, double time){		
 			myPoint t_origin = getOrigin(time);
-			double u = 0.0, q,a0, a1, a2, shWm1 = myTexture.width-1, z1 = (isctPt.z - t_origin.z);	  
-			q = v/(myTexture.height-1);//normalize v to be 0-1
+			double u = 0.0, q,a0, a1, a2, shWm1 = textureW-1, z1 = (isctPt.z - t_origin.z);	  
+			q = v/(textureH-1);//normalize v to be 0-1
 			a0 = (isctPt.x - t_origin.x)/ (radX);
 			a0 = (a0 > 1) ? 1 : (a0 < -1) ? -1 : a0;
 			a1 = ( Math.sin(q* MyMathUtils.PI));
@@ -109,14 +108,14 @@ public class mySphere extends Base_ImplicitObject{
 	        
 		// find the v (y) value in a texture to plot to a specific point on the sphere  remember top of texture should correspond to 0, bottom to texture.height.
 		@Override
-		protected double findTextureV(myPoint isctPt, PImage myTexture, double time){
+		protected final double findTextureV(myPoint isctPt, int textureH, int textureW, double time){
 			myPoint t_origin = getOrigin(time);
 			double v = 0.0;
 			//double a0 = super.rayIntersectPoint[gen].y - origin.y;
 			double a0 = isctPt.y - t_origin.y;
 			double a1 = a0 /(radY);
 			a1 = (a1 > 1)? 1 : (a1 < -1) ?  -1 : a1;    
-			v = (myTexture.height-1) * Math.acos(a1)/MyMathUtils.PI;
+			v = (textureH-1) * Math.acos(a1)/MyMathUtils.PI;
 			return v;
 		}//method findTextureV    
 

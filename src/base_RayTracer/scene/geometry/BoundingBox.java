@@ -10,8 +10,7 @@ import base_Math_Objects.MyMathUtils;
 import base_Math_Objects.matrixObjs.doubles.myMatrix;
 import base_Math_Objects.vectorObjs.doubles.myPoint;
 import base_Math_Objects.vectorObjs.doubles.myVector;
-import processing.core.PImage;
- 
+
 /**
  * use this just to enclose other objects - make a myRndrdBox to render a box
  * @author 7strb
@@ -62,7 +61,7 @@ public class BoundingBox extends Base_Geometry {
 	 * expand bbox by delta in all dir
 	 * @param delta
 	 */
-	public void expandMeBoxDel(double delta) {
+	public void expandMeBoxDelta(double delta) {
 		myPoint delVec = new myPoint(minVals);
 		delVec._sub(delta, delta, delta);
 		expandMePt(delVec);
@@ -70,15 +69,20 @@ public class BoundingBox extends Base_Geometry {
 		delVec._add(delta, delta, delta);
 		expandMePt(delVec);		
 	}
-	//point needs to be in box space(transformed via box's ctm)
+	/**
+	 * point needs to be in box space(transformed via box's ctm)
+	 * @param tarBox
+	 * @param pt
+	 * @return
+	 */
 	public boolean pointIsInBox(BoundingBox tarBox, myVector pt){return (((tarBox.minVals.x < pt.x) && ( pt.x < tarBox.maxVals.x)) && 
 													((tarBox.minVals.y < pt.y) && ( pt.y < tarBox.maxVals.y)) && 
 													((tarBox.minVals.z < pt.z) && ( pt.z < tarBox.maxVals.z)));}
 
 	
 	public void calcMinMaxCtrVals(myPoint _minVals, myPoint _maxVals){
-		minVals.set(Math.min(_minVals.x, minVals.x),Math.min(_minVals.y, minVals.y),Math.min(_minVals.z, minVals.z));
-		maxVals.set(Math.max(_maxVals.x, maxVals.x),Math.max(_maxVals.y, maxVals.y),Math.max(_maxVals.z, maxVals.z));
+		minVals.set(MyMathUtils.min(_minVals.x, minVals.x),MyMathUtils.min(_minVals.y, minVals.y),MyMathUtils.min(_minVals.z, minVals.z));
+		maxVals.set(MyMathUtils.max(_maxVals.x, maxVals.x),MyMathUtils.max(_maxVals.y, maxVals.y),MyMathUtils.max(_maxVals.z, maxVals.z));
 		origin = new myPoint(minVals);
 		origin._add(maxVals);
 		origin._mult(.5);
@@ -107,11 +111,11 @@ public class BoundingBox extends Base_Geometry {
 	public myPoint getMinVec() {	return minVals;	}
 	
 	@Override//bbox has no txtrs
-	public double[] findTxtrCoords(myPoint isctPt, PImage myTexture, double time) {return new double[]{0,0};}
+	public double[] findTxtrCoords(myPoint isctPt, int textureH, int textureW, double time) {return new double[]{0,0};}
 	@Override
-	protected double findTextureU(myPoint isctPt, double v, PImage myTexture, double time){ return 0.0; }
+	protected double findTextureU(myPoint isctPt, double v, int textureH, int textureW, double time){ return 0.0; }
 	@Override
-	protected double findTextureV(myPoint isctPt, PImage myTexture, double time){	return 0.0;  } 
+	protected double findTextureV(myPoint isctPt, int textureH, int textureW, double time){	return 0.0;  } 
 	
 	//only says if bbox is hit
 	@Override //_ctAra is ara of ctm for object held by bbox, and responsible for transformation of transray

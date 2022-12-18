@@ -7,7 +7,6 @@ import base_RayTracer.ray.rayCast;
 import base_RayTracer.ray.rayHit;
 import base_RayTracer.scene.base.Base_Scene;
 import base_RayTracer.scene.geometry.base.GeomObjType;
-import processing.core.PImage;
 
 public abstract class Base_Cylinder extends Base_ImplicitObject {
 	protected double myHeight; 
@@ -72,12 +71,12 @@ public abstract class Base_Cylinder extends Base_ImplicitObject {
 	 * find the u (x) value in a texture to plot to a specific point on the object	TODO
 	 */
 	@Override
-	protected final double findTextureU(myPoint isctPt, double v, PImage myTexture, double time){double u = 0.0;return u;}     	
+	protected final double findTextureU(myPoint isctPt, double v, int textureH, int textureW, double time){double u = 0.0;return u;}     	
   	/**
   	 * find the v (y) value in a texture to plot to a specific point on the object  	TODO
   	 */
 	@Override
-	protected final double findTextureV(myPoint isctPt, PImage myTexture, double time){		double v = 0.0; 		return v; 	}   
+	protected final double findTextureV(myPoint isctPt, int textureH, int textureW, double time){		double v = 0.0; 		return v; 	}   
   	/**
   	 * calculates the "A" value for the quadratic equation determining the potential intersection of the passed ray with a cylinder of given radius and center
   	 * @param _ray

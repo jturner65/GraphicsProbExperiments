@@ -11,7 +11,6 @@ import base_RayTracer.utils.myRTColor;
 import base_Math_Objects.matrixObjs.doubles.myMatrix;
 import base_Math_Objects.vectorObjs.doubles.myPoint;
 import base_Math_Objects.vectorObjs.doubles.myVector;
-import processing.core.PImage;
 
  
 /**
@@ -38,7 +37,7 @@ public abstract class Base_AccelStruct extends Base_Geometry{
 	
 	@Override
 	//myAccelStruct has no txtrs
-	public double[] findTxtrCoords(myPoint isctPt, PImage myTexture, double time) {return new double[]{0,0};}
+	public double[] findTxtrCoords(myPoint isctPt, int textureH, int textureW, double time) {return new double[]{0,0};}
 	
 	/**
 	 * 
@@ -74,9 +73,9 @@ public abstract class Base_AccelStruct extends Base_Geometry{
 	}//getIDXofMaxSpan
 	
 	@Override
-	protected final double findTextureU(myPoint isctPt, double v, PImage myTexture, double time){ return 0.0; }
+	protected final double findTextureU(myPoint isctPt, double v, int textureH, int textureW, double time){ return 0.0; }
 	@Override
-	protected final double findTextureV(myPoint isctPt, PImage myTexture, double time){	return 0.0;  } 
+	protected final double findTextureV(myPoint isctPt, int textureH, int textureW, double time){	return 0.0;  } 
 	@Override
 	public myVector getNormalAtPoint(myPoint point, int[] args) {	return _bbox.getNormalAtPoint(point, args);}
 	@Override

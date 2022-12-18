@@ -5,7 +5,6 @@ import base_RayTracer.ray.rayHit;
 import base_RayTracer.scene.base.Base_Scene;
 import base_RayTracer.scene.geometry.base.GeomObjType;
 import base_RayTracer.scene.geometry.sceneObjects.base.Base_SceneObject;
-import processing.core.PImage;
 import base_Math_Objects.matrixObjs.doubles.myMatrix;
 import base_Math_Objects.vectorObjs.doubles.myPoint;
 import base_Math_Objects.vectorObjs.doubles.myVector;
@@ -147,9 +146,9 @@ public abstract class Base_PlanarObject extends Base_SceneObject{
 	
 	//Not currently used for planar objects
 	@Override
-	protected double findTextureU(myPoint isctPt, double v, PImage myTexture, double time){ return 0.0; }
+	protected double findTextureU(myPoint isctPt, double v, int textureH, int textureW, double time){ return 0.0; }
 	@Override
-	protected double findTextureV(myPoint isctPt, PImage myTexture, double time){	return 0.0;  } 
+	protected double findTextureV(myPoint isctPt, int textureH, int textureW, double time){	return 0.0;  } 
 	@Override
 	public String toString(){
 		return super.toString() +"\n"+ type + normalStructs[0].toString();

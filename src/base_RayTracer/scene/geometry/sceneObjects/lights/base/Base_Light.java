@@ -9,7 +9,6 @@ import base_RayTracer.scene.geometry.base.GeomObjType;
 import base_RayTracer.scene.geometry.sceneObjects.base.Base_SceneObject;
 import base_RayTracer.scene.photonMapping.Photon_KDTree;
 import base_RayTracer.utils.myRTColor;
-import processing.core.PImage;
 import base_Math_Objects.matrixObjs.doubles.myMatrix;
 import base_Math_Objects.vectorObjs.doubles.myPoint;
 import base_Math_Objects.vectorObjs.doubles.myVector;
@@ -52,18 +51,18 @@ public abstract class Base_Light extends Base_SceneObject{
 	}		//point light always intersects
 
 	@Override
-	public double[] findTxtrCoords(myPoint isctPt, PImage myTexture, double time){
-		double v = findTextureV(isctPt,myTexture,time);	
-		return new double[]{findTextureU(isctPt,v,myTexture,time),v};
+	public double[] findTxtrCoords(myPoint isctPt, int textureH, int textureW, double time){
+		double v = findTextureV(isctPt,textureH, textureW,time);	
+		return new double[]{findTextureU(isctPt,v,textureH, textureW,time),v};
 	}
 	
 	//TODO textured light could give different color light to scene based on location? BATSIGNAL!
 	@Override
-	protected final double findTextureU(myPoint isctPt, double v, PImage myTexture, double time){ return findTextureU_Indiv(isctPt, v, time); }
+	protected final double findTextureU(myPoint isctPt, double v, int textureH, int textureW, double time){ return findTextureU_Indiv(isctPt, v, time); }
 	protected abstract double findTextureU_Indiv(myPoint isctPt, double v, double time);
 	//TODO textured light could give different color light to scene based on location? BATSIGNAL!
 	@Override
-	protected final double findTextureV(myPoint isctPt, PImage myTexture, double time){	return findTextureV_Indiv(isctPt, time);  } 
+	protected final double findTextureV(myPoint isctPt, int textureH, int textureW, double time){	return findTextureV_Indiv(isctPt, time);  } 
 	protected abstract double findTextureV_Indiv(myPoint isctPt, double time); 
 	
 	/**
