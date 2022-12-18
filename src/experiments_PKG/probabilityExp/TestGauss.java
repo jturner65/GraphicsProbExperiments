@@ -76,7 +76,7 @@ public class TestGauss {
     	if (N<10) {N=10;}
     	BigDecimal[][] vals = computeLegendreWeightsXvals(N,tol);
         System.out.print(""+N+" Roots found ");
-        double sclFact = 1.0/Math.sqrt(2.0*Math.PI);//for normal
+        //double sclFact = 1.0/Math.sqrt(2.0*Math.PI);//for normal
         double ErfCoef = 2.0/Math.sqrt(Math.PI);//for error function
         //Function<Double, Double> func = (x -> sclFact * exp(-(x*x)/2.0)  );
         //Function<Double, Double> func = (x ->   exp(x)  );
