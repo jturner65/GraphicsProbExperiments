@@ -1,6 +1,6 @@
 package experiments_PKG.classGradeExp;
 
-import base_JavaProjTools_IRender.base_Render_Interface.IRenderInterface;
+import base_Render_Interface.IRenderInterface;
 import base_StatsTools.visualization.base.baseVisMgr;
 import experiments_PKG.classGradeExp.experiment.myStudent;
 import experiments_PKG.classGradeExp.roster.myClassRoster;

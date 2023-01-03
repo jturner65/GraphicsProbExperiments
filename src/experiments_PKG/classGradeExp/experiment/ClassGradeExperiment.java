@@ -2,7 +2,7 @@ package experiments_PKG.classGradeExp.experiment;
 
 import java.util.*;
 
-import base_JavaProjTools_IRender.base_Render_Interface.IRenderInterface;
+import base_Render_Interface.IRenderInterface;
 import base_ProbTools.*;
 import base_ProbTools.randGenFunc.gens.myFleishUniVarRandGen;
 import base_ProbTools.randGenFunc.gens.base.myRandGen;

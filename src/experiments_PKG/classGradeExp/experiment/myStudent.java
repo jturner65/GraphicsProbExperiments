@@ -2,7 +2,7 @@ package experiments_PKG.classGradeExp.experiment;
 
 import java.util.HashMap;
 
-import base_JavaProjTools_IRender.base_Render_Interface.IRenderInterface;
+import base_Render_Interface.IRenderInterface;
 import base_ProbTools.samples.mySampleObs;
 import base_ProbTools.samples.mySampleSet;
 import experiments_PKG.classGradeExp.roster.myClassRoster;

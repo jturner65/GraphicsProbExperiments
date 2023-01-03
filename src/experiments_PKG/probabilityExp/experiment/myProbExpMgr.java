@@ -2,7 +2,7 @@ package experiments_PKG.probabilityExp.experiment;
 
 import java.util.concurrent.ThreadLocalRandom;
 
-import base_JavaProjTools_IRender.base_Render_Interface.IRenderInterface;
+import base_Render_Interface.IRenderInterface;
 import base_ProbTools.baseProbExpMgr;
 import base_ProbTools.randGenFunc.gens.base.myRandGen;
 import base_StatsTools.summary.myProbSummary_Dbls;
