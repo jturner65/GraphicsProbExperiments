@@ -1,5 +1,8 @@
 package experiments_PKG;
 
+import java.util.Map;
+import java.util.TreeMap;
+
 import base_UI_Objects.*;
 import base_UI_Objects.windowUI.base.Base_DispWindow;
 import base_UI_Objects.windowUI.sidebar.SidebarMenu;
@@ -14,7 +17,9 @@ import experiments_PKG.rayTracerProbExp.RayTracerExpWindow;
  */
 public class GraphProbExpMain extends GUI_AppManager {
 	//project-specific variables
-	public String prjNmLong = "Testbed for Graphical Probability Experiments", prjNmShrt = "GraphProbExp";
+	public String prjNmLong = "Testbed for Graphical Probability Experiments";
+	public String prjNmShrt = "GraphProbExp";
+	public String projDesc = "Testbed for Graphical Probability Experiments";
 
 	//don't use sphere background for this program
 	private boolean useSphereBKGnd = false;	
@@ -45,9 +50,15 @@ public class GraphProbExpMain extends GUI_AppManager {
 		GraphProbExpMain me = new GraphProbExpMain();
 		GraphProbExpMain.invokeProcessingMain(me, passedArgs);		    
 	}//main
-
+	protected GraphProbExpMain(){super();}
+	/**
+	 * Set various relevant runtime arguments in argsMap
+	 * @param _passedArgs command-line arguments
+	 */
 	@Override
-	protected void setRuntimeArgsVals(String[] _passedArgs) {
+	protected TreeMap<String,Object> setRuntimeArgsVals(Map<String, Object> _passedArgsMap) {
+
+		return (TreeMap<String, Object>) _passedArgsMap;
 	}
 
 	/**
@@ -60,10 +71,13 @@ public class GraphProbExpMain extends GUI_AppManager {
 	@Override
 	protected int setAppWindowDimRestrictions() {	return 1;}	
 	
+	
 	@Override
-	protected String getPrjNmLong() {return prjNmLong;}
+	public String getPrjNmShrt() {		return prjNmShrt;}
 	@Override
-	protected String getPrjNmShrt() {return prjNmShrt;}
+	public String getPrjNmLong() {		return prjNmLong;}
+	@Override
+	public String getPrjDescr() {		return projDesc;}
 	/**
 	 * return the default background color set in the calling application
 	 * @return
