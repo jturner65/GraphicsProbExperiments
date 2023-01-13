@@ -95,12 +95,12 @@ public class GraphProbExpMain extends GUI_AppManager {
 	 * determine which main flags to show at upper left of menu 
 	 */
 	@Override
-	protected void initMainFlags_Indiv() {
-		setMainFlagToShow_debugMode(false);
-		setMainFlagToShow_saveAnim(true); 
-		setMainFlagToShow_runSim(false);
-		setMainFlagToShow_singleStep(false);
-		setMainFlagToShow_showRtSideMenu(true);
+	protected void initBaseFlags_Indiv() {
+		setBaseFlagToShow_debugMode(false);
+		setBaseFlagToShow_saveAnim(true); 
+		setBaseFlagToShow_runSim(false);
+		setBaseFlagToShow_singleStep(false);
+		setBaseFlagToShow_showRtSideMenu(true);
 	}
 
 	@Override
@@ -112,11 +112,12 @@ public class GraphProbExpMain extends GUI_AppManager {
 		String[] _winTitles = new String[]{"","3D Exp Win","2D Exp Win","2D Ray Tracer","Grading Exp Win"},
 				_winDescr = new String[] {"", "3D environment to conduct and visualize experiments","2D environment to conduct and visualize experiments","2D ray tracing environment for probability experiments","2D Class Grade Experiment Visualization"};
 		initWins(numWins,_winTitles, _winDescr);
-
 		//call for menu window
-		buildInitMenuWin(showUIMenu);
+		buildInitMenuWin();
 		//instanced window dimensions when open and closed - only showing 1 open at a time
-		float[] _dimOpen  =  new float[]{menuWidth, 0, pa.getWidth()-menuWidth,  pa.getHeight()}, _dimClosed  =  new float[]{menuWidth, 0, hideWinWidth,  pa.getHeight()};	
+		float[] _dimOpen  = getDefaultWinDimOpen(), 
+				_dimClosed  = getDefaultWinDimClosed();	
+	
 		System.out.println("Width : " + pa.getWidth() + " | Height : " +  pa.getHeight());
 		//application-wide menu button bar titles and button names
 		String[] menuBtnTitles = new String[]{"Special Functions 1","Special Functions 2"};
