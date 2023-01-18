@@ -1,7 +1,6 @@
 package experiments_PKG;
 
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.HashMap;
 
 import base_UI_Objects.*;
 import base_UI_Objects.windowUI.base.Base_DispWindow;
@@ -51,14 +50,14 @@ public class GraphProbExpMain extends GUI_AppManager {
 		GraphProbExpMain.invokeProcessingMain(me, passedArgs);		    
 	}//main
 	protected GraphProbExpMain(){super();}
+
 	/**
 	 * Set various relevant runtime arguments in argsMap
 	 * @param _passedArgs command-line arguments
 	 */
 	@Override
-	protected TreeMap<String,Object> setRuntimeArgsVals(Map<String, Object> _passedArgsMap) {
-
-		return (TreeMap<String, Object>) _passedArgsMap;
+	protected HashMap<String,Object> setRuntimeArgsVals(HashMap<String, Object> _passedArgsMap) {
+		return  _passedArgsMap;
 	}
 
 	/**
@@ -175,9 +174,7 @@ public class GraphProbExpMain extends GUI_AppManager {
 	@Override
 	//called multiple times, whenever re-initing
 	protected void initProgram_Indiv(){}//initProgram
-	
-	@Override
-	protected void initVisProg_Indiv() {}	
+
 	@Override
 	public String[] getMouseOverSelBtnLabels() {
 		// TODO Auto-generated method stub
