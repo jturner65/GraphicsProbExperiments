@@ -300,6 +300,10 @@ public class Alt2DWindow extends Base_DispWindow {
 					break;}	
 			}
 			break;}//row 2 of menu side bar buttons
+		default : {
+			msgObj.dispWarningMessage(className,"launchMenuBtnHndlr","Clicked Unknown Btn row : " + funcRow +" | Btn : " + btn);
+			break;
+		}		
 		}		
 	}//launchMenuBtnHndlr		
 
@@ -310,7 +314,7 @@ public class Alt2DWindow extends Base_DispWindow {
 	}
 	
 	@Override
-	public final void handleSideMenuDebugSelEnable(int btn) {
+	protected final void handleSideMenuDebugSelEnable(int btn) {
 		msgObj.dispMessage(className, "handleSideMenuDebugSelEnable","Click Debug functionality on in " + name + " : btn : " + btn, MsgCodes.info4);
 		switch (btn) {
 			case 0: {				break;			}
@@ -328,7 +332,7 @@ public class Alt2DWindow extends Base_DispWindow {
 	}
 	
 	@Override
-	public final void handleSideMenuDebugSelDisable(int btn) {
+	protected final void handleSideMenuDebugSelDisable(int btn) {
 		msgObj.dispMessage(className, "handleSideMenuDebugSelDisable","Click Debug functionality off in " + name + " : btn : " + btn, MsgCodes.info4);
 		switch (btn) {
 			case 0: {				break;			}

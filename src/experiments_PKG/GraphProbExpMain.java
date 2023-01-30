@@ -5,10 +5,11 @@ import java.util.HashMap;
 import base_UI_Objects.*;
 import base_UI_Objects.windowUI.base.Base_DispWindow;
 import base_UI_Objects.windowUI.sidebar.SidebarMenu;
+import base_Utils_Objects.io.messaging.MsgCodes;
 import experiments_PKG.classGradeExp.ui.Grade2DWindow;
 import experiments_PKG.probabilityExp.ui.Alt2DWindow;
 import experiments_PKG.probabilityExp.ui.Main3DWindow;
-import experiments_PKG.rayTracerProbExp.RayTracerExpWindow;
+import experiments_PKG.rayTracerProbExp.ui.RayTracerExpWindow;
 
 /**
  * Testbed to experiment with synthesizing probablity distributions and displaying the results
@@ -77,6 +78,20 @@ public class GraphProbExpMain extends GUI_AppManager {
 	public String getPrjNmLong() {		return prjNmLong;}
 	@Override
 	public String getPrjDescr() {		return projDesc;}
+
+	/**
+	 * Set minimum level of message object console messages to display for this application. If null then all messages displayed
+	 * @return
+	 */
+	@Override
+	protected final MsgCodes getMinConsoleMsgCodes() {return null;}
+	/**
+	 * Set minimum level of message object log messages to save to log for this application. If null then all messages saved to log.
+	 * @return
+	 */
+	@Override
+	protected final MsgCodes getMinLogMsgCodes() {return null;}
+	
 	/**
 	 * return the default background color set in the calling application
 	 * @return

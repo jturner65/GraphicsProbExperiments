@@ -1,4 +1,4 @@
-package experiments_PKG.rayTracerProbExp;
+package experiments_PKG.rayTracerProbExp.ui;
 
 import java.util.Map;
 

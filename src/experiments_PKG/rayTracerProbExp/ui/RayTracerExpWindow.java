@@ -1,4 +1,4 @@
-package experiments_PKG.rayTracerProbExp;
+package experiments_PKG.rayTracerProbExp.ui;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -8,6 +8,7 @@ import base_Render_Interface.IRenderInterface;
 import base_RayTracer.ui.base.Base_RayTracerUIUpdater;
 import base_RayTracer.ui.base.Base_RayTracerWin;
 import base_UI_Objects.GUI_AppManager;
+import experiments_PKG.rayTracerProbExp.experiment.RayTracerExperiment;
 
 /**
  * @author John Turner
