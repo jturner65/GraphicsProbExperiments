@@ -4,7 +4,7 @@ import java.util.concurrent.ThreadLocalRandom;
 
 import base_Render_Interface.IRenderInterface;
 import base_ProbTools.baseProbExpMgr;
-import base_ProbTools.randGenFunc.gens.base.myRandGen;
+import base_ProbTools.randGenFunc.gens.base.Base_RandGen;
 import base_StatsTools.summary.myProbSummary_Dbls;
 import base_UI_Objects.windowUI.base.Base_DispWindow;
 import base_Utils_Objects.dataAdapter.Base_UIDataUpdater;
@@ -19,7 +19,7 @@ public class myProbExpMgr extends baseProbExpMgr{
 	
 	public Base_DispWindow win;
 	//random # generator
-	protected myRandGen nrmlGen, gaussGen;
+	protected Base_RandGen nrmlGen, gaussGen;
 	
 	//experiment-specific state flag bits - bits in array holding relevant process info
 	public static final int

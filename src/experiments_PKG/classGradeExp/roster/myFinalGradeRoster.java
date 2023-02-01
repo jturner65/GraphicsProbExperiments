@@ -3,7 +3,7 @@ package experiments_PKG.classGradeExp.roster;
 import java.util.HashMap;
 
 import base_Render_Interface.IRenderInterface;
-import base_ProbTools.randGenFunc.gens.base.myRandGen;
+import base_ProbTools.randGenFunc.gens.base.Base_RandGen;
 import base_StatsTools.summary.myProbSummary_Dbls;
 import experiments_PKG.classGradeExp.experiment.ClassGradeExperiment;
 import experiments_PKG.classGradeExp.experiment.myStudent;
@@ -41,7 +41,7 @@ public class myFinalGradeRoster extends myClassRoster {
 				s.setTransformedGrade(transTypes[GB_rawGradeTypeIDX],this, _newGrade);
 			}			
 		} else {
-			myRandGen baseDistModel = baseDistModels.get(curDistModel);
+			Base_RandGen baseDistModel = baseDistModels.get(curDistModel);
 			if(null==baseDistModel) {	msgObj.dispInfoMessage("myFinalGradeRoster","calcTotalGrades","baseDistModel == null");	return;}
 			//baseDistModel.setFuncSummary(tmpSummary);
 			updateName();
@@ -62,7 +62,7 @@ public class myFinalGradeRoster extends myClassRoster {
 	//moving around a raw grade should update the underlying distribution
 	@Override
 	public void updateDistributionAndGrades(int barIDX) {	
-		myRandGen baseDistModel = baseDistModels.get(curDistModel);
+		Base_RandGen baseDistModel = baseDistModels.get(curDistModel);
 		if(gradeBars[barIDX].getModStudent() != null) {
 			if(barIDX == 0) {					transformStudentFromRawToUni(gradeBars[barIDX].getModStudent(),baseDistModel);			} 		//using raw grade, transform student grade appropriately - backward mapping to uniform
 			else {								transformStudentFromUniToRaw(gradeBars[barIDX].getModStudent(),baseDistModel);			}		//using transformed grade, re-calc raw grade appropriately			
@@ -82,7 +82,7 @@ public class myFinalGradeRoster extends myClassRoster {
 	}
 	
 	@Override
-	public void transformStudentFromRawToUni(myStudent s, myRandGen baseDistModel) {
+	public void transformStudentFromRawToUni(myStudent s, Base_RandGen baseDistModel) {
 		double _rawGrade = s.getTransformedGrade(transTypes[GB_rawGradeTypeIDX], this),_newGrade;
 		if (useZScore){
 			myProbSummary_Dbls tmpSummary = getCurGradeProbSummary(transTypes[GB_uniTransGradeTypeIDX]);
@@ -96,7 +96,7 @@ public class myFinalGradeRoster extends myClassRoster {
 	
 	//find appropriate value for raw student grade given transformed uniform grade
 	@Override
-	public void transformStudentFromUniToRaw(myStudent s,myRandGen baseDistModel) {
+	public void transformStudentFromUniToRaw(myStudent s, Base_RandGen baseDistModel) {
 		//changes here should modify individual class uniform grades using s.disperseFromTotalGrade(this)
 		double _transGrade = s.getTransformedGrade(transTypes[GB_uniTransGradeTypeIDX], this);
 		double _newGrade;

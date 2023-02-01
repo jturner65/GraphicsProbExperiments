@@ -3,7 +3,6 @@ package experiments_PKG;
 import java.util.HashMap;
 
 import base_UI_Objects.*;
-import base_UI_Objects.windowUI.base.Base_DispWindow;
 import base_UI_Objects.windowUI.sidebar.SidebarMenu;
 import base_Utils_Objects.io.messaging.MsgCodes;
 import experiments_PKG.classGradeExp.ui.Grade2DWindow;
@@ -283,11 +282,11 @@ public class GraphProbExpMain extends GUI_AppManager {
 	//address all flag-setting here, so that if any special cases need to be addressed they can be
 	protected void setVisFlag_Indiv(int idx, boolean val ){
 		switch (idx){
-			case showUIMenu 	    : { dispWinFrames[dispMenuIDX].setFlags(Base_DispWindow.showIDX,val);    break;}											//whether or not to show the main ui window (sidebar)			
-			case show1stWinIDX			: {setWinFlagsXOR(disp1stWinIDX, val); break;}
-			case show2ndWinIDX			: {setWinFlagsXOR(disp2ndWinIDX, val); break;}
-			case show2DRayTracerIDX		: {setWinFlagsXOR(disp2DRayTracerIDX, val); break;}		
-			case showGradeWinIDX		: {setWinFlagsXOR(dispGradeWinIDX, val); break;}			
+			case showUIMenu 	    : { dispWinFrames[dispMenuIDX].dispFlags.setShowWin(val);    break;}											//whether or not to show the main ui window (sidebar)			
+			case show1stWinIDX		: {setWinFlagsXOR(disp1stWinIDX, val); break;}
+			case show2ndWinIDX		: {setWinFlagsXOR(disp2ndWinIDX, val); break;}
+			case show2DRayTracerIDX	: {setWinFlagsXOR(disp2DRayTracerIDX, val); break;}		
+			case showGradeWinIDX	: {setWinFlagsXOR(dispGradeWinIDX, val); break;}			
 			default : {break;}
 		}
 	}//setFlags  

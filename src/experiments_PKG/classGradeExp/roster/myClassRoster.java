@@ -4,7 +4,7 @@ import java.util.HashMap;
 
 import base_Render_Interface.IRenderInterface;
 import base_ProbTools.baseProbExpMgr;
-import base_ProbTools.randGenFunc.gens.base.myRandGen;
+import base_ProbTools.randGenFunc.gens.base.Base_RandGen;
 import base_ProbTools.samples.mySampleSet;
 import base_StatsTools.summary.myProbSummary_Dbls;
 import base_StatsTools.visualization.myDistFuncHistVisMgr;
@@ -107,7 +107,7 @@ public class myClassRoster extends mySampleSet{
 	}//setRandGenAndType	
 	
 	protected void updateName() {
-		myRandGen baseDistModel = baseDistModels.get(curDistModel);
+		Base_RandGen baseDistModel = baseDistModels.get(curDistModel);
 		baseVisMgr distMdlViz = distModelVis.get(curDistModel);
 		for(int i=0;i<gradeBars.length;++i) {
 			String newVisName = "Vis of "+transTypes[i]+" grades for class :"+name+"|Dist Mdl :"+ baseDistModel.getDispTransName();
@@ -146,7 +146,7 @@ public class myClassRoster extends mySampleSet{
 	
 	//transform all students in this class using passed rand gen's function to uniform from base distribution
 	public void transformStudentGradesToUniform() {
-		myRandGen baseDistModel = baseDistModels.get(curDistModel);
+		Base_RandGen baseDistModel = baseDistModels.get(curDistModel);
 		for (myStudent s : students.values()) { transformStudentFromRawToUni(s,baseDistModel);}
 		setFlag(classRawIsTransformedIDX, true);
 		updateFinalGrades();
@@ -154,14 +154,14 @@ public class myClassRoster extends mySampleSet{
 	
 	//transform all students in this class using passed rand gen's function to uniform from base distribution
 	public void transformStudentGradesFromUniform() {
-		myRandGen baseDistModel = baseDistModels.get(curDistModel);
+		Base_RandGen baseDistModel = baseDistModels.get(curDistModel);
 		for (myStudent s : students.values()) { transformStudentFromUniToRaw(s,baseDistModel);}
 		setFlag(classRawIsTransformedIDX, true);
 		updateFinalGrades();
 	}//transformStudentGrades
 	
 	//TODO need to retransform student when student is moved - need to set randGen and _type
-	public void transformStudentFromRawToUni(myStudent s,myRandGen baseDistModel) {
+	public void transformStudentFromRawToUni(myStudent s, Base_RandGen baseDistModel) {
 		double _rawGrade = s.getTransformedGrade(transTypes[GB_rawGradeTypeIDX], this);
 		//double _newGrade = randGen.inverseCDF(_rawGrade);		
 		double _newGrade = baseDistModel.CDF(_rawGrade);
@@ -170,7 +170,7 @@ public class myClassRoster extends mySampleSet{
 	}//transformStudent
 	
 	//find appropriate value for raw student grade given transformed uniform grade
-	public void transformStudentFromUniToRaw(myStudent s,myRandGen baseDistModel) {
+	public void transformStudentFromUniToRaw(myStudent s, Base_RandGen baseDistModel) {
 		double _transGrade = s.getTransformedGrade(transTypes[GB_uniTransGradeTypeIDX], this);
 		//double _newGrade = randGen.CDF(_transGrade);
 		double _newGrade = baseDistModel.inverseCDF(_transGrade);
@@ -235,7 +235,7 @@ public class myClassRoster extends mySampleSet{
 	
 	//moving around a raw grade should update the underlying distribution
 	public void updateDistributionAndGrades(int barIDX) {		
-		myRandGen baseDistModel = baseDistModels.get(curDistModel);
+		Base_RandGen baseDistModel = baseDistModels.get(curDistModel);
 		if (getFlag(rebuildDistWhenMoveIDX)) {
 			//if we are modifying distribution
 			if(barIDX == 0) {				

@@ -8,7 +8,7 @@ import base_Render_Interface.IRenderInterface;
 import base_Math_Objects.vectorObjs.doubles.myPoint;
 import base_Math_Objects.vectorObjs.doubles.myVector;
 import base_ProbTools.baseProbExpMgr;
-import base_ProbTools.randGenFunc.funcs.base.baseRandVarFunc;
+import base_ProbTools.randGenFunc.funcs.base.Base_RandVarFunc;
 import base_UI_Objects.GUI_AppManager;
 import base_UI_Objects.windowUI.base.Base_DispWindow;
 import base_UI_Objects.windowUI.drawnTrajectories.DrawnSimpleTraj;
@@ -60,7 +60,7 @@ public class Grade2DWindow extends Base_DispWindow {
 	//ui button names -empty will do nothing, otherwise add custom labels for debug and custom functionality names
 	//ddl 
 	public static final String[] 
-			gIDX_FuncTypeEvalList = baseRandVarFunc.queryFuncTypes,
+			gIDX_FuncTypeEvalList = Base_RandVarFunc.queryFuncTypes,
 			gIDX_ExpDistTypeList = ClassGradeExperiment.expType;	
 	
 	//private static final String[] noCosCompExpTypes = new String[] {"Linear", "Uniform Spaced"};
@@ -106,14 +106,12 @@ public class Grade2DWindow extends Base_DispWindow {
 	@Override
 	protected void initMe() {
 		//called once
-		//initPrivFlags(numPrivFlags);
 		//this window is runnable
-		setFlags(isRunnable, true);
+		dispFlags.setIsRunnable(true);
 		//this window uses a customizable camera
-		setFlags(useCustCam, true);
-		//this window uses right side info window
-		setFlags(drawRightSideMenu, true);
-		
+		dispFlags.setUseCustCam(true);
+		// capable of using right side menu
+		dispFlags.setDrawRtSideMenu(true);
 		//grade experiments
 		gradeAvgExperiment = new ClassGradeExperiment(pa, this, curVisScrDims);
 		setGradeExp(true,true,true, false);

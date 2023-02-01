@@ -58,11 +58,11 @@ public class Alt2DWindow extends Base_DispWindow {
 		//called once
 		//initPrivFlags(numPrivFlags);
 		//this window is runnable
-		setFlags(isRunnable, true);
+		dispFlags.setIsRunnable(true);
 		//this window uses a customizable camera
-		setFlags(useCustCam, true);
-		//this window uses right side info window
-		setFlags(drawRightSideMenu, true);
+		dispFlags.setUseCustCam(true);
+		// capable of using right side menu
+		dispFlags.setDrawRtSideMenu(true);
 		tester = new myProbExpMgr(pa, this, curVisScrDims);
 		
 		//set offset to use for custom menu objects

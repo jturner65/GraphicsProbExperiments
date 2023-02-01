@@ -5,7 +5,7 @@ import java.util.*;
 import base_Render_Interface.IRenderInterface;
 import base_ProbTools.*;
 import base_ProbTools.randGenFunc.gens.myFleishUniVarRandGen;
-import base_ProbTools.randGenFunc.gens.base.myRandGen;
+import base_ProbTools.randGenFunc.gens.base.Base_RandGen;
 import base_StatsTools.summary.myProbSummary_Dbls;
 import base_UI_Objects.windowUI.base.Base_DispWindow;
 import base_Utils_Objects.dataAdapter.Base_UIDataUpdater;
@@ -282,7 +282,7 @@ public class ClassGradeExperiment extends baseProbExpMgr{
 		myProbSummary_Dbls tmp = new myProbSummary_Dbls(initGradeMoments,2);
 		tmp.setMinMax(0.0, 1.0);
 		int _randVarType = gaussRandVarIDX;
-		myRandGen tmpRandGen = buildAndInitRandGen(ziggRandGen, _randVarType, tmp);		
+		Base_RandGen tmpRandGen = buildAndInitRandGen(ziggRandGen, _randVarType, tmp);		
 		
 		//for every class for every student, derive a random grade
 		for (myClassRoster _cls : classRosters) {
@@ -330,7 +330,7 @@ public class ClassGradeExperiment extends baseProbExpMgr{
 		myProbSummary_Dbls tmpFinal = new myProbSummary_Dbls(mmnts,_descVals[0], true);
 		tmpFinal.setMinMax(minMax);
 		perClassSummaryObjMap.put(finalGradeClass.name, tmpFinal);			
-		myRandGen tmpFinalRandGen = buildAndInitRandGen(_descVals[1], _descVals[2], perClassSummaryObjMap.get(finalGradeClass.name));
+		Base_RandGen tmpFinalRandGen = buildAndInitRandGen(_descVals[1], _descVals[2], perClassSummaryObjMap.get(finalGradeClass.name));
 		finalGradeClass.setBaseDistModel(tmpFinalRandGen);		
 		msgObj.dispInfoMessage("ClassGradeExperiment","setDesiredFinalGradeSummaryObj","Finished setting final grade summary object with "+_descVals[0]+" moments : " + mmtntsStr+".");
 		
@@ -389,7 +389,7 @@ public class ClassGradeExperiment extends baseProbExpMgr{
 		//final grades need to be specified first - before this function is called
 		//determine specific options for random variable function, based on current UI configuration
 		for (myClassRoster _cls : classRosters) {	
-			myRandGen gen = buildAndInitRandGen(_randGenType, _randVarType, perClassSummaryObjMap.get(_cls.name));
+			Base_RandGen gen = buildAndInitRandGen(_randGenType, _randVarType, perClassSummaryObjMap.get(_cls.name));
 			_cls.setBaseDistModel(gen);
 			_cls.transformStudentGradesToUniform();			//calculates total grades as well
 		}
@@ -473,7 +473,7 @@ public class ClassGradeExperiment extends baseProbExpMgr{
 	//test efficacy of fleishman polynomial transform
 	public void testFleishTransform() {
 
-		myRandGen gradeSourceDistGen = buildAndInitRandGen(fleishRandGen_UniVar, fleishRandVarIDX, new myProbSummary_Dbls(new double[] {0,1,1,4},4));
+		Base_RandGen gradeSourceDistGen = buildAndInitRandGen(fleishRandGen_UniVar, fleishRandVarIDX, new myProbSummary_Dbls(new double[] {0,1,1,4},4));
 		//test fleishman polynomial-based transformation
 		_testFlTransform(gradeSourceDistGen, 10000);
 		double min = -1, max = 1;
@@ -481,7 +481,7 @@ public class ClassGradeExperiment extends baseProbExpMgr{
 		msgObj.dispInfoMessage("ClassGradeExperiment","testFleishTransform","area under fleish poly from "+min+"->"+max+" : " + area);
 	}//
 	
-	private void _testFlTransform(myRandGen flRandGen, int numVals) {
+	private void _testFlTransform(Base_RandGen flRandGen, int numVals) {
 		//test fleishman polynomial-based transformation
 		msgObj.dispInfoMessage("ClassGradeExperiment","_testFlTransform","Specified summary for fleishman polynomial : " + flRandGen.getSummary().getMomentsVals());
 		double[] testData = new double[numVals];
@@ -511,7 +511,7 @@ public class ClassGradeExperiment extends baseProbExpMgr{
 	
 	public void testCosFunction() {//generate cdf values given uniform input
     	msgObj.dispInfoMessage("ClassGradeExperiment", "testCosFunction", "Starting test cosine function : generate CDF values given uniform values.");
-    	myRandGen cosFuncTestGen = buildAndInitRandGen(boundedRandGen, raisedCosRandVarIDX, new myProbSummary_Dbls(new double[] {0,1,0,0},2));
+    	Base_RandGen cosFuncTestGen = buildAndInitRandGen(boundedRandGen, raisedCosRandVarIDX, new myProbSummary_Dbls(new double[] {0,1,0,0},2));
     	TreeMap<Double,Double> genVals = new TreeMap<Double,Double>();
     	msgObj.dispInfoMessage("ClassGradeExperiment", "testCosFunction", "p \t\t| val");
     		
@@ -527,7 +527,7 @@ public class ClassGradeExperiment extends baseProbExpMgr{
 	
 	//test inverse fleishman calculation
 	public void testInvFleishCalc(double xDesired) {
-		myRandGen gradeSourceDistGen = buildAndInitRandGen(fleishRandGen_UniVar, fleishRandVarIDX, new myProbSummary_Dbls(new double[] {0,1,1,4},4));
+		Base_RandGen gradeSourceDistGen = buildAndInitRandGen(fleishRandGen_UniVar, fleishRandVarIDX, new myProbSummary_Dbls(new double[] {0,1,1,4},4));
 		double val = ((myFleishUniVarRandGen)gradeSourceDistGen).calcInvFuncVal(xDesired);
 		msgObj.dispInfoMessage("ClassGradeExperiment", "testInvFleishCalc", "Finished test Fleishman Inverse Function Val Calc : "+val);
 	}//testInvFleishCalc
@@ -548,7 +548,7 @@ public class ClassGradeExperiment extends baseProbExpMgr{
 	//this will build and set a reduced cosine rand gen for the passed class and then restore current model type
 	private void _buildCosRandGenForTest(myClassRoster _cls) {
 		String curClsMdl = _cls.getCurDistModel();
-		myRandGen cosgen = buildAndInitRandGen(boundedRandGen, raisedCosRandVarIDX, perClassSummaryObjMap.get(_cls.name));
+		Base_RandGen cosgen = buildAndInitRandGen(boundedRandGen, raisedCosRandVarIDX, perClassSummaryObjMap.get(_cls.name));
 		_cls.setBaseDistModel(cosgen);
 		_cls.setCurDistModel(curClsMdl);
 	}
@@ -568,8 +568,8 @@ public class ClassGradeExperiment extends baseProbExpMgr{
 	}//
 	public void dbgTestStuff() {
 		msgObj.dispInfoMessage("ClassGradeExperiment", "dbgTestStuff", "Start test");
-		//myRandGen gen = buildAndInitRandGen(linearTransformMap, -1, new myProbSummary(new double[] {0,1,1,4},2));		
-		myRandGen gen = buildAndInitRandGen(uniformTransformMap, -1, new myProbSummary_Dbls(new double[] {0,1,1,4},2));
+		//Base_RandGen gen = buildAndInitRandGen(linearTransformMap, -1, new myProbSummary(new double[] {0,1,1,4},2));		
+		Base_RandGen gen = buildAndInitRandGen(uniformTransformMap, -1, new myProbSummary_Dbls(new double[] {0,1,1,4},2));
 		double[] vals = gen.getMultiFastSamples(100000);
 		
 		myProbSummary_Dbls tmpSummary = new myProbSummary_Dbls(vals); 

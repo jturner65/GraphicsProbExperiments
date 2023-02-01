@@ -81,11 +81,11 @@ public class Main3DWindow extends Base_DispWindow {
 	@Override
 	protected void initMe() {//all ui objects set by here
 		//this window is runnable
-		setFlags(isRunnable, true);
+		dispFlags.setIsRunnable(true);
 		//this window uses a customizable camera
-		setFlags(useCustCam, true);
-		//this window uses right side info window
-		setFlags(drawRightSideMenu, true);
+		dispFlags.setUseCustCam(true);
+		// capable of using right side menu
+		dispFlags.setDrawRtSideMenu(true);
 		
 		//called once
 		//initPrivFlags(numPrivFlags);
