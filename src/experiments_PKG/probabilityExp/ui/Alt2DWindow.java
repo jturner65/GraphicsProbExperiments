@@ -95,14 +95,25 @@ public class Alt2DWindow extends Base_DispWindow {
 	protected int[] getFlagIDXsToInitToTrue() {
 		return null;
 	}
-
-	//add reference here to all button IDX's 
+	/**
+	 * UI code-level Debug mode functionality. Called only from flags structure
+	 * @param val
+	 */
 	@Override
-	public void setPrivFlags(int idx, boolean val) {
-		boolean curVal = getPrivFlags(idx);
-		if(val == curVal) {return;}
-		int flIDX = idx/32, mask = 1<<(idx%32);
-		privFlags[flIDX] = (val ?  privFlags[flIDX] | mask : privFlags[flIDX] & ~mask);
+	public void handleDebugMode(boolean val) {}
+	
+	/**
+	 * Application-specific Debug mode functionality (application-specific). Called only from privflags structure
+	 * @param val
+	 */
+	@Override
+	public void handlePrivFlagsDebugMode(boolean val) {	}
+	
+	/**
+	 * Handle application-specific flag setting
+	 */
+	@Override
+	public void handlePrivFlags_Indiv(int idx, boolean val, boolean oldVal){
 		switch(idx){
 			case debugAnimIDX 			: {
 				break;}

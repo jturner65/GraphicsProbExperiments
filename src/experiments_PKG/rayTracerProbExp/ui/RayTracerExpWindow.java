@@ -61,6 +61,19 @@ public class RayTracerExpWindow extends Base_RayTracerWin {
 	protected final void updateCalcObjUIVals() {
 		RTExp.updateUIDataValues(uiUpdateData);
 	}
+	/**
+	 * UI code-level Debug mode functionality. Called only from flags structure
+	 * @param val
+	 */
+	@Override
+	public void handleDebugMode(boolean val) {}
+	
+	/**
+	 * Application-specific Debug mode functionality (application-specific). Called only from privflags structure
+	 * @param val
+	 */
+	@Override
+	public void handlePrivFlagsDebugMode(boolean val) {	}
 
 	@Override
 	protected void setPrivFlags_Indiv(int idx, boolean val) {		

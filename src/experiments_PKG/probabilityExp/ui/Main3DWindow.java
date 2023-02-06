@@ -113,15 +113,25 @@ public class Main3DWindow extends Base_DispWindow {
 	 */
 	@Override
 	protected final void updateCalcObjUIVals() {}
-
+	/**
+	 * UI code-level Debug mode functionality. Called only from flags structure
+	 * @param val
+	 */
 	@Override
-	//set flag values and execute special functionality for this sequencer
-	//skipKnown will allow settings to be reset if passed redundantly
-	public void setPrivFlags(int idx, boolean val){	
-		boolean curVal = getPrivFlags(idx);
-		if(val == curVal){return;}
-		int flIDX = idx/32, mask = 1<<(idx%32);
-		privFlags[flIDX] = (val ?  privFlags[flIDX] | mask : privFlags[flIDX] & ~mask);
+	public void handleDebugMode(boolean val) {}
+	
+	/**
+	 * Application-specific Debug mode functionality (application-specific). Called only from privflags structure
+	 * @param val
+	 */
+	@Override
+	public void handlePrivFlagsDebugMode(boolean val) {	}
+	
+	/**
+	 * Handle application-specific flag setting
+	 */
+	@Override
+	public void handlePrivFlags_Indiv(int idx, boolean val, boolean oldVal){
 		switch(idx){
 			case debugAnimIDX 			: {
 				//simExec.setExecFlags(mySimExecutive.debugExecIDX,val);
@@ -250,7 +260,7 @@ public class Main3DWindow extends Base_DispWindow {
 		//msgObj.dispInfoMessage(className,"simMe","took : " + (pa.millis() - stVal) + " millis to simulate");
 		//call sim executive, return boolean of whether finished or not
 		boolean done = true;//simExec.simMe(modAmtMillis);
-		if(done) {setPrivFlags(conductExpIDX, false);}
+		if(done) {privFlags.setFlag(conductExpIDX, false);}
 		return done;	
 	}//simMe
 	

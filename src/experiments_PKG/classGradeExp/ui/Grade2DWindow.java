@@ -166,21 +166,32 @@ public class Grade2DWindow extends Base_DispWindow {
 		return new int[] {rebuildDistOnMove,use1pSineCosCDF};
 	}
 
-
-	//add reference here to all button IDX's 
+	/**
+	 * UI code-level Debug mode functionality. Called only from flags structure
+	 * @param val
+	 */
 	@Override
-	public void setPrivFlags(int idx, boolean val) {
-		boolean curVal = getPrivFlags(idx);
-		if(val == curVal) {return;}
-		int flIDX = idx/32, mask = 1<<(idx%32);
-		privFlags[flIDX] = (val ?  privFlags[flIDX] | mask : privFlags[flIDX] & ~mask);
+	public void handleDebugMode(boolean val) {}
+	
+	/**
+	 * Application-specific Debug mode functionality (application-specific). Called only from privflags structure
+	 * @param val
+	 */
+	@Override
+	public void handlePrivFlagsDebugMode(boolean val) {	}
+	
+	/**
+	 * Handle application-specific flag setting
+	 */
+	@Override
+	public void handlePrivFlags_Indiv(int idx, boolean val, boolean oldVal){
 		switch(idx){
 			case reCalcRandGradeSpread : {//build new grade distribution
 				if (val) {
 					setGradeExp(false, false, true, false);
 					addPrivBtnToClear(reCalcRandGradeSpread);
-					setPrivFlags(drawHistEval, false);
-					setPrivFlags(drawFuncEval, false);
+					privFlags.setFlag(drawHistEval, false);
+					privFlags.setFlag(drawFuncEval, false);
 				}
 				break;}
 			case rebuildDistOnMove : {
@@ -207,7 +218,7 @@ public class Grade2DWindow extends Base_DispWindow {
 				if (val) {
 					if((expTypeIDX == 1) || (expTypeIDX == 2)) {
 						gradeAvgExperiment.setShowPlots(false);
-						setPrivFlags(idx, false);					
+						privFlags.setFlag(idx, false);					
 					} else {
 						clearAllPlotsButMe(idx);
 						//now evaluate new results
@@ -231,7 +242,7 @@ public class Grade2DWindow extends Base_DispWindow {
 				if (val) {
 					if((expTypeIDX == 1) || (expTypeIDX == 2)) {
 						gradeAvgExperiment.setShowPlots(false);
-						setPrivFlags(idx, false);					
+						privFlags.setFlag(idx, false);					
 					} else {
 						clearAllPlotsButMe(idx);						
 						//now evaluate new results for selected options
@@ -251,8 +262,8 @@ public class Grade2DWindow extends Base_DispWindow {
 		}//switch
 	}//setPrivFlags
 	
-	private void clearAllPlotsButMe(int meIDX) {for(int idx : showPlotIDXs) {if(idx==meIDX) continue;setPrivFlags(idx, false);}}//clearAllPlotsButMe		
-	private boolean isShowingPlots() {for(int idx : showPlotIDXs) {if(getPrivFlags(idx)) return true;}	return false;}//isShowingPlots
+	private void clearAllPlotsButMe(int meIDX) {for(int idx : showPlotIDXs) {if(idx==meIDX) continue;privFlags.setFlag(idx, false);}}//clearAllPlotsButMe		
+	private boolean isShowingPlots() {for(int idx : showPlotIDXs) {if(privFlags.getFlag(idx)) return true;}	return false;}//isShowingPlots
 	
 	/**
 	 * Build all UI objects to be shown in left side bar menu for this window.  This is the first child class function called by initThisWin
