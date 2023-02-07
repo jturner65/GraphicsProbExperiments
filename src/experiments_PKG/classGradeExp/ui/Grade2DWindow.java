@@ -171,14 +171,14 @@ public class Grade2DWindow extends Base_DispWindow {
 	 * @param val
 	 */
 	@Override
-	public void handleDebugMode(boolean val) {}
+	protected final void handleDispFlagsDebugMode_Indiv(boolean val) {}
 	
 	/**
 	 * Application-specific Debug mode functionality (application-specific). Called only from privflags structure
 	 * @param val
 	 */
 	@Override
-	public void handlePrivFlagsDebugMode(boolean val) {	}
+	protected final void handlePrivFlagsDebugMode_Indiv(boolean val) {	}
 	
 	/**
 	 * Handle application-specific flag setting
