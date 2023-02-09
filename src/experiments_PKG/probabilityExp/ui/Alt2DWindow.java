@@ -52,17 +52,24 @@ public class Alt2DWindow extends Base_DispWindow {
 		super(_p, _AppMgr, _winIdx, _flagIdx);
 		super.initThisWin(false);
 	}
-			
+	
+	/**
+	 * Initialize any UI control flags appropriate for all boids window application
+	 */
 	@Override
-	protected void initMe() {
-		//called once
-		//initPrivFlags(numPrivFlags);
+	protected final void initDispFlags() {
 		//this window is runnable
 		dispFlags.setIsRunnable(true);
 		//this window uses a customizable camera
 		dispFlags.setUseCustCam(true);
 		// capable of using right side menu
 		dispFlags.setDrawRtSideMenu(true);
+	}
+			
+	@Override
+	protected void initMe() {
+		//called once
+		//initPrivFlags(numPrivFlags);
 		tester = new myProbExpMgr(pa, this, curVisScrDims);
 		
 		//set offset to use for custom menu objects
@@ -212,7 +219,7 @@ public class Alt2DWindow extends Base_DispWindow {
 		pa.popMatState();					
 	}//drawOnScreenStuff
 	@Override
-	public void drawCustMenuObjs() {
+	public void drawCustMenuObjs(float animTimeMod) {
 		pa.pushMatState();		
 		//all sub menu drawing within push mat call
 		pa.translate(5,custMenuOffset+yOff);

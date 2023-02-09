@@ -103,15 +103,23 @@ public class Grade2DWindow extends Base_DispWindow {
 		super.initThisWin(false);
 	}//ctor
 			
+	
+	/**
+	 * Initialize any UI control flags appropriate for all boids window application
+	 */
 	@Override
-	protected void initMe() {
-		//called once
+	protected final void initDispFlags() {
 		//this window is runnable
 		dispFlags.setIsRunnable(true);
 		//this window uses a customizable camera
 		dispFlags.setUseCustCam(true);
 		// capable of using right side menu
 		dispFlags.setDrawRtSideMenu(true);
+	}		
+	
+	@Override
+	protected void initMe() {
+		//called once
 		//grade experiments
 		gradeAvgExperiment = new ClassGradeExperiment(pa, this, curVisScrDims);
 		setGradeExp(true,true,true, false);
@@ -460,7 +468,7 @@ public class Grade2DWindow extends Base_DispWindow {
 		pa.popMatState();					
 	}//drawOnScreenStuff
 	@Override
-	public void drawCustMenuObjs() {
+	public void drawCustMenuObjs(float animTimeMod) {
 		pa.pushMatState();		
 		//all sub menu drawing within push mat call
 		pa.translate(5,custMenuOffset+yOff);

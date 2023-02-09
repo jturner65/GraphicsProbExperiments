@@ -78,15 +78,22 @@ public class Main3DWindow extends Base_DispWindow {
 	//set labels of boolean buttons 
 //	private void setLabel(int idx, String tLbl, String fLbl) {truePrivFlagNames[idx] = tLbl;falsePrivFlagNames[idx] = fLbl;}//	
 	
+	/**
+	 * Initialize any UI control flags appropriate for all boids window application
+	 */
 	@Override
-	protected void initMe() {//all ui objects set by here
+	protected final void initDispFlags() {
 		//this window is runnable
 		dispFlags.setIsRunnable(true);
 		//this window uses a customizable camera
 		dispFlags.setUseCustCam(true);
 		// capable of using right side menu
 		dispFlags.setDrawRtSideMenu(true);
+	}
 		
+	@Override
+	protected void initMe() {//all ui objects set by here
+	
 		//called once
 		//initPrivFlags(numPrivFlags);
 		tester = new myProbExpMgr(pa, this, curVisScrDims);
@@ -293,7 +300,7 @@ public class Main3DWindow extends Base_DispWindow {
 
 	//draw custom 2d constructs below interactive component of menu
 	@Override
-	public void drawCustMenuObjs(){
+	public void drawCustMenuObjs(float animTimeMod){
 		pa.pushMatState();	
 		//all sub menu drawing within push mat call
 		pa.translate(0,custMenuOffset+yOff);		
