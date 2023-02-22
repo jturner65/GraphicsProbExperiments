@@ -22,6 +22,10 @@ public class GraphProbExpMain extends GUI_AppManager {
 
 	//don't use sphere background for this program
 	private boolean useSphereBKGnd = false;	
+	
+	private String bkSkyBox = "bkgrndTex.jpg";
+	
+	
 	private final int
 		showUIMenu 			= 0,
 		show1stWinIDX		= 1,			//whether to show 1st window
@@ -59,6 +63,28 @@ public class GraphProbExpMain extends GUI_AppManager {
 	protected HashMap<String,Object> setRuntimeArgsVals(HashMap<String, Object> _passedArgsMap) {
 		return  _passedArgsMap;
 	}
+	/**
+	 * Called in pre-draw initial setup, before first init
+	 * potentially override setup variables on per-project basis.
+	 * Do not use for setting background color or Skybox anymore.
+	 *  	(Current settings in my_procApplet) 	
+	 *  	strokeCap(PROJECT);
+	 *  	textSize(txtSz);
+	 *  	textureMode(NORMAL);			
+	 *  	rectMode(CORNER);	
+	 *  	sphereDetail(4);	 * 
+	 */
+	@Override
+	protected void setupAppDims_Indiv() {}
+	@Override
+	protected boolean getUseSkyboxBKGnd(int winIdx) {	return useSphereBKGnd;}
+	@Override
+	protected String getSkyboxFilename(int winIdx) {	return bkSkyBox;}
+	@Override
+	protected int[] getBackgroundColor(int winIdx) {return bground;}
+	@Override
+	protected int getNumDispWindows() {	return numVisFlags;	}
+	
 
 	/**
 	 * whether or not we want to restrict window size on widescreen monitors
@@ -92,19 +118,6 @@ public class GraphProbExpMain extends GUI_AppManager {
 	protected final MsgCodes getMinLogMsgCodes() {return null;}
 	
 	/**
-	 * return the default background color set in the calling application
-	 * @return
-	 */
-	@Override
-	protected void setup_Indiv() {	if(useSphereBKGnd) {			pa.loadBkgndSphere("bkgrndTex.jpg");	} else {		setBkgrnd();	}}// setup
-	
-	
-	@Override
-	protected void setBkgrnd(){
-		if(useSphereBKGnd) { pa.setBkgndSphere();	} else {pa.setRenderBackground(bground[0],bground[1],bground[2],bground[3]);		}	
-	}//setBkgrnd
-	
-	/**
 	 * determine which main flags to show at upper left of menu 
 	 */
 	@Override
@@ -120,18 +133,15 @@ public class GraphProbExpMain extends GUI_AppManager {
 	//build windows here
 	protected void initAllDispWindows() {
 		showInfo = true;
-		int numWins = numVisFlags;//includes 1 for menu window (never < 1)
 		//titles and descs, need to be set before sidebar menu is defined
 		String[] _winTitles = new String[]{"","3D Exp Win","2D Exp Win","2D Ray Tracer","Grading Exp Win"},
 				_winDescr = new String[] {"", "3D environment to conduct and visualize experiments","2D environment to conduct and visualize experiments","2D ray tracing environment for probability experiments","2D Class Grade Experiment Visualization"};
-		initWins(numWins,_winTitles, _winDescr);
+		setWinTitlesAndDescs(_winTitles, _winDescr);
 		//call for menu window
 		buildInitMenuWin();
 		//instanced window dimensions when open and closed - only showing 1 open at a time
 		float[] _dimOpen  = getDefaultWinDimOpen(), 
 				_dimClosed  = getDefaultWinDimClosed();	
-	
-		System.out.println("Width : " + pa.getWidth() + " | Height : " +  pa.getHeight());
 		//application-wide menu button bar titles and button names
 		String[] menuBtnTitles = new String[]{"Special Functions 1","Special Functions 2"};
 		String[][] menuBtnNames = new String[][] { // each must have literals for every button defined in side bar menu, or ignored
@@ -155,19 +165,19 @@ public class GraphProbExpMain extends GUI_AppManager {
 		//3D window
 		wIdx = disp1stWinIDX; fIdx = show1stWinIDX;
 		setInitDispWinVals(wIdx, _dimOpen, _dimClosed,new boolean[]{false,true,true,true}, new int[]{255,255,255,255},new int[]{0,0,0,255},new int[]{180,180,180,255},new int[]{100,100,100,255}); 
-		dispWinFrames[wIdx] = new Main3DWindow(pa, this, wIdx, fIdx);
+		dispWinFrames[wIdx] = new Main3DWindow(ri, this, wIdx, fIdx);
 		//2d window
 		wIdx = disp2ndWinIDX; fIdx = show2ndWinIDX;
 		setInitDispWinVals(wIdx, _dimOpen, _dimClosed,new boolean[]{false,false,false,false}, new int[]{50,40,20,255}, new int[]{255,255,255,255},new int[]{180,180,180,255},new int[]{100,100,100,255});
-		dispWinFrames[wIdx] = new Alt2DWindow(pa, this, wIdx, fIdx);
+		dispWinFrames[wIdx] = new Alt2DWindow(ri, this, wIdx, fIdx);
 		//ray tracer window
 		wIdx = disp2DRayTracerIDX; fIdx = show2DRayTracerIDX;
 		setInitDispWinVals(wIdx, _dimOpen, _dimClosed,new boolean[]{false,false,false,false}, new int[]{20,30,10,255}, new int[]{255,255,255,255},new int[]{180,180,180,255},new int[]{100,100,100,255}); 
-		dispWinFrames[wIdx] = new RayTracerExpWindow(pa, this, wIdx, fIdx);
+		dispWinFrames[wIdx] = new RayTracerExpWindow(ri, this, wIdx, fIdx);
 		//grades experiment window
 		wIdx = dispGradeWinIDX; fIdx = showGradeWinIDX;
 		setInitDispWinVals(wIdx, _dimOpen, _dimClosed,new boolean[]{false,false,false,false}, new int[]{50,20,50,255}, new int[]{255,255,255,255},new int[]{180,180,180,255},new int[]{100,100,100,255}); 
-		dispWinFrames[wIdx] = new Grade2DWindow(pa, this, wIdx, fIdx);
+		dispWinFrames[wIdx] = new Grade2DWindow(ri, this, wIdx, fIdx);
 
 		//specify windows that cannot be shown simultaneously here
 		initXORWins(
@@ -301,7 +311,7 @@ public class GraphProbExpMain extends GUI_AppManager {
 	public int[] getClr_Custom(int colorVal, int alpha) {		return new int[] {255,255,255,alpha};	}
 	@Override
 	protected void setSmoothing() {
-		pa.setSmoothing(0);
+		ri.setSmoothing(0);
 		
 	}
 
