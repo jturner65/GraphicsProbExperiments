@@ -24,22 +24,17 @@ public class GraphProbExpMain extends GUI_AppManager {
 	private boolean useSphereBKGnd = false;	
 	
 	private String bkSkyBox = "bkgrndTex.jpg";
-	
-	
-	private final int
-		showUIMenu 			= 0,
-		show1stWinIDX		= 1,			//whether to show 1st window
-		show2ndWinIDX		= 2,			//whether to show 2nd window
-		show2DRayTracerIDX 	= 3,
-		showGradeWinIDX		= 4;			//whether or not to show grade experiment window
 
-	public final int numVisFlags = 5;		//must only be used for visible windows
 	//idx's in dispWinFrames for each window - 0 is always left side menu window
 	private static final int disp1stWinIDX = 1,
 							disp2ndWinIDX = 2,
 							disp2DRayTracerIDX = 3,
 							dispGradeWinIDX = 4;
-
+	/**
+	 * # of visible windows including side menu (always at least 1 for side menu)
+	 */
+	private static final int numVisWins = 5;
+	
 	private final int[] bground = new int[]{244,244,244,255};		//bground color
 
 
@@ -83,7 +78,7 @@ public class GraphProbExpMain extends GUI_AppManager {
 	@Override
 	protected int[] getBackgroundColor(int winIdx) {return bground;}
 	@Override
-	protected int getNumDispWindows() {	return numVisFlags;	}
+	protected int getNumDispWindows() {	return numVisWins;	}
 	
 
 	/**
@@ -137,8 +132,6 @@ public class GraphProbExpMain extends GUI_AppManager {
 		String[] _winTitles = new String[]{"","3D Exp Win","2D Exp Win","2D Ray Tracer","Grading Exp Win"},
 				_winDescr = new String[] {"", "3D environment to conduct and visualize experiments","2D environment to conduct and visualize experiments","2D ray tracing environment for probability experiments","2D Class Grade Experiment Visualization"};
 		setWinTitlesAndDescs(_winTitles, _winDescr);
-		//call for menu window
-		buildInitMenuWin();
 		//instanced window dimensions when open and closed - only showing 1 open at a time
 		float[] _dimOpen  = getDefaultWinDimOpen(), 
 				_dimClosed  = getDefaultWinDimClosed();	
@@ -148,8 +141,7 @@ public class GraphProbExpMain extends GUI_AppManager {
 			{"Test Rand Gen", "Test R Calc","Func 3"},	//row 1
 			{"Func 1", "Func 2", "Func 3", "Func 4"}};	//row 1
 		String[] dbgBtnNames = new String[] {"Debug 0","Debug 1","Debug 2","Debug 3","Debug 4"};
-		int wIdx = dispMenuIDX,fIdx=showUIMenu;
-		dispWinFrames[wIdx] = buildSideBarMenu(wIdx, fIdx,menuBtnTitles, menuBtnNames, dbgBtnNames, true, true);		
+		buildSideBarMenu(menuBtnTitles, menuBtnNames, dbgBtnNames, true, true);		
 
 		//define windows
 		//idx 0 is menu, and is ignored	
@@ -163,25 +155,25 @@ public class GraphProbExpMain extends GUI_AppManager {
 		//int _trajFill, int _trajStrk)			: trajectory fill and stroke colors, if these objects can be drawn in window (used as alt color otherwise)
 
 		//3D window
-		wIdx = disp1stWinIDX; fIdx = show1stWinIDX;
+		int wIdx = disp1stWinIDX;
 		setInitDispWinVals(wIdx, _dimOpen, _dimClosed,new boolean[]{false,true,true,true}, new int[]{255,255,255,255},new int[]{0,0,0,255},new int[]{180,180,180,255},new int[]{100,100,100,255}); 
-		dispWinFrames[wIdx] = new Main3DWindow(ri, this, wIdx, fIdx);
+		dispWinFrames[wIdx] = new Main3DWindow(ri, this, wIdx);
 		//2d window
-		wIdx = disp2ndWinIDX; fIdx = show2ndWinIDX;
+		wIdx = disp2ndWinIDX;
 		setInitDispWinVals(wIdx, _dimOpen, _dimClosed,new boolean[]{false,false,false,false}, new int[]{50,40,20,255}, new int[]{255,255,255,255},new int[]{180,180,180,255},new int[]{100,100,100,255});
-		dispWinFrames[wIdx] = new Alt2DWindow(ri, this, wIdx, fIdx);
+		dispWinFrames[wIdx] = new Alt2DWindow(ri, this, wIdx);
 		//ray tracer window
-		wIdx = disp2DRayTracerIDX; fIdx = show2DRayTracerIDX;
+		wIdx = disp2DRayTracerIDX;
 		setInitDispWinVals(wIdx, _dimOpen, _dimClosed,new boolean[]{false,false,false,false}, new int[]{20,30,10,255}, new int[]{255,255,255,255},new int[]{180,180,180,255},new int[]{100,100,100,255}); 
-		dispWinFrames[wIdx] = new RayTracerExpWindow(ri, this, wIdx, fIdx);
+		dispWinFrames[wIdx] = new RayTracerExpWindow(ri, this, wIdx);
 		//grades experiment window
-		wIdx = dispGradeWinIDX; fIdx = showGradeWinIDX;
+		wIdx = dispGradeWinIDX;
 		setInitDispWinVals(wIdx, _dimOpen, _dimClosed,new boolean[]{false,false,false,false}, new int[]{50,20,50,255}, new int[]{255,255,255,255},new int[]{180,180,180,255},new int[]{100,100,100,255}); 
-		dispWinFrames[wIdx] = new Grade2DWindow(ri, this, wIdx, fIdx);
+		dispWinFrames[wIdx] = new Grade2DWindow(ri, this, wIdx);
 
 		//specify windows that cannot be shown simultaneously here
 		initXORWins(
-				new int[]{show1stWinIDX,show2ndWinIDX, show2DRayTracerIDX, showGradeWinIDX},
+				new int[]{disp1stWinIDX, disp2ndWinIDX, disp2DRayTracerIDX, dispGradeWinIDX},
 				new int[]{disp1stWinIDX, disp2ndWinIDX, disp2DRayTracerIDX, dispGradeWinIDX});
 
 		
@@ -190,8 +182,7 @@ public class GraphProbExpMain extends GUI_AppManager {
 	@Override
 	//called from base class, once at start of program after vis init is called
 	protected void initOnce_Indiv(){
-		setVisFlag(showUIMenu, true);					//show input UI menu	
-		setVisFlag(showGradeWinIDX, true);
+		setVisFlag(dispGradeWinIDX, true);
 		//setVisFlag(show2DRayTracerIDX, true);
 	}//	initOnce
 	
@@ -265,16 +256,14 @@ public class GraphProbExpMain extends GUI_AppManager {
 	
 	//get the ui rect values of the "master" ui region (another window) -> this is so ui objects of one window can be made, clicked, and shown displaced from those of the parent windwo
 	@Override
-	public float[] getUIRectVals(int idx){
+	public float[] getUIRectVals_Indiv(int idx, float[] menuClickDim){
 			//this.pr("In getUIRectVals for idx : " + idx);
 		switch(idx){
-			case dispMenuIDX 		: { return new float[0];}			//idx 0 is parent menu sidebar
-			case disp1stWinIDX 		: { return dispWinFrames[dispMenuIDX].uiClkCoords;}
-			case disp2ndWinIDX 		: {	return dispWinFrames[dispMenuIDX].uiClkCoords;}
-			case disp2DRayTracerIDX	: {	return dispWinFrames[dispMenuIDX].uiClkCoords;}
-			case dispGradeWinIDX	: {	return dispWinFrames[dispMenuIDX].uiClkCoords;}
-			
-			default :  return dispWinFrames[dispMenuIDX].uiClkCoords;
+			case disp1stWinIDX 		: { return menuClickDim;}
+			case disp2ndWinIDX 		: {	return menuClickDim;}
+			case disp2DRayTracerIDX	: {	return menuClickDim;}
+			case dispGradeWinIDX	: {	return menuClickDim;}
+			default :  return menuClickDim;
 			}
 	}//getUIRectVals
 	
@@ -287,16 +276,15 @@ public class GraphProbExpMain extends GUI_AppManager {
 	 * @return
 	 */
 	@Override
-	public int getNumVisFlags() {return numVisFlags;}
+	public int getNumVisFlags() {return numVisWins;}
 	@Override
 	//address all flag-setting here, so that if any special cases need to be addressed they can be
 	protected void setVisFlag_Indiv(int idx, boolean val ){
 		switch (idx){
-			case showUIMenu 	    : { dispWinFrames[dispMenuIDX].dispFlags.setShowWin(val);    break;}											//whether or not to show the main ui window (sidebar)			
-			case show1stWinIDX		: {setWinFlagsXOR(disp1stWinIDX, val); break;}
-			case show2ndWinIDX		: {setWinFlagsXOR(disp2ndWinIDX, val); break;}
-			case show2DRayTracerIDX	: {setWinFlagsXOR(disp2DRayTracerIDX, val); break;}		
-			case showGradeWinIDX	: {setWinFlagsXOR(dispGradeWinIDX, val); break;}			
+			case disp1stWinIDX		: {setWinFlagsXOR(disp1stWinIDX, val); break;}
+			case disp2ndWinIDX		: {setWinFlagsXOR(disp2ndWinIDX, val); break;}
+			case disp2DRayTracerIDX	: {setWinFlagsXOR(disp2DRayTracerIDX, val); break;}		
+			case dispGradeWinIDX	: {setWinFlagsXOR(dispGradeWinIDX, val); break;}			
 			default : {break;}
 		}
 	}//setFlags  

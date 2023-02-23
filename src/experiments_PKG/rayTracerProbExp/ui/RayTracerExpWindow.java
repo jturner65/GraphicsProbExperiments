@@ -27,8 +27,8 @@ public class RayTracerExpWindow extends Base_RayTracerWin {
 	 * @param _winIdx
 	 * @param _flagIdx
 	 */
-	public RayTracerExpWindow(IRenderInterface _p, GUI_AppManager _AppMgr, int _winIdx, int _flagIdx) {
-		super(_p, _AppMgr, _winIdx, _flagIdx);
+	public RayTracerExpWindow(IRenderInterface _p, GUI_AppManager _AppMgr, int _winIdx) {
+		super(_p, _AppMgr, _winIdx);
 		super.initThisWin(false);
 	}
 

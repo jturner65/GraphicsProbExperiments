@@ -98,8 +98,8 @@ public class Grade2DWindow extends Base_DispWindow {
 	//class experiment
 	private ClassGradeExperiment gradeAvgExperiment;
 	
-	public Grade2DWindow(IRenderInterface _p, GUI_AppManager _AppMgr, int _winIdx, int _flagIdx) {
-		super(_p, _AppMgr, _winIdx, _flagIdx);
+	public Grade2DWindow(IRenderInterface _p, GUI_AppManager _AppMgr, int _winIdx) {
+		super(_p, _AppMgr, _winIdx);
 		super.initThisWin(false);
 	}//ctor
 			
@@ -114,7 +114,7 @@ public class Grade2DWindow extends Base_DispWindow {
 		//this window uses a customizable camera
 		dispFlags.setUseCustCam(true);
 		// capable of using right side menu
-		dispFlags.setDrawRtSideMenu(true);
+		dispFlags.setHasRtSideMenu(true);
 	}		
 	
 	@Override
@@ -619,7 +619,7 @@ public class Grade2DWindow extends Base_DispWindow {
 	}
 
 	@Override
-	protected void setCameraIndiv(float[] camVals){		
+	protected void setCamera_Indiv(float[] camVals){		
 		//, float rx, float ry, float dz are now member variables of every window
 		pa.setCameraWinVals(camVals);//(camVals[0],camVals[1],camVals[2],camVals[3],camVals[4],camVals[5],camVals[6],camVals[7],camVals[8]);      
 		// puts origin of all drawn objects at screen center and moves forward/away by dz
@@ -649,19 +649,19 @@ public class Grade2DWindow extends Base_DispWindow {
 	}
 
 	@Override
-	protected boolean hndlMouseMoveIndiv(int mouseX, int mouseY, myPoint mseClckInWorld){
+	protected boolean hndlMouseMove_Indiv(int mouseX, int mouseY, myPoint mseClckInWorld){
 		boolean res = chkMouseMoveDragState2D(mouseX, mouseY, -1);
 		return res;
 	}
 	//alt key pressed handles trajectory
 	//cntl key pressed handles unfocus of spherey
 	@Override
-	protected boolean hndlMouseClickIndiv(int mouseX, int mouseY, myPoint mseClckInWorld, int mseBtn) {	
+	protected boolean hndlMouseClick_Indiv(int mouseX, int mouseY, myPoint mseClckInWorld, int mseBtn) {	
 		boolean res = chkMouseClick2D(mouseX, mouseY, mseBtn);
 		
 		return res;}//hndlMouseClickIndiv
 	@Override
-	protected boolean hndlMouseDragIndiv(int mouseX, int mouseY, int pmouseX, int pmouseY, myPoint mouseClickIn3D, myVector mseDragInWorld, int mseBtn) {
+	protected boolean hndlMouseDrag_Indiv(int mouseX, int mouseY, int pmouseX, int pmouseY, myPoint mouseClickIn3D, myVector mseDragInWorld, int mseBtn) {
 		boolean res = false;
 		if(!res) {
 			res = chkMouseMoveDragState2D(mouseX, mouseY, mseBtn);
@@ -670,7 +670,7 @@ public class Grade2DWindow extends Base_DispWindow {
 	@Override
 	protected void snapMouseLocs(int oldMouseX, int oldMouseY, int[] newMouseLoc) {}	
 	@Override
-	protected void hndlMouseRelIndiv() {
+	protected void hndlMouseRel_Indiv() {
 		setMouseReleaseState2D();
 	}
 	@Override
@@ -680,25 +680,25 @@ public class Grade2DWindow extends Base_DispWindow {
 	@Override
 	protected void endCntlKeyI() {}
 	@Override
-	protected void addSScrToWinIndiv(int newWinKey){}
+	protected void addSScrToWin_Indiv(int newWinKey){}
 	@Override
-	protected void addTrajToScrIndiv(int subScrKey, String newTrajKey){}
+	protected void addTrajToScr_Indiv(int subScrKey, String newTrajKey){}
 	@Override
-	protected void delSScrToWinIndiv(int idx) {}	
+	protected void delSScrToWin_Indiv(int idx) {}	
 	@Override
-	protected void delTrajToScrIndiv(int subScrKey, String newTrajKey) {}
+	protected void delTrajToScr_Indiv(int subScrKey, String newTrajKey) {}
 	//resize drawn all trajectories
 	@Override
 	protected void resizeMe(float scale) {	}
 
 	@Override
-	protected void initDrwnTrajIndiv() {}
+	protected void initDrwnTraj_Indiv() {}
 
 	@Override
 	protected myPoint getMsePtAs3DPt(myPoint mseLoc){return new myPoint(mseLoc.x,mseLoc.y,0);}
 
 	@Override
-	public void processTrajIndiv(DrawnSimpleTraj drawnTraj) {
+	public void processTraj_Indiv(DrawnSimpleTraj drawnTraj) {
 		// TODO Auto-generated method stub
 		
 	}

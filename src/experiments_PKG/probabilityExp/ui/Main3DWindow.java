@@ -60,8 +60,8 @@ public class Main3DWindow extends Base_DispWindow {
 	
 	private myProbExpMgr tester;
 
-	public Main3DWindow(IRenderInterface _p, GUI_AppManager _AppMgr, int _winIdx, int _flagIdx) {
-		super(_p, _AppMgr, _winIdx, _flagIdx);
+	public Main3DWindow(IRenderInterface _p, GUI_AppManager _AppMgr, int _winIdx) {
+		super(_p, _AppMgr, _winIdx);
 		super.initThisWin(false);
 	}//DancingBallWin
 	
@@ -88,7 +88,7 @@ public class Main3DWindow extends Base_DispWindow {
 		//this window uses a customizable camera
 		dispFlags.setUseCustCam(true);
 		// capable of using right side menu
-		dispFlags.setDrawRtSideMenu(true);
+		dispFlags.setHasRtSideMenu(true);
 	}
 		
 	@Override
@@ -240,7 +240,7 @@ public class Main3DWindow extends Base_DispWindow {
 	
 	
 	@Override
-	public void initDrwnTrajIndiv(){}
+	public void initDrwnTraj_Indiv(){}
 	
 //	public void setLights(){
 //		pa.ambientLight(102, 102, 102);
@@ -252,7 +252,7 @@ public class Main3DWindow extends Base_DispWindow {
 	public void drawTraj3D(float animTimeMod,myPoint trans){}//drawTraj3D	
 	//set camera to either be global or from pov of one of the boids
 	@Override
-	protected void setCameraIndiv(float[] camVals){		
+	protected void setCamera_Indiv(float[] camVals){		
 		//, float rx, float ry, float dz are now member variables of every window
 		pa.setCameraWinVals(camVals);//(camVals[0],camVals[1],camVals[2],camVals[3],camVals[4],camVals[5],camVals[6],camVals[7],camVals[8]);      
 		// puts origin of all drawn objects at screen center and moves forward/away by dz
@@ -453,7 +453,7 @@ public class Main3DWindow extends Base_DispWindow {
 	}
 
 	@Override
-	protected boolean hndlMouseMoveIndiv(int mouseX, int mouseY, myPoint mseClckInWorld){
+	protected boolean hndlMouseMove_Indiv(int mouseX, int mouseY, myPoint mseClckInWorld){
 		return false;
 	}
 	
@@ -461,15 +461,15 @@ public class Main3DWindow extends Base_DispWindow {
 	
 	//cntl key pressed handles unfocus of spherey
 	@Override
-	protected boolean hndlMouseClickIndiv(int mouseX, int mouseY, myPoint mseClckInWorld, int mseBtn) {	
+	protected boolean hndlMouseClick_Indiv(int mouseX, int mouseY, myPoint mseClckInWorld, int mseBtn) {	
 		
 		return false;}//hndlMouseClickIndiv
 	@Override
-	protected boolean hndlMouseDragIndiv(int mouseX, int mouseY, int pmouseX, int pmouseY, myPoint mouseClickIn3D, myVector mseDragInWorld, int mseBtn) {
+	protected boolean hndlMouseDrag_Indiv(int mouseX, int mouseY, int pmouseX, int pmouseY, myPoint mouseClickIn3D, myVector mseDragInWorld, int mseBtn) {
 		boolean res = false;
 		return res;}	
 	@Override
-	protected void hndlMouseRelIndiv() {	}
+	protected void hndlMouseRel_Indiv() {	}
 	@Override
 	protected void endShiftKeyI() {}
 	@Override
@@ -479,13 +479,13 @@ public class Main3DWindow extends Base_DispWindow {
 	@Override
 	protected void snapMouseLocs(int oldMouseX, int oldMouseY, int[] newMouseLoc) {}	
 	@Override
-	protected void addSScrToWinIndiv(int newWinKey){}
+	protected void addSScrToWin_Indiv(int newWinKey){}
 	@Override
-	protected void addTrajToScrIndiv(int subScrKey, String newTrajKey){}
+	protected void addTrajToScr_Indiv(int subScrKey, String newTrajKey){}
 	@Override
-	protected void delSScrToWinIndiv(int idx) {}	
+	protected void delSScrToWin_Indiv(int idx) {}	
 	@Override
-	protected void delTrajToScrIndiv(int subScrKey, String newTrajKey) {}
+	protected void delTrajToScr_Indiv(int subScrKey, String newTrajKey) {}
 	//resize drawn all trajectories
 	@Override
 	protected void resizeMe(float scale) { }
@@ -494,7 +494,7 @@ public class Main3DWindow extends Base_DispWindow {
 	protected myPoint getMsePtAs3DPt(myPoint mseLoc) {return new myPoint(mseLoc);}
 
 	@Override
-	public void processTrajIndiv(DrawnSimpleTraj drawnTraj) {
+	public void processTraj_Indiv(DrawnSimpleTraj drawnTraj) {
 		// TODO Auto-generated method stub
 		
 	}
