@@ -121,7 +121,7 @@ public class Grade2DWindow extends Base_DispWindow {
 	protected void initMe() {
 		//called once
 		//grade experiments
-		gradeAvgExperiment = new ClassGradeExperiment(pa, this, curVisScrDims);
+		gradeAvgExperiment = new ClassGradeExperiment(this, curVisScrDims);
 		setGradeExp(true,true,true, false);
 		
 		//set visibility width and send to experiments - experiment must be built first
@@ -311,7 +311,7 @@ public class Grade2DWindow extends Base_DispWindow {
 	}//setupGUIObjsAras
 	
 	/**
-	 * Called if int-handling guiObjs[UIidx] (int or list) has new data which updated UI adapter. 
+	 * Called if int-handling guiObjs_Numeric[UIidx] (int or list) has new data which updated UI adapter. 
 	 * Intended to support custom per-object handling by owning window.
 	 * Only called if data changed!
 	 * @param UIidx Index of gui obj with new data
@@ -353,7 +353,7 @@ public class Grade2DWindow extends Base_DispWindow {
 	}//setUI_IntValsCustom
 	
 	/**
-	 * Called if float-handling guiObjs[UIidx] has new data which updated UI adapter.  
+	 * Called if float-handling guiObjs_Numeric[UIidx] has new data which updated UI adapter.  
 	 * Intended to support custom per-object handling by owning window.
 	 * Only called if data changed!
 	 * @param UIidx Index of gui obj with new data
@@ -377,15 +377,19 @@ public class Grade2DWindow extends Base_DispWindow {
 				break;}
 			case gIDX_FinalGradeSkew	  : 	{	
 				finalGradeMmtns[2] = val;	
-				double skewSQ = finalGradeMmtns[2] * finalGradeMmtns[2], bound = -1.2264489 + 1.6410373*skewSQ; 
-				guiObjs[gIDX_FinalGradeExKurt].setNewMin((bound > 0 ? bound : 0));
-				guiObjs[gIDX_FinalGradeExKurt].setNewMax((guiObjs[gIDX_FinalGradeExKurt].getMinVal()+1)*10);
+				double skewSQ = finalGradeMmtns[2] * finalGradeMmtns[2], bound = -1.2264489 + 1.6410373*skewSQ;
+				double minVal = (bound > 0 ? bound : 0);
+				setNewUIMinVal(UIidx, minVal);
+				setNewUIMaxVal(UIidx, (minVal + 1)* 10.0);				
+				//guiObjs_Numeric[gIDX_FinalGradeExKurt].setNewMin((bound > 0 ? bound : 0));
+				//guiObjs_Numeric[gIDX_FinalGradeExKurt].setNewMax((guiObjs_Numeric[gIDX_FinalGradeExKurt].getMinVal()+1)*10);
 				break;}   
 			case gIDX_FinalGradeExKurt	  : 	{		//Exkurtosis is  skewness vals for fleishman polynomial
 				//verify legitimate kurt for fleishman dist
 				double skewSQ = finalGradeMmtns[2] * finalGradeMmtns[2], bound = -1.2264489 + 1.6410373*skewSQ; 
 				finalGradeMmtns[3] = (val < bound ? bound : val) ;
-				guiObjs[UIidx].setVal(finalGradeMmtns[3]);			
+				setNewUIValue(UIidx, finalGradeMmtns[3]);
+				//guiObjs_Numeric[UIidx].setVal(finalGradeMmtns[3]);			
 				break;}	
 			default : {
 				msgObj.dispWarningMessage(className, "setUI_FloatValsCustom", "No float-defined gui object mapped to idx :"+UIidx);
@@ -447,11 +451,11 @@ public class Grade2DWindow extends Base_DispWindow {
 	
 	@Override
 	protected void drawMe(float animTimeMod) {
-		pa.pushMatState();
-		pa.translate(this.rectDim[0],0,0);
+		ri.pushMatState();
+		ri.translate(this.rectDim[0],0,0);
 		//all drawing stuff goes here
 		gradeAvgExperiment.drawExp();
-		pa.popMatState();
+		ri.popMatState();
 	}
 
 	@Override
@@ -462,20 +466,20 @@ public class Grade2DWindow extends Base_DispWindow {
 	//draw 2d constructs over 3d area on screen - draws behind left menu section
 	//modAmtMillis is in milliseconds
 	protected void drawRightSideInfoBarPriv(float modAmtMillis) {
-		pa.pushMatState();
+		ri.pushMatState();
 		//display current simulation variables - call sim world through sim exec
 		//simExec.des.drawResultBar(pa, UIrectBox,  yOff);
-		pa.popMatState();					
+		ri.popMatState();					
 	}//drawOnScreenStuff
 	@Override
 	public void drawCustMenuObjs(float animTimeMod) {
-		pa.pushMatState();		
+		ri.pushMatState();		
 		//all sub menu drawing within push mat call
-		pa.translate(5,custMenuOffset+yOff);
+		ri.translate(5,custMenuOffset+txtHeightOff);
 		//draw any custom menu stuff here
 		
 		
-		pa.popMatState();		
+		ri.popMatState();		
 	}//drawCustMenuObjs
 	
 	//manage any functionality specific to this window that needs to be recalced when the visibile dims of the window change
@@ -621,9 +625,9 @@ public class Grade2DWindow extends Base_DispWindow {
 	@Override
 	protected void setCamera_Indiv(float[] camVals){		
 		//, float rx, float ry, float dz are now member variables of every window
-		pa.setCameraWinVals(camVals);//(camVals[0],camVals[1],camVals[2],camVals[3],camVals[4],camVals[5],camVals[6],camVals[7],camVals[8]);      
+		ri.setCameraWinVals(camVals);//(camVals[0],camVals[1],camVals[2],camVals[3],camVals[4],camVals[5],camVals[6],camVals[7],camVals[8]);      
 		// puts origin of all drawn objects at screen center and moves forward/away by dz
-		pa.translate(camVals[0],camVals[1],(float)dz); 
+		ri.translate(camVals[0],camVals[1],(float)dz); 
 	    setCamOrient();	
 	}//setCameraIndiv
 

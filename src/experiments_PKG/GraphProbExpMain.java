@@ -122,6 +122,7 @@ public class GraphProbExpMain extends GUI_AppManager {
 		setBaseFlagToShow_runSim(false);
 		setBaseFlagToShow_singleStep(false);
 		setBaseFlagToShow_showRtSideMenu(true);
+		setBaseFlagToShow_showDrawableCanvas(false);
 	}
 
 	@Override

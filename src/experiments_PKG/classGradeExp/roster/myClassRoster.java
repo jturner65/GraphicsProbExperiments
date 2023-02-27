@@ -3,7 +3,6 @@ package experiments_PKG.classGradeExp.roster;
 import java.util.HashMap;
 
 import base_Render_Interface.IRenderInterface;
-import base_ProbTools.baseProbExpMgr;
 import base_ProbTools.randGenFunc.gens.base.Base_RandGen;
 import base_ProbTools.samples.mySampleSet;
 import base_StatsTools.summary.myProbSummary_Dbls;
@@ -20,8 +19,10 @@ import experiments_PKG.classGradeExp.experiment.myStudent;
  * @author john
  */
 public class myClassRoster extends mySampleSet{
-	//
-	public static IRenderInterface pa;
+	/**
+	 * 
+	 */
+	public static IRenderInterface ri;
 	//structure holding references to the students in this class - students need to be created external to class and added
 	protected HashMap<Integer,myStudent> students;
 
@@ -63,20 +64,20 @@ public class myClassRoster extends mySampleSet{
 	
 	private myFinalGradeRoster _finalGrades;			//ref to final grade roster
 	
-	public myClassRoster(IRenderInterface _pa, baseProbExpMgr _gradeExp, String _name, float[][] _barLocs) {
+	public myClassRoster(IRenderInterface _ri, ClassGradeExperiment _gradeExp, String _name, float[][] _barLocs) {
 		super(_name);
-		pa = _pa;
+		ri = _ri;
 		initFlags();
 		//visualization stuff
 		distPlotDimRect = new float[] {_barLocs[2][0], _barLocs[2][1],_gradeExp.getVisibleSreenWidth(),ClassGradeExperiment.distBtwnAdjPlots};
 		distBtwnClassBars = ClassGradeExperiment.distBtwnAdjBars;
 		distBtwnRawTransBars =  _barLocs[1][1] - _barLocs[0][1];
-		clsLineClr = _pa.getRndClrBright(255);//should be brighter colors
+		clsLineClr = ri.getRndClrBright(255);//should be brighter colors
 		gradeBars = new myGradeDistVisBar[transTypes.length];
 		int barLocIDX = 0;
 		for(int i=0;i<gradeBars.length;++i) {
 			if(i>0) {barLocIDX=1;}
-			gradeBars[i]=new myGradeDistVisBar(this, pa, new float[] {_barLocs[barLocIDX][0], _barLocs[barLocIDX][1], distPlotDimRect[2], distBtwnClassBars}, transTypes[i],clsLineClr, "Visualization of "+transTypes[i]+" grades for class :"+name);			
+			gradeBars[i]=new myGradeDistVisBar(this, ri, new float[] {_barLocs[barLocIDX][0], _barLocs[barLocIDX][1], distPlotDimRect[2], distBtwnClassBars}, transTypes[i],clsLineClr, "Visualization of "+transTypes[i]+" grades for class :"+name);			
 		}
 		gradeBars[GB_scaledUniGradeTypeIDX].setIsVisible(false);
 		students = new HashMap<Integer,myStudent>();		
@@ -96,7 +97,7 @@ public class myClassRoster extends mySampleSet{
 	 */
 	@Override
 	protected final myDistFuncHistVisMgr buildVisMgr(String _name) {
-		return new myDistFuncHistVisMgr(pa, distPlotDimRect, _name);
+		return new myDistFuncHistVisMgr(ri, distPlotDimRect, _name);
 	}
 	
 	//when new transform added, need to clear out existing transformed grades
@@ -302,16 +303,16 @@ public class myClassRoster extends mySampleSet{
 		//TODO check if passed trasnformation has occured
 		//if((getFlag(classRawToTransEnabledIDX)) && (getFlag(classRawIsTransformedIDX))) {
 		if(check) {
-			pa.pushMatState();
+			ri.pushMatState();
 			//first transform to this class's raw grade line
 			stGradeBar.transToBarStart();
 			for (myStudent s : students.values()) {//uses student color
 				double rawXLoc = s.getGradeXLoc(fromTransType, fromCls, gradeBars[GB_rawGradeTypeIDX].barWidth);
 				double transXLoc = s.getGradeXLoc(toTransType, toCls, gradeBars[GB_rawGradeTypeIDX].barWidth);
-				pa.setStroke(s.clr, s.clr[3]);
-				pa.drawLine(rawXLoc, 0, 0, transXLoc,dist,0);				
+				ri.setStroke(s.clr, s.clr[3]);
+				ri.drawLine(rawXLoc, 0, 0, transXLoc,dist,0);				
 			}
-			pa.popMatState();		
+			ri.popMatState();		
 		}		
 	}//drawRawToTransformedLine	
 	
@@ -329,9 +330,9 @@ public class myClassRoster extends mySampleSet{
 	 */
 	public void drawAllStudents(String gradeType, float barWidth, boolean enabled) {
 		if (enabled) {
-			for (myStudent s : students.values()) {		s.drawMeTransformed(pa, gradeType, this, s.clr, barWidth);	}
+			for (myStudent s : students.values()) {		s.drawMeTransformed(ri, gradeType, this, s.clr, barWidth);	}
 		} else {
-			for (myStudent s : students.values()) {		s.drawMeTransformed(pa, gradeType, this, myGradeDistVisBar.greyOff, barWidth);	}	
+			for (myStudent s : students.values()) {		s.drawMeTransformed(ri, gradeType, this, myGradeDistVisBar.greyOff, barWidth);	}	
 		}
 	}
 	

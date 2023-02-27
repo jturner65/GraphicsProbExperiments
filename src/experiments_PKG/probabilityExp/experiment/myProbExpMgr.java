@@ -15,7 +15,7 @@ import experiments_PKG.probabilityExp.ui.GrapProbUIDataUpdater;
  *
  */
 public class myProbExpMgr extends baseProbExpMgr{	
-	public IRenderInterface pa;
+	public IRenderInterface ri;
 	
 	public Base_DispWindow win;
 	//random # generator
@@ -27,10 +27,10 @@ public class myProbExpMgr extends baseProbExpMgr{
 	public static final int numFlags = 1;	
 	
 	
-	public myProbExpMgr(IRenderInterface _pa, Base_DispWindow _win, float[] _curVisScrDims) {
+	public myProbExpMgr(Base_DispWindow _win, float[] _curVisScrDims) {
 		super(_win.getMsgObj(), _curVisScrDims);
 		win = _win;
-		pa=_pa;
+		ri=Base_DispWindow.ri;
 	}//ctor
 
 	//build solvers specific to this experiment - called after base class solver init

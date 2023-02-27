@@ -96,7 +96,7 @@ public class Main3DWindow extends Base_DispWindow {
 	
 		//called once
 		//initPrivFlags(numPrivFlags);
-		tester = new myProbExpMgr(pa, this, curVisScrDims);
+		tester = new myProbExpMgr(this, curVisScrDims);
 
 		custMenuOffset = uiClkCoords[3];	//495	
 	}//initMe	
@@ -153,7 +153,7 @@ public class Main3DWindow extends Base_DispWindow {
 				//if wanting to conduct exp need to stop current experimet, reset environment, and then launch experiment
 //				if(val) {
 //					simExec.initializeTrials((int) uiVals[gIDX_ExpLength], (int) uiVals[gIDX_NumExpTrials], true);
-//					pa.setFlags(pa.runSim, true);
+//					ri.setFlags(ri.runSim, true);
 //					addPrivBtnToClear(conductExpIDX);
 //				} 
 				break;}
@@ -189,7 +189,7 @@ public class Main3DWindow extends Base_DispWindow {
 //	//setup UI object for song slider
 //	private void setupGUI_XtraObjs() {
 //		double stClkY = uiClkCoords[3], sizeClkY = 3*yOff;
-//		guiObjs[songTransIDX] = new myGUIBar(pa, this, songTransIDX, "MP3 Transport for ", 
+//		guiObjs_Numeric[songTransIDX] = new myGUIBar(pa, this, songTransIDX, "MP3 Transport for ", 
 //				new myVector(0, stClkY,0), new myVector(uiClkCoords[2], stClkY+sizeClkY,0),
 //				new double[] {0.0, 1.0,0.1}, 0.0, new boolean[]{false, false, true}, new double[]{xOff,yOff});	
 //		
@@ -199,7 +199,7 @@ public class Main3DWindow extends Base_DispWindow {
 //	}
 
 	/**
-	 * Called if int-handling guiObjs[UIidx] (int or list) has new data which updated UI adapter. 
+	 * Called if int-handling guiObjs_Numeric[UIidx] (int or list) has new data which updated UI adapter. 
 	 * Intended to support custom per-object handling by owning window.
 	 * Only called if data changed!
 	 * @param UIidx Index of gui obj with new data
@@ -217,7 +217,7 @@ public class Main3DWindow extends Base_DispWindow {
 	}
 	
 	/**
-	 * Called if float-handling guiObjs[UIidx] has new data which updated UI adapter.  
+	 * Called if float-handling guiObjs_Numeric[UIidx] has new data which updated UI adapter.  
 	 * Intended to support custom per-object handling by owning window.
 	 * Only called if data changed!
 	 * @param UIidx Index of gui obj with new data
@@ -243,9 +243,9 @@ public class Main3DWindow extends Base_DispWindow {
 	public void initDrwnTraj_Indiv(){}
 	
 //	public void setLights(){
-//		pa.ambientLight(102, 102, 102);
-//		pa.lightSpecular(204, 204, 204);
-//		pa.directionalLight(180, 180, 180, 0, 1, -1);	
+//		ri.ambientLight(102, 102, 102);
+//		ri.lightSpecular(204, 204, 204);
+//		ri.directionalLight(180, 180, 180, 0, 1, -1);	
 //	}	
 	//overrides function in base class mseClkDisp
 	@Override
@@ -254,9 +254,9 @@ public class Main3DWindow extends Base_DispWindow {
 	@Override
 	protected void setCamera_Indiv(float[] camVals){		
 		//, float rx, float ry, float dz are now member variables of every window
-		pa.setCameraWinVals(camVals);//(camVals[0],camVals[1],camVals[2],camVals[3],camVals[4],camVals[5],camVals[6],camVals[7],camVals[8]);      
+		ri.setCameraWinVals(camVals);//(camVals[0],camVals[1],camVals[2],camVals[3],camVals[4],camVals[5],camVals[6],camVals[7],camVals[8]);      
 		// puts origin of all drawn objects at screen center and moves forward/away by dz
-		pa.translate(camVals[0],camVals[1],(float)dz); 
+		ri.translate(camVals[0],camVals[1],(float)dz); 
 	    setCamOrient();	
 	}//setCameraIndiv
 
@@ -264,7 +264,7 @@ public class Main3DWindow extends Base_DispWindow {
 	@Override
 	//modAmtMillis is time passed per frame in milliseconds - returns if done or not
 	protected boolean simMe(float modAmtMillis) {//run simulation
-		//msgObj.dispInfoMessage(className,"simMe","took : " + (pa.millis() - stVal) + " millis to simulate");
+		//msgObj.dispInfoMessage(className,"simMe","took : " + (ri.millis() - stVal) + " millis to simulate");
 		//call sim executive, return boolean of whether finished or not
 		boolean done = true;//simExec.simMe(modAmtMillis);
 		if(done) {privFlags.setFlag(conductExpIDX, false);}
@@ -282,17 +282,17 @@ public class Main3DWindow extends Base_DispWindow {
 	//draw 2d constructs over 3d area on screen - draws behind left menu section
 	//modAmtMillis is in milliseconds
 	protected void drawRightSideInfoBarPriv(float modAmtMillis) {
-		pa.pushMatState();
+		ri.pushMatState();
 		//display current simulation variables - call sim world through sim exec
 		//simExec.des.drawResultBar(pa, UIrectBox,  yOff);
-		pa.popMatState();					
+		ri.popMatState();					
 	}//drawOnScreenStuff
 	
 	@Override
 	//animTimeMod is in seconds.
 	protected void drawMe(float animTimeMod) {
-//		curMseLookVec = pa.c.getMse2DtoMse3DinWorld(pa.sceneCtrVals[pa.sceneIDX]);			//need to be here
-//		curMseLoc3D = pa.c.getMseLoc(pa.sceneCtrVals[pa.sceneIDX]);
+//		curMseLookVec = ri.c.getMse2DtoMse3DinWorld(ri.sceneCtrVals[ri.sceneIDX]);			//need to be here
+//		curMseLoc3D = ri.c.getMseLoc(ri.sceneCtrVals[ri.sceneIDX]);
 		
 		//draw simulation - simExec should have drawMe(animTimeMod) method
 		//simExec.drawMe(animTimeMod);
@@ -301,11 +301,11 @@ public class Main3DWindow extends Base_DispWindow {
 	//draw custom 2d constructs below interactive component of menu
 	@Override
 	public void drawCustMenuObjs(float animTimeMod){
-		pa.pushMatState();	
+		ri.pushMatState();	
 		//all sub menu drawing within push mat call
-		pa.translate(0,custMenuOffset+yOff);		
+		ri.translate(0,custMenuOffset+txtHeightOff);		
 		//draw any custom menu stuff here
-		pa.popMatState();		
+		ri.popMatState();		
 	}//drawCustMenuObjs
 
 	//manage any functionality specific to this window that needs to be recalced when the visibile dims of the window change

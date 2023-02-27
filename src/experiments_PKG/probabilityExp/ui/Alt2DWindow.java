@@ -70,7 +70,7 @@ public class Alt2DWindow extends Base_DispWindow {
 	protected void initMe() {
 		//called once
 		//initPrivFlags(numPrivFlags);
-		tester = new myProbExpMgr(pa, this, curVisScrDims);
+		tester = new myProbExpMgr(this, curVisScrDims);
 		
 		//set offset to use for custom menu objects
 		custMenuOffset = uiClkCoords[3];	
@@ -147,7 +147,7 @@ public class Alt2DWindow extends Base_DispWindow {
 	
 	
 	/**
-	 * Called if int-handling guiObjs[UIidx] (int or list) has new data which updated UI adapter. 
+	 * Called if int-handling guiObjs_Numeric[UIidx] (int or list) has new data which updated UI adapter. 
 	 * Intended to support custom per-object handling by owning window.
 	 * Only called if data changed!
 	 * @param UIidx Index of gui obj with new data
@@ -165,7 +165,7 @@ public class Alt2DWindow extends Base_DispWindow {
 	}
 	
 	/**
-	 * Called if float-handling guiObjs[UIidx] has new data which updated UI adapter.  
+	 * Called if float-handling guiObjs_Numeric[UIidx] has new data which updated UI adapter.  
 	 * Intended to support custom per-object handling by owning window.
 	 * Only called if data changed!
 	 * @param UIidx Index of gui obj with new data
@@ -199,10 +199,10 @@ public class Alt2DWindow extends Base_DispWindow {
 	
 	@Override
 	protected void drawMe(float animTimeMod) {
-		pa.pushMatState();
-		pa.translate(this.rectDim[0],0,0);
+		ri.pushMatState();
+		ri.translate(this.rectDim[0],0,0);
 
-		pa.popMatState();
+		ri.popMatState();
 	}
 
 	@Override
@@ -213,20 +213,20 @@ public class Alt2DWindow extends Base_DispWindow {
 	//draw 2d constructs over 3d area on screen - draws behind left menu section
 	//modAmtMillis is in milliseconds
 	protected void drawRightSideInfoBarPriv(float modAmtMillis) {
-		pa.pushMatState();
+		ri.pushMatState();
 		//display current simulation variables - call sim world through sim exec
 		//simExec.des.drawResultBar(pa, UIrectBox,  yOff);
-		pa.popMatState();					
+		ri.popMatState();					
 	}//drawOnScreenStuff
 	@Override
 	public void drawCustMenuObjs(float animTimeMod) {
-		pa.pushMatState();		
+		ri.pushMatState();		
 		//all sub menu drawing within push mat call
-		pa.translate(5,custMenuOffset+yOff);
+		ri.translate(5,custMenuOffset+txtHeightOff);
 		//draw any custom menu stuff here
 		
 		
-		pa.popMatState();		
+		ri.popMatState();		
 	}//drawCustMenuObjs
 	
 	//manage any functionality specific to this window that needs to be recalced when the visibile dims of the window change
@@ -371,9 +371,9 @@ public class Alt2DWindow extends Base_DispWindow {
 	@Override
 	protected void setCamera_Indiv(float[] camVals){		
 		//, float rx, float ry, float dz are now member variables of every window
-		pa.setCameraWinVals(camVals);//(camVals[0],camVals[1],camVals[2],camVals[3],camVals[4],camVals[5],camVals[6],camVals[7],camVals[8]);      
+		ri.setCameraWinVals(camVals);//(camVals[0],camVals[1],camVals[2],camVals[3],camVals[4],camVals[5],camVals[6],camVals[7],camVals[8]);      
 		// puts origin of all drawn objects at screen center and moves forward/away by dz
-		pa.translate(camVals[0],camVals[1],(float)dz); 
+		ri.translate(camVals[0],camVals[1],(float)dz); 
 	    setCamOrient();	
 	}//setCameraIndiv
 

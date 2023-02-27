@@ -7,7 +7,6 @@ import base_ProbTools.*;
 import base_ProbTools.randGenFunc.gens.myFleishUniVarRandGen;
 import base_ProbTools.randGenFunc.gens.base.Base_RandGen;
 import base_StatsTools.summary.myProbSummary_Dbls;
-import base_UI_Objects.windowUI.base.Base_DispWindow;
 import base_Utils_Objects.dataAdapter.Base_UIDataUpdater;
 import experiments_PKG.classGradeExp.roster.myClassRoster;
 import experiments_PKG.classGradeExp.roster.myFinalGradeRoster;
@@ -19,7 +18,7 @@ import experiments_PKG.classGradeExp.ui.Grade2DWindow;
  * @param 
  */
 public class ClassGradeExperiment extends baseProbExpMgr{
-	public IRenderInterface pa;
+	public static IRenderInterface ri;
 	//Owning window
 	protected Grade2DWindow win;
 	//structure holding all classes
@@ -68,10 +67,10 @@ public class ClassGradeExperiment extends baseProbExpMgr{
 	private static float[] classBarStart = new float[] {10,50};
 	private static float[] classPlotStart = new float[] {10,50};
 	
-	public ClassGradeExperiment(IRenderInterface _pa, Grade2DWindow _win, float[] _curVisScrDims) {
+	public ClassGradeExperiment(Grade2DWindow _win, float[] _curVisScrDims) {
 		super(_win.getMsgObj(), _curVisScrDims);
-		pa = _pa;		
-		win = _win;
+		win = _win; ri = Grade2DWindow.ri;		
+		
 	}//ctor
 	
 	//called at end of ctor and whenever experiment needs to be re-instanced
@@ -420,7 +419,7 @@ public class ClassGradeExperiment extends baseProbExpMgr{
 				finalPlotLocSt = new float[] {classPlotStart[0], curVisScrDims[1] - heightOfFinalPlot , heightOfFinalPlot}
 				;		
 
-		return new myFinalGradeRoster(Base_DispWindow.pa, this, "Final Grades For All Students", new float[][] { finalUniBarLocSt, finalTransBarLocSt,finalPlotLocSt});
+		return new myFinalGradeRoster(Grade2DWindow.ri, this, "Final Grades For All Students", new float[][] { finalUniBarLocSt, finalTransBarLocSt,finalPlotLocSt});
 	}//buildFinalGradeRoster
 
 	//pass names of students, either from a file or randomly generated
@@ -430,7 +429,7 @@ public class ClassGradeExperiment extends baseProbExpMgr{
 		students.clear();
 		myStudent stdnt;
 		for (int i=0;i<numStudents;++i) {
-			int[] _clr = Base_DispWindow.pa.getRndClrBright(255);
+			int[] _clr = Grade2DWindow.ri.getRndClrBright(255);
 			stdnt = new myStudent(_clr, studentNames[i]);
 			students.put(stdnt.ObjID, stdnt);			
 		}	
@@ -453,7 +452,7 @@ public class ClassGradeExperiment extends baseProbExpMgr{
 				plotRectLocSt = new float[] {classPlotStart[0],classPlotStart[1], heightOfPlots};
 		classRosters.clear();
 		for (int i=0;i<numClasses;++i) {
-			cls = new myClassRoster(Base_DispWindow.pa, this, _className[i], new float[][] { rawBarLocSt, transBarLocSt,plotRectLocSt});	//build class
+			cls = new myClassRoster(Grade2DWindow.ri, this, _className[i], new float[][] { rawBarLocSt, transBarLocSt,plotRectLocSt});	//build class
 			cls.setFinalGradeRoster(finalGradeClass);																				//give class final grade "class"
 			classRosters.add(cls);																									//add class to roster
 			//move to next class's bar
@@ -634,18 +633,18 @@ public class ClassGradeExperiment extends baseProbExpMgr{
 	
 	
 	protected void drawPlotRes() {
-		pa.pushMatState();
+		ri.pushMatState();
 			for (myClassRoster cls : classRosters) {
 				cls.drawPlotRes();
 			}
 			finalGradeClass.drawPlotRes();
 	
-		pa.popMatState();
+		ri.popMatState();
 		
 	}//drawPlotRes
 	//draw raw and transformed class results
 	protected void drawExpRes() {
-		pa.pushMatState();
+		ri.pushMatState();
 			for (myClassRoster cls : classRosters) {
 				cls.drawStudentGradesRaw();
 				cls.drawStudentGradesUni();
@@ -656,7 +655,7 @@ public class ClassGradeExperiment extends baseProbExpMgr{
 			finalGradeClass.drawStudentGradesUni();
 			finalGradeClass.drawRawToUniformLine();
 		
-		pa.popMatState();
+		ri.popMatState();
 	}//drawClassRes
 		
 	/////////////////////////////	

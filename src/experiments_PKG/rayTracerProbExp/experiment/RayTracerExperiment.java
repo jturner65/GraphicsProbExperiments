@@ -8,7 +8,7 @@ import base_Utils_Objects.dataAdapter.Base_UIDataUpdater;
 import experiments_PKG.rayTracerProbExp.ui.RayTracerExpUIUpdater;
 
 public class RayTracerExperiment extends baseProbExpMgr {
-	public IRenderInterface pa;
+	public IRenderInterface ri;
 	
 	public Base_RayTracerWin win;
 	
@@ -22,10 +22,10 @@ public class RayTracerExperiment extends baseProbExpMgr {
 			debugIDX 			= 0;		
 	public static final int numFlags = 1;	
 	
-	public RayTracerExperiment(IRenderInterface _pa, Base_RayTracerWin _win, float[] _curVisScrDims) {
+	public RayTracerExperiment(Base_RayTracerWin _win, float[] _curVisScrDims) {
 		super(_win.getMsgObj(), _curVisScrDims);	
-		pa = _pa;
 		win = _win;
+		ri = Base_RayTracerWin.ri;		
 	}//ctor
 
 	@Override
@@ -83,21 +83,21 @@ public class RayTracerExperiment extends baseProbExpMgr {
 	
 	@Override
 	public void drawExp() {
-		pa.pushMatState();
-			pa.disableLights();
-			pa.translate(transLoc[0],transLoc[1],0);
+		ri.pushMatState();
+			ri.disableLights();
+			ri.translate(transLoc[0],transLoc[1],0);
 			Base_Scene s = win.getCurrScene();
 			if(s!=null) {s.draw();}		
-			pa.translate(sceneCols,0,0);
+			ri.translate(sceneCols,0,0);
 			//TODO needs to be alt scene, using reduced cosine dist
 			if(s!=null) {s.draw();}
-			pa.pushMatState();
-			pa.translate(-sceneCols,sceneRows,0);
+			ri.pushMatState();
+			ri.translate(-sceneCols,sceneRows,0);
 			//draw diff image
-			pa.scale(2.0f);
+			ri.scale(2.0f);
 			if(s!=null) {s.draw();}
-			pa.popMatState();
-		pa.popMatState();
+			ri.popMatState();
+		ri.popMatState();
 	}
 
 	/////////////////////////////

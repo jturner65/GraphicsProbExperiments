@@ -35,7 +35,7 @@ public class RayTracerExpWindow extends Base_RayTracerWin {
 	@Override
 	protected void initMe_Indiv() {
 		//build exps before visible screen with set
-		RTExp = new RayTracerExperiment(pa, this, curVisScrDims);
+		RTExp = new RayTracerExperiment(this, curVisScrDims);
 		//get initial UI values and send to experiment	
 		updateCalcObjUIVals();
 	}
@@ -92,11 +92,11 @@ public class RayTracerExpWindow extends Base_RayTracerWin {
 
 	@Override
 	protected void drawMe_Indiv(float animTimeMod) {
-		pa.pushMatState();
-		pa.translate(this.rectDim[0],0,0);
+		ri.pushMatState();
+		ri.translate(this.rectDim[0],0,0);
 		//all drawing stuff goes here
 		RTExp.drawExp();
-		pa.popMatState();
+		ri.popMatState();
 	}
 
 	@Override
