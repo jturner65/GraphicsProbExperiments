@@ -200,7 +200,7 @@ public class Alt2DWindow extends Base_DispWindow {
 	@Override
 	protected void drawMe(float animTimeMod) {
 		ri.pushMatState();
-		ri.translate(this.rectDim[0],0,0);
+		ri.translate(winInitVals.rectDim[0],0,0);
 
 		ri.popMatState();
 	}

@@ -93,7 +93,7 @@ public class RayTracerExpWindow extends Base_RayTracerWin {
 	@Override
 	protected void drawMe_Indiv(float animTimeMod) {
 		ri.pushMatState();
-		ri.translate(this.rectDim[0],0,0);
+		ri.translate(winInitVals.rectDim[0],0,0);
 		//all drawing stuff goes here
 		RTExp.drawExp();
 		ri.popMatState();
@@ -114,9 +114,9 @@ public class RayTracerExpWindow extends Base_RayTracerWin {
 	}
 
 	@Override
-	protected boolean chkMouseMoveDragState2D(int mouseX, int mouseY, int btn) {return RTExp.checkMouseDragMoveInExp2D( mouseX-(int)this.rectDim[0], mouseY, btn);}
+	protected boolean chkMouseMoveDragState2D(int mouseX, int mouseY, int btn) {return RTExp.checkMouseDragMoveInExp2D( mouseX-(int)winInitVals.rectDim[0], mouseY, btn);}
 	@Override
-	protected boolean chkMouseClick2D(int mouseX, int mouseY, int btn) {return RTExp.checkMouseClickInExp2D( mouseX-(int)this.rectDim[0], mouseY, btn);}
+	protected boolean chkMouseClick2D(int mouseX, int mouseY, int btn) {return RTExp.checkMouseClickInExp2D( mouseX-(int)winInitVals.rectDim[0], mouseY, btn);}
 	@Override
 	protected void setMouseReleaseState2D() {	RTExp.setMouseReleaseInExp2D();}//chkMouseOvr
 

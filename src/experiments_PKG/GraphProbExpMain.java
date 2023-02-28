@@ -132,45 +132,71 @@ public class GraphProbExpMain extends GUI_AppManager {
 		//titles and descs, need to be set before sidebar menu is defined
 		String[] _winTitles = new String[]{"","3D Exp Win","2D Exp Win","2D Ray Tracer","Grading Exp Win"},
 				_winDescr = new String[] {"", "3D environment to conduct and visualize experiments","2D environment to conduct and visualize experiments","2D ray tracing environment for probability experiments","2D Class Grade Experiment Visualization"};
-		setWinTitlesAndDescs(_winTitles, _winDescr);
+
 		//instanced window dimensions when open and closed - only showing 1 open at a time
-		float[] _dimOpen  = getDefaultWinDimOpen(), 
-				_dimClosed  = getDefaultWinDimClosed();	
+		float[][] _floatDims  = new float[][] {getDefaultWinDimOpen(), getDefaultWinDimClosed(), getInitCameraValues()};	
+
+		//Builds sidebar menu button config - application-wide menu button bar titles and button names
 		//application-wide menu button bar titles and button names
 		String[] menuBtnTitles = new String[]{"Special Functions 1","Special Functions 2"};
 		String[][] menuBtnNames = new String[][] { // each must have literals for every button defined in side bar menu, or ignored
 			{"Test Rand Gen", "Test R Calc","Func 3"},	//row 1
 			{"Func 1", "Func 2", "Func 3", "Func 4"}};	//row 1
 		String[] dbgBtnNames = new String[] {"Debug 0","Debug 1","Debug 2","Debug 3","Debug 4"};
-		buildSideBarMenu(menuBtnTitles, menuBtnNames, dbgBtnNames, true, true);		
+		buildSideBarMenu(_winTitles, menuBtnTitles, menuBtnNames, dbgBtnNames, true, true);		
 
 		//define windows
-		//idx 0 is menu, and is ignored	
-		//setInitDispWinVals : use this to define the values of a display window
-		//int _winIDX, 
-		//float[] _dimOpen, float[] _dimClosed  : dimensions opened or closed
-		//String _ttl, String _desc 			: window title and description
-		//boolean[] _dispFlags 					: 
-		//   flags controlling display of window :  idxs : 0 : canDrawInWin; 1 : canShow3dbox; 2 : canMoveView; 3 : dispWinIs3d
-		//int[] _fill, int[] _strk, 			: window fill and stroke colors
-		//int _trajFill, int _trajStrk)			: trajectory fill and stroke colors, if these objects can be drawn in window (used as alt color otherwise)
+		/**
+		 *  _winIdx The index in the various window-descriptor arrays for the dispWindow being set
+		 *  _title string title of this window
+		 *  _descr string description of this window
+		 *  _dispFlags Essential flags describing the nature of the dispWindow for idxs : 
+		 * 		0 : dispWinIs3d, 
+		 * 		1 : canDrawInWin; 
+		 * 		2 : canShow3dbox (only supported for 3D); 
+		 * 		3 : canMoveView
+		 *  _floatVals an array holding float arrays for 
+		 * 				rectDimOpen(idx 0),
+		 * 				rectDimClosed(idx 1),
+		 * 				initCameraVals(idx 2)
+		 *  _intClrVals and array holding int arrays for
+		 * 				winFillClr (idx 0),
+		 * 				winStrkClr (idx 1),
+		 * 				winTrajFillClr(idx 2),
+		 * 				winTrajStrkClr(idx 3),
+		 * 				rtSideFillClr(idx 4),
+		 * 				rtSideStrkClr(idx 5)
+		 *  _sceneCenterVal center of scene, for drawing objects (optional)
+		 *  _initSceneFocusVal initial focus target for camera (optional)
+		 */
 
 		//3D window
 		int wIdx = disp1stWinIDX;
-		setInitDispWinVals(wIdx, _dimOpen, _dimClosed,new boolean[]{false,true,true,true}, new int[]{255,255,255,255},new int[]{0,0,0,255},new int[]{180,180,180,255},new int[]{100,100,100,255}); 
+		setInitDispWinVals(wIdx, _winTitles[wIdx], _winDescr[wIdx], new boolean[]{true,false,true,true}, _floatDims,		
+				new int[][] {new int[]{255,255,255,255},new int[]{0,0,0,255},
+					new int[]{180,180,180,255},new int[]{100,100,100,255},
+					new int[]{0,0,0,200},new int[]{255,255,255,255}});
 		dispWinFrames[wIdx] = new Main3DWindow(ri, this, wIdx);
 		//2d window
 		wIdx = disp2ndWinIDX;
-		setInitDispWinVals(wIdx, _dimOpen, _dimClosed,new boolean[]{false,false,false,false}, new int[]{50,40,20,255}, new int[]{255,255,255,255},new int[]{180,180,180,255},new int[]{100,100,100,255});
+		setInitDispWinVals(wIdx, _winTitles[wIdx], _winDescr[wIdx], new boolean[]{false,false,false,true}, _floatDims,
+				new int[][] {new int[]{50,40,20,255}, new int[]{255,255,255,255},
+					new int[]{180,180,180,255}, new int[]{100,100,100,255},
+					new int[]{0,0,0,200},new int[]{255,255,255,255}});
 		dispWinFrames[wIdx] = new Alt2DWindow(ri, this, wIdx);
 		//ray tracer window
 		wIdx = disp2DRayTracerIDX;
-		setInitDispWinVals(wIdx, _dimOpen, _dimClosed,new boolean[]{false,false,false,false}, new int[]{20,30,10,255}, new int[]{255,255,255,255},new int[]{180,180,180,255},new int[]{100,100,100,255}); 
+		setInitDispWinVals(wIdx, _winTitles[wIdx], _winDescr[wIdx], new boolean[]{false,false,false,true}, _floatDims,
+				new int[][] {new int[]{20,30,10,255}, new int[]{255,255,255,255},
+					new int[]{180,180,180,255}, new int[]{100,100,100,255},
+					new int[]{0,0,0,200},new int[]{255,255,255,255}});
 		dispWinFrames[wIdx] = new RayTracerExpWindow(ri, this, wIdx);
 		//grades experiment window
 		wIdx = dispGradeWinIDX;
-		setInitDispWinVals(wIdx, _dimOpen, _dimClosed,new boolean[]{false,false,false,false}, new int[]{50,20,50,255}, new int[]{255,255,255,255},new int[]{180,180,180,255},new int[]{100,100,100,255}); 
-		dispWinFrames[wIdx] = new Grade2DWindow(ri, this, wIdx);
+		setInitDispWinVals(wIdx, _winTitles[wIdx], _winDescr[wIdx], new boolean[]{false,false,false,true}, _floatDims,
+				new int[][] {new int[]{50,20,50,255}, new int[]{255,255,255,255},
+					new int[]{180,180,180,255}, new int[]{100,100,100,255},
+					new int[]{0,0,0,200},new int[]{255,255,255,255}});		dispWinFrames[wIdx] = new Grade2DWindow(ri, this, wIdx);
 
 		//specify windows that cannot be shown simultaneously here
 		initXORWins(

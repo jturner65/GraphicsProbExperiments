@@ -436,13 +436,13 @@ public class Grade2DWindow extends Base_DispWindow {
 
 	//check whether the mouse is over a legitimate map location
 	public boolean chkMouseClick2D(int mouseX, int mouseY, int btn){		
-		return gradeAvgExperiment.checkMouseClickInExp2D( mouseX-(int)this.rectDim[0], mouseY, btn);
+		return gradeAvgExperiment.checkMouseClickInExp2D( mouseX-(int)winInitVals.rectDim[0], mouseY, btn);
 	}//chkMouseOvr
 
 	
 	//check whether the mouse is over a legitimate map location
 	public boolean chkMouseMoveDragState2D(int mouseX, int mouseY, int btn){		
-		return gradeAvgExperiment.checkMouseDragMoveInExp2D( mouseX-(int)this.rectDim[0], mouseY, btn);
+		return gradeAvgExperiment.checkMouseDragMoveInExp2D( mouseX-(int)winInitVals.rectDim[0], mouseY, btn);
 	}//chkMouseOvr
 	
 	//check whether the mouse is over a legitimate map location
@@ -452,7 +452,7 @@ public class Grade2DWindow extends Base_DispWindow {
 	@Override
 	protected void drawMe(float animTimeMod) {
 		ri.pushMatState();
-		ri.translate(this.rectDim[0],0,0);
+		ri.translate(winInitVals.rectDim[0],0,0);
 		//all drawing stuff goes here
 		gradeAvgExperiment.drawExp();
 		ri.popMatState();
