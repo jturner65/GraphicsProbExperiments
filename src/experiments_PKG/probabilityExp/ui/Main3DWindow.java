@@ -11,7 +11,6 @@ import base_UI_Objects.GUI_AppManager;
 import base_UI_Objects.windowUI.base.Base_DispWindow;
 import base_UI_Objects.windowUI.drawnTrajectories.DrawnSimpleTraj;
 import base_UI_Objects.windowUI.uiData.UIDataUpdater;
-import base_UI_Objects.windowUI.uiObjs.base.GUIObj_Type;
 import base_Utils_Objects.io.messaging.MsgCodes;
 import experiments_PKG.probabilityExp.experiment.myProbExpMgr;
 
@@ -179,9 +178,9 @@ public class Main3DWindow extends Base_DispWindow {
 	protected void setupGUIObjsAras(TreeMap<Integer, Object[]> tmpUIObjArray, TreeMap<Integer, String[]> tmpListObjVals){		
 		//msgObj.dispInfoMessage(className,"setupGUIObjsAras","start");
 		
-		tmpUIObjArray.put(gIDX_FrameTimeScale , new Object[] {new double[]{1.0f,10000.0f,1.0f},	1.0*frameTimeScale, "Sim Speed Multiplier", GUIObj_Type.FloatVal, new boolean[]{true}});  				//time scaling - 1 is real time, 1000 is 1000x speedup           		gIDX_FrameTimeScale 
-		tmpUIObjArray.put(gIDX_ExpLength, new Object[] {new double[]{1.0f, 1440, 1.0f}, 720.0, "Experiment Duration", GUIObj_Type.IntVal, new boolean[]{true}}); 					//experiment length
-		tmpUIObjArray.put(gIDX_NumExpTrials	, new Object[] {new double[]{1.0f, 100, 1.0f}, 1.0, "# Experimental Trials", GUIObj_Type.IntVal, new boolean[]{true}}); 	  					//# of experimental trials
+		tmpUIObjArray.put(gIDX_FrameTimeScale , uiObjInitAra_Float(new double[]{1.0f,10000.0f,1.0f},	frameTimeScale, "Sim Speed Multiplier", new boolean[]{true}));  	//time scaling - 1 is real time, 1000 is 1000x speedup           		gIDX_FrameTimeScale 
+		tmpUIObjArray.put(gIDX_ExpLength, uiObjInitAra_Int(new double[]{1.0f, 1440, 1.0f}, 				720.0, "Experiment Duration", new boolean[]{true})); 				//experiment length
+		tmpUIObjArray.put(gIDX_NumExpTrials	, uiObjInitAra_Int(new double[]{1.0f, 100, 1.0f}, 			1.0, "# Experimental Trials", new boolean[]{true})); 	  			//# of experimental trials
 		
 //		setupGUI_XtraObjs();
 	}//setupGUIObjsAras
