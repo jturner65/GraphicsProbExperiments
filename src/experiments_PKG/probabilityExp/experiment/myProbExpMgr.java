@@ -7,7 +7,7 @@ import base_ProbTools.baseProbExpMgr;
 import base_ProbTools.randGenFunc.gens.base.Base_RandGen;
 import base_StatsTools.summary.myProbSummary_Dbls;
 import base_UI_Objects.windowUI.base.Base_DispWindow;
-import base_Utils_Objects.dataAdapter.Base_UIDataUpdater;
+import base_Utils_Objects.dataAdapter.Base_DataAdapter;
 import experiments_PKG.probabilityExp.ui.GrapProbUIDataUpdater;
 /**
  * this class will manage probability-based graphical experiments
@@ -44,7 +44,7 @@ public class myProbExpMgr extends baseProbExpMgr{
 	 * This is called the first time update process is called
 	 */
 	@Override
-	protected Base_UIDataUpdater initUIDataUpdater(Base_UIDataUpdater dataUpdate) {
+	protected Base_DataAdapter initUIDataUpdater(Base_DataAdapter dataUpdate) {
 		return new GrapProbUIDataUpdater((GrapProbUIDataUpdater)dataUpdate);
 	}
 	/**

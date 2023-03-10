@@ -7,13 +7,13 @@ import base_ProbTools.*;
 import base_ProbTools.randGenFunc.gens.myFleishUniVarRandGen;
 import base_ProbTools.randGenFunc.gens.base.Base_RandGen;
 import base_StatsTools.summary.myProbSummary_Dbls;
-import base_Utils_Objects.dataAdapter.Base_UIDataUpdater;
+import base_Utils_Objects.dataAdapter.Base_DataAdapter;
 import experiments_PKG.classGradeExp.roster.myClassRoster;
 import experiments_PKG.classGradeExp.roster.myFinalGradeRoster;
 import experiments_PKG.classGradeExp.ui.Grade2DUIDataUpdater;
 import experiments_PKG.classGradeExp.ui.Grade2DWindow;
 /**
- * this class is a specialized type fo probability experiment manager, specifically for the class grades project
+ * this class is a specialized type of probability experiment manager, specifically for the class grades project
  * @author john
  * @param 
  */
@@ -85,7 +85,7 @@ public class ClassGradeExperiment extends baseProbExpMgr{
 	}//	initExp
 
 	@Override
-	protected Base_UIDataUpdater initUIDataUpdater(Base_UIDataUpdater dataUpdate) {
+	protected Base_DataAdapter initUIDataUpdater(Base_DataAdapter dataUpdate) {
 		return new Grade2DUIDataUpdater((Grade2DUIDataUpdater)dataUpdate);
 	}
 
