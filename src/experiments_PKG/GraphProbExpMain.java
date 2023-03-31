@@ -16,8 +16,8 @@ import experiments_PKG.rayTracerProbExp.ui.RayTracerExpWindow;
  */
 public class GraphProbExpMain extends GUI_AppManager {
 	//project-specific variables
-	public String prjNmLong = "Testbed for Graphical Probability Experiments";
-	public String prjNmShrt = "GraphProbExp";
+	public final String prjNmLong = "Testbed for Graphical Probability Experiments";
+	public final String prjNmShrt = "GraphProbExp";
 	public String projDesc = "Testbed for Graphical Probability Experiments";
 
 	//don't use sphere background for this program
@@ -50,6 +50,8 @@ public class GraphProbExpMain extends GUI_AppManager {
 	}//main
 	protected GraphProbExpMain(){super();}
 
+	@Override
+	protected boolean showMachineData() {return true;}
 	/**
 	 * Set various relevant runtime arguments in argsMap
 	 * @param _passedArgs command-line arguments
