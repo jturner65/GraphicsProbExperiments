@@ -222,7 +222,7 @@ public class Alt2DWindow extends Base_DispWindow {
 	public void drawCustMenuObjs(float animTimeMod) {
 		ri.pushMatState();		
 		//all sub menu drawing within push mat call
-		ri.translate(5,custMenuOffset+txtHeightOff);
+		ri.translate(5,custMenuOffset+getTextHeightOffset());
 		//draw any custom menu stuff here
 		
 		
@@ -280,7 +280,7 @@ public class Alt2DWindow extends Base_DispWindow {
 	 */
 	@Override
 	protected final void launchMenuBtnHndlr(int funcRow, int btn, String label){
-		msgObj.dispMessage(className, "launchMenuBtnHndlr", "Begin requested action : Click '" + label +"' (Row:"+(funcRow+1)+"|Col:"+btn+") in " + name, MsgCodes.info4);
+		msgObj.dispMessage(className, "launchMenuBtnHndlr", "Begin requested action : Click '" + label +"' (Row:"+(funcRow+1)+"|Col:"+btn+") in " + getName(), MsgCodes.info4);
 		switch(funcRow) {
 		case 0 : {
 			msgObj.dispInfoMessage(className,"launchMenuBtnHndlr","Clicked Btn row : Aux Func 1 | Btn : " + btn);
@@ -333,7 +333,7 @@ public class Alt2DWindow extends Base_DispWindow {
 	
 	@Override
 	protected final void handleSideMenuDebugSelEnable(int btn) {
-		msgObj.dispMessage(className, "handleSideMenuDebugSelEnable","Click Debug functionality on in " + name + " : btn : " + btn, MsgCodes.info4);
+		msgObj.dispMessage(className, "handleSideMenuDebugSelEnable","Click Debug functionality on in " + getName() + " : btn : " + btn, MsgCodes.info4);
 		switch (btn) {
 			case 0: {				break;			}
 			case 1: {				break;			}
@@ -351,7 +351,7 @@ public class Alt2DWindow extends Base_DispWindow {
 	
 	@Override
 	protected final void handleSideMenuDebugSelDisable(int btn) {
-		msgObj.dispMessage(className, "handleSideMenuDebugSelDisable","Click Debug functionality off in " + name + " : btn : " + btn, MsgCodes.info4);
+		msgObj.dispMessage(className, "handleSideMenuDebugSelDisable","Click Debug functionality off in " + getName() + " : btn : " + btn, MsgCodes.info4);
 		switch (btn) {
 			case 0: {				break;			}
 			case 1: {				break;			}
@@ -367,16 +367,12 @@ public class Alt2DWindow extends Base_DispWindow {
 		msgObj.dispMessage(className, "handleSideMenuDebugSelDisable", "End Debug functionality off selection.",MsgCodes.info4);
 	}
 
-
 	@Override
-	protected void setCamera_Indiv(float[] camVals){		
-		//, float rx, float ry, float dz are now member variables of every window
-		ri.setCameraWinVals(camVals);//(camVals[0],camVals[1],camVals[2],camVals[3],camVals[4],camVals[5],camVals[6],camVals[7],camVals[8]);      
-		// puts origin of all drawn objects at screen center and moves forward/away by dz
-		ri.translate(camVals[0],camVals[1],(float)dz); 
-	    setCamOrient();	
+	protected void setCamera_Indiv(float[] camVals) {
+		// No custom camera handling
+		setCameraBase(camVals);
 	}//setCameraIndiv
-
+	
 	@Override
 	protected void stopMe() {msgObj.dispInfoMessage(className,"stopMe","Stop");}	
 	
@@ -421,11 +417,11 @@ public class Alt2DWindow extends Base_DispWindow {
 		setMouseReleaseState2D();
 	}
 	@Override
-	protected void endShiftKeyI() {}
+	protected void endShiftKey_Indiv() {}
 	@Override
-	protected void endAltKeyI() {}
+	protected void endAltKey_Indiv() {}
 	@Override
-	protected void endCntlKeyI() {}
+	protected void endCntlKey_Indiv() {}
 	@Override
 	protected void addSScrToWin_Indiv(int newWinKey){}
 	@Override

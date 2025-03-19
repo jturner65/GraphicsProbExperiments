@@ -119,7 +119,7 @@ public class GraphProbExpMain extends GUI_AppManager {
 	 */
 	@Override
 	protected void initBaseFlags_Indiv() {
-		setBaseFlagToShow_debugMode(false);
+		setBaseFlagToShow_debugMode(true);
 		setBaseFlagToShow_saveAnim(true); 
 		setBaseFlagToShow_runSim(false);
 		setBaseFlagToShow_singleStep(false);
@@ -136,7 +136,7 @@ public class GraphProbExpMain extends GUI_AppManager {
 				_winDescr = new String[] {"", "3D environment to conduct and visualize experiments","2D environment to conduct and visualize experiments","2D ray tracing environment for probability experiments","2D Class Grade Experiment Visualization"};
 
 		//instanced window dims when open and closed - only showing 1 open at a time - and init cam vals
-		float[][] _floatDims  = new float[][] {getDefaultWinDimOpen(), getDefaultWinDimClosed(), getInitCameraValues()};	
+		float[][] _floatDims  = getDefaultWinAndCameraDims();	
 
 		//Builds sidebar menu button config - application-wide menu button bar titles and button names
 		//application-wide menu button bar titles and button names
@@ -211,8 +211,8 @@ public class GraphProbExpMain extends GUI_AppManager {
 	@Override
 	//called from base class, once at start of program after vis init is called
 	protected void initOnce_Indiv(){
-		setVisFlag(dispGradeWinIDX, true);
-		//setVisFlag(show2DRayTracerIDX, true);
+		setWinVisFlag(dispGradeWinIDX, true);
+		//setWinVisFlag(show2DRayTracerIDX, true);
 	}//	initOnce
 	
 	@Override
@@ -278,7 +278,7 @@ public class GraphProbExpMain extends GUI_AppManager {
 			//val is btn state before transition 
 			boolean bVal = (val == 1?  false : true);
 			//each entry in this array should correspond to a clickable window
-			setVisFlag(winFlagsXOR[btn], bVal);
+			setWinVisFlag(winFlagsXOR[btn], bVal);
 		}
 	}//handleShowWin
 	
