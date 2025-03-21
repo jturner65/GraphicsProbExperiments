@@ -135,7 +135,7 @@ public class Grade2DWindow extends Base_DispWindow {
 	
 	//initialize all UI buttons here
 	@Override
-	public int initAllPrivBtns(ArrayList<Object[]> tmpBtnNamesArray) {
+	public int initAllUIButtons(ArrayList<Object[]> tmpBtnNamesArray) {
 		//give true labels, false labels and specify the indexes of the booleans that should be tied to UI buttons
 		
 		tmpBtnNamesArray.add(new Object[]{"Rebuilding/reloading Grades",     "Rebuild/reload Grades",            reCalcRandGradeSpread});       

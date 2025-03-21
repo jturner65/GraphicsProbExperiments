@@ -66,7 +66,7 @@ public class Main3DWindow extends Base_DispWindow {
 	
 	@Override
 	//initialize all private-flag based UI buttons here - called by base class
-	public int initAllPrivBtns(ArrayList<Object[]> tmpBtnNamesArray){		
+	public int initAllUIButtons(ArrayList<Object[]> tmpBtnNamesArray){		
 		tmpBtnNamesArray.add(new Object[]{"Visualization Debug",   "Enable Debug",               debugAnimIDX});
 		tmpBtnNamesArray.add(new Object[]{"Resetting Simulation",  "Reset Simulation",           resetSimIDX});  
 		tmpBtnNamesArray.add(new Object[]{"Drawing Vis",           "Render Visualization",       drawVisIDX});  
