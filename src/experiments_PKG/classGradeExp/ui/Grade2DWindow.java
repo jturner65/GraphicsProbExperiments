@@ -164,7 +164,7 @@ public class Grade2DWindow extends Base_DispWindow {
 	 */
 	@Override
 	protected final void updateCalcObjUIVals() {
-		gradeAvgExperiment.updateUIDataValues(uiUpdateData);
+		gradeAvgExperiment.updateUIDataValues(getUIDataUpdater());
 	}
 
 	@Override
@@ -291,19 +291,19 @@ public class Grade2DWindow extends Base_DispWindow {
 		tmpListObjVals.put(gIDX_FuncTypeEval,gIDX_FuncTypeEvalList);
 		tmpListObjVals.put(gIDX_ExpDistType,gIDX_ExpDistTypeList);
 		
-		tmpUIObjArray.put(gIDX_NumStudents, uiObjInitAra_Int(new double[]{2,100,1},									numStudents,        "Number of Students : ", new boolean[]{true}));
-		tmpUIObjArray.put(gIDX_NumClasses, uiObjInitAra_Int(new double[]{1,9,1},									numClasses,         "Number of Classes : ", new boolean[]{true}));
-		tmpUIObjArray.put(gIDX_ExpDistType, uiObjInitAra_List(new double[]{0,gIDX_ExpDistTypeList.length-1,1},   	expTypeIDX,         "Exp Mapping Type : ", new boolean[]{true}));
-		tmpUIObjArray.put(gIDX_FuncTypeEval, uiObjInitAra_List(new double[]{0,gIDX_FuncTypeEvalList.length-1,1}, 	funcEvalType,       "Plot Eval Func Type : ", new boolean[]{true}));
-		tmpUIObjArray.put(gIDX_FuncEvalLower, uiObjInitAra_Float(new double[]{-10.0, 10.0,.01},			            funcEvalLow,        "Plot Eval Func Low : ", new boolean[]{true}));
-		tmpUIObjArray.put(gIDX_FuncEvalHigher, uiObjInitAra_Float(new double[]{-10.0, 10.0,.01},			        funcEvalHigh,       "Plot Eval Func High : ", new boolean[]{true}));
-		tmpUIObjArray.put(gIDX_FuncEvalNumVals, uiObjInitAra_Int(new double[]{10000,1000000,1000},                  funcEvalNumVals,    "Plot Eval Func # Vals : ", new boolean[]{true})); 
-		tmpUIObjArray.put(gIDX_FuncEvalNumBkts, uiObjInitAra_Int(new double[]{10,1000,1},                           funcEvalNumBuckets, "Plot Eval Func # Bkts (dist) : ", new boolean[]{true}));
-		tmpUIObjArray.put(gIDX_FinalGradeNumMmnts, uiObjInitAra_Int(new double[]{2, 4, .1},			                finalGradeNumMmnts, "Final Grade # Momments (2-4) : ", new boolean[]{true}));
-		tmpUIObjArray.put(gIDX_FinalGradeMean, uiObjInitAra_Float(new double[]{0.0, 1.0,.01},			            finalGradeMmtns[0], "Final Grade Mean : ", new boolean[]{true})); 
-		tmpUIObjArray.put(gIDX_FinalGradeSTD, uiObjInitAra_Float(new double[]{0.0, 1.0,.01},				        finalGradeMmtns[1], "Final Grade Std Dev : ", new boolean[]{true})); 
-		tmpUIObjArray.put(gIDX_FinalGradeSkew, uiObjInitAra_Float(new double[]{-5.0,5.0,.01},			            finalGradeMmtns[2], "Final Grade Skew : ", new boolean[]{true})); 
-		tmpUIObjArray.put(gIDX_FinalGradeExKurt, uiObjInitAra_Float(new double[]{0.0, 5.0,.01},			            finalGradeMmtns[3], "Final Grade Ex Kurt : ", new boolean[]{true}));
+		tmpUIObjArray.put(gIDX_NumStudents, uiObjInitAra_Int(new double[]{2,100,1},									numStudents,        "Number of Students : "));
+		tmpUIObjArray.put(gIDX_NumClasses, uiObjInitAra_Int(new double[]{1,9,1},									numClasses,         "Number of Classes : "));
+		tmpUIObjArray.put(gIDX_ExpDistType, uiObjInitAra_List(new double[]{0,gIDX_ExpDistTypeList.length-1,1},   	expTypeIDX,         "Exp Mapping Type : "));
+		tmpUIObjArray.put(gIDX_FuncTypeEval, uiObjInitAra_List(new double[]{0,gIDX_FuncTypeEvalList.length-1,1}, 	funcEvalType,       "Plot Eval Func Type : "));
+		tmpUIObjArray.put(gIDX_FuncEvalLower, uiObjInitAra_Float(new double[]{-10.0, 10.0,.01},			            funcEvalLow,        "Plot Eval Func Low : "));
+		tmpUIObjArray.put(gIDX_FuncEvalHigher, uiObjInitAra_Float(new double[]{-10.0, 10.0,.01},			        funcEvalHigh,       "Plot Eval Func High : "));
+		tmpUIObjArray.put(gIDX_FuncEvalNumVals, uiObjInitAra_Int(new double[]{10000,1000000,1000},                  funcEvalNumVals,    "Plot Eval Func # Vals : ")); 
+		tmpUIObjArray.put(gIDX_FuncEvalNumBkts, uiObjInitAra_Int(new double[]{10,1000,1},                           funcEvalNumBuckets, "Plot Eval Func # Bkts (dist) : "));
+		tmpUIObjArray.put(gIDX_FinalGradeNumMmnts, uiObjInitAra_Int(new double[]{2, 4, .1},			                finalGradeNumMmnts, "Final Grade # Momments (2-4) : "));
+		tmpUIObjArray.put(gIDX_FinalGradeMean, uiObjInitAra_Float(new double[]{0.0, 1.0,.01},			            finalGradeMmtns[0], "Final Grade Mean : ")); 
+		tmpUIObjArray.put(gIDX_FinalGradeSTD, uiObjInitAra_Float(new double[]{0.0, 1.0,.01},				        finalGradeMmtns[1], "Final Grade Std Dev : ")); 
+		tmpUIObjArray.put(gIDX_FinalGradeSkew, uiObjInitAra_Float(new double[]{-5.0,5.0,.01},			            finalGradeMmtns[2], "Final Grade Skew : ")); 
+		tmpUIObjArray.put(gIDX_FinalGradeExKurt, uiObjInitAra_Float(new double[]{0.0, 5.0,.01},			            finalGradeMmtns[3], "Final Grade Ex Kurt : "));
 		//min max modify values for each modifiable UI comp	
 
 	}//setupGUIObjsAras

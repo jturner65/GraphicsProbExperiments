@@ -59,7 +59,7 @@ public class RayTracerExpWindow extends Base_RayTracerWin {
 	 */
 	@Override
 	protected final void updateCalcObjUIVals() {
-		RTExp.updateUIDataValues(uiUpdateData);
+		RTExp.updateUIDataValues(getUIDataUpdater());
 	}
 	/**
 	 * UI code-level Debug mode functionality. Called only from flags structure
