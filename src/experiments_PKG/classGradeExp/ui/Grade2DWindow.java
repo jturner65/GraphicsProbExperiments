@@ -138,15 +138,15 @@ public class Grade2DWindow extends Base_DispWindow {
 	public int initAllUIButtons(ArrayList<Object[]> tmpBtnNamesArray) {
 		//give true labels, false labels and specify the indexes of the booleans that should be tied to UI buttons
 		
-		tmpBtnNamesArray.add(new Object[]{"Rebuilding/reloading Grades",     "Rebuild/reload Grades",            reCalcRandGradeSpread});       
-		tmpBtnNamesArray.add(new Object[]{"Rebuilding Final Grade Dist",     "Rebuild Final Grade Dist",         reBuildFinalGradeDist});         
-		tmpBtnNamesArray.add(new Object[]{"Setting Current Grades as Glbl",  "Set Current Grades as Glbl",       setCurrGrades});                 
-		tmpBtnNamesArray.add(new Object[]{"CosCDF 1 + sine x",               "CosCDF x + sine x",                use1pSineCosCDF});                 
-		tmpBtnNamesArray.add(new Object[]{"Rebuild Class dist on move",      "Don't rebuild class dist on move", rebuildDistOnMove});              
-		tmpBtnNamesArray.add(new Object[]{"ZScore for final grades",         "Specific Dist for final grades",   useZScore});                     
-		tmpBtnNamesArray.add(new Object[]{"Eval/Draw Func on Bounds",        "Eval/Draw Func on Bounds",         drawFuncEval});                    
-		tmpBtnNamesArray.add(new Object[]{"Eval/Draw Hist of Dist",          "Eval/Draw Hist of Dist"	,        drawHistEval});                  
-		tmpBtnNamesArray.add(new Object[]{"Showing Cos To Gauss Dist",        "Compare Cos To Gauss Dist",			drawMultiEval});   
+		tmpBtnNamesArray.add(uiObjInitAra_Btn(new String[] {"Rebuilding/reloading Grades",     "Rebuild/reload Grades"},            reCalcRandGradeSpread));       
+		tmpBtnNamesArray.add(uiObjInitAra_Btn(new String[] {"Rebuilding Final Grade Dist",     "Rebuild Final Grade Dist"},         reBuildFinalGradeDist));         
+		tmpBtnNamesArray.add(uiObjInitAra_Btn(new String[] {"Setting Current Grades as Glbl",  "Set Current Grades as Glbl"},       setCurrGrades));                 
+		tmpBtnNamesArray.add(uiObjInitAra_Btn(new String[] {"CosCDF 1 + sine x",               "CosCDF x + sine x"},                use1pSineCosCDF));                 
+		tmpBtnNamesArray.add(uiObjInitAra_Btn(new String[] {"Rebuild Class dist on move",      "Don't rebuild class dist on move"}, rebuildDistOnMove));              
+		tmpBtnNamesArray.add(uiObjInitAra_Btn(new String[] {"ZScore for final grades",         "Specific Dist for final grades"},   useZScore));                     
+		tmpBtnNamesArray.add(uiObjInitAra_Btn(new String[] {"Eval/Draw Func on Bounds",        "Eval/Draw Func on Bounds"},         drawFuncEval));                    
+		tmpBtnNamesArray.add(uiObjInitAra_Btn(new String[] {"Eval/Draw Hist of Dist",          "Eval/Draw Hist of Dist"},      		drawHistEval));                  
+		tmpBtnNamesArray.add(uiObjInitAra_Btn(new String[] {"Showing Cos To Gauss Dist",        "Compare Cos To Gauss Dist"},		drawMultiEval));   
 		
 		return numPrivFlags;
 	}

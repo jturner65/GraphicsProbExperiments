@@ -42,7 +42,7 @@ public class Alt2DWindow extends Base_DispWindow {
 	//custom debug/function ui button names -empty will do nothing
 	public String[][] menuBtnNames = new String[][] {	//each must have literals for every button defined in side bar menu, or ignored
 		{"Test Rand Gen", "Test R Calc","Func 3"},	//row 1
-		{"Func 1", "Func 2", "Func 3", "Func 4"},	//row 1
+		{"Func 1", "Func 2", "Func 3", "Func 4"},	//row 2
 		{"Dbg 1","Dbg 2","Dbg 3","Dbg 4","Dbg 5"}	
 	};
 
@@ -79,7 +79,7 @@ public class Alt2DWindow extends Base_DispWindow {
 	@Override
 	public int initAllUIButtons(ArrayList<Object[]> tmpBtnNamesArray) {
 		//give true labels, false labels and specify the indexes of the booleans that should be tied to UI buttons
-		tmpBtnNamesArray.add(new Object[] { "Debugging", "Debug", debugAnimIDX });
+		tmpBtnNamesArray.add(uiObjInitAra_Btn(new String[] { "Debugging", "Debug"}, debugAnimIDX ));
 		return numPrivFlags;
 		
 	}

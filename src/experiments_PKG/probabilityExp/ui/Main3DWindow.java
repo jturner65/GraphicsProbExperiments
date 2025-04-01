@@ -12,6 +12,7 @@ import base_UI_Objects.windowUI.base.Base_DispWindow;
 import base_UI_Objects.windowUI.drawnTrajectories.DrawnSimpleTraj;
 import base_UI_Objects.windowUI.uiData.UIDataUpdater;
 import base_Utils_Objects.io.messaging.MsgCodes;
+import base_Utils_Objects.tools.flags.Base_BoolFlags;
 import experiments_PKG.probabilityExp.experiment.myProbExpMgr;
 
 public class Main3DWindow extends Base_DispWindow {
@@ -42,7 +43,6 @@ public class Main3DWindow extends Base_DispWindow {
 	
 	//private child-class flags - window specific
 	public static final int 
-			debugAnimIDX 		= 0,						//debug
 			resetSimIDX			= 1,						//whether or not to reset sim	
 			drawVisIDX 			= 2,						//draw visualization - if false SIM exec and sim should ignore all processing/papplet stuff
 			conductExpIDX		= 3;						//conduct experiment with current settings
@@ -67,10 +67,10 @@ public class Main3DWindow extends Base_DispWindow {
 	@Override
 	//initialize all private-flag based UI buttons here - called by base class
 	public int initAllUIButtons(ArrayList<Object[]> tmpBtnNamesArray){		
-		tmpBtnNamesArray.add(new Object[]{"Visualization Debug",   "Enable Debug",               debugAnimIDX});
-		tmpBtnNamesArray.add(new Object[]{"Resetting Simulation",  "Reset Simulation",           resetSimIDX});  
-		tmpBtnNamesArray.add(new Object[]{"Drawing Vis",           "Render Visualization",       drawVisIDX});  
-		tmpBtnNamesArray.add(new Object[]{"Experimenting",          "Conduct Experiment",          conductExpIDX }); 
+		tmpBtnNamesArray.add(uiObjInitAra_Btn(new String[] {"Visualization Debug",   "Enable Debug"},               Base_BoolFlags.debugIDX));
+		tmpBtnNamesArray.add(uiObjInitAra_Btn(new String[] {"Resetting Simulation",  "Reset Simulation"},           resetSimIDX));  
+		tmpBtnNamesArray.add(uiObjInitAra_Btn(new String[] {"Drawing Vis",           "Render Visualization"},       drawVisIDX));  
+		tmpBtnNamesArray.add(uiObjInitAra_Btn(new String[] {"Experimenting",          "Conduct Experiment"},          conductExpIDX)); 
 		return numPrivFlags;
 	
 	}//initAllPrivBtns
@@ -139,7 +139,7 @@ public class Main3DWindow extends Base_DispWindow {
 	@Override
 	public void handlePrivFlags_Indiv(int idx, boolean val, boolean oldVal){
 		switch(idx){
-			case debugAnimIDX 			: {
+			case Base_BoolFlags.debugIDX 			: {
 				//simExec.setExecFlags(mySimExecutive.debugExecIDX,val);
 				break;}
 			case resetSimIDX			: {
