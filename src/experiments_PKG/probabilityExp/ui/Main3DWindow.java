@@ -236,19 +236,8 @@ public class Main3DWindow extends Base_DispWindow {
 		}	
 	}
 	
-	
-	
 	@Override
 	public void initDrwnTraj_Indiv(){}
-	
-//	public void setLights(){
-//		ri.ambientLight(102, 102, 102);
-//		ri.lightSpecular(204, 204, 204);
-//		ri.directionalLight(180, 180, 180, 0, 1, -1);	
-//	}	
-	//overrides function in base class mseClkDisp
-	@Override
-	public void drawTraj3D(float animTimeMod,myPoint trans){}//drawTraj3D	
 
 	@Override
 	protected void setCamera_Indiv(float[] camVals) {
@@ -266,12 +255,8 @@ public class Main3DWindow extends Base_DispWindow {
 		return done;	
 	}//simMe
 	
-	
 	@Override
-	protected void drawOnScreenStuffPriv(float modAmtMillis) {
-		
-	}
-
+	protected void drawOnScreenStuffPriv(float modAmtMillis) {}
 
 	@Override
 	//draw 2d constructs over 3d area on screen - draws behind left menu section

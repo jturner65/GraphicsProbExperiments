@@ -123,7 +123,8 @@ public class GraphProbExpMain extends GUI_AppManager {
 		setBaseFlagToShow_saveAnim(true); 
 		setBaseFlagToShow_runSim(false);
 		setBaseFlagToShow_singleStep(false);
-		setBaseFlagToShow_showRtSideMenu(true);
+		setBaseFlagToShow_showRtSideMenu(true);	
+		setBaseFlagToShow_showStatusBar(true);
 		setBaseFlagToShow_showDrawableCanvas(false);
 	}
 
@@ -212,7 +213,7 @@ public class GraphProbExpMain extends GUI_AppManager {
 	//called from base class, once at start of program after vis init is called
 	protected void initOnce_Indiv(){
 		setWinVisFlag(dispGradeWinIDX, true);
-		//setWinVisFlag(show2DRayTracerIDX, true);
+		setShowStatusBar(true);
 	}//	initOnce
 	
 	@Override
