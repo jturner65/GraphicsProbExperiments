@@ -67,8 +67,8 @@ public class ClassGradeExperiment extends baseProbExpMgr{
 	private static float[] classBarStart = new float[] {10,50};
 	private static float[] classPlotStart = new float[] {10,50};
 	
-	public ClassGradeExperiment(Grade2DWindow _win, float[] _curVisScrDims) {
-		super(_win.getMsgObj(), _curVisScrDims);
+	public ClassGradeExperiment(Grade2DWindow _win, float[] _curWinVisScrDims) {
+		super(_win.getMsgObj(), _curWinVisScrDims);
 		win = _win; ri = Grade2DWindow.ri;		
 		
 	}//ctor
@@ -414,9 +414,9 @@ public class ClassGradeExperiment extends baseProbExpMgr{
 	
 	private myFinalGradeRoster buildFinalGradeRoster(float heightOfFinalPlot) {
 		//build final grade roster
-		float[] finalUniBarLocSt = new float[] {classBarStart[0], curVisScrDims[1]- distBtwnAdjBars},
-				finalTransBarLocSt = new float[] {classBarStart[0], curVisScrDims[1] - 3*distBtwnAdjBars}, 
-				finalPlotLocSt = new float[] {classPlotStart[0], curVisScrDims[1] - heightOfFinalPlot , heightOfFinalPlot}
+		float[] finalUniBarLocSt = new float[] {classBarStart[0], curWinVisScrDims[1]- distBtwnAdjBars},
+				finalTransBarLocSt = new float[] {classBarStart[0], curWinVisScrDims[1] - 3*distBtwnAdjBars}, 
+				finalPlotLocSt = new float[] {classPlotStart[0], curWinVisScrDims[1] - heightOfFinalPlot , heightOfFinalPlot}
 				;		
 
 		return new myFinalGradeRoster(Grade2DWindow.ri, this, "Final Grades For All Students", new float[][] { finalUniBarLocSt, finalTransBarLocSt,finalPlotLocSt});
@@ -535,7 +535,7 @@ public class ClassGradeExperiment extends baseProbExpMgr{
 	// plots
 	
 	//return estimate of individual plot value height based on # of classes
-	private float getPlotHeight() {return .95f * curVisScrDims[1]/(numClasses + 1);}
+	private float getPlotHeight() {return .95f * curWinVisScrDims[1]/(numClasses + 1);}
 
 	
 	public void clearAllPlotEval() {

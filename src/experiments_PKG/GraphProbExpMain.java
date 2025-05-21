@@ -179,27 +179,27 @@ public class GraphProbExpMain extends GUI_AppManager {
 				new int[][] {new int[]{255,255,255,255},new int[]{0,0,0,255},
 					new int[]{180,180,180,255},new int[]{100,100,100,255},
 					new int[]{0,0,0,200},new int[]{255,255,255,255}});
-		dispWinFrames[wIdx] = new Main3DWindow(ri, this, wIdx);
+		setDispWindow(wIdx, new Main3DWindow(ri, this, wIdx));
 		//2d window
 		wIdx = disp2ndWinIDX;
 		setInitDispWinVals(wIdx, _winTitles[wIdx], _winDescr[wIdx], getDfltBoolAra(false), _floatDims,
 				new int[][] {new int[]{50,40,20,255}, new int[]{255,255,255,255},
 					new int[]{180,180,180,255}, new int[]{100,100,100,255},
 					new int[]{0,0,0,200},new int[]{255,255,255,255}});
-		dispWinFrames[wIdx] = new Alt2DWindow(ri, this, wIdx);
+		setDispWindow(wIdx, new Alt2DWindow(ri, this, wIdx));
 		//ray tracer window
 		wIdx = disp2DRayTracerIDX;
 		setInitDispWinVals(wIdx, _winTitles[wIdx], _winDescr[wIdx], getDfltBoolAra(false), _floatDims,
 				new int[][] {new int[]{20,30,10,255}, new int[]{255,255,255,255},
 					new int[]{180,180,180,255}, new int[]{100,100,100,255},
 					new int[]{0,0,0,200},new int[]{255,255,255,255}});
-		dispWinFrames[wIdx] = new RayTracerExpWindow(ri, this, wIdx);
+		setDispWindow(wIdx, new RayTracerExpWindow(ri, this, wIdx));
 		//grades experiment window
 		wIdx = dispGradeWinIDX;
 		setInitDispWinVals(wIdx, _winTitles[wIdx], _winDescr[wIdx], getDfltBoolAra(false), _floatDims,
 				new int[][] {new int[]{50,20,50,255}, new int[]{255,255,255,255},
 					new int[]{180,180,180,255}, new int[]{100,100,100,255},
-					new int[]{0,0,0,200},new int[]{255,255,255,255}});		dispWinFrames[wIdx] = new Grade2DWindow(ri, this, wIdx);
+					new int[]{0,0,0,200},new int[]{255,255,255,255}});		setDispWindow(wIdx, new Grade2DWindow(ri, this, wIdx));
 
 		//specify windows that cannot be shown simultaneously here
 		initXORWins(
@@ -249,7 +249,7 @@ public class GraphProbExpMain extends GUI_AppManager {
 	protected void handleKeyPress(char keyVal, int keyCode) {
 		switch (keyVal){
 			case ' ' : {toggleSimIsRunning(); break;}							//run sim
-			case 'f' : {dispWinFrames[curFocusWin].setInitCamView();break;}					//reset camera
+			case 'f' : {getCurFocusDispWindow().setInitCamView();break;}					//reset camera
 			case 'a' :
 			case 'A' : {toggleSaveAnim();break;}						//start/stop saving every frame for making into animation
 			case 's' :

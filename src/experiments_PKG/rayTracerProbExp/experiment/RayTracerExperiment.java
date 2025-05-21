@@ -58,7 +58,7 @@ public class RayTracerExperiment extends baseProbExpMgr {
 		//with 3rd image beneath showing difference (upsized by 2)
 		int stLocX = (int) ((visScreenWidth- (2*sceneCols))/2.0f);
 		transLoc[0] = (0>stLocX ? 0 : stLocX);
-		int stLocY = (int) ((curVisScrDims[1]-sceneRows)/6.0f);	
+		int stLocY = (int) ((curWinVisScrDims[1]-sceneRows)/6.0f);	
 		transLoc[1] = (0 > stLocY ? 0 : stLocY);
 	}
 	
