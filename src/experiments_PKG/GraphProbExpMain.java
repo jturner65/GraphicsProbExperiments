@@ -3,7 +3,6 @@ package experiments_PKG;
 import java.util.HashMap;
 
 import base_UI_Objects.*;
-import base_UI_Objects.windowUI.sidebar.SidebarMenu;
 import base_Utils_Objects.io.messaging.MsgCodes;
 import experiments_PKG.classGradeExp.ui.Grade2DWindow;
 import experiments_PKG.probabilityExp.ui.Alt2DWindow;
@@ -267,19 +266,6 @@ public class GraphProbExpMain extends GUI_AppManager {
 		//TODO change this to manage other key settings for situations where multiple simultaneous key presses are not optimal or conventient
 		return altIsPressed() || shiftIsPressed();		
 	}
-	
-	@Override
-	public void handleShowWin(int btn, int val, boolean callFlags){//display specific windows - multi-select/ always on if sel
-		if(!callFlags){//called from setflags - only sets button state in UI to avoid infinite loop
-			setMenuBtnState(SidebarMenu.btnShowWinIdx,btn, val);
-		} else {//called from clicking on buttons in UI
-			//val is btn state before transition 
-			boolean bVal = (val == 1?  false : true);
-			//each entry in this array should correspond to a clickable window
-			setWinVisFlag(winFlagsXOR[btn], bVal);
-		}
-	}//handleShowWin
-	
 	
 	//get the ui rect values of the "master" ui region (another window) -> this is so ui objects of one window can be made, clicked, and shown displaced from those of the parent windwo
 	@Override
