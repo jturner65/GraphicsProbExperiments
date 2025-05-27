@@ -219,15 +219,7 @@ public class Alt2DWindow extends Base_DispWindow {
 		ri.popMatState();					
 	}//drawOnScreenStuff
 	@Override
-	public void drawCustMenuObjs(float animTimeMod) {
-		ri.pushMatState();		
-		//all sub menu drawing within push mat call
-		ri.translate(5,custMenuOffset+getTextHeightOffset());
-		//draw any custom menu stuff here
-		
-		
-		ri.popMatState();		
-	}//drawCustMenuObjs
+	public void drawCustMenuObjs(float animTimeMod) {}//drawCustMenuObjs
 	
 	//manage any functionality specific to this window that needs to be recalced when the visibile dims of the window change
 	@Override

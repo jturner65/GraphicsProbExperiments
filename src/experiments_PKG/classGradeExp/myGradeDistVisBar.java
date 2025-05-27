@@ -96,31 +96,31 @@ public class myGradeDistVisBar extends baseVisMgr {
 	public float getAbsYLoc() {return startRect[1]+_barStY;}
 	
 	//translate to where the par part of this par starts, so the lines connecting grades for same students can be drawn
-	public void transToBarStart() {pa.translate(startRect[0]+_barStX,startRect[1]+_barStY,0);}	
+	public void transToBarStart() {ri.translate(startRect[0]+_barStX,startRect[1]+_barStY,0);}	
 	//draw grade bar and student locations
 	protected void _drawVisIndiv() {
-		pa.pushMatState();
+		ri.pushMatState();
 		if(enabled) {
 			_drawBoxAndBar(clr_green,barColor);
-			//for (myStudent s : owningClass.students.values()) {		s.drawMeTransformed(pa, gradeType, owningClass, s.clr, barWidth);	}
+			//for (myStudent s : owningClass.students.values()) {		s.drawMeTransformed(ri, gradeType, owningClass, s.clr, barWidth);	}
 		} else {							
 			_drawBoxAndBar(clr_red,clr_grey);
-			//for (myStudent s : owningClass.students.values()) {		s.drawMeTransformed(pa, gradeType, owningClass, greyOff, barWidth);	}		
+			//for (myStudent s : owningClass.students.values()) {		s.drawMeTransformed(ri, gradeType, owningClass, greyOff, barWidth);	}		
 		}
 		owningClass.drawAllStudents(gradeType, barWidth, enabled);
-		pa.popMatState();					
+		ri.popMatState();					
 	}//_drawVisIndiv
 	
 	//draw box and bar with appropriate colors
 	private void _drawBoxAndBar(int[] fClr, int[] _bClr) {
-		pa.setFill(fClr,fClr[3]);
-		pa.setStroke(blkStrk,255);
-		pa.drawRect(_clkBox);
+		ri.setFill(fClr,fClr[3]);
+		ri.setStroke(blkStrk,255);
+		ri.drawRect(_clkBox);
 		//move to where bar starts
-		pa.translate(_barStX,_barStY,0);
-		pa.setStroke(_bClr,_bClr[3]);
-		pa.setStrokeWt(2.0f);
-		pa.drawLine(0,0,0,barWidth,0,0);		
+		ri.translate(_barStX,_barStY,0);
+		ri.setStroke(_bClr,_bClr[3]);
+		ri.setStrokeWt(2.0f);
+		ri.drawLine(0,0,0,barWidth,0,0);		
 	}
 	
 	//set bar width for bar display

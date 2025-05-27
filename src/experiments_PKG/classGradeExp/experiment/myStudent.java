@@ -148,15 +148,15 @@ public class myStudent implements Comparable<myStudent> {
 		float gr = smplVal.getFValue();
 		drawSample(pa,smplVal.getTextLoc(), rad, _drawClr, new myPointf(ttlWidth*gr, 0.0f, 0.0f), shrtName +":"+ String.format("%.1f",gr * 100.0f));		
 	}//drawMeTransformed
-	public void drawSample(IRenderInterface pa, myPointf textLoc, float rad, int[] _drawClr, myPointf _transLoc, String _dispName) {
-		pa.pushMatState();
-		pa.translate(_transLoc);
-		pa.setFill(_drawClr,255); pa.setStroke(new int[]{0,0,0},255);			
-		pa.drawEllipse2D(0,0,rad,rad); 
-		pa.drawEllipse2D(0.0f,0.0f,2.0f,2.0f);
-		pa.setColorValFill(IRenderInterface.gui_White, 255);pa.setColorValStroke(IRenderInterface.gui_White, 255);
-		pa.showText(_dispName, textLoc.x, textLoc.y, textLoc.z); 
-		pa.popMatState();
+	public void drawSample(IRenderInterface ri, myPointf textLoc, float rad, int[] _drawClr, myPointf _transLoc, String _dispName) {
+		ri.pushMatState();
+		ri.translate(_transLoc);
+		ri.setFill(_drawClr,255); ri.setStroke(new int[]{0,0,0},255);			
+		ri.drawEllipse2D(0,0,rad,rad); 
+		ri.drawEllipse2D(0.0f,0.0f,2.0f,2.0f);
+		ri.setColorValFill(IRenderInterface.gui_White, 255);ri.setColorValStroke(IRenderInterface.gui_White, 255);
+		ri.showText(_dispName, textLoc.x, textLoc.y, textLoc.z); 
+		ri.popMatState();
 	}//drawMe
 	
 	

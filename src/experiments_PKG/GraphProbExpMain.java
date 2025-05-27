@@ -63,7 +63,7 @@ public class GraphProbExpMain extends GUI_AppManager {
 	 * Called in pre-draw initial setup, before first init
 	 * potentially override setup variables on per-project basis.
 	 * Do not use for setting background color or Skybox anymore.
-	 *  	(Current settings in my_procApplet) 	
+	 *  	(Current settings in ProcessingRenderer) 	
 	 *  	strokeCap(PROJECT);
 	 *  	textSize(txtSz);
 	 *  	textureMode(NORMAL);			
@@ -311,7 +311,7 @@ public class GraphProbExpMain extends GUI_AppManager {
 	@Override
 	public int[] getClr_Custom(int colorVal, int alpha) {		return new int[] {255,255,255,alpha};	}
 	@Override
-	protected void setSmoothing() {
+	public void setSmoothing() {
 		ri.setSmoothing(0);
 		
 	}

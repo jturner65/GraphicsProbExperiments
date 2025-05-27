@@ -278,15 +278,11 @@ public class Main3DWindow extends Base_DispWindow {
 		//simExec.drawMe(animTimeMod);
 	}//drawMe	
 
-	//draw custom 2d constructs below interactive component of menu
+	/**
+	 * draw custom 2d constructs below interactive component of menu
+	 */
 	@Override
-	public void drawCustMenuObjs(float animTimeMod){
-		ri.pushMatState();	
-		//all sub menu drawing within push mat call
-		ri.translate(0,custMenuOffset+getTextHeightOffset());		
-		//draw any custom menu stuff here
-		ri.popMatState();		
-	}//drawCustMenuObjs
+	public void drawCustMenuObjs(float animTimeMod){}//drawCustMenuObjs
 
 	//manage any functionality specific to this window that needs to be recalced when the visibile dims of the window change
 	@Override
