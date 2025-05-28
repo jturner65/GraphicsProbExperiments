@@ -67,10 +67,10 @@ public class Main3DWindow extends Base_DispWindow {
 	@Override
 	//initialize all private-flag based UI buttons here - called by base class
 	public int initAllUIButtons(ArrayList<Object[]> tmpBtnNamesArray){		
-		tmpBtnNamesArray.add(uiObjInitAra_Btn(new String[] {"Visualization Debug",   "Enable Debug"},               Base_BoolFlags.debugIDX));
-		tmpBtnNamesArray.add(uiObjInitAra_Btn(new String[] {"Resetting Simulation",  "Reset Simulation"},           resetSimIDX));  
-		tmpBtnNamesArray.add(uiObjInitAra_Btn(new String[] {"Drawing Vis",           "Render Visualization"},       drawVisIDX));  
-		tmpBtnNamesArray.add(uiObjInitAra_Btn(new String[] {"Experimenting",          "Conduct Experiment"},          conductExpIDX)); 
+		tmpBtnNamesArray.add(uiMgr.uiObjInitAra_Btn(new String[] {"Visualization Debug",   "Enable Debug"},               Base_BoolFlags.debugIDX));
+		tmpBtnNamesArray.add(uiMgr.uiObjInitAra_Btn(new String[] {"Resetting Simulation",  "Reset Simulation"},           resetSimIDX));  
+		tmpBtnNamesArray.add(uiMgr.uiObjInitAra_Btn(new String[] {"Drawing Vis",           "Render Visualization"},       drawVisIDX));  
+		tmpBtnNamesArray.add(uiMgr.uiObjInitAra_Btn(new String[] {"Experimenting",          "Conduct Experiment"},          conductExpIDX)); 
 		return numPrivFlags;
 	
 	}//initAllPrivBtns
@@ -97,7 +97,7 @@ public class Main3DWindow extends Base_DispWindow {
 		//initPrivFlags(numPrivFlags);
 		tester = new myProbExpMgr(this, curVisScrDims);
 
-		custMenuOffset = uiClkCoords[3];	//495	
+		custMenuOffset = uiMgr.getUIClkCoords()[3];	//495	
 	}//initMe	
 
 	@Override
@@ -178,9 +178,9 @@ public class Main3DWindow extends Base_DispWindow {
 	protected void setupGUIObjsAras(TreeMap<Integer, Object[]> tmpUIObjArray, TreeMap<Integer, String[]> tmpListObjVals){		
 		//msgObj.dispInfoMessage(className,"setupGUIObjsAras","start");
 		
-		tmpUIObjArray.put(gIDX_FrameTimeScale , uiObjInitAra_Float(new double[]{1.0f,10000.0f,1.0f},	frameTimeScale, "Sim Speed Multiplier"));  	//time scaling - 1 is real time, 1000 is 1000x speedup           		gIDX_FrameTimeScale 
-		tmpUIObjArray.put(gIDX_ExpLength, uiObjInitAra_Int(new double[]{1.0f, 1440, 1.0f}, 				720.0, "Experiment Duration")); 				//experiment length
-		tmpUIObjArray.put(gIDX_NumExpTrials	, uiObjInitAra_Int(new double[]{1.0f, 100, 1.0f}, 			1.0, "# Experimental Trials")); 	  			//# of experimental trials
+		tmpUIObjArray.put(gIDX_FrameTimeScale , uiMgr.uiObjInitAra_Float(new double[]{1.0f,10000.0f,1.0f},	frameTimeScale, "Sim Speed Multiplier"));  	//time scaling - 1 is real time, 1000 is 1000x speedup           		gIDX_FrameTimeScale 
+		tmpUIObjArray.put(gIDX_ExpLength, uiMgr.uiObjInitAra_Int(new double[]{1.0f, 1440, 1.0f}, 				720.0, "Experiment Duration")); 				//experiment length
+		tmpUIObjArray.put(gIDX_NumExpTrials	, uiMgr.uiObjInitAra_Int(new double[]{1.0f, 100, 1.0f}, 			1.0, "# Experimental Trials")); 	  			//# of experimental trials
 		
 //		setupGUI_XtraObjs();
 	}//setupGUIObjsAras
@@ -251,7 +251,7 @@ public class Main3DWindow extends Base_DispWindow {
 		//msgObj.dispInfoMessage(className,"simMe","took : " + (ri.millis() - stVal) + " millis to simulate");
 		//call sim executive, return boolean of whether finished or not
 		boolean done = true;//simExec.simMe(modAmtMillis);
-		if(done) {privFlags.setFlag(conductExpIDX, false);}
+		if(done) {uiMgr.setPrivFlag(conductExpIDX, false);}
 		return done;	
 	}//simMe
 	

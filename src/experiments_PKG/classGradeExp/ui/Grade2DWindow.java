@@ -126,7 +126,7 @@ public class Grade2DWindow extends Base_DispWindow {
 		//set visibility width and send to experiments - experiment must be built first
 		setVisScreenDimsPriv();			
 		//set offset to use for custom menu objects
-		custMenuOffset = uiClkCoords[3];	
+		custMenuOffset = uiMgr.getUIClkCoords()[3];	
 //		//set this to default to moving distribution
 //		setPrivFlags(rebuildDistOnMove, true);
 //		setPrivFlags(use1pSineCosCDF, true);
@@ -138,15 +138,15 @@ public class Grade2DWindow extends Base_DispWindow {
 	public int initAllUIButtons(ArrayList<Object[]> tmpBtnNamesArray) {
 		//give true labels, false labels and specify the indexes of the booleans that should be tied to UI buttons
 		
-		tmpBtnNamesArray.add(uiObjInitAra_Btn(new String[] {"Rebuilding/reloading Grades",     "Rebuild/reload Grades"},            reCalcRandGradeSpread));       
-		tmpBtnNamesArray.add(uiObjInitAra_Btn(new String[] {"Rebuilding Final Grade Dist",     "Rebuild Final Grade Dist"},         reBuildFinalGradeDist));         
-		tmpBtnNamesArray.add(uiObjInitAra_Btn(new String[] {"Setting Current Grades as Glbl",  "Set Current Grades as Glbl"},       setCurrGrades));                 
-		tmpBtnNamesArray.add(uiObjInitAra_Btn(new String[] {"CosCDF 1 + sine x",               "CosCDF x + sine x"},                use1pSineCosCDF));                 
-		tmpBtnNamesArray.add(uiObjInitAra_Btn(new String[] {"Rebuild Class dist on move",      "Don't rebuild class dist on move"}, rebuildDistOnMove));              
-		tmpBtnNamesArray.add(uiObjInitAra_Btn(new String[] {"ZScore for final grades",         "Specific Dist for final grades"},   useZScore));                     
-		tmpBtnNamesArray.add(uiObjInitAra_Btn(new String[] {"Eval/Draw Func on Bounds",        "Eval/Draw Func on Bounds"},         drawFuncEval));                    
-		tmpBtnNamesArray.add(uiObjInitAra_Btn(new String[] {"Eval/Draw Hist of Dist",          "Eval/Draw Hist of Dist"},      		drawHistEval));                  
-		tmpBtnNamesArray.add(uiObjInitAra_Btn(new String[] {"Showing Cos To Gauss Dist",        "Compare Cos To Gauss Dist"},		drawMultiEval));   
+		tmpBtnNamesArray.add(uiMgr.uiObjInitAra_Btn(new String[] {"Rebuilding/reloading Grades",     "Rebuild/reload Grades"},            reCalcRandGradeSpread));       
+		tmpBtnNamesArray.add(uiMgr.uiObjInitAra_Btn(new String[] {"Rebuilding Final Grade Dist",     "Rebuild Final Grade Dist"},         reBuildFinalGradeDist));         
+		tmpBtnNamesArray.add(uiMgr.uiObjInitAra_Btn(new String[] {"Setting Current Grades as Glbl",  "Set Current Grades as Glbl"},       setCurrGrades));                 
+		tmpBtnNamesArray.add(uiMgr.uiObjInitAra_Btn(new String[] {"CosCDF 1 + sine x",               "CosCDF x + sine x"},                use1pSineCosCDF));                 
+		tmpBtnNamesArray.add(uiMgr.uiObjInitAra_Btn(new String[] {"Rebuild Class dist on move",      "Don't rebuild class dist on move"}, rebuildDistOnMove));              
+		tmpBtnNamesArray.add(uiMgr.uiObjInitAra_Btn(new String[] {"ZScore for final grades",         "Specific Dist for final grades"},   useZScore));                     
+		tmpBtnNamesArray.add(uiMgr.uiObjInitAra_Btn(new String[] {"Eval/Draw Func on Bounds",        "Eval/Draw Func on Bounds"},         drawFuncEval));                    
+		tmpBtnNamesArray.add(uiMgr.uiObjInitAra_Btn(new String[] {"Eval/Draw Hist of Dist",          "Eval/Draw Hist of Dist"},      		drawHistEval));                  
+		tmpBtnNamesArray.add(uiMgr.uiObjInitAra_Btn(new String[] {"Showing Cos To Gauss Dist",        "Compare Cos To Gauss Dist"},		drawMultiEval));   
 		
 		return numPrivFlags;
 	}
@@ -197,8 +197,8 @@ public class Grade2DWindow extends Base_DispWindow {
 				if (val) {
 					setGradeExp(false, false, true, false);
 					addPrivBtnToClear(reCalcRandGradeSpread);
-					privFlags.setFlag(drawHistEval, false);
-					privFlags.setFlag(drawFuncEval, false);
+					uiMgr.setPrivFlag(drawHistEval, false);
+					uiMgr.setPrivFlag(drawFuncEval, false);
 				}
 				break;}
 			case rebuildDistOnMove : {
@@ -225,7 +225,7 @@ public class Grade2DWindow extends Base_DispWindow {
 				if (val) {
 					if((expTypeIDX == 1) || (expTypeIDX == 2)) {
 						gradeAvgExperiment.setShowPlots(false);
-						privFlags.setFlag(idx, false);					
+						uiMgr.setPrivFlag(idx, false);					
 					} else {
 						clearAllPlotsButMe(idx);
 						//now evaluate new results
@@ -249,7 +249,7 @@ public class Grade2DWindow extends Base_DispWindow {
 				if (val) {
 					if((expTypeIDX == 1) || (expTypeIDX == 2)) {
 						gradeAvgExperiment.setShowPlots(false);
-						privFlags.setFlag(idx, false);					
+						uiMgr.setPrivFlag(idx, false);					
 					} else {
 						clearAllPlotsButMe(idx);						
 						//now evaluate new results for selected options
@@ -269,8 +269,8 @@ public class Grade2DWindow extends Base_DispWindow {
 		}//switch
 	}//setPrivFlags
 	
-	private void clearAllPlotsButMe(int meIDX) {for(int idx : showPlotIDXs) {if(idx==meIDX) continue;privFlags.setFlag(idx, false);}}//clearAllPlotsButMe		
-	private boolean isShowingPlots() {for(int idx : showPlotIDXs) {if(privFlags.getFlag(idx)) return true;}	return false;}//isShowingPlots
+	private void clearAllPlotsButMe(int meIDX) {for(int idx : showPlotIDXs) {if(idx==meIDX) continue;uiMgr.setPrivFlag(idx, false);}}//clearAllPlotsButMe		
+	private boolean isShowingPlots() {for(int idx : showPlotIDXs) {if(uiMgr.getPrivFlag(idx)) return true;}	return false;}//isShowingPlots
 	
 	/**
 	 * Build all UI objects to be shown in left side bar menu for this window.  This is the first child class function called by initThisWin
@@ -291,19 +291,19 @@ public class Grade2DWindow extends Base_DispWindow {
 		tmpListObjVals.put(gIDX_FuncTypeEval,gIDX_FuncTypeEvalList);
 		tmpListObjVals.put(gIDX_ExpDistType,gIDX_ExpDistTypeList);
 		
-		tmpUIObjArray.put(gIDX_NumStudents, uiObjInitAra_Int(new double[]{2,100,1},									numStudents,        "Number of Students : "));
-		tmpUIObjArray.put(gIDX_NumClasses, uiObjInitAra_Int(new double[]{1,9,1},									numClasses,         "Number of Classes : "));
-		tmpUIObjArray.put(gIDX_ExpDistType, uiObjInitAra_List(new double[]{0,gIDX_ExpDistTypeList.length-1,1},   	expTypeIDX,         "Exp Mapping Type : "));
-		tmpUIObjArray.put(gIDX_FuncTypeEval, uiObjInitAra_List(new double[]{0,gIDX_FuncTypeEvalList.length-1,1}, 	funcEvalType,       "Plot Eval Func Type : "));
-		tmpUIObjArray.put(gIDX_FuncEvalLower, uiObjInitAra_Float(new double[]{-10.0, 10.0,.01},			            funcEvalLow,        "Plot Eval Func Low : "));
-		tmpUIObjArray.put(gIDX_FuncEvalHigher, uiObjInitAra_Float(new double[]{-10.0, 10.0,.01},			        funcEvalHigh,       "Plot Eval Func High : "));
-		tmpUIObjArray.put(gIDX_FuncEvalNumVals, uiObjInitAra_Int(new double[]{10000,1000000,1000},                  funcEvalNumVals,    "Plot Eval Func # Vals : ")); 
-		tmpUIObjArray.put(gIDX_FuncEvalNumBkts, uiObjInitAra_Int(new double[]{10,1000,1},                           funcEvalNumBuckets, "Plot Eval Func # Bkts (dist) : "));
-		tmpUIObjArray.put(gIDX_FinalGradeNumMmnts, uiObjInitAra_Int(new double[]{2, 4, .1},			                finalGradeNumMmnts, "Final Grade # Momments (2-4) : "));
-		tmpUIObjArray.put(gIDX_FinalGradeMean, uiObjInitAra_Float(new double[]{0.0, 1.0,.01},			            finalGradeMmtns[0], "Final Grade Mean : ")); 
-		tmpUIObjArray.put(gIDX_FinalGradeSTD, uiObjInitAra_Float(new double[]{0.0, 1.0,.01},				        finalGradeMmtns[1], "Final Grade Std Dev : ")); 
-		tmpUIObjArray.put(gIDX_FinalGradeSkew, uiObjInitAra_Float(new double[]{-5.0,5.0,.01},			            finalGradeMmtns[2], "Final Grade Skew : ")); 
-		tmpUIObjArray.put(gIDX_FinalGradeExKurt, uiObjInitAra_Float(new double[]{0.0, 5.0,.01},			            finalGradeMmtns[3], "Final Grade Ex Kurt : "));
+		tmpUIObjArray.put(gIDX_NumStudents, uiMgr.uiObjInitAra_Int(new double[]{2,100,1},									numStudents,        "Number of Students : "));
+		tmpUIObjArray.put(gIDX_NumClasses, uiMgr.uiObjInitAra_Int(new double[]{1,9,1},									numClasses,         "Number of Classes : "));
+		tmpUIObjArray.put(gIDX_ExpDistType, uiMgr.uiObjInitAra_List(new double[]{0,gIDX_ExpDistTypeList.length-1,1},   	expTypeIDX,         "Exp Mapping Type : "));
+		tmpUIObjArray.put(gIDX_FuncTypeEval, uiMgr.uiObjInitAra_List(new double[]{0,gIDX_FuncTypeEvalList.length-1,1}, 	funcEvalType,       "Plot Eval Func Type : "));
+		tmpUIObjArray.put(gIDX_FuncEvalLower, uiMgr.uiObjInitAra_Float(new double[]{-10.0, 10.0,.01},			            funcEvalLow,        "Plot Eval Func Low : "));
+		tmpUIObjArray.put(gIDX_FuncEvalHigher, uiMgr.uiObjInitAra_Float(new double[]{-10.0, 10.0,.01},			        funcEvalHigh,       "Plot Eval Func High : "));
+		tmpUIObjArray.put(gIDX_FuncEvalNumVals, uiMgr.uiObjInitAra_Int(new double[]{10000,1000000,1000},                  funcEvalNumVals,    "Plot Eval Func # Vals : ")); 
+		tmpUIObjArray.put(gIDX_FuncEvalNumBkts, uiMgr.uiObjInitAra_Int(new double[]{10,1000,1},                           funcEvalNumBuckets, "Plot Eval Func # Bkts (dist) : "));
+		tmpUIObjArray.put(gIDX_FinalGradeNumMmnts, uiMgr.uiObjInitAra_Int(new double[]{2, 4, .1},			                finalGradeNumMmnts, "Final Grade # Momments (2-4) : "));
+		tmpUIObjArray.put(gIDX_FinalGradeMean, uiMgr.uiObjInitAra_Float(new double[]{0.0, 1.0,.01},			            finalGradeMmtns[0], "Final Grade Mean : ")); 
+		tmpUIObjArray.put(gIDX_FinalGradeSTD, uiMgr.uiObjInitAra_Float(new double[]{0.0, 1.0,.01},				        finalGradeMmtns[1], "Final Grade Std Dev : ")); 
+		tmpUIObjArray.put(gIDX_FinalGradeSkew, uiMgr.uiObjInitAra_Float(new double[]{-5.0,5.0,.01},			            finalGradeMmtns[2], "Final Grade Skew : ")); 
+		tmpUIObjArray.put(gIDX_FinalGradeExKurt, uiMgr.uiObjInitAra_Float(new double[]{0.0, 5.0,.01},			            finalGradeMmtns[3], "Final Grade Ex Kurt : "));
 		//min max modify values for each modifiable UI comp	
 
 	}//setupGUIObjsAras
@@ -377,8 +377,8 @@ public class Grade2DWindow extends Base_DispWindow {
 				finalGradeMmtns[2] = val;	
 				double skewSQ = finalGradeMmtns[2] * finalGradeMmtns[2], bound = -1.2264489 + 1.6410373*skewSQ;
 				double minVal = (bound > 0 ? bound : 0);
-				setNewUIMinVal(UIidx, minVal);
-				setNewUIMaxVal(UIidx, (minVal + 1)* 10.0);				
+				uiMgr.setNewUIMinVal(UIidx, minVal);
+				uiMgr.setNewUIMaxVal(UIidx, (minVal + 1)* 10.0);				
 				//guiObjs_Numeric[gIDX_FinalGradeExKurt].setNewMin((bound > 0 ? bound : 0));
 				//guiObjs_Numeric[gIDX_FinalGradeExKurt].setNewMax((guiObjs_Numeric[gIDX_FinalGradeExKurt].getMinVal()+1)*10);
 				break;}   
@@ -386,7 +386,7 @@ public class Grade2DWindow extends Base_DispWindow {
 				//verify legitimate kurt for fleishman dist
 				double skewSQ = finalGradeMmtns[2] * finalGradeMmtns[2], bound = -1.2264489 + 1.6410373*skewSQ; 
 				finalGradeMmtns[3] = (val < bound ? bound : val) ;
-				setNewUIValue(UIidx, finalGradeMmtns[3]);
+				uiMgr.setNewUIValue(UIidx, finalGradeMmtns[3]);
 				//guiObjs_Numeric[UIidx].setVal(finalGradeMmtns[3]);			
 				break;}	
 			default : {

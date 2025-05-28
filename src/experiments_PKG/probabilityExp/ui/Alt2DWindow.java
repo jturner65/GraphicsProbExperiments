@@ -73,13 +73,13 @@ public class Alt2DWindow extends Base_DispWindow {
 		tester = new myProbExpMgr(this, curVisScrDims);
 		
 		//set offset to use for custom menu objects
-		custMenuOffset = uiClkCoords[3];	
+		custMenuOffset = uiMgr.getUIClkCoords()[3];	
 	}//
 	//initialize all UI buttons here
 	@Override
 	public int initAllUIButtons(ArrayList<Object[]> tmpBtnNamesArray) {
 		//give true labels, false labels and specify the indexes of the booleans that should be tied to UI buttons
-		tmpBtnNamesArray.add(uiObjInitAra_Btn(new String[] { "Debugging", "Debug"}, debugAnimIDX ));
+		tmpBtnNamesArray.add(uiMgr.uiObjInitAra_Btn(new String[] { "Debugging", "Debug"}, debugAnimIDX ));
 		return numPrivFlags;
 		
 	}
