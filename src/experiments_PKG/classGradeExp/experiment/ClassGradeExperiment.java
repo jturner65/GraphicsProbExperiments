@@ -2,6 +2,7 @@ package experiments_PKG.classGradeExp.experiment;
 
 import java.util.*;
 
+import base_Math_Objects.MyMathUtils;
 import base_Render_Interface.IRenderInterface;
 import base_ProbTools.*;
 import base_ProbTools.randGenFunc.gens.myFleishUniVarRandGen;
@@ -429,7 +430,7 @@ public class ClassGradeExperiment extends baseProbExpMgr{
 		students.clear();
 		myStudent stdnt;
 		for (int i=0;i<numStudents;++i) {
-			int[] _clr = Grade2DWindow.ri.getRndClrBright(255);
+			int[] _clr = MyMathUtils.randomIntBrightClrAra();
 			stdnt = new myStudent(_clr, studentNames[i]);
 			students.put(stdnt.ObjID, stdnt);			
 		}	

@@ -300,20 +300,9 @@ public class GraphProbExpMain extends GUI_AppManager {
 			case dispGradeWinIDX	: {setWinFlagsXOR(dispGradeWinIDX, val); break;}			
 			default : {break;}
 		}
-	}//setFlags  
+	}//setFlags 	
 	
-	/**
-	 * any instancing-class-specific colors - colorVal set to be higher than IRenderInterface.gui_OffWhite
-	 * @param colorVal
-	 * @param alpha
-	 * @return
-	 */
 	@Override
-	public int[] getClr_Custom(int colorVal, int alpha) {		return new int[] {255,255,255,alpha};	}
-	@Override
-	public void setSmoothing() {
-		ri.setSmoothing(0);
-		
-	}
+	public void setSmoothing() {		ri.setSmoothing(0);}
 
 }//class GraphProbExpMain

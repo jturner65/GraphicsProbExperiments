@@ -2,6 +2,7 @@ package experiments_PKG.classGradeExp.roster;
 
 import java.util.HashMap;
 
+import base_Math_Objects.MyMathUtils;
 import base_Render_Interface.IRenderInterface;
 import base_ProbTools.randGenFunc.gens.base.Base_RandGen;
 import base_ProbTools.samples.mySampleSet;
@@ -72,7 +73,7 @@ public class myClassRoster extends mySampleSet{
 		distPlotDimRect = new float[] {_barLocs[2][0], _barLocs[2][1],_gradeExp.getVisibleSreenWidth(),ClassGradeExperiment.distBtwnAdjPlots};
 		distBtwnClassBars = ClassGradeExperiment.distBtwnAdjBars;
 		distBtwnRawTransBars =  _barLocs[1][1] - _barLocs[0][1];
-		clsLineClr = ri.getRndClrBright(255);//should be brighter colors
+		clsLineClr = MyMathUtils.randomIntBrightClrAra();//should be brighter colors
 		gradeBars = new myGradeDistVisBar[transTypes.length];
 		int barLocIDX = 0;
 		for(int i=0;i<gradeBars.length;++i) {
