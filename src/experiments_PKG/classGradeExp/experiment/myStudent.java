@@ -2,11 +2,11 @@ package experiments_PKG.classGradeExp.experiment;
 
 import java.util.HashMap;
 
-import base_Render_Interface.IRenderInterface;
+import base_Math_Objects.vectorObjs.floats.myPointf;
 import base_ProbTools.samples.mySampleObs;
 import base_ProbTools.samples.mySampleSet;
+import base_Render_Interface.IRenderInterface;
 import experiments_PKG.classGradeExp.roster.myClassRoster;
-import base_Math_Objects.vectorObjs.floats.myPointf;
 
 /**
  * this class will hold an instance of a student, a collection of sample observations from multiple class rosters. 

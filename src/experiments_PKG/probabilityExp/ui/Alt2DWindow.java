@@ -4,9 +4,9 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.TreeMap;
 
-import base_Render_Interface.IRenderInterface;
 import base_Math_Objects.vectorObjs.doubles.myPoint;
 import base_Math_Objects.vectorObjs.doubles.myVector;
+import base_Render_Interface.IRenderInterface;
 import base_UI_Objects.GUI_AppManager;
 import base_UI_Objects.windowUI.base.Base_DispWindow;
 import base_UI_Objects.windowUI.drawnTrajectories.DrawnSimpleTraj;
@@ -77,9 +77,10 @@ public class Alt2DWindow extends Base_DispWindow {
 	}//
 	//initialize all UI buttons here
 	@Override
-	public int initAllUIButtons(ArrayList<Object[]> tmpBtnNamesArray) {
+	public int initAllUIButtons(TreeMap<Integer, Object[]> tmpBtnNamesArray) {
 		//give true labels, false labels and specify the indexes of the booleans that should be tied to UI buttons
-		tmpBtnNamesArray.add(uiMgr.uiObjInitAra_Btn(new String[] { "Debugging", "Debug"}, debugAnimIDX ));
+		int idx=0;
+		tmpBtnNamesArray.put(idx++, uiMgr.uiObjInitAra_Btn(new String[] { "Debugging", "Debug"}, debugAnimIDX ));
 		return numPrivFlags;
 		
 	}

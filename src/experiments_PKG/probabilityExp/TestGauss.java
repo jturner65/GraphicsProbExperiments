@@ -1,7 +1,11 @@
 package experiments_PKG.probabilityExp;
-import static java.lang.Math.*;
+import static java.lang.Math.PI;
+import static java.lang.Math.cos;
+import static java.lang.Math.exp;
+
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.function.Function;
-import java.math.*;
 
 public class TestGauss {
 	

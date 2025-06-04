@@ -4,11 +4,11 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.TreeMap;
 
-import base_Render_Interface.IRenderInterface;
 import base_Math_Objects.vectorObjs.doubles.myPoint;
 import base_Math_Objects.vectorObjs.doubles.myVector;
 import base_ProbTools.baseProbExpMgr;
 import base_ProbTools.randGenFunc.funcs.base.Base_RandVarFunc;
+import base_Render_Interface.IRenderInterface;
 import base_UI_Objects.GUI_AppManager;
 import base_UI_Objects.windowUI.base.Base_DispWindow;
 import base_UI_Objects.windowUI.drawnTrajectories.DrawnSimpleTraj;
@@ -135,18 +135,18 @@ public class Grade2DWindow extends Base_DispWindow {
 	
 	//initialize all UI buttons here
 	@Override
-	public int initAllUIButtons(ArrayList<Object[]> tmpBtnNamesArray) {
+	public int initAllUIButtons(TreeMap<Integer, Object[]> tmpBtnNamesArray) {
 		//give true labels, false labels and specify the indexes of the booleans that should be tied to UI buttons
-		
-		tmpBtnNamesArray.add(uiMgr.uiObjInitAra_Btn(new String[] {"Rebuilding/reloading Grades",     "Rebuild/reload Grades"},            reCalcRandGradeSpread));       
-		tmpBtnNamesArray.add(uiMgr.uiObjInitAra_Btn(new String[] {"Rebuilding Final Grade Dist",     "Rebuild Final Grade Dist"},         reBuildFinalGradeDist));         
-		tmpBtnNamesArray.add(uiMgr.uiObjInitAra_Btn(new String[] {"Setting Current Grades as Glbl",  "Set Current Grades as Glbl"},       setCurrGrades));                 
-		tmpBtnNamesArray.add(uiMgr.uiObjInitAra_Btn(new String[] {"CosCDF 1 + sine x",               "CosCDF x + sine x"},                use1pSineCosCDF));                 
-		tmpBtnNamesArray.add(uiMgr.uiObjInitAra_Btn(new String[] {"Rebuild Class dist on move",      "Don't rebuild class dist on move"}, rebuildDistOnMove));              
-		tmpBtnNamesArray.add(uiMgr.uiObjInitAra_Btn(new String[] {"ZScore for final grades",         "Specific Dist for final grades"},   useZScore));                     
-		tmpBtnNamesArray.add(uiMgr.uiObjInitAra_Btn(new String[] {"Eval/Draw Func on Bounds",        "Eval/Draw Func on Bounds"},         drawFuncEval));                    
-		tmpBtnNamesArray.add(uiMgr.uiObjInitAra_Btn(new String[] {"Eval/Draw Hist of Dist",          "Eval/Draw Hist of Dist"},      		drawHistEval));                  
-		tmpBtnNamesArray.add(uiMgr.uiObjInitAra_Btn(new String[] {"Showing Cos To Gauss Dist",        "Compare Cos To Gauss Dist"},		drawMultiEval));   
+		int idx=0;
+		tmpBtnNamesArray.put(idx++, uiMgr.uiObjInitAra_Btn(new String[] {"Rebuilding/reloading Grades",     "Rebuild/reload Grades"},            reCalcRandGradeSpread));       
+		tmpBtnNamesArray.put(idx++, uiMgr.uiObjInitAra_Btn(new String[] {"Rebuilding Final Grade Dist",     "Rebuild Final Grade Dist"},         reBuildFinalGradeDist));         
+		tmpBtnNamesArray.put(idx++, uiMgr.uiObjInitAra_Btn(new String[] {"Setting Current Grades as Glbl",  "Set Current Grades as Glbl"},       setCurrGrades));                 
+		tmpBtnNamesArray.put(idx++, uiMgr.uiObjInitAra_Btn(new String[] {"CosCDF 1 + sine x",               "CosCDF x + sine x"},                use1pSineCosCDF));                 
+		tmpBtnNamesArray.put(idx++, uiMgr.uiObjInitAra_Btn(new String[] {"Rebuild Class dist on move",      "Don't rebuild class dist on move"}, rebuildDistOnMove));              
+		tmpBtnNamesArray.put(idx++, uiMgr.uiObjInitAra_Btn(new String[] {"ZScore for final grades",         "Specific Dist for final grades"},   useZScore));                     
+		tmpBtnNamesArray.put(idx++, uiMgr.uiObjInitAra_Btn(new String[] {"Eval/Draw Func on Bounds",        "Eval/Draw Func on Bounds"},         drawFuncEval));                    
+		tmpBtnNamesArray.put(idx++, uiMgr.uiObjInitAra_Btn(new String[] {"Eval/Draw Hist of Dist",          "Eval/Draw Hist of Dist"},      		drawHistEval));                  
+		tmpBtnNamesArray.put(idx++, uiMgr.uiObjInitAra_Btn(new String[] {"Showing Cos To Gauss Dist",        "Compare Cos To Gauss Dist"},		drawMultiEval));   
 		
 		return numPrivFlags;
 	}

@@ -4,9 +4,9 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.TreeMap;
 
-import base_Render_Interface.IRenderInterface;
 import base_Math_Objects.vectorObjs.doubles.myPoint;
 import base_Math_Objects.vectorObjs.doubles.myVector;
+import base_Render_Interface.IRenderInterface;
 import base_UI_Objects.GUI_AppManager;
 import base_UI_Objects.windowUI.base.Base_DispWindow;
 import base_UI_Objects.windowUI.drawnTrajectories.DrawnSimpleTraj;
@@ -66,11 +66,12 @@ public class Main3DWindow extends Base_DispWindow {
 	
 	@Override
 	//initialize all private-flag based UI buttons here - called by base class
-	public int initAllUIButtons(ArrayList<Object[]> tmpBtnNamesArray){		
-		tmpBtnNamesArray.add(uiMgr.uiObjInitAra_Btn(new String[] {"Visualization Debug",   "Enable Debug"},               Base_BoolFlags.debugIDX));
-		tmpBtnNamesArray.add(uiMgr.uiObjInitAra_Btn(new String[] {"Resetting Simulation",  "Reset Simulation"},           resetSimIDX));  
-		tmpBtnNamesArray.add(uiMgr.uiObjInitAra_Btn(new String[] {"Drawing Vis",           "Render Visualization"},       drawVisIDX));  
-		tmpBtnNamesArray.add(uiMgr.uiObjInitAra_Btn(new String[] {"Experimenting",          "Conduct Experiment"},          conductExpIDX)); 
+	public int initAllUIButtons(TreeMap<Integer, Object[]> tmpBtnNamesArray){		
+		int idx=0;
+		tmpBtnNamesArray.put(idx++, uiMgr.uiObjInitAra_Btn(new String[] {"Visualization Debug", "Enable Debug"}, Base_BoolFlags.debugIDX));
+		tmpBtnNamesArray.put(idx++, uiMgr.uiObjInitAra_Btn(new String[] {"Resetting Simulation", "Reset Simulation"}, resetSimIDX));  
+		tmpBtnNamesArray.put(idx++, uiMgr.uiObjInitAra_Btn(new String[] {"Drawing Vis", "Render Visualization"}, drawVisIDX));  
+		tmpBtnNamesArray.put(idx++, uiMgr.uiObjInitAra_Btn(new String[] {"Experimenting", "Conduct Experiment"}, conductExpIDX)); 
 		return numPrivFlags;
 	
 	}//initAllPrivBtns
@@ -264,7 +265,7 @@ public class Main3DWindow extends Base_DispWindow {
 	protected void drawRightSideInfoBarPriv(float modAmtMillis) {
 		ri.pushMatState();
 		//display current simulation variables - call sim world through sim exec
-		//simExec.des.drawResultBar(pa, UIrectBox,  yOff);
+		//simExec.des.drawResultBar(pa, UIrectBox, yOff);
 		ri.popMatState();					
 	}//drawOnScreenStuff
 	

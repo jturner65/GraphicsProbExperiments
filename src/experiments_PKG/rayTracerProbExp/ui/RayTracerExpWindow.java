@@ -1,12 +1,11 @@
 package experiments_PKG.rayTracerProbExp.ui;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.TreeMap;
 
-import base_Render_Interface.IRenderInterface;
 import base_RayTracer.ui.base.Base_RayTracerUIUpdater;
 import base_RayTracer.ui.base.Base_RayTracerWin;
+import base_Render_Interface.IRenderInterface;
 import base_UI_Objects.GUI_AppManager;
 import experiments_PKG.rayTracerProbExp.experiment.RayTracerExperiment;
 
@@ -41,7 +40,7 @@ public class RayTracerExpWindow extends Base_RayTracerWin {
 	}
 
 	@Override
-	protected int initAllPrivBtns_Indiv(ArrayList<Object[]> tmpBtnNamesArray) {
+	protected int initAllPrivBtns_Indiv(TreeMap<Integer, Object[]> tmpBtnNamesArray) {
 		return numPrivFlags;
 	}
 

@@ -2,7 +2,7 @@ package experiments_PKG;
 
 import java.util.HashMap;
 
-import base_UI_Objects.*;
+import base_UI_Objects.GUI_AppManager;
 import base_Utils_Objects.io.messaging.MsgCodes;
 import experiments_PKG.classGradeExp.ui.Grade2DWindow;
 import experiments_PKG.probabilityExp.ui.Alt2DWindow;
