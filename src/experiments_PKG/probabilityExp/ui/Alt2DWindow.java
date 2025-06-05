@@ -75,15 +75,12 @@ public class Alt2DWindow extends Base_DispWindow {
 		//set offset to use for custom menu objects
 		custMenuOffset = uiMgr.getUIClkCoords()[3];	
 	}//
-	//initialize all UI buttons here
+
+	/**
+	 * Retrieve the total number of defined privFlags booleans (application-specific state bools and interactive buttons)
+	 */
 	@Override
-	public int initAllUIButtons(TreeMap<Integer, Object[]> tmpBtnNamesArray) {
-		//give true labels, false labels and specify the indexes of the booleans that should be tied to UI buttons
-		int idx=0;
-		tmpBtnNamesArray.put(idx++, uiMgr.uiObjInitAra_Btn(new String[] { "Debugging", "Debug"}, debugAnimIDX ));
-		return numPrivFlags;
-		
-	}
+	public int getTotalNumOfPrivBools() {return numPrivFlags;	}
 
 	/**
 	 * This function would provide an instance of the override class for base_UpdateFromUIData, which would
@@ -136,14 +133,23 @@ public class Alt2DWindow extends Base_DispWindow {
 	 *           the 3rd elem is label for object                                                                       
 	 *           the 4th element is object type (GUIObj_Type enum)
 	 *           the 5th element is boolean array of : (unspecified values default to false)
-	 *           	{value is sent to owning window, 
-	 *           	value is sent on any modifications (while being modified, not just on release), 
-	 *           	changes to value must be explicitly sent to consumer (are not automatically sent)}    
-	 * @param tmpListObjVals : map of list object possible selection values
+	 *           	idx 0: value is sent to owning window,  
+	 *           	idx 1: value is sent on any modifications (while being modified, not just on release), 
+	 *           	idx 2: changes to value must be explicitly sent to consumer (are not automatically sent),
+	 *           the 6th element is a boolean array of format values :(unspecified values default to false)
+	 *           	idx 0: whether multi-line(stacked) or not                                                  
+	 *              idx 1: if true, build prefix ornament                                                      
+	 *              idx 2: if true and prefix ornament is built, make it the same color as the text fill color.
+	 * @param tmpListObjVals : map of string arrays, keyed by UI object idx, with array values being each element in the list
+	 * @param tmpBtnNamesArray : map of Object arrays to be built containing all button definitions, keyed by sequential value == objId
+	 * 				the first element is true label
+	 * 				the second element is false label
+	 * 				the third element is integer flag idx 
 	 */
 	@Override
-	protected void setupGUIObjsAras(TreeMap<Integer, Object[]> tmpUIObjArray, TreeMap<Integer, String[]> tmpListObjVals){	
-
+	protected void setupGUIObjsAras(TreeMap<Integer, Object[]> tmpUIObjArray, TreeMap<Integer, String[]> tmpListObjVals, TreeMap<Integer,Object[]> tmpBtnNamesArray){	
+		int idx=0;
+		tmpBtnNamesArray.put(idx++, uiMgr.uiObjInitAra_Btn(new String[] { "Debugging", "Debug"}, debugAnimIDX ));
 	}//setupGUIObjsAras
 	
 	
