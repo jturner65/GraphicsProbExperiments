@@ -133,7 +133,7 @@ public class GraphProbExpMain extends GUI_AppManager {
 		showInfo = true;
 		//titles and descs, need to be set before sidebar menu is defined
 		String[] _winTitles = new String[]{"","3D Exp Win","2D Exp Win","2D Ray Tracer","Grading Exp Win"},
-				_winDescr = new String[] {"", "3D environment to conduct and visualize experiments","2D environment to conduct and visualize experiments","2D ray tracing environment for probability experiments","2D Class Grade Experiment Visualization"};
+				_winDescr = new String[]{"", "3D environment to conduct and visualize experiments","2D environment to conduct and visualize experiments","2D ray tracing environment for probability experiments","2D Class Grade Experiment Visualization"};
 
 		//instanced window dims when open and closed - only showing 1 open at a time - and init cam vals
 		float[][] _floatDims  = getDefaultWinAndCameraDims();	
@@ -144,7 +144,7 @@ public class GraphProbExpMain extends GUI_AppManager {
 		String[][] menuBtnNames = new String[][] { // each must have literals for every button defined in side bar menu, or ignored
 			{"Test Rand Gen", "Test R Calc","Func 3"},	//row 1
 			{"Func 1", "Func 2", "Func 3", "Func 4"}};	//row 1
-		String[] dbgBtnNames = new String[] {"Debug 0","Debug 1","Debug 2","Debug 3","Debug 4"};
+		String[] dbgBtnNames = new String[]{"Debug 0","Debug 1","Debug 2","Debug 3","Debug 4"};
 		buildSideBarMenu(_winTitles, menuBtnTitles, menuBtnNames, dbgBtnNames, true, true);		
 
 		//define windows

@@ -62,7 +62,7 @@ public class Grade2DWindow extends Base_DispWindow {
 			gIDX_FuncTypeEvalList = Base_RandVarFunc.queryFuncTypes,
 			gIDX_ExpDistTypeList = ClassGradeExperiment.expType;	
 	
-	//private static final String[] noCosCompExpTypes = new String[] {"Linear", "Uniform Spaced"};
+	//private static final String[] noCosCompExpTypes = new String[]{"Linear", "Uniform Spaced"};
 
 	//////////////
 	// local/ui interactable boolean buttons
@@ -301,15 +301,15 @@ public class Grade2DWindow extends Base_DispWindow {
 		tmpUIObjArray.put(gIDX_FinalGradeExKurt, uiMgr.uiObjInitAra_Float(new double[]{0.0, 5.0,.01},			            finalGradeMmtns[3], "Final Grade Ex Kurt : "));
 		//min max modify values for each modifiable UI comp	
 		int idx=0;
-		tmpBtnNamesArray.put(idx++, uiMgr.uiObjInitAra_Btn(new String[] {"Rebuilding/reloading Grades",     "Rebuild/reload Grades"},            reCalcRandGradeSpread));       
-		tmpBtnNamesArray.put(idx++, uiMgr.uiObjInitAra_Btn(new String[] {"Rebuilding Final Grade Dist",     "Rebuild Final Grade Dist"},         reBuildFinalGradeDist));         
-		tmpBtnNamesArray.put(idx++, uiMgr.uiObjInitAra_Btn(new String[] {"Setting Current Grades as Glbl",  "Set Current Grades as Glbl"},       setCurrGrades));                 
-		tmpBtnNamesArray.put(idx++, uiMgr.uiObjInitAra_Btn(new String[] {"CosCDF 1 + sine x",               "CosCDF x + sine x"},                use1pSineCosCDF));                 
-		tmpBtnNamesArray.put(idx++, uiMgr.uiObjInitAra_Btn(new String[] {"Rebuild Class dist on move",      "Don't rebuild class dist on move"}, rebuildDistOnMove));              
-		tmpBtnNamesArray.put(idx++, uiMgr.uiObjInitAra_Btn(new String[] {"ZScore for final grades",         "Specific Dist for final grades"},   useZScore));                     
-		tmpBtnNamesArray.put(idx++, uiMgr.uiObjInitAra_Btn(new String[] {"Eval/Draw Func on Bounds",        "Eval/Draw Func on Bounds"},         drawFuncEval));                    
-		tmpBtnNamesArray.put(idx++, uiMgr.uiObjInitAra_Btn(new String[] {"Eval/Draw Hist of Dist",          "Eval/Draw Hist of Dist"},      		drawHistEval));                  
-		tmpBtnNamesArray.put(idx++, uiMgr.uiObjInitAra_Btn(new String[] {"Showing Cos To Gauss Dist",        "Compare Cos To Gauss Dist"},		drawMultiEval)); 
+		tmpBtnNamesArray.put(idx++, uiMgr.uiObjInitAra_Btn(new String[]{"Rebuilding/reloading Grades",     "Rebuild/reload Grades"},            reCalcRandGradeSpread));       
+		tmpBtnNamesArray.put(idx++, uiMgr.uiObjInitAra_Btn(new String[]{"Rebuilding Final Grade Dist",     "Rebuild Final Grade Dist"},         reBuildFinalGradeDist));         
+		tmpBtnNamesArray.put(idx++, uiMgr.uiObjInitAra_Btn(new String[]{"Setting Current Grades as Glbl",  "Set Current Grades as Glbl"},       setCurrGrades));                 
+		tmpBtnNamesArray.put(idx++, uiMgr.uiObjInitAra_Btn(new String[]{"CosCDF 1 + sine x",               "CosCDF x + sine x"},                use1pSineCosCDF));                 
+		tmpBtnNamesArray.put(idx++, uiMgr.uiObjInitAra_Btn(new String[]{"Rebuild Class dist on move",      "Don't rebuild class dist on move"}, rebuildDistOnMove));              
+		tmpBtnNamesArray.put(idx++, uiMgr.uiObjInitAra_Btn(new String[]{"ZScore for final grades",         "Specific Dist for final grades"},   useZScore));                     
+		tmpBtnNamesArray.put(idx++, uiMgr.uiObjInitAra_Btn(new String[]{"Eval/Draw Func on Bounds",        "Eval/Draw Func on Bounds"},         drawFuncEval));                    
+		tmpBtnNamesArray.put(idx++, uiMgr.uiObjInitAra_Btn(new String[]{"Eval/Draw Hist of Dist",          "Eval/Draw Hist of Dist"},      		drawHistEval));                  
+		tmpBtnNamesArray.put(idx++, uiMgr.uiObjInitAra_Btn(new String[]{"Showing Cos To Gauss Dist",        "Compare Cos To Gauss Dist"},		drawMultiEval)); 
 	}//setupGUIObjsAras
 	
 	/**
@@ -427,7 +427,7 @@ public class Grade2DWindow extends Base_DispWindow {
 		if(loadFromRosters) {//rebuild all for this
 			//TODO need to manage this
 			String _fileNameOfStudents = "";
-			String[] _fileNamesOfGrades = new String[] {""};
+			String[] _fileNamesOfGrades = new String[]{""};
 			gradeAvgExperiment.buildFileBasedGradeExp(_fileNameOfStudents, _fileNamesOfGrades, expTypeIDX,_finalGradeMappings,_finalGradeDescs);
 		} else {				
 			boolean[] flags = new boolean[] {rebuildStudents, rebuildClasses, rebuildGrades};

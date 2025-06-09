@@ -149,7 +149,7 @@ public class Alt2DWindow extends Base_DispWindow {
 	@Override
 	protected void setupGUIObjsAras(TreeMap<Integer, Object[]> tmpUIObjArray, TreeMap<Integer, String[]> tmpListObjVals, TreeMap<Integer,Object[]> tmpBtnNamesArray){	
 		int idx=0;
-		tmpBtnNamesArray.put(idx++, uiMgr.uiObjInitAra_Btn(new String[] { "Debugging", "Debug"}, debugAnimIDX ));
+		tmpBtnNamesArray.put(idx++, uiMgr.uiObjInitAra_Btn(new String[]{"Debugging", "Debug"}, debugAnimIDX));
 	}//setupGUIObjsAras
 	
 	

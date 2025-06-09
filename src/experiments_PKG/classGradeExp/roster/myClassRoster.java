@@ -40,7 +40,7 @@ public class myClassRoster extends mySampleSet{
 	protected float[] distPlotDimRect;
 	
 	//list of possible classifications of grades
-	public static final String[] transTypes = new String[] {"raw","uniform","uni_scaled"};
+	public static final String[] transTypes = new String[]{"raw","uniform","uni_scaled"};
 	
 	//idxs corresponding to trans types
 	public static final int

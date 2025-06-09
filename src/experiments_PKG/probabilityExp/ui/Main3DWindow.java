@@ -182,10 +182,10 @@ public class Main3DWindow extends Base_DispWindow {
 		tmpUIObjArray.put(gIDX_ExpLength, uiMgr.uiObjInitAra_Int(new double[]{1.0f, 1440, 1.0f}, 				720.0, "Experiment Duration")); 				//experiment length
 		tmpUIObjArray.put(gIDX_NumExpTrials	, uiMgr.uiObjInitAra_Int(new double[]{1.0f, 100, 1.0f}, 			1.0, "# Experimental Trials")); 	  			//# of experimental trials
 		int idx=0;
-		tmpBtnNamesArray.put(idx++, uiMgr.uiObjInitAra_Btn(new String[] {"Visualization Debug", "Enable Debug"}, Base_BoolFlags.debugIDX));
-		tmpBtnNamesArray.put(idx++, uiMgr.uiObjInitAra_Btn(new String[] {"Resetting Simulation", "Reset Simulation"}, resetSimIDX));  
-		tmpBtnNamesArray.put(idx++, uiMgr.uiObjInitAra_Btn(new String[] {"Drawing Vis", "Render Visualization"}, drawVisIDX));  
-		tmpBtnNamesArray.put(idx++, uiMgr.uiObjInitAra_Btn(new String[] {"Experimenting", "Conduct Experiment"}, conductExpIDX)); 	
+		tmpBtnNamesArray.put(idx++, uiMgr.uiObjInitAra_Btn(new String[]{"Visualization Debug", "Enable Debug"}, Base_BoolFlags.debugIDX));
+		tmpBtnNamesArray.put(idx++, uiMgr.uiObjInitAra_Btn(new String[]{"Resetting Simulation", "Reset Simulation"}, resetSimIDX));  
+		tmpBtnNamesArray.put(idx++, uiMgr.uiObjInitAra_Btn(new String[]{"Drawing Vis", "Render Visualization"}, drawVisIDX));  
+		tmpBtnNamesArray.put(idx++, uiMgr.uiObjInitAra_Btn(new String[]{"Experimenting", "Conduct Experiment"}, conductExpIDX)); 	
 	}//setupGUIObjsAras
 
 	/**
