@@ -13,6 +13,7 @@ import base_UI_Objects.GUI_AppManager;
 import base_UI_Objects.windowUI.base.Base_DispWindow;
 import base_UI_Objects.windowUI.drawnTrajectories.DrawnSimpleTraj;
 import base_UI_Objects.windowUI.uiData.UIDataUpdater;
+import base_UI_Objects.windowUI.uiObjs.base.GUIObj_Params;
 import base_Utils_Objects.io.messaging.MsgCodes;
 import experiments_PKG.classGradeExp.experiment.ClassGradeExperiment;
 
@@ -258,58 +259,64 @@ public class Grade2DWindow extends Base_DispWindow {
 	
 	private void clearAllPlotsButMe(int meIDX) {for(int idx : showPlotIDXs) {if(idx==meIDX) continue;uiMgr.setPrivFlag(idx, false);}}//clearAllPlotsButMe		
 	private boolean isShowingPlots() {for(int idx : showPlotIDXs) {if(uiMgr.getPrivFlag(idx)) return true;}	return false;}//isShowingPlots
-	
+
 	/**
 	 * Build all UI objects to be shown in left side bar menu for this window.  This is the first child class function called by initThisWin
-	 * @param tmpUIObjArray : map of object data, keyed by UI object idx, with array values being :                    
-	 *           the first element double array of min/max/mod values                                                   
-	 *           the 2nd element is starting value                                                                      
-	 *           the 3rd elem is label for object                                                                       
-	 *           the 4th element is object type (GUIObj_Type enum)
-	 *           the 5th element is boolean array of : (unspecified values default to false)
+	 * @param tmpUIObjMap : map of GUIObj_Params, keyed by unique string, with values describing the UI object
+	 * 			- The object IDX                   
+	 *          - A double array of min/max/mod values                                                   
+	 *          - The starting value                                                                      
+	 *          - The label for object                                                                       
+	 *          - The object type (GUIObj_Type enum)
+	 *          - A boolean array of behavior configuration values : (unspecified values default to false)
 	 *           	idx 0: value is sent to owning window,  
 	 *           	idx 1: value is sent on any modifications (while being modified, not just on release), 
 	 *           	idx 2: changes to value must be explicitly sent to consumer (are not automatically sent),
-	 *           the 6th element is a boolean array of format values :(unspecified values default to false)
+	 *          - A boolean array of renderer format values :(unspecified values default to false)
 	 *           	idx 0: whether multi-line(stacked) or not                                                  
 	 *              idx 1: if true, build prefix ornament                                                      
 	 *              idx 2: if true and prefix ornament is built, make it the same color as the text fill color.
-	 * @param tmpListObjVals : map of string arrays, keyed by UI object idx, with array values being each element in the list
-	 * @param tmpBtnNamesArray : map of Object arrays to be built containing all button definitions, keyed by sequential value == objId
-	 * 				the first element is true label
-	 * 				the second element is false label
-	 * 				the third element is integer flag idx 
 	 */
 	@Override
-	protected void setupGUIObjsAras(TreeMap<Integer, Object[]> tmpUIObjArray, TreeMap<Integer, String[]> tmpListObjVals, TreeMap<Integer,Object[]> tmpBtnNamesArray){
-		
-		tmpListObjVals.put(gIDX_FuncTypeEval,gIDX_FuncTypeEvalList);
-		tmpListObjVals.put(gIDX_ExpDistType,gIDX_ExpDistTypeList);
-		
-		tmpUIObjArray.put(gIDX_NumStudents, uiMgr.uiObjInitAra_Int(new double[]{2,100,1},									numStudents,        "Number of Students : "));
-		tmpUIObjArray.put(gIDX_NumClasses, uiMgr.uiObjInitAra_Int(new double[]{1,9,1},									numClasses,         "Number of Classes : "));
-		tmpUIObjArray.put(gIDX_ExpDistType, uiMgr.uiObjInitAra_List(new double[]{0,gIDX_ExpDistTypeList.length-1,1},   	expTypeIDX,         "Exp Mapping Type : "));
-		tmpUIObjArray.put(gIDX_FuncTypeEval, uiMgr.uiObjInitAra_List(new double[]{0,gIDX_FuncTypeEvalList.length-1,1}, 	funcEvalType,       "Plot Eval Func Type : "));
-		tmpUIObjArray.put(gIDX_FuncEvalLower, uiMgr.uiObjInitAra_Float(new double[]{-10.0, 10.0,.01},			            funcEvalLow,        "Plot Eval Func Low : "));
-		tmpUIObjArray.put(gIDX_FuncEvalHigher, uiMgr.uiObjInitAra_Float(new double[]{-10.0, 10.0,.01},			        funcEvalHigh,       "Plot Eval Func High : "));
-		tmpUIObjArray.put(gIDX_FuncEvalNumVals, uiMgr.uiObjInitAra_Int(new double[]{10000,1000000,1000},                  funcEvalNumVals,    "Plot Eval Func # Vals : ")); 
-		tmpUIObjArray.put(gIDX_FuncEvalNumBkts, uiMgr.uiObjInitAra_Int(new double[]{10,1000,1},                           funcEvalNumBuckets, "Plot Eval Func # Bkts (dist) : "));
-		tmpUIObjArray.put(gIDX_FinalGradeNumMmnts, uiMgr.uiObjInitAra_Int(new double[]{2, 4, .1},			                finalGradeNumMmnts, "Final Grade # Momments (2-4) : "));
-		tmpUIObjArray.put(gIDX_FinalGradeMean, uiMgr.uiObjInitAra_Float(new double[]{0.0, 1.0,.01},			            finalGradeMmtns[0], "Final Grade Mean : ")); 
-		tmpUIObjArray.put(gIDX_FinalGradeSTD, uiMgr.uiObjInitAra_Float(new double[]{0.0, 1.0,.01},				        finalGradeMmtns[1], "Final Grade Std Dev : ")); 
-		tmpUIObjArray.put(gIDX_FinalGradeSkew, uiMgr.uiObjInitAra_Float(new double[]{-5.0,5.0,.01},			            finalGradeMmtns[2], "Final Grade Skew : ")); 
-		tmpUIObjArray.put(gIDX_FinalGradeExKurt, uiMgr.uiObjInitAra_Float(new double[]{0.0, 5.0,.01},			            finalGradeMmtns[3], "Final Grade Ex Kurt : "));
-		//min max modify values for each modifiable UI comp	
-		int idx=0;
-		tmpBtnNamesArray.put(idx++, uiMgr.uiObjInitAra_Btn(new String[]{"Rebuilding/reloading Grades",     "Rebuild/reload Grades"},            reCalcRandGradeSpread));       
-		tmpBtnNamesArray.put(idx++, uiMgr.uiObjInitAra_Btn(new String[]{"Rebuilding Final Grade Dist",     "Rebuild Final Grade Dist"},         reBuildFinalGradeDist));         
-		tmpBtnNamesArray.put(idx++, uiMgr.uiObjInitAra_Btn(new String[]{"Setting Current Grades as Glbl",  "Set Current Grades as Glbl"},       setCurrGrades));                 
-		tmpBtnNamesArray.put(idx++, uiMgr.uiObjInitAra_Btn(new String[]{"CosCDF 1 + sine x",               "CosCDF x + sine x"},                use1pSineCosCDF));                 
-		tmpBtnNamesArray.put(idx++, uiMgr.uiObjInitAra_Btn(new String[]{"Rebuild Class dist on move",      "Don't rebuild class dist on move"}, rebuildDistOnMove));              
-		tmpBtnNamesArray.put(idx++, uiMgr.uiObjInitAra_Btn(new String[]{"ZScore for final grades",         "Specific Dist for final grades"},   useZScore));                     
-		tmpBtnNamesArray.put(idx++, uiMgr.uiObjInitAra_Btn(new String[]{"Eval/Draw Func on Bounds",        "Eval/Draw Func on Bounds"},         drawFuncEval));                    
-		tmpBtnNamesArray.put(idx++, uiMgr.uiObjInitAra_Btn(new String[]{"Eval/Draw Hist of Dist",          "Eval/Draw Hist of Dist"},      		drawHistEval));                  
-		tmpBtnNamesArray.put(idx++, uiMgr.uiObjInitAra_Btn(new String[]{"Showing Cos To Gauss Dist",        "Compare Cos To Gauss Dist"},		drawMultiEval)); 
+	protected final void setupGUIObjsAras(TreeMap<String, GUIObj_Params> tmpUIObjMap){
+		//keyed by object idx (uiXXXIDX), entries are lists of values to use for list select ui objects
+		tmpUIObjMap.put("gIDX_NumStudents", uiMgr.uiObjInitAra_Int(gIDX_NumStudents, new double[]{2,100,1}, numStudents, "Number of Students : "));
+		tmpUIObjMap.put("gIDX_NumClasses", uiMgr.uiObjInitAra_Int(gIDX_NumClasses, new double[]{1,9,1}, numClasses, "Number of Classes : "));
+		tmpUIObjMap.put("gIDX_ExpDistType", uiMgr.uiObjInitAra_List(gIDX_ExpDistType, expTypeIDX, "Exp Mapping Type : ", gIDX_ExpDistTypeList));
+		tmpUIObjMap.put("gIDX_FuncTypeEval", uiMgr.uiObjInitAra_List(gIDX_FuncTypeEval, funcEvalType, "Plot Eval Func Type : ", gIDX_ExpDistTypeList));
+		tmpUIObjMap.put("gIDX_FuncEvalLower", uiMgr.uiObjInitAra_Float(gIDX_FuncEvalLower, new double[]{-10.0, 10.0,.01}, funcEvalLow, "Plot Eval Func Low : "));
+		tmpUIObjMap.put("gIDX_FuncEvalHigher", uiMgr.uiObjInitAra_Float(gIDX_FuncEvalHigher, new double[]{-10.0, 10.0,.01}, funcEvalHigh, "Plot Eval Func High : "));
+		tmpUIObjMap.put("gIDX_FuncEvalNumVals", uiMgr.uiObjInitAra_Int(gIDX_FuncEvalNumVals, new double[]{10000,1000000,1000}, funcEvalNumVals, "Plot Eval Func # Vals : ")); 
+		tmpUIObjMap.put("gIDX_FuncEvalNumBkts", uiMgr.uiObjInitAra_Int(gIDX_FuncEvalNumBkts, new double[]{10,1000,1}, funcEvalNumBuckets, "Plot Eval Func # Bkts (dist) : "));
+		tmpUIObjMap.put("gIDX_FinalGradeNumMmnts", uiMgr.uiObjInitAra_Int(gIDX_FinalGradeNumMmnts, new double[]{2, 4, .1}, finalGradeNumMmnts, "Final Grade # Momments (2-4) : "));
+		tmpUIObjMap.put("gIDX_FinalGradeMean", uiMgr.uiObjInitAra_Float(gIDX_FinalGradeMean, new double[]{0.0, 1.0,.01}, finalGradeMmtns[0], "Final Grade Mean : ")); 
+		tmpUIObjMap.put("gIDX_FinalGradeSTD", uiMgr.uiObjInitAra_Float(gIDX_FinalGradeSTD, new double[]{0.0, 1.0,.01}, finalGradeMmtns[1], "Final Grade Std Dev : ")); 
+		tmpUIObjMap.put("gIDX_FinalGradeSkew", uiMgr.uiObjInitAra_Float(gIDX_FinalGradeSkew, new double[]{-5.0,5.0,.01}, finalGradeMmtns[2], "Final Grade Skew : ")); 
+		tmpUIObjMap.put("gIDX_FinalGradeExKurt", uiMgr.uiObjInitAra_Float(gIDX_FinalGradeExKurt, new double[]{0.0, 5.0,.01}, finalGradeMmtns[3], "Final Grade Ex Kurt : "));
+	}//setupGUIObjsAras
+	
+	/**
+	 * Build UI button objects to be shown in left side bar menu for this window.  This is the first child class function called by initThisWin
+	 * @param firstIdx : the first index to use in the map/as the objIdx
+	 * @param tmpUIBtnObjMap : map of GUIObj_Params to be built containing all button definitions, keyed by sequential value == objId
+	 * 				the first element is the object index
+	 * 				the second element is true label
+	 * 				the third element is false label
+	 * 				the final element is integer flag idx 
+	 */
+	@Override
+	protected final void setupGUIBtnAras(int firstIdx, TreeMap<String, GUIObj_Params> tmpUIBtnObjMap) {		
+		//add an entry for each button, in the order they are wished to be displayed
+		int idx=firstIdx;
+		tmpUIBtnObjMap.put("Button_"+idx, uiMgr.uiObjInitAra_Btn(idx++, "button_"+idx, "Rebuilding/reloading Grades",     "Rebuild/reload Grades",            reCalcRandGradeSpread));       
+		tmpUIBtnObjMap.put("Button_"+idx, uiMgr.uiObjInitAra_Btn(idx++, "button_"+idx, "Rebuilding Final Grade Dist",     "Rebuild Final Grade Dist",         reBuildFinalGradeDist));         
+		tmpUIBtnObjMap.put("Button_"+idx, uiMgr.uiObjInitAra_Btn(idx++, "button_"+idx, "Setting Current Grades as Glbl",  "Set Current Grades as Glbl",       setCurrGrades));                 
+		tmpUIBtnObjMap.put("Button_"+idx, uiMgr.uiObjInitAra_Btn(idx++, "button_"+idx, "CosCDF 1 + sine x",               "CosCDF x + sine x",                use1pSineCosCDF));                 
+		tmpUIBtnObjMap.put("Button_"+idx, uiMgr.uiObjInitAra_Btn(idx++, "button_"+idx, "Rebuild Class dist on move",      "Don't rebuild class dist on move", rebuildDistOnMove));              
+		tmpUIBtnObjMap.put("Button_"+idx, uiMgr.uiObjInitAra_Btn(idx++, "button_"+idx, "ZScore for final grades",         "Specific Dist for final grades",   useZScore));                     
+		tmpUIBtnObjMap.put("Button_"+idx, uiMgr.uiObjInitAra_Btn(idx++, "button_"+idx, "Eval/Draw Func on Bounds",        "Eval/Draw Func on Bounds",         drawFuncEval));                    
+		tmpUIBtnObjMap.put("Button_"+idx, uiMgr.uiObjInitAra_Btn(idx++, "button_"+idx, "Eval/Draw Hist of Dist",          "Eval/Draw Hist of Dist",      		drawHistEval));                  
+		tmpUIBtnObjMap.put("Button_"+idx, uiMgr.uiObjInitAra_Btn(idx++, "button_"+idx, "Showing Cos To Gauss Dist",        "Compare Cos To Gauss Dist",		drawMultiEval)); 
 	}//setupGUIObjsAras
 	
 	/**

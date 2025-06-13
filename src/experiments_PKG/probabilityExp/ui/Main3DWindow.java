@@ -11,6 +11,7 @@ import base_UI_Objects.GUI_AppManager;
 import base_UI_Objects.windowUI.base.Base_DispWindow;
 import base_UI_Objects.windowUI.drawnTrajectories.DrawnSimpleTraj;
 import base_UI_Objects.windowUI.uiData.UIDataUpdater;
+import base_UI_Objects.windowUI.uiObjs.base.GUIObj_Params;
 import base_Utils_Objects.io.messaging.MsgCodes;
 import base_Utils_Objects.tools.flags.Base_BoolFlags;
 import experiments_PKG.probabilityExp.experiment.myProbExpMgr;
@@ -155,37 +156,43 @@ public class Main3DWindow extends Base_DispWindow {
 		
 	/**
 	 * Build all UI objects to be shown in left side bar menu for this window.  This is the first child class function called by initThisWin
-	 * @param tmpUIObjArray : map of object data, keyed by UI object idx, with array values being :                    
-	 *           the first element double array of min/max/mod values                                                   
-	 *           the 2nd element is starting value                                                                      
-	 *           the 3rd elem is label for object                                                                       
-	 *           the 4th element is object type (GUIObj_Type enum)
-	 *           the 5th element is boolean array of : (unspecified values default to false)
+	 * @param tmpUIObjMap : map of GUIObj_Params, keyed by unique string, with values describing the UI object
+	 * 			- The object IDX                   
+	 *          - A double array of min/max/mod values                                                   
+	 *          - The starting value                                                                      
+	 *          - The label for object                                                                       
+	 *          - The object type (GUIObj_Type enum)
+	 *          - A boolean array of behavior configuration values : (unspecified values default to false)
 	 *           	idx 0: value is sent to owning window,  
 	 *           	idx 1: value is sent on any modifications (while being modified, not just on release), 
 	 *           	idx 2: changes to value must be explicitly sent to consumer (are not automatically sent),
-	 *           the 6th element is a boolean array of format values :(unspecified values default to false)
+	 *          - A boolean array of renderer format values :(unspecified values default to false)
 	 *           	idx 0: whether multi-line(stacked) or not                                                  
 	 *              idx 1: if true, build prefix ornament                                                      
 	 *              idx 2: if true and prefix ornament is built, make it the same color as the text fill color.
-	 * @param tmpListObjVals : map of string arrays, keyed by UI object idx, with array values being each element in the list
-	 * @param tmpBtnNamesArray : map of Object arrays to be built containing all button definitions, keyed by sequential value == objId
+	 */
+	@Override
+	protected final void setupGUIObjsAras(TreeMap<String, GUIObj_Params> tmpUIObjMap){	
+		//msgObj.dispInfoMessage(className,"setupGUIObjsAras","start");
+		tmpUIObjMap.put("gIDX_FrameTimeScale ", uiMgr.uiObjInitAra_Float(gIDX_FrameTimeScale, new double[]{1.0f,10000.0f,1.0f},	frameTimeScale, "Sim Speed Multiplier"));  	//time scaling - 1 is real time, 1000 is 1000x speedup           		gIDX_FrameTimeScale 
+		tmpUIObjMap.put("gIDX_ExpLength", uiMgr.uiObjInitAra_Int(gIDX_ExpLength, new double[]{1.0f, 1440, 1.0f}, 				720.0, "Experiment Duration")); 				//experiment length
+		tmpUIObjMap.put("gIDX_NumExpTrials	", uiMgr.uiObjInitAra_Int(gIDX_NumExpTrials, new double[]{1.0f, 100, 1.0f}, 			1.0, "# Experimental Trials")); 	  			//# of experimental trials
+	}//setupGUIObjsAras
+	/**
+	 * Build UI button objects to be shown in left side bar menu for this window.  This is the first child class function called by initThisWin
+	 * @param firstIdx : the first index to use in the map/as the objIdx
+	 * @param tmpUIBtnObjMap : map of GUIObj_Params to be built containing all button definitions, keyed by sequential value == objId
 	 * 				the first element is true label
 	 * 				the second element is false label
 	 * 				the third element is integer flag idx 
 	 */
 	@Override
-	protected void setupGUIObjsAras(TreeMap<Integer, Object[]> tmpUIObjArray, TreeMap<Integer, String[]> tmpListObjVals, TreeMap<Integer,Object[]> tmpBtnNamesArray){		
-		//msgObj.dispInfoMessage(className,"setupGUIObjsAras","start");
-		
-		tmpUIObjArray.put(gIDX_FrameTimeScale , uiMgr.uiObjInitAra_Float(new double[]{1.0f,10000.0f,1.0f},	frameTimeScale, "Sim Speed Multiplier"));  	//time scaling - 1 is real time, 1000 is 1000x speedup           		gIDX_FrameTimeScale 
-		tmpUIObjArray.put(gIDX_ExpLength, uiMgr.uiObjInitAra_Int(new double[]{1.0f, 1440, 1.0f}, 				720.0, "Experiment Duration")); 				//experiment length
-		tmpUIObjArray.put(gIDX_NumExpTrials	, uiMgr.uiObjInitAra_Int(new double[]{1.0f, 100, 1.0f}, 			1.0, "# Experimental Trials")); 	  			//# of experimental trials
-		int idx=0;
-		tmpBtnNamesArray.put(idx++, uiMgr.uiObjInitAra_Btn(new String[]{"Visualization Debug", "Enable Debug"}, Base_BoolFlags.debugIDX));
-		tmpBtnNamesArray.put(idx++, uiMgr.uiObjInitAra_Btn(new String[]{"Resetting Simulation", "Reset Simulation"}, resetSimIDX));  
-		tmpBtnNamesArray.put(idx++, uiMgr.uiObjInitAra_Btn(new String[]{"Drawing Vis", "Render Visualization"}, drawVisIDX));  
-		tmpBtnNamesArray.put(idx++, uiMgr.uiObjInitAra_Btn(new String[]{"Experimenting", "Conduct Experiment"}, conductExpIDX)); 	
+	protected final void setupGUIBtnAras(int firstIdx, TreeMap<String, GUIObj_Params> tmpUIBtnObjMap) {
+		int idx=firstIdx;
+		tmpUIBtnObjMap.put("Button_"+idx, uiMgr.buildDebugButton(idx++,"Visualization Debug", "Enable Debug"));
+		tmpUIBtnObjMap.put("Button_"+idx, uiMgr.uiObjInitAra_Btn(idx++, "button_"+idx, "Resetting Simulation", "Reset Simulation", resetSimIDX));  
+		tmpUIBtnObjMap.put("Button_"+idx, uiMgr.uiObjInitAra_Btn(idx++, "button_"+idx, "Drawing Vis", "Render Visualization", drawVisIDX));  
+		tmpUIBtnObjMap.put("Button_"+idx, uiMgr.uiObjInitAra_Btn(idx++, "button_"+idx, "Experimenting", "Conduct Experiment", conductExpIDX)); 	
 	}//setupGUIObjsAras
 
 	/**
