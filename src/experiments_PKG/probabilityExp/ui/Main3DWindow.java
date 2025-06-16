@@ -136,7 +136,7 @@ public class Main3DWindow extends Base_DispWindow {
 				//simExec.setExecFlags(mySimExecutive.debugExecIDX,val);
 				break;}
 			case resetSimIDX			: {
-				//if(val) {simExec.initSimExec(true); addPrivBtnToClear(resetSimIDX);}
+				//if(val) {simExec.initSimExec(true); addPrivSwitchToClear(resetSimIDX);}
 				break;}
 			case drawVisIDX				:{
 				//simExec.setExecFlags(mySimExecutive.drawVisIDX, val);
@@ -146,7 +146,7 @@ public class Main3DWindow extends Base_DispWindow {
 //				if(val) {
 //					simExec.initializeTrials((int) uiVals[gIDX_ExpLength], (int) uiVals[gIDX_NumExpTrials], true);
 //					ri.setFlags(ri.runSim, true);
-//					addPrivBtnToClear(conductExpIDX);
+//					addPrivSwitchToClear(conductExpIDX);
 //				} 
 				break;}
 		
@@ -181,18 +181,18 @@ public class Main3DWindow extends Base_DispWindow {
 	/**
 	 * Build UI button objects to be shown in left side bar menu for this window.  This is the first child class function called by initThisWin
 	 * @param firstIdx : the first index to use in the map/as the objIdx
-	 * @param tmpUIBtnObjMap : map of GUIObj_Params to be built containing all button definitions, keyed by sequential value == objId
+	 * @param tmpUIBoolSwitchObjMap : map of GUIObj_Params to be built containing all flag-backed boolean switch definitions, keyed by sequential value == objId
 	 * 				the first element is true label
 	 * 				the second element is false label
 	 * 				the third element is integer flag idx 
 	 */
 	@Override
-	protected final void setupGUIBtnAras(int firstIdx, TreeMap<String, GUIObj_Params> tmpUIBtnObjMap) {
+	protected final void setupGUIBoolSwitchAras(int firstIdx, TreeMap<String, GUIObj_Params> tmpUIBoolSwitchObjMap) {
 		int idx=firstIdx;
-		tmpUIBtnObjMap.put("Button_"+idx, uiMgr.buildDebugButton(idx++,"Visualization Debug", "Enable Debug"));
-		tmpUIBtnObjMap.put("Button_"+idx, uiMgr.uiObjInitAra_Btn(idx++, "button_"+idx, "Resetting Simulation", "Reset Simulation", resetSimIDX));  
-		tmpUIBtnObjMap.put("Button_"+idx, uiMgr.uiObjInitAra_Btn(idx++, "button_"+idx, "Drawing Vis", "Render Visualization", drawVisIDX));  
-		tmpUIBtnObjMap.put("Button_"+idx, uiMgr.uiObjInitAra_Btn(idx++, "button_"+idx, "Experimenting", "Conduct Experiment", conductExpIDX)); 	
+		tmpUIBoolSwitchObjMap.put("Button_"+idx, uiMgr.buildDebugButton(idx++,"Visualization Debug", "Enable Debug"));
+		tmpUIBoolSwitchObjMap.put("Button_"+idx, uiMgr.uiObjInitAra_Switch(idx++, "button_"+idx, "Resetting Simulation", "Reset Simulation", resetSimIDX));  
+		tmpUIBoolSwitchObjMap.put("Button_"+idx, uiMgr.uiObjInitAra_Switch(idx++, "button_"+idx, "Drawing Vis", "Render Visualization", drawVisIDX));  
+		tmpUIBoolSwitchObjMap.put("Button_"+idx, uiMgr.uiObjInitAra_Switch(idx++, "button_"+idx, "Experimenting", "Conduct Experiment", conductExpIDX)); 	
 	}//setupGUIObjsAras
 
 	/**

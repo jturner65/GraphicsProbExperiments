@@ -184,7 +184,7 @@ public class Grade2DWindow extends Base_DispWindow {
 			case reCalcRandGradeSpread : {//build new grade distribution
 				if (val) {
 					setGradeExp(false, false, true, false);
-					addPrivBtnToClear(reCalcRandGradeSpread);
+					addPrivSwitchToClear(reCalcRandGradeSpread);
 					uiMgr.setPrivFlag(drawHistEval, false);
 					uiMgr.setPrivFlag(drawFuncEval, false);
 				}
@@ -196,7 +196,7 @@ public class Grade2DWindow extends Base_DispWindow {
 			case reBuildFinalGradeDist :{		//rebuild final grade dist and mappings using current ui values
 				if(val) {
 					setFinalGradeVals();
-					addPrivBtnToClear(reBuildFinalGradeDist);
+					addPrivSwitchToClear(reBuildFinalGradeDist);
 				}
 				break;}		
 			
@@ -251,7 +251,7 @@ public class Grade2DWindow extends Base_DispWindow {
 			case setCurrGrades : {
 				if(val) {
 					gradeAvgExperiment.updateGlblGrades();
-					addPrivBtnToClear(setCurrGrades);
+					addPrivSwitchToClear(setCurrGrades);
 				}
 				break;}
 		}//switch
@@ -298,25 +298,25 @@ public class Grade2DWindow extends Base_DispWindow {
 	/**
 	 * Build UI button objects to be shown in left side bar menu for this window.  This is the first child class function called by initThisWin
 	 * @param firstIdx : the first index to use in the map/as the objIdx
-	 * @param tmpUIBtnObjMap : map of GUIObj_Params to be built containing all button definitions, keyed by sequential value == objId
+	 * @param tmpUIBoolSwitchObjMap : map of GUIObj_Params to be built containing all flag-backed boolean switch definitions, keyed by sequential value == objId
 	 * 				the first element is the object index
 	 * 				the second element is true label
 	 * 				the third element is false label
 	 * 				the final element is integer flag idx 
 	 */
 	@Override
-	protected final void setupGUIBtnAras(int firstIdx, TreeMap<String, GUIObj_Params> tmpUIBtnObjMap) {		
+	protected final void setupGUIBoolSwitchAras(int firstIdx, TreeMap<String, GUIObj_Params> tmpUIBoolSwitchObjMap) {		
 		//add an entry for each button, in the order they are wished to be displayed
 		int idx=firstIdx;
-		tmpUIBtnObjMap.put("Button_"+idx, uiMgr.uiObjInitAra_Btn(idx++, "button_"+idx, "Rebuilding/reloading Grades",     "Rebuild/reload Grades",            reCalcRandGradeSpread));       
-		tmpUIBtnObjMap.put("Button_"+idx, uiMgr.uiObjInitAra_Btn(idx++, "button_"+idx, "Rebuilding Final Grade Dist",     "Rebuild Final Grade Dist",         reBuildFinalGradeDist));         
-		tmpUIBtnObjMap.put("Button_"+idx, uiMgr.uiObjInitAra_Btn(idx++, "button_"+idx, "Setting Current Grades as Glbl",  "Set Current Grades as Glbl",       setCurrGrades));                 
-		tmpUIBtnObjMap.put("Button_"+idx, uiMgr.uiObjInitAra_Btn(idx++, "button_"+idx, "CosCDF 1 + sine x",               "CosCDF x + sine x",                use1pSineCosCDF));                 
-		tmpUIBtnObjMap.put("Button_"+idx, uiMgr.uiObjInitAra_Btn(idx++, "button_"+idx, "Rebuild Class dist on move",      "Don't rebuild class dist on move", rebuildDistOnMove));              
-		tmpUIBtnObjMap.put("Button_"+idx, uiMgr.uiObjInitAra_Btn(idx++, "button_"+idx, "ZScore for final grades",         "Specific Dist for final grades",   useZScore));                     
-		tmpUIBtnObjMap.put("Button_"+idx, uiMgr.uiObjInitAra_Btn(idx++, "button_"+idx, "Eval/Draw Func on Bounds",        "Eval/Draw Func on Bounds",         drawFuncEval));                    
-		tmpUIBtnObjMap.put("Button_"+idx, uiMgr.uiObjInitAra_Btn(idx++, "button_"+idx, "Eval/Draw Hist of Dist",          "Eval/Draw Hist of Dist",      		drawHistEval));                  
-		tmpUIBtnObjMap.put("Button_"+idx, uiMgr.uiObjInitAra_Btn(idx++, "button_"+idx, "Showing Cos To Gauss Dist",        "Compare Cos To Gauss Dist",		drawMultiEval)); 
+		tmpUIBoolSwitchObjMap.put("Button_"+idx, uiMgr.uiObjInitAra_Switch(idx++, "button_"+idx, "Rebuilding/reloading Grades",     "Rebuild/reload Grades",            reCalcRandGradeSpread));       
+		tmpUIBoolSwitchObjMap.put("Button_"+idx, uiMgr.uiObjInitAra_Switch(idx++, "button_"+idx, "Rebuilding Final Grade Dist",     "Rebuild Final Grade Dist",         reBuildFinalGradeDist));         
+		tmpUIBoolSwitchObjMap.put("Button_"+idx, uiMgr.uiObjInitAra_Switch(idx++, "button_"+idx, "Setting Current Grades as Glbl",  "Set Current Grades as Glbl",       setCurrGrades));                 
+		tmpUIBoolSwitchObjMap.put("Button_"+idx, uiMgr.uiObjInitAra_Switch(idx++, "button_"+idx, "CosCDF 1 + sine x",               "CosCDF x + sine x",                use1pSineCosCDF));                 
+		tmpUIBoolSwitchObjMap.put("Button_"+idx, uiMgr.uiObjInitAra_Switch(idx++, "button_"+idx, "Rebuild Class dist on move",      "Don't rebuild class dist on move", rebuildDistOnMove));              
+		tmpUIBoolSwitchObjMap.put("Button_"+idx, uiMgr.uiObjInitAra_Switch(idx++, "button_"+idx, "ZScore for final grades",         "Specific Dist for final grades",   useZScore));                     
+		tmpUIBoolSwitchObjMap.put("Button_"+idx, uiMgr.uiObjInitAra_Switch(idx++, "button_"+idx, "Eval/Draw Func on Bounds",        "Eval/Draw Func on Bounds",         drawFuncEval));                    
+		tmpUIBoolSwitchObjMap.put("Button_"+idx, uiMgr.uiObjInitAra_Switch(idx++, "button_"+idx, "Eval/Draw Hist of Dist",          "Eval/Draw Hist of Dist",      		drawHistEval));                  
+		tmpUIBoolSwitchObjMap.put("Button_"+idx, uiMgr.uiObjInitAra_Switch(idx++, "button_"+idx, "Showing Cos To Gauss Dist",        "Compare Cos To Gauss Dist",		drawMultiEval)); 
 	}//setupGUIObjsAras
 	
 	/**
