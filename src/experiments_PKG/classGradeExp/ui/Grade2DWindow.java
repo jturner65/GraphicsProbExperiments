@@ -261,7 +261,7 @@ public class Grade2DWindow extends Base_DispWindow {
 	private boolean isShowingPlots() {for(int idx : showPlotIDXs) {if(uiMgr.getPrivFlag(idx)) return true;}	return false;}//isShowingPlots
 
 	/**
-	 * Build all UI objects to be shown in left side bar menu for this window.  This is the first child class function called by initThisWin
+	 * Build all UI objects to be shown in left side bar menu for this window. This is the first child class function called by initThisWin
 	 * @param tmpUIObjMap : map of GUIObj_Params, keyed by unique string, with values describing the UI object
 	 * 			- The object IDX                   
 	 *          - A double array of min/max/mod values                                                   
@@ -272,10 +272,13 @@ public class Grade2DWindow extends Base_DispWindow {
 	 *           	idx 0: value is sent to owning window,  
 	 *           	idx 1: value is sent on any modifications (while being modified, not just on release), 
 	 *           	idx 2: changes to value must be explicitly sent to consumer (are not automatically sent),
-	 *          - A boolean array of renderer format values :(unspecified values default to false)
-	 *           	idx 0: whether multi-line(stacked) or not                                                  
-	 *              idx 1: if true, build prefix ornament                                                      
-	 *              idx 2: if true and prefix ornament is built, make it the same color as the text fill color.
+	 *          - A boolean array of renderer format values :(unspecified values default to false) - Behavior Boolean array must also be provided!
+	 * 				idx 0 : Should be multiline
+	 * 				idx 1 : One object per row in UI space (i.e. default for multi-line and btn objects is false, single line non-buttons is true)
+	 * 				idx 2 : Text should be centered (default is false)
+	 * 				idx 3 : Object should be rendered with outline (default for btns is true, for non-buttons is false)
+	 * 				idx 4 : Should have ornament
+	 * 				idx 5 : Ornament color should match label color 
 	 */
 	@Override
 	protected final void setupGUIObjsAras(TreeMap<String, GUIObj_Params> tmpUIObjMap){
@@ -308,16 +311,16 @@ public class Grade2DWindow extends Base_DispWindow {
 	protected final void setupGUIBoolSwitchAras(int firstIdx, TreeMap<String, GUIObj_Params> tmpUIBoolSwitchObjMap) {		
 		//add an entry for each button, in the order they are wished to be displayed
 		int idx=firstIdx;
-		tmpUIBoolSwitchObjMap.put("Button_"+idx, uiMgr.uiObjInitAra_Switch(idx++, "button_"+idx, "Rebuilding/reloading Grades",     "Rebuild/reload Grades",            reCalcRandGradeSpread));       
-		tmpUIBoolSwitchObjMap.put("Button_"+idx, uiMgr.uiObjInitAra_Switch(idx++, "button_"+idx, "Rebuilding Final Grade Dist",     "Rebuild Final Grade Dist",         reBuildFinalGradeDist));         
-		tmpUIBoolSwitchObjMap.put("Button_"+idx, uiMgr.uiObjInitAra_Switch(idx++, "button_"+idx, "Setting Current Grades as Glbl",  "Set Current Grades as Glbl",       setCurrGrades));                 
-		tmpUIBoolSwitchObjMap.put("Button_"+idx, uiMgr.uiObjInitAra_Switch(idx++, "button_"+idx, "CosCDF 1 + sine x",               "CosCDF x + sine x",                use1pSineCosCDF));                 
-		tmpUIBoolSwitchObjMap.put("Button_"+idx, uiMgr.uiObjInitAra_Switch(idx++, "button_"+idx, "Rebuild Class dist on move",      "Don't rebuild class dist on move", rebuildDistOnMove));              
-		tmpUIBoolSwitchObjMap.put("Button_"+idx, uiMgr.uiObjInitAra_Switch(idx++, "button_"+idx, "ZScore for final grades",         "Specific Dist for final grades",   useZScore));                     
-		tmpUIBoolSwitchObjMap.put("Button_"+idx, uiMgr.uiObjInitAra_Switch(idx++, "button_"+idx, "Eval/Draw Func on Bounds",        "Eval/Draw Func on Bounds",         drawFuncEval));                    
-		tmpUIBoolSwitchObjMap.put("Button_"+idx, uiMgr.uiObjInitAra_Switch(idx++, "button_"+idx, "Eval/Draw Hist of Dist",          "Eval/Draw Hist of Dist",      		drawHistEval));                  
-		tmpUIBoolSwitchObjMap.put("Button_"+idx, uiMgr.uiObjInitAra_Switch(idx++, "button_"+idx, "Showing Cos To Gauss Dist",        "Compare Cos To Gauss Dist",		drawMultiEval)); 
-	}//setupGUIObjsAras
+		tmpUIBoolSwitchObjMap.put("Button_"+idx, uiMgr.uiObjInitAra_Switch(idx, "button_"+idx++, "Rebuilding/reloading Grades",     "Rebuild/reload Grades",            reCalcRandGradeSpread));       
+		tmpUIBoolSwitchObjMap.put("Button_"+idx, uiMgr.uiObjInitAra_Switch(idx, "button_"+idx++, "Rebuilding Final Grade Dist",     "Rebuild Final Grade Dist",         reBuildFinalGradeDist));         
+		tmpUIBoolSwitchObjMap.put("Button_"+idx, uiMgr.uiObjInitAra_Switch(idx, "button_"+idx++, "Setting Current Grades as Glbl",  "Set Current Grades as Glbl",       setCurrGrades));                 
+		tmpUIBoolSwitchObjMap.put("Button_"+idx, uiMgr.uiObjInitAra_Switch(idx, "button_"+idx++, "CosCDF 1 + sine x",               "CosCDF x + sine x",                use1pSineCosCDF));                 
+		tmpUIBoolSwitchObjMap.put("Button_"+idx, uiMgr.uiObjInitAra_Switch(idx, "button_"+idx++, "Rebuild Class dist on move",      "Don't rebuild class dist on move", rebuildDistOnMove));              
+		tmpUIBoolSwitchObjMap.put("Button_"+idx, uiMgr.uiObjInitAra_Switch(idx, "button_"+idx++, "ZScore for final grades",         "Specific Dist for final grades",   useZScore));                     
+		tmpUIBoolSwitchObjMap.put("Button_"+idx, uiMgr.uiObjInitAra_Switch(idx, "button_"+idx++, "Eval/Draw Func on Bounds",        "Eval/Draw Func on Bounds",         drawFuncEval));                    
+		tmpUIBoolSwitchObjMap.put("Button_"+idx, uiMgr.uiObjInitAra_Switch(idx, "button_"+idx++, "Eval/Draw Hist of Dist",          "Eval/Draw Hist of Dist",      		drawHistEval));                  
+		tmpUIBoolSwitchObjMap.put("Button_"+idx, uiMgr.uiObjInitAra_Switch(idx, "button_"+idx++, "Showing Cos To Gauss Dist",        "Compare Cos To Gauss Dist",		drawMultiEval)); 
+	}//setupGUIBoolSwitchAras
 	
 	/**
 	 * Called if int-handling guiObjs_Numeric[UIidx] (int or list) has new data which updated UI adapter. 
