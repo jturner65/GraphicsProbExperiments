@@ -8,19 +8,19 @@ import java.math.RoundingMode;
 import java.util.function.Function;
 
 public class TestGauss {
-	
+    
     static BigDecimal evalPoly(BigDecimal [][] lcoef, int n, BigDecimal x) {
-    	BigDecimal  res = lcoef[n][n];
+        BigDecimal  res = lcoef[n][n];
         for (int i = n; i > 0; --i) {res = (res.multiply(x)).add(lcoef[n][i - 1]);}
         return res;
     }
  
     static BigDecimal[][] computeLegendreWeightsXvals(int numPoints, double tol) {
-    	int legScale = 18;
-    	BigDecimal[] xVals = new BigDecimal[numPoints],  wts = new BigDecimal[numPoints];
-    	BigDecimal[][] lcoef = new BigDecimal[numPoints + 1][numPoints + 1];
-    	for(int i=0;i<lcoef.length;++i) {for(int j=0;j<lcoef[i].length;++j) {lcoef[i][j]=new BigDecimal(0.0);}}
-    	//build coefficients of polynomials
+        int legScale = 18;
+        BigDecimal[] xVals = new BigDecimal[numPoints],  wts = new BigDecimal[numPoints];
+        BigDecimal[][] lcoef = new BigDecimal[numPoints + 1][numPoints + 1];
+        for(int i=0;i<lcoef.length;++i) {for(int j=0;j<lcoef[i].length;++j) {lcoef[i][j]=new BigDecimal(0.0);}}
+        //build coefficients of polynomials
         lcoef[0][0] = new BigDecimal(1.0); 
         lcoef[1][1] = new BigDecimal(1.0);
         BigDecimal negNm1BD, twoNm1BD, nBD;
@@ -34,7 +34,7 @@ public class TestGauss {
             negNm1BD = new BigDecimal(-nm1);
             lcoef[n][0] = (negNm1BD.multiply(lcoef[nm2][0])).divide(nBD, legScale,RoundingMode.HALF_UP); 
             for (int i = 1; i <= n; ++i) {
-            	//System.out.println("n:"+n+" i:"+i);
+                //System.out.println("n:"+n+" i:"+i);
                 lcoef[n][i] = ((twoNm1BD.multiply(lcoef[nm1][i-1])).add(negNm1BD.multiply(lcoef[nm2][i]))).divide(nBD, legScale,RoundingMode.HALF_UP );
             }
         }
@@ -44,7 +44,7 @@ public class TestGauss {
         for (int i = 1; i <= xVals.length; ++i) {
             x = new BigDecimal(cos(PiOvnp5 * (i - 0.25)));
             do {//repeat until converges
-            	x1 = new BigDecimal(x.toString());
+                x1 = new BigDecimal(x.toString());
                 legEvalN = evalPoly(lcoef,numPoints, x);
                 legEvalNm1 = evalPoly(lcoef,numPoints-1, x);
                 xSq = x.multiply(x);
@@ -54,7 +54,7 @@ public class TestGauss {
             xSq = x.multiply(x);
             xVals[i-1] = new BigDecimal(x.toString());
             legEvalN = evalPoly(lcoef,numPoints, x);
-            legEvalNm1 = evalPoly(lcoef,numPoints-1, x);            	
+            legEvalNm1 = evalPoly(lcoef,numPoints-1, x);                
             x1 = (((x.multiply(legEvalN)).subtract(legEvalNm1)).divide(xSq.subtract(BigDecimal.ONE), legScale,RoundingMode.HALF_UP)).multiply(numPointsBD);//legeDiff(lcoef,numPoints, x);
             BigDecimal denom = ((BigDecimal.ONE.subtract(xSq)).multiply(x1.multiply(x1)));
             wts[i-1] = new BigDecimal(2.0);
@@ -64,21 +64,21 @@ public class TestGauss {
     }
  
     static BigDecimal legeInte(Function<Double, Double> f, double a, double b, BigDecimal[][] vals) {
-    	BigDecimal c1 = new BigDecimal((b - a) / 2.0), 
-        		c2 =  new BigDecimal((b + a) / 2.0); 
-    	BigDecimal sum = new BigDecimal(0);
+        BigDecimal c1 = new BigDecimal((b - a) / 2.0), 
+                c2 =  new BigDecimal((b + a) / 2.0); 
+        BigDecimal sum = new BigDecimal(0);
         for (int i = 0; i < vals[0].length; ++i) {  
-        	sum = sum.add(vals[1][i].multiply(new BigDecimal(f.apply(c1.multiply(vals[0][i]).add(c2).doubleValue()))));
+            sum = sum.add(vals[1][i].multiply(new BigDecimal(f.apply(c1.multiply(vals[0][i]).add(c2).doubleValue()))));
         }
         
         return c1.multiply(sum);
     }
  
     public static void main(String[] args) {
-    	double xLow = -10, xHigh = 1.0, tol=1.0e-16;
-    	int N = 40;//(int)((xHigh - xLow) * 1.2)+1;
-    	if (N<10) {N=10;}
-    	BigDecimal[][] vals = computeLegendreWeightsXvals(N,tol);
+        double xLow = -10, xHigh = 1.0, tol=1.0e-16;
+        int N = 40;//(int)((xHigh - xLow) * 1.2)+1;
+        if (N<10) {N=10;}
+        BigDecimal[][] vals = computeLegendreWeightsXvals(N,tol);
         System.out.print(""+N+" Roots found ");
         //double sclFact = 1.0/Math.sqrt(2.0*Math.PI);//for normal
         double ErfCoef = 2.0/Math.sqrt(Math.PI);//for error function
