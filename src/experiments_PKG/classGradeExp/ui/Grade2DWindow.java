@@ -11,6 +11,7 @@ import base_ProbTools.randGenFunc.funcs.base.Base_RandVarFunc;
 import base_Render_Interface.IRenderInterface;
 import base_UI_Objects.GUI_AppManager;
 import base_UI_Objects.windowUI.base.Base_DispWindow;
+import base_UI_Objects.windowUI.base.GUI_AppWinVals;
 import base_UI_Objects.windowUI.drawnTrajectories.DrawnSimpleTraj;
 import base_UI_Objects.windowUI.uiData.UIDataUpdater;
 import base_UI_Objects.windowUI.uiObjs.base.GUIObj_Params;
@@ -131,7 +132,15 @@ public class Grade2DWindow extends Base_DispWindow {
 //        setPrivFlags(use1pSineCosCDF, true);
     
     }//    
-  
+    /**
+     * This function implements the instantiation of a child window owned by this window, if such exists.
+     * The implementation should be similar to how the main windows are implemented in GUI_AppManager::initAllDispWindows.
+     * If no child window exists, this implementation of this function can be empty
+     * 
+     * @param GUI_AppWinVals the window control values for the child window.
+     */
+    @Override
+    protected final void buildAndSetChildWindow_Indiv(GUI_AppWinVals _appVals) {}   
     /**
      * Retrieve the total number of defined privFlags booleans (application-specific state bools and interactive buttons)
      */

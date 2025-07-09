@@ -205,8 +205,15 @@ public class GraphProbExpMain extends GUI_AppManager {
                 new int[]{disp1stWinIDX, disp2ndWinIDX, disp2DRayTracerIDX, dispGradeWinIDX},
                 new int[]{disp1stWinIDX, disp2ndWinIDX, disp2DRayTracerIDX, dispGradeWinIDX});
 
-        
     }//initAllDispWindows
+    
+    /**
+     * Map indexed by window ID, holding an array of the titles (idx 0) and descriptions (idx 1) for every sub window
+     * return null if none exist, and only put an entry in the map if one exists for that window
+     * @return
+     */
+    @Override
+    protected final HashMap<Integer, String[]> getSubWindowTitles(){ return null;}
         
     @Override
     //called from base class, once at start of program after vis init is called
