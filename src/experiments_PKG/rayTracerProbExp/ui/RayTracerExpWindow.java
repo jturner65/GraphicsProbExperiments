@@ -5,7 +5,7 @@ import java.util.LinkedHashMap;
 
 import base_RayTracer.ui.base.Base_RayTracerUIUpdater;
 import base_RayTracer.ui.base.Base_RayTracerWin;
-import base_Render_Interface.IRenderInterface;
+import base_Render_Interface.IGraphicsAppInterface;
 import base_UI_Objects.GUI_AppManager;
 import base_UI_Objects.windowUI.base.GUI_AppWinVals;
 import base_UI_Objects.windowUI.uiObjs.base.GUIObj_Params;
@@ -28,9 +28,9 @@ public class RayTracerExpWindow extends Base_RayTracerWin {
      * @param _winIdx
      * @param _flagIdx
      */
-    public RayTracerExpWindow(IRenderInterface _p, GUI_AppManager _AppMgr, int _winIdx) {
+    public RayTracerExpWindow(IGraphicsAppInterface _p, GUI_AppManager _AppMgr, int _winIdx) {
         super(_p, _AppMgr, _winIdx);
-        super.initThisWin(false);
+        
     }
 
     @Override

@@ -1,6 +1,6 @@
 package experiments_PKG.classGradeExp;
 
-import base_Render_Interface.IRenderInterface;
+import base_Render_Interface.IGraphicsAppInterface;
 import base_StatsTools.visualization.base.baseVisMgr;
 import experiments_PKG.classGradeExp.experiment.myStudent;
 import experiments_PKG.classGradeExp.roster.myClassRoster;
@@ -40,7 +40,7 @@ public class myGradeDistVisBar extends baseVisMgr {
     public static final int[] greyOff = new int[] {100,100,100,255};
     
     //specific color constructor - used to set up overall grade bar for a single class
-    public myGradeDistVisBar(myClassRoster _owningClass, IRenderInterface _pa, float[] _dims, String _typ, int[] _barColor, String _name) {
+    public myGradeDistVisBar(myClassRoster _owningClass, IGraphicsAppInterface _pa, float[] _dims, String _typ, int[] _barColor, String _name) {
         super(_pa, new float[] {_dims[0],_dims[1], _barStX + (_dims[2]*barWidthMult) ,_dims[3]}, _name);
         gradeType=_typ;
         setIsVisible(true);            //default bar to being visible

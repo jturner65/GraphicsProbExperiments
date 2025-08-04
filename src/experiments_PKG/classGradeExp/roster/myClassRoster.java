@@ -5,7 +5,7 @@ import java.util.HashMap;
 import base_Math_Objects.MyMathUtils;
 import base_ProbTools.randGenFunc.gens.base.Base_RandGen;
 import base_ProbTools.samples.mySampleSet;
-import base_Render_Interface.IRenderInterface;
+import base_Render_Interface.IGraphicsAppInterface;
 import base_StatsTools.summary.myProbSummary_Dbls;
 import base_StatsTools.visualization.myDistFuncHistVisMgr;
 import base_StatsTools.visualization.base.baseVisMgr;
@@ -23,7 +23,7 @@ public class myClassRoster extends mySampleSet{
     /**
      * 
      */
-    public static IRenderInterface ri;
+    public static IGraphicsAppInterface ri;
     //structure holding references to the students in this class - students need to be created external to class and added
     protected HashMap<Integer,myStudent> students;
 
@@ -65,7 +65,7 @@ public class myClassRoster extends mySampleSet{
     
     private myFinalGradeRoster _finalGrades;            //ref to final grade roster
     
-    public myClassRoster(IRenderInterface _ri, ClassGradeExperiment _gradeExp, String _name, float[][] _barLocs) {
+    public myClassRoster(IGraphicsAppInterface _ri, ClassGradeExperiment _gradeExp, String _name, float[][] _barLocs) {
         super(_name);
         ri = _ri;
         initFlags();
@@ -369,7 +369,7 @@ public class myClassRoster extends mySampleSet{
 ////special class for uniform mapping just to manage requirement to have all data values set - won't use any transform
 //class myUniformCountFinalGradeRoster extends myFinalGradeRoster {
 //
-//    public myUniformCountFinalGradeRoster(IRenderInterface _pa, ClassGradeExperiment _gradeExp, String _name,float[][] _barLocs) {
+//    public myUniformCountFinalGradeRoster(IGraphicsAppInterface _pa, ClassGradeExperiment _gradeExp, String _name,float[][] _barLocs) {
 //        super(_pa, _gradeExp, _name, _barLocs);
 //    }
 //    //this is not used to set grades

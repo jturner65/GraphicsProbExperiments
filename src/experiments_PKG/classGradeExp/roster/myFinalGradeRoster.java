@@ -3,7 +3,7 @@ package experiments_PKG.classGradeExp.roster;
 import java.util.HashMap;
 
 import base_ProbTools.randGenFunc.gens.base.Base_RandGen;
-import base_Render_Interface.IRenderInterface;
+import base_Render_Interface.IGraphicsAppInterface;
 import base_StatsTools.summary.myProbSummary_Dbls;
 import experiments_PKG.classGradeExp.experiment.ClassGradeExperiment;
 import experiments_PKG.classGradeExp.experiment.myStudent;
@@ -21,7 +21,7 @@ public class myFinalGradeRoster extends myClassRoster {
     //whether or not to use zscore calc for final grades
     private boolean useZScore;
     
-    public myFinalGradeRoster(IRenderInterface _ri, ClassGradeExperiment _gradeExp, String _name, float[][] _barLocs) {
+    public myFinalGradeRoster(IGraphicsAppInterface _ri, ClassGradeExperiment _gradeExp, String _name, float[][] _barLocs) {
         super(_ri, _gradeExp, _name, _barLocs);
         useZScore = false;
     }//ctor

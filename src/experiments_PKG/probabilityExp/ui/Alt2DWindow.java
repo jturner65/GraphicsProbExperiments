@@ -6,7 +6,7 @@ import java.util.LinkedHashMap;
 
 import base_Math_Objects.vectorObjs.doubles.myPoint;
 import base_Math_Objects.vectorObjs.doubles.myVector;
-import base_Render_Interface.IRenderInterface;
+import base_Render_Interface.IGraphicsAppInterface;
 import base_UI_Objects.GUI_AppManager;
 import base_UI_Objects.windowUI.base.Base_DispWindow;
 import base_UI_Objects.windowUI.base.GUI_AppWinVals;
@@ -50,9 +50,9 @@ public class Alt2DWindow extends Base_DispWindow {
 
     private myProbExpMgr tester;
     
-    public Alt2DWindow(IRenderInterface _p, GUI_AppManager _AppMgr, int _winIdx) {
+    public Alt2DWindow(IGraphicsAppInterface _p, GUI_AppManager _AppMgr, int _winIdx) {
         super(_p, _AppMgr, _winIdx);
-        super.initThisWin(false);
+        
     }
     
     /**
@@ -79,6 +79,7 @@ public class Alt2DWindow extends Base_DispWindow {
      * This function implements the instantiation of a child window owned by this window, if such exists.
      * The implementation should be similar to how the main windows are implemented in GUI_AppManager::initAllDispWindows.
      * If no child window exists, this implementation of this function can be empty
+     * If a child window is instantiated, it MUST have its init called (childWin.initThisWin(false))
      * 
      * @param GUI_AppWinVals the window control values for the child window.
      */

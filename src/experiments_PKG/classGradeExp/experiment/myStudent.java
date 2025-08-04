@@ -5,7 +5,7 @@ import java.util.HashMap;
 import base_Math_Objects.vectorObjs.floats.myPointf;
 import base_ProbTools.samples.mySampleObs;
 import base_ProbTools.samples.mySampleSet;
-import base_Render_Interface.IRenderInterface;
+import base_Render_Interface.IGraphicsAppInterface;
 import experiments_PKG.classGradeExp.roster.myClassRoster;
 
 /**
@@ -140,7 +140,7 @@ public class myStudent implements Comparable<myStudent> {
     
     //////////////////
     // draw this student on line of width ttlWidth - expected to be at start of line when this is called
-    public void drawMeTransformed(IRenderInterface pa, String _type, mySampleSet _class, int[] _drawClr, float ttlWidth) {    
+    public void drawMeTransformed(IGraphicsAppInterface pa, String _type, mySampleSet _class, int[] _drawClr, float ttlWidth) {    
         HashMap<mySampleSet, mySampleObs> classValsForType = grades.get(_type);
         if (classValsForType==null) {                    return;    }// no values for this type for any classes set yet         
         mySampleObs smplVal = classValsForType.get(_class);            //grade for class for specified type
@@ -148,13 +148,13 @@ public class myStudent implements Comparable<myStudent> {
         float gr = smplVal.getFValue();
         drawSample(pa,smplVal.getTextLoc(), rad, _drawClr, new myPointf(ttlWidth*gr, 0.0f, 0.0f), shrtName +":"+ String.format("%.1f",gr * 100.0f));        
     }//drawMeTransformed
-    public void drawSample(IRenderInterface ri, myPointf textLoc, float rad, int[] _drawClr, myPointf _transLoc, String _dispName) {
+    public void drawSample(IGraphicsAppInterface ri, myPointf textLoc, float rad, int[] _drawClr, myPointf _transLoc, String _dispName) {
         ri.pushMatState();
         ri.translate(_transLoc);
         ri.setFill(_drawClr,255); ri.setStroke(new int[]{0,0,0},255);            
         ri.drawEllipse2D(0,0,rad,rad); 
         ri.drawEllipse2D(0.0f,0.0f,2.0f,2.0f);
-        ri.setColorValFill(IRenderInterface.gui_White, 255);ri.setColorValStroke(IRenderInterface.gui_White, 255);
+        ri.setColorValFill(IGraphicsAppInterface.gui_White, 255);ri.setColorValStroke(IGraphicsAppInterface.gui_White, 255);
         ri.showText(_dispName, textLoc.x, textLoc.y, textLoc.z); 
         ri.popMatState();
     }//drawMe

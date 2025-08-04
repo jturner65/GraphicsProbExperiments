@@ -4,7 +4,7 @@ import java.util.concurrent.ThreadLocalRandom;
 
 import base_ProbTools.baseProbExpMgr;
 import base_ProbTools.randGenFunc.gens.base.Base_RandGen;
-import base_Render_Interface.IRenderInterface;
+import base_Render_Interface.IGraphicsAppInterface;
 import base_StatsTools.summary.myProbSummary_Dbls;
 import base_UI_Objects.windowUI.base.Base_DispWindow;
 import base_Utils_Objects.dataAdapter.Base_DataAdapter;
@@ -15,7 +15,7 @@ import experiments_PKG.probabilityExp.ui.GrapProbUIDataUpdater;
  *
  */
 public class myProbExpMgr extends baseProbExpMgr{    
-    public IRenderInterface ri;
+    public IGraphicsAppInterface ri;
     
     public Base_DispWindow win;
     //random # generator

@@ -8,7 +8,7 @@ import base_Math_Objects.MyMathUtils;
 import base_ProbTools.baseProbExpMgr;
 import base_ProbTools.randGenFunc.gens.myFleishUniVarRandGen;
 import base_ProbTools.randGenFunc.gens.base.Base_RandGen;
-import base_Render_Interface.IRenderInterface;
+import base_Render_Interface.IGraphicsAppInterface;
 import base_StatsTools.summary.myProbSummary_Dbls;
 import base_Utils_Objects.dataAdapter.Base_DataAdapter;
 import experiments_PKG.classGradeExp.roster.myClassRoster;
@@ -21,7 +21,7 @@ import experiments_PKG.classGradeExp.ui.Grade2DWindow;
  * @param 
  */
 public class ClassGradeExperiment extends baseProbExpMgr{
-    public static IRenderInterface ri;
+    public static IGraphicsAppInterface ri;
     //Owning window
     protected Grade2DWindow win;
     //structure holding all classes
