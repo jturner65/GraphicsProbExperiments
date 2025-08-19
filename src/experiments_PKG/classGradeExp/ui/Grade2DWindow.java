@@ -10,6 +10,7 @@ import base_ProbTools.baseProbExpMgr;
 import base_ProbTools.randGenFunc.funcs.base.Base_RandVarFunc;
 import base_Render_Interface.IGraphicsAppInterface;
 import base_UI_Objects.GUI_AppManager;
+import base_UI_Objects.baseApp.GUI_AppUIFlags;
 import base_UI_Objects.windowUI.base.Base_DispWindow;
 import base_UI_Objects.windowUI.base.GUI_AppWinVals;
 import base_UI_Objects.windowUI.drawnTrajectories.DrawnSimpleTraj;
@@ -109,13 +110,13 @@ public class Grade2DWindow extends Base_DispWindow {
      * Initialize any UI control flags appropriate for all boids window application
      */
     @Override
-    protected final void initDispFlags() {
+    protected final void initDispFlags(GUI_AppUIFlags appUIFlags) {
         //this window is runnable
         dispFlags.setIsRunnable(true);
         //this window uses a customizable camera
         dispFlags.setUseCustCam(true);
         // capable of using right side menu
-        dispFlags.setHasRtSideMenu(true);
+        dispFlags.setHasRtSideInfoDisp(true);
     }        
     
     @Override
@@ -400,16 +401,17 @@ public class Grade2DWindow extends Base_DispWindow {
                 finalGradeMmtns[2] = val;    
                 double skewSQ = finalGradeMmtns[2] * finalGradeMmtns[2], bound = -1.2264489 + 1.6410373*skewSQ;
                 double minVal = (bound > 0 ? bound : 0);
-                uiMgr.setNewUIMinVal(UIidx, minVal);
-                uiMgr.setNewUIMaxVal(UIidx, (minVal + 1)* 10.0);                
+                uiMgr.forceNewUIMinVal(UIidx, minVal);
+                uiMgr.forceNewUIMaxVal(UIidx, (minVal + 1)* 10.0);                
                 //guiObjs_Numeric[gIDX_FinalGradeExKurt].setNewMin((bound > 0 ? bound : 0));
                 //guiObjs_Numeric[gIDX_FinalGradeExKurt].setNewMax((guiObjs_Numeric[gIDX_FinalGradeExKurt].getMinVal()+1)*10);
                 break;}   
             case gIDX_FinalGradeExKurt      :     {        //Exkurtosis is  skewness vals for fleishman polynomial
                 //verify legitimate kurt for fleishman dist
-                double skewSQ = finalGradeMmtns[2] * finalGradeMmtns[2], bound = -1.2264489 + 1.6410373*skewSQ; 
+                double skewSQ = finalGradeMmtns[2] * finalGradeMmtns[2], 
+                        bound = -1.2264489 + 1.6410373*skewSQ; 
                 finalGradeMmtns[3] = (val < bound ? bound : val) ;
-                uiMgr.setNewUIValue(UIidx, finalGradeMmtns[3]);
+                uiMgr.forceNewUIValue(UIidx, finalGradeMmtns[3]);
                 //guiObjs_Numeric[UIidx].setVal(finalGradeMmtns[3]);            
                 break;}    
             default : {
@@ -471,7 +473,7 @@ public class Grade2DWindow extends Base_DispWindow {
 
     
     @Override
-    protected void drawMe(float animTimeMod) {
+    protected void drawMe(float animTimeMod, boolean isGlblAppDebug) {
         ri.pushMatState();
         ri.translate(winInitVals.rectDim[0],0,0);
         //all drawing stuff goes here
@@ -480,20 +482,20 @@ public class Grade2DWindow extends Base_DispWindow {
     }
 
     @Override
-    protected void drawOnScreenStuffPriv(float modAmtMillis) {
+    protected void drawOnScreenStuffPriv(float modAmtMillis, boolean isGlblAppDebug) {
     }
 
     @Override
     //draw 2d constructs over 3d area on screen - draws behind left menu section
     //modAmtMillis is in milliseconds
-    protected void drawRightSideInfoBarPriv(float modAmtMillis) {
+    protected void drawRightSideInfoBarPriv(float modAmtMillis, boolean isGlblAppDebug) {
         ri.pushMatState();
         //display current simulation variables - call sim world through sim exec
         //simExec.des.drawResultBar(pa, UIrectBox,  yOff);
         ri.popMatState();                    
     }//drawOnScreenStuff
     @Override
-    public void drawCustMenuObjs(float animTimeMod) {}//drawCustMenuObjs
+    public void drawCustMenuObjs(float animTimeMod, boolean isGlblAppDebug) {}//drawCustMenuObjs
     
     //manage any functionality specific to this window that needs to be recalced when the visibile dims of the window change
     @Override

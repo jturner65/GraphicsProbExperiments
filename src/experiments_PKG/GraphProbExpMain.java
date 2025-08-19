@@ -112,25 +112,25 @@ public class GraphProbExpMain extends GUI_AppManager {
      */
     @Override
     protected final MsgCodes getMinLogMsgCodes() {return null;}
-    
-    /**
-     * determine which main flags to show at upper left of menu 
-     */
+
     @Override
-    protected void initBaseFlags_Indiv() {
-        setBaseFlagToShow_debugMode(true);
-        setBaseFlagToShow_saveAnim(true); 
-        setBaseFlagToShow_runSim(false);
-        setBaseFlagToShow_singleStep(false);
-        setBaseFlagToShow_showRtSideMenu(true);    
-        setBaseFlagToShow_showStatusBar(true);
-        setBaseFlagToShow_showDrawableCanvas(false);
-    }
+    protected boolean hideAppFlag_DebugMode() {             return false;}
+    @Override
+    protected boolean hideAppFlag_SaveAnim() {              return false;}
+    @Override
+    protected boolean hideAppFlag_RunSim() {                return true;}
+    @Override
+    protected boolean hideAppFlag_SingleStep() {            return true;}
+    @Override
+    protected boolean hideAppFlag_showRtSideInfoDisp() {    return false;}
+    @Override
+    protected boolean hideAppFlag_showStatusBar() {         return false;}
+    @Override
+    protected boolean hideAppFlag_showCanvas() {            return true;}
 
     @Override
     //build windows here
     protected void initAllDispWindows() {
-        showInfo = true;
         //titles and descs, need to be set before sidebar menu is defined
         String[] _winTitles = new String[]{"","3D Exp Win","2D Exp Win","2D Ray Tracer","Grading Exp Win"},
                 _winDescr = new String[]{"", "3D environment to conduct and visualize experiments","2D environment to conduct and visualize experiments","2D ray tracing environment for probability experiments","2D Class Grade Experiment Visualization"};
@@ -219,7 +219,6 @@ public class GraphProbExpMain extends GUI_AppManager {
     //called from base class, once at start of program after vis init is called
     protected void initOnce_Indiv(){
         setWinVisFlag(dispGradeWinIDX, true);
-        setShowStatusBar(true);
     }//    initOnce
     
     @Override
@@ -237,7 +236,7 @@ public class GraphProbExpMain extends GUI_AppManager {
      * @param is3DDraw
      */
     @Override
-    protected void drawMePost_Indiv(float modAmtMillis, boolean is3DDraw) {}
+    protected void drawMePost_Indiv(float modAmtMillis, boolean is3DDraw, boolean isGlblAppDebug) {}
 
     //////////////////////////////////////////////////////
     /// user interaction

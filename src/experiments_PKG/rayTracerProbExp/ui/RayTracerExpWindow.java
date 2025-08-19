@@ -133,7 +133,7 @@ public class RayTracerExpWindow extends Base_RayTracerWin {
     protected boolean setUI_FloatValsCustom_Indiv(int UIidx, float val, float oldVal) {return false;}
 
     @Override
-    protected void drawMe_Indiv(float animTimeMod) {
+    protected void drawMe_Indiv(float animTimeMod, boolean isGlblAppDebug) {
         ri.pushMatState();
         ri.translate(winInitVals.rectDim[0],0,0);
         //all drawing stuff goes here
@@ -142,10 +142,10 @@ public class RayTracerExpWindow extends Base_RayTracerWin {
     }
 
     @Override
-    protected void drawRightSideInfoBarPriv_Indiv(float modAmtMillis) {}
+    protected void drawRightSideInfoBarPriv_Indiv(float modAmtMillis, boolean isGlblAppDebug) {}
 
     @Override
-    protected void drawCustMenuObjs_Indiv() {}
+    protected void drawCustMenuObjs_Indiv(boolean isGlblAppDebug) {}
 
     @Override
     protected void setVisScreenDimsPriv_Indiv() {}

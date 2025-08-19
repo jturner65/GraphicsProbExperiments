@@ -8,6 +8,7 @@ import base_Math_Objects.vectorObjs.doubles.myPoint;
 import base_Math_Objects.vectorObjs.doubles.myVector;
 import base_Render_Interface.IGraphicsAppInterface;
 import base_UI_Objects.GUI_AppManager;
+import base_UI_Objects.baseApp.GUI_AppUIFlags;
 import base_UI_Objects.windowUI.base.Base_DispWindow;
 import base_UI_Objects.windowUI.base.GUI_AppWinVals;
 import base_UI_Objects.windowUI.drawnTrajectories.DrawnSimpleTraj;
@@ -75,13 +76,13 @@ public class Main3DWindow extends Base_DispWindow {
      * Initialize any UI control flags appropriate for all boids window application
      */
     @Override
-    protected final void initDispFlags() {
+    protected final void initDispFlags(GUI_AppUIFlags appUIFlags) {
         //this window is runnable
         dispFlags.setIsRunnable(true);
         //this window uses a customizable camera
         dispFlags.setUseCustCam(true);
         // capable of using right side menu
-        dispFlags.setHasRtSideMenu(true);
+        dispFlags.setHasRtSideInfoDisp(true);
     }
         
     @Override
@@ -267,12 +268,12 @@ public class Main3DWindow extends Base_DispWindow {
     }//simMe
     
     @Override
-    protected void drawOnScreenStuffPriv(float modAmtMillis) {}
+    protected void drawOnScreenStuffPriv(float modAmtMillis, boolean isGlblAppDebug) {}
 
     @Override
     //draw 2d constructs over 3d area on screen - draws behind left menu section
     //modAmtMillis is in milliseconds
-    protected void drawRightSideInfoBarPriv(float modAmtMillis) {
+    protected void drawRightSideInfoBarPriv(float modAmtMillis, boolean isGlblAppDebug) {
         ri.pushMatState();
         //display current simulation variables - call sim world through sim exec
         //simExec.des.drawResultBar(pa, UIrectBox, yOff);
@@ -281,7 +282,7 @@ public class Main3DWindow extends Base_DispWindow {
     
     @Override
     //animTimeMod is in seconds.
-    protected void drawMe(float animTimeMod) {
+    protected void drawMe(float animTimeMod, boolean isGlblAppDebug) {
 //        curMseLookVec = ri.c.getMse2DtoMse3DinWorld(ri.sceneOriginVals[ri.sceneIDX]);            //need to be here
 //        curMseLoc3D = ri.c.getMseLoc(ri.sceneOriginVals[ri.sceneIDX]);
         
@@ -293,7 +294,7 @@ public class Main3DWindow extends Base_DispWindow {
      * draw custom 2d constructs below interactive component of menu
      */
     @Override
-    public void drawCustMenuObjs(float animTimeMod){}//drawCustMenuObjs
+    public void drawCustMenuObjs(float animTimeMod, boolean isGlblAppDebug){}//drawCustMenuObjs
 
     //manage any functionality specific to this window that needs to be recalced when the visibile dims of the window change
     @Override
