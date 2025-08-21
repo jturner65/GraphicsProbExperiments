@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 
 import base_Math_Objects.vectorObjs.doubles.myPoint;
-import base_Math_Objects.vectorObjs.doubles.myVector;
 import base_ProbTools.baseProbExpMgr;
 import base_ProbTools.randGenFunc.funcs.base.Base_RandVarFunc;
 import base_Render_Interface.IGraphicsAppInterface;
@@ -665,19 +664,19 @@ public class Grade2DWindow extends Base_DispWindow {
     }
 
     @Override
-    protected boolean hndlMouseMove_Indiv(int mouseX, int mouseY, myPoint mseClckInWorld){
+    protected boolean hndlMouseMove_Indiv(int mouseX, int mouseY){
         boolean res = chkMouseMoveDragState2D(mouseX, mouseY, -1);
         return res;
     }
     //alt key pressed handles trajectory
     //cntl key pressed handles unfocus of spherey
     @Override
-    protected boolean hndlMouseClick_Indiv(int mouseX, int mouseY, myPoint mseClckInWorld, int mseBtn) {    
+    protected boolean hndlMouseClick_Indiv(int mouseX, int mouseY, int mseBtn) {    
         boolean res = chkMouseClick2D(mouseX, mouseY, mseBtn);
         
         return res;}//hndlMouseClickIndiv
     @Override
-    protected boolean hndlMouseDrag_Indiv(int mouseX, int mouseY, int pmouseX, int pmouseY, myPoint mouseClickIn3D, myVector mseDragInWorld, int mseBtn) {
+    protected boolean hndlMouseDrag_Indiv(int mouseX, int mouseY, int pmouseX, int pmouseY, int mseBtn) {
         boolean res = false;
         if(!res) {
             res = chkMouseMoveDragState2D(mouseX, mouseY, mseBtn);
